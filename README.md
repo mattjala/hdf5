@@ -1,5 +1,7 @@
 # Experimental
 
+This repo contains the modified source code of HDF5 r1.14.2. The code will be used to prototype changes for multi-threaded support before creating PRs to the HDF5 develop branch. This is for Lifeboat's internal use only but anyone is welcome to watch our progress.
+
 This repo contains the source code of HDF5 r1.14.2 as the main branch.
 HDF5 version 1.14.2 released on 2023-08-11
 
@@ -85,4 +87,3 @@ Source packages for current and previous releases are located at:
 Development code is available at our Github location:
     
    https://github.com/HDFGroup/hdf5.git
-
