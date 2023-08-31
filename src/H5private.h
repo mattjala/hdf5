@@ -50,7 +50,7 @@
 #endif
 
 /* Include the Pthreads header, if necessary */
-#if defined(H5_HAVE_THREADSAFE) && defined(H5_HAVE_PTHREAD_H)
+#if (defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)) && defined(H5_HAVE_PTHREAD_H)
 #include <pthread.h>
 #endif
 
@@ -124,7 +124,7 @@
 #include <winsock2.h> /* For GetUserName() */
 #include <shlwapi.h>  /* For StrStrIA */
 
-#ifdef H5_HAVE_THREADSAFE
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 #include <process.h> /* For _beginthread() */
 #endif
 
@@ -1439,7 +1439,7 @@ extern char H5_lib_vers_info_g[];
 #include "H5TSprivate.h"
 
 /* Lock headers */
-#ifdef H5_HAVE_THREADSAFE
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 
 /* replacement structure for original global variable */
 typedef struct H5_api_struct {
@@ -1470,7 +1470,7 @@ typedef struct H5_api_struct {
 
 extern H5_api_t H5_g;
 
-#else /* H5_HAVE_THREADSAFE */
+#else /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 /* disable any first thread init mechanism */
 #define H5_FIRST_THREAD_INIT
@@ -1491,7 +1491,7 @@ extern hbool_t H5_libterm_g; /* Is the library being shutdown? */
 #define H5_INIT_GLOBAL (H5_libinit_g)
 #define H5_TERM_GLOBAL (H5_libterm_g)
 
-#endif /* H5_HAVE_THREADSAFE */
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 #ifdef H5_HAVE_CODESTACK
 

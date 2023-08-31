@@ -21,7 +21,7 @@
 #ifndef H5TSprivate_H_
 #define H5TSprivate_H_
 
-#ifdef H5_HAVE_THREADSAFE
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 /* Include package's public headers */
 #include "H5TSdevelop.h"
 
@@ -128,10 +128,10 @@ H5_DLL herr_t H5TS_cancel_count_dec(void);
 /* Testing routines */
 H5_DLL H5TS_thread_t H5TS_create_thread(void *(*func)(void *), H5TS_attr_t *attr, void *udata);
 
-#else /* H5_HAVE_THREADSAFE */
+#else /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 #define H5TS_thread_id() ((uint64_t)0)
 
-#endif /* H5_HAVE_THREADSAFE */
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 #endif /* H5TSprivate_H_ */

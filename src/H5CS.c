@@ -39,7 +39,7 @@ typedef struct H5CS_t {
     const char **rec;    /* Array of function records */
 } H5CS_t;
 
-#ifdef H5_HAVE_THREADSAFE
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 /*
  * The per-thread function stack. pthread_once() initializes a special
  * key that will be used by all threads to create a stack specific to
@@ -51,16 +51,16 @@ typedef struct H5CS_t {
  */
 static H5CS_t *H5CS__get_stack(void);
 #define H5CS_get_my_stack() H5CS__get_stack()
-#else /* H5_HAVE_THREADSAFE */
+#else /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 /*
  * The function stack.  Eventually we'll have some sort of global table so each
  * thread has it's own stack.  The stacks will be created on demand when the
  * thread first calls H5CS_push().  */
 H5CS_t H5CS_stack_g[1];
 #define H5CS_get_my_stack() (H5CS_stack_g + 0)
-#endif /* H5_HAVE_THREADSAFE */
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
-#ifdef H5_HAVE_THREADSAFE
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 /*-------------------------------------------------------------------------
  * Function:	H5CS__get_stack
  *
@@ -106,7 +106,7 @@ H5CS__get_stack(void)
 
     FUNC_LEAVE_NOAPI_NOFS(fstack)
 } /* end H5CS__get_stack() */
-#endif /* H5_HAVE_THREADSAFE */
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 /*-------------------------------------------------------------------------
  * Function:	H5CS_print_stack

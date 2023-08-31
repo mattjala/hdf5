@@ -1970,6 +1970,145 @@ if test "X$THREADSAFE" = "Xyes"; then
 fi
 
 ## ----------------------------------------------------------------------
+## Enable multithread feature of library.  It requires Pthread support
+## on POSIX systems.
+##
+AC_SUBST([MULTITHREAD])
+
+## Default is no multithread
+MULTITHREAD=no
+
+AC_MSG_CHECKING([for multithread support])
+AC_ARG_ENABLE([multithread],
+              [AS_HELP_STRING([--enable-multithread],
+                              [Enable multithread feature.
+                              [default=no]])],
+              [MULTITHREAD=$enableval])
+
+## Using the multithread feature currently requires disabling
+## the high-level API, C++, Fortran, Java interfaces, and tools.
+## This requirement can be overridden with --enable-unsupported
+
+## Note that the high-level library is enabled by default so most
+## users will have to add --disable-hl to the configure options.
+if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+  if test "X${HDF5_HL}" = "Xyes" -a "X${enable_multithread}" = "Xyes"; then
+    AC_MSG_ERROR([Using the multithread feature currently requires disabling the high-level library. --disable-hl can be used to prevent building the high-level library (recommended). Alternatively, --enable-unsupported will allow building the high-level library, though this configuration is not supported by The HDF Group.])
+  fi
+fi
+
+## The --enable-multithread flag requires currently disabling CXX
+## If the user tried to specify both flags, throw an error, unless
+## they also provided the --enable-unsupported flag.
+if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+  if test "X${HDF_CXX}" = "Xyes" -a "X${enable_multithread}" = "Xyes"; then
+    AC_MSG_ERROR([--enable-multithread currently requires disabling CXX. Use --enable-unsupported to override this error.])
+  fi
+fi
+
+## --enable-multithread currently requires disabling Fortran
+## If the user tried to specify both flags, throw an error, unless
+## they also provided the --enable-unsupported flag.
+if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+  if test "X${HDF_FORTRAN}" = "Xyes" -a "X${enable_multithread}" = "Xyes"; then
+    AC_MSG_ERROR([--enable-multithread currently requires disabling Fortran. Use --enable-unsupported to override this error.])
+  fi
+fi
+
+## --enable-multithread currently requires disabling Java
+## If the user tried to specify both flags, throw an error, unless
+## they also provided the --enable-unsupported flag.
+if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+  if test "X${HDF_JAVA}" = "Xyes" -a "X${enable_multithread}" = "Xyes"; then
+    AC_MSG_ERROR([--enable-multithread currently requires disabling Java. Use --enable-unsupported to override this error.])
+  fi
+fi
+
+case "X-$MULTITHREAD" in
+  X-|X-no)
+    AC_MSG_RESULT([no])
+    ;;
+  X-yes)
+    MULTITHREAD=yes
+    AC_MSG_RESULT([yes])
+    ;;
+  *)
+    AC_MSG_RESULT([error])
+    AC_MSG_ERROR([\'$enableval\' is not a valid multithread type])
+    ;;
+esac
+
+if test "X$MULTITHREAD" = "Xyes"; then
+    AC_DEFINE([HAVE_MULTITHREAD], [1], [Define if we have multithread support])
+
+    ## ----------------------------------------------------------------------
+    ## Is the Pthreads library present?  It has a header file `pthread.h' and
+    ## a library `-lpthread' and their locations might be specified with the
+    ## `--with-pthread' command-line switch.  The value is an include path
+    ## and/or a library path.  If the library path is specified then it must
+    ## be preceded by a comma.
+    ##
+    ## Thread-safety in HDF5 only uses Pthreads via configure, so the
+    ## default is "check", though this only has an effect when
+    ## --enable-multithread is specified.
+    AC_SUBST([HAVE_PTHREAD]) HAVE_PTHREAD=yes
+    AC_ARG_WITH([pthread],
+                [AS_HELP_STRING([--with-pthread=DIR],
+                                [Specify alternative path to Pthreads library when
+                                thread-safe capability is built.])],,
+                [withval=check])
+
+    case "$withval" in
+      check | yes)
+        AC_CHECK_HEADERS([pthread.h],, [unset HAVE_PTHREAD])
+        if test "x$HAVE_PTHREAD" = "xyes"; then
+          AC_CHECK_LIB([pthread], [pthread_self],, [unset HAVE_PTHREAD])
+        fi
+        ;;
+      no)
+        AC_MSG_ERROR([Must use Pthreads with thread safety])
+        ;;
+      *)
+        case "$withval" in
+          *,*)
+            pthread_inc="`echo $withval | cut -f1 -d,`"
+            pthread_lib="`echo $withval | cut -f2 -d, -s`"
+            ;;
+          *)
+            if test -n "$withval"; then
+              pthread_inc="$withval/include"
+              pthread_lib="$withval/lib"
+            fi
+            ;;
+        esac
+
+        if test -n "$pthread_inc"; then
+          saved_CPPFLAGS="$CPPFLAGS"
+          saved_AM_CPPFLAGS="$AM_CPPFLAGS"
+          CPPFLAGS="$CPPFLAGS -I$pthread_inc"
+          AM_CPPFLAGS="$AM_CPPFLAGS -I$pthread_inc"
+          AC_CHECK_HEADERS([pthread.h],, [CPPFLAGS="$saved_CPPFLAGS"; AM_CPPFLAGS="$saved_AM_CPPFLAGS"; unset HAVE_PTHREAD])
+        else
+          AC_CHECK_HEADERS([pthread.h],, [unset HAVE_PTHREAD])
+        fi
+
+        if test "x$HAVE_PTHREAD" = "xyes"; then
+          if test -n "$pthread_lib"; then
+            saved_LDFLAGS="$LDFLAGS"
+            saved_AM_LDFLAGS="$AM_LDFLAGS"
+            LDFLAGS="$LDFLAGS -L$pthread_lib"
+            AM_LDFLAGS="$AM_LDFLAGS -L$pthread_lib"
+            AC_CHECK_LIB([pthread], [pthread_self],,
+                         [LDFLAGS="$saved_LDFLAGS"; AM_LDFLAGS="$saved_AM_LDFLAGS"; unset HAVE_PTHREAD])
+          else
+            AC_CHECK_LIB([pthread], [pthread_self],, [unset HAVE_PTHREAD])
+          fi
+        fi
+        ;;
+    esac
+fi
+
+## ----------------------------------------------------------------------
 ## Check for MONOTONIC_TIMER support (used in clock_gettime).  This has
 ## to be done after any POSIX defines to ensure that the test gets
 ## the correct POSIX level on linux.

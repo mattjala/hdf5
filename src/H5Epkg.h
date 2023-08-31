@@ -37,7 +37,7 @@
 /* Number of slots in an error stack */
 #define H5E_NSLOTS 32
 
-#ifdef H5_HAVE_THREADSAFE
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 /*
  * The per-thread error stack. pthread_once() initializes a special
  * key that will be used by all threads to create a stack specific to
@@ -48,12 +48,12 @@
  * by "H5E_t *estack =".
  */
 #define H5E__get_my_stack() H5E__get_stack()
-#else /* H5_HAVE_THREADSAFE */
+#else /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 /*
  * The current error stack.
  */
 #define H5E__get_my_stack() (H5E_stack_g + 0)
-#endif /* H5_HAVE_THREADSAFE */
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 /****************************/
 /* Package Private Typedefs */
@@ -112,20 +112,20 @@ struct H5E_t {
 /* Package Private Variables */
 /*****************************/
 
-#ifndef H5_HAVE_THREADSAFE
+#if !defined(H5_HAVE_THREADSAFE) && !defined(H5_HAVE_MULTITHREAD)
 /*
  * The current error stack.
  */
 H5_DLLVAR H5E_t H5E_stack_g[1];
-#endif /* H5_HAVE_THREADSAFE */
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 /******************************/
 /* Package Private Prototypes */
 /******************************/
 H5_DLL herr_t H5E__term_deprec_interface(void);
-#ifdef H5_HAVE_THREADSAFE
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 H5_DLL H5E_t *H5E__get_stack(void);
-#endif /* H5_HAVE_THREADSAFE */
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 H5_DLL herr_t  H5E__push_stack(H5E_t *estack, const char *file, const char *func, unsigned line, hid_t cls_id,
                                hid_t maj_id, hid_t min_id, const char *desc);
 H5_DLL ssize_t H5E__get_msg(const H5E_msg_t *msg_ptr, H5E_type_t *type, char *msg, size_t size);

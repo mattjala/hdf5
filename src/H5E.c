@@ -163,10 +163,10 @@ H5E_init(void)
     if (H5I_register_type(H5I_ERRSTK_CLS) < 0)
         HGOTO_ERROR(H5E_ID, H5E_CANTINIT, FAIL, "unable to initialize ID group");
 
-#ifndef H5_HAVE_THREADSAFE
+#if !defined(H5_HAVE_THREADSAFE) && !defined(H5_HAVE_MULTITHREAD)
     H5E_stack_g[0].nused = 0;
     H5E__set_default_auto(H5E_stack_g);
-#endif /* H5_HAVE_THREADSAFE */
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
     /* Allocate the HDF5 error class */
     assert(H5E_ERR_CLS_g == (-1));
@@ -296,7 +296,7 @@ H5E__set_default_auto(H5E_t *stk)
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5E__set_default_auto() */
 
-#ifdef H5_HAVE_THREADSAFE
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 /*-------------------------------------------------------------------------
  * Function:    H5E__get_stack
  *
@@ -345,7 +345,7 @@ H5E__get_stack(void)
     /* Set return value */
     FUNC_LEAVE_NOAPI(estack)
 } /* end H5E__get_stack() */
-#endif /* H5_HAVE_THREADSAFE */
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 /*-------------------------------------------------------------------------
  * Function:    H5E__free_class

@@ -65,12 +65,12 @@ static herr_t H5E__clear_entries(H5E_t *estack, size_t nentries);
 /* Package Variables */
 /*********************/
 
-#ifndef H5_HAVE_THREADSAFE
+#if !defined(H5_HAVE_THREADSAFE) && !defined(H5_HAVE_MULTITHREAD)
 /*
  * The current error stack.
  */
 H5E_t H5E_stack_g[1];
-#endif /* H5_HAVE_THREADSAFE */
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 /*****************************/
 /* Library Private Variables */
