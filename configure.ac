@@ -1986,7 +1986,7 @@ AC_ARG_ENABLE([multithread],
               [MULTITHREAD=$enableval])
 
 ## Using the multithread feature currently requires disabling
-## the high-level API, C++, Fortran, Java interfaces, and tools.
+## the high-level API, C++, Fortran, Java interfaces, and thread safe.
 ## This requirement can be overridden with --enable-unsupported
 
 ## Note that the high-level library is enabled by default so most
@@ -2021,6 +2021,15 @@ fi
 if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
   if test "X${HDF_JAVA}" = "Xyes" -a "X${enable_multithread}" = "Xyes"; then
     AC_MSG_ERROR([--enable-multithread currently requires disabling Java. Use --enable-unsupported to override this error.])
+  fi
+fi
+
+## --enable-multithread currently requires disabling thread safe feature
+## If the user tried to specify both flags, throw an error, unless
+## they also provided the --enable-unsupported flag.
+if test "X${ALLOW_UNSUPPORTED}" != "Xyes"; then
+  if test "X${enable_threadsafe}" = "Xyes" -a "X${enable_multithread}" = "Xyes"; then
+    AC_MSG_ERROR([--enable-multithread currently requires disabling thread safe feature. Use --enable-unsupported to override this error.])
   fi
 fi
 
