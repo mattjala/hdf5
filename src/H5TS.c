@@ -32,7 +32,7 @@
 #include "H5Eprivate.h"  /* Error handling                           */
 #include "H5MMprivate.h" /* Memory management                        */
 
-#ifdef H5_HAVE_THREADSAFE
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 
 /****************/
 /* Local Macros */
@@ -981,4 +981,4 @@ H5TS_create_thread(H5TS_thread_cb_t func, H5TS_attr_t *attr, void *udata)
     FUNC_LEAVE_NOAPI_NAMECHECK_ONLY(ret_value)
 } /* H5TS_create_thread */
 
-#endif /* H5_HAVE_THREADSAFE */
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
