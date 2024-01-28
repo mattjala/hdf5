@@ -50,6 +50,94 @@
 /* Local Variables */
 /*******************/
 
+#if H5_HAVE_MULTITHREAD 
+
+/*-------------------------------------------------------------------------
+ * Function:    H5I__get_name_test
+ *
+ * Purpose:     Testing version of H5Iget_name()
+ *
+ *              Updated for MT by testing to see if the global mutex is 
+ *              currently held, and grabbing it fot the duration of the 
+ *              call if it is not.
+ *
+ * Return:      Success: The length of name.
+ *              Failure: -1
+ *
+ *-------------------------------------------------------------------------
+ */
+ssize_t
+H5I__get_name_test(hid_t id, char *name /*out*/, size_t size, hbool_t *cached)
+{
+    hbool_t        have_global_mutex = TRUE;  /* Trivially true in single thread builds */
+    hbool_t        drop_global_mutex = FALSE; /* Trivially false in single thread builds */
+    H5VL_object_t *vol_obj;                   /* Object of id */
+    H5G_loc_t      loc;                       /* Object location */
+    hbool_t        api_ctx_pushed  = FALSE;   /* Whether API context pushed */
+    hbool_t        vol_wrapper_set = FALSE;   /* Whether the VOL object wrapping context was set up */
+    size_t         name_len        = 0;       /* Length of name */
+    ssize_t        ret_value       = -1;      /* Return value */
+
+    FUNC_ENTER_PACKAGE
+
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
+
+    if ( H5TS_have_mutex(&H5_g.init_lock, &have_global_mutex) < 0 )
+
+        HGOTO_ERROR(H5E_LIB, H5E_CANTGET, (-1), "Can't determine whether we have the global mutex");
+
+#endif /* defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD) */
+
+    if ( ! have_global_mutex ) {
+
+        H5_API_LOCK
+        drop_global_mutex = TRUE;
+    }
+
+    /* Set API context */
+    if (H5CX_push() < 0)
+        HGOTO_ERROR(H5E_SYM, H5E_CANTSET, (-1), "can't set API context");
+    api_ctx_pushed = TRUE;
+
+    /* Get the object pointer */
+    if (NULL == (vol_obj = H5VL_vol_object(id)))
+        HGOTO_ERROR(H5E_ID, H5E_BADTYPE, (-1), "invalid identifier");
+
+    /* Set wrapper info in API context */
+    if (H5VL_set_vol_wrapper(vol_obj) < 0)
+        HGOTO_ERROR(H5E_ID, H5E_CANTSET, (-1), "can't set VOL wrapper info");
+    vol_wrapper_set = TRUE;
+
+    /* Get object location */
+    if (H5G_loc(id, &loc) < 0)
+        HGOTO_ERROR(H5E_ID, H5E_CANTGET, (-1), "can't retrieve object location");
+
+    /* Call internal group routine to retrieve object's name */
+    if (H5G_get_name(&loc, name, size, &name_len, cached) < 0)
+        HGOTO_ERROR(H5E_ID, H5E_CANTGET, (-1), "can't retrieve object name");
+
+    /* Set return value */
+    ret_value = (ssize_t)name_len;
+
+done:
+    /* Reset object wrapping info in API context */
+    if (vol_wrapper_set && H5VL_reset_vol_wrapper() < 0)
+        HDONE_ERROR(H5E_ID, H5E_CANTRESET, (-1), "can't reset VOL wrapper info");
+
+    if (api_ctx_pushed && H5CX_pop(FALSE) < 0)
+        HDONE_ERROR(H5E_SYM, H5E_CANTRESET, (-1), "can't reset API context");
+
+    if ( drop_global_mutex ) {
+
+        H5_API_UNLOCK
+    }
+
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5I__get_name_test() */
+
+
+#else /* H5_HAVE_MULTITHREAD */
+
 /*-------------------------------------------------------------------------
  * Function:    H5I__get_name_test
  *
@@ -107,3 +195,5 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I__get_name_test() */
+
+#endif /* H5_HAVE_MULTITHREAD */

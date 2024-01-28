@@ -187,7 +187,7 @@ am__EXEEXT_1 = testhdf5$(EXEEXT) cache$(EXEEXT) cache_api$(EXEEXT) \
 	mf$(EXEEXT) vds$(EXEEXT) file_image$(EXEEXT) \
 	unregister$(EXEEXT) cache_logging$(EXEEXT) cork$(EXEEXT) \
 	swmr$(EXEEXT) thread_id$(EXEEXT) vol$(EXEEXT) timer$(EXEEXT) \
-	event_set$(EXEEXT) onion$(EXEEXT)
+	event_set$(EXEEXT) onion$(EXEEXT) mt_id_test$(EXEEXT)
 @HAVE_SHARED_CONDITIONAL_TRUE@am__EXEEXT_2 = filter_plugin$(EXEEXT) \
 @HAVE_SHARED_CONDITIONAL_TRUE@	vfd_plugin$(EXEEXT) \
 @HAVE_SHARED_CONDITIONAL_TRUE@	vol_plugin$(EXEEXT)
@@ -603,6 +603,10 @@ mount_SOURCES = mount.c
 mount_OBJECTS = mount.$(OBJEXT)
 mount_LDADD = $(LDADD)
 mount_DEPENDENCIES = libh5test.la $(LIBHDF5)
+mt_id_test_SOURCES = mt_id_test.c
+mt_id_test_OBJECTS = mt_id_test.$(OBJEXT)
+mt_id_test_LDADD = $(LDADD)
+mt_id_test_DEPENDENCIES = libh5test.la $(LIBHDF5)
 mtime_SOURCES = mtime.c
 mtime_OBJECTS = mtime.$(OBJEXT)
 mtime_LDADD = $(LDADD)
@@ -864,8 +868,9 @@ am__depfiles_remade = ./$(DEPDIR)/accum.Po \
 	./$(DEPDIR)/lheap.Po ./$(DEPDIR)/links.Po \
 	./$(DEPDIR)/links_env.Po ./$(DEPDIR)/mdset.Po \
 	./$(DEPDIR)/mf.Po ./$(DEPDIR)/mirror_vfd.Po \
-	./$(DEPDIR)/mount.Po ./$(DEPDIR)/mtime.Po \
-	./$(DEPDIR)/ntypes.Po ./$(DEPDIR)/null_vfd_plugin.Plo \
+	./$(DEPDIR)/mount.Po ./$(DEPDIR)/mt_id_test.Po \
+	./$(DEPDIR)/mtime.Po ./$(DEPDIR)/ntypes.Po \
+	./$(DEPDIR)/null_vfd_plugin.Plo \
 	./$(DEPDIR)/null_vol_connector.Plo ./$(DEPDIR)/objcopy.Po \
 	./$(DEPDIR)/objcopy_ref.Po ./$(DEPDIR)/ohdr.Po \
 	./$(DEPDIR)/onion.Po ./$(DEPDIR)/page_buffer.Po \
@@ -950,16 +955,16 @@ SOURCES = $(libfilter_plugin1_dsets_la_SOURCES) \
 	gen_nullspace.c gen_plist.c gen_sizes_lheap.c \
 	gen_specmetaread.c gen_udlinks.c getname.c gheap.c hdfs.c \
 	hyperslab.c istore.c lheap.c links.c links_env.c mdset.c mf.c \
-	$(mirror_vfd_SOURCES) mount.c mtime.c ntypes.c objcopy.c \
-	objcopy_ref.c ohdr.c onion.c page_buffer.c reserved.c ros3.c \
-	s3comms.c select_io_dset.c set_extent.c space_overflow.c \
-	stab.c swmr.c swmr_addrem_writer.c swmr_generator.c \
-	swmr_reader.c swmr_remove_reader.c swmr_remove_writer.c \
-	swmr_sparse_reader.c swmr_sparse_writer.c swmr_start_write.c \
-	swmr_writer.c tcheck_version.c $(testhdf5_SOURCES) testmeta.c \
-	thread_id.c timer.c $(ttsafe_SOURCES) twriteorder.c unlink.c \
-	unregister.c $(use_append_chunk_SOURCES) \
-	$(use_append_chunk_mirror_SOURCES) \
+	$(mirror_vfd_SOURCES) mount.c mt_id_test.c mtime.c ntypes.c \
+	objcopy.c objcopy_ref.c ohdr.c onion.c page_buffer.c \
+	reserved.c ros3.c s3comms.c select_io_dset.c set_extent.c \
+	space_overflow.c stab.c swmr.c swmr_addrem_writer.c \
+	swmr_generator.c swmr_reader.c swmr_remove_reader.c \
+	swmr_remove_writer.c swmr_sparse_reader.c swmr_sparse_writer.c \
+	swmr_start_write.c swmr_writer.c tcheck_version.c \
+	$(testhdf5_SOURCES) testmeta.c thread_id.c timer.c \
+	$(ttsafe_SOURCES) twriteorder.c unlink.c unregister.c \
+	$(use_append_chunk_SOURCES) $(use_append_chunk_mirror_SOURCES) \
 	$(use_append_mchunks_SOURCES) \
 	$(use_disable_mdc_flushes_SOURCES) vds.c vds_env.c \
 	vds_swmr_gen.c vds_swmr_reader.c vds_swmr_writer.c vfd.c \
@@ -989,16 +994,16 @@ DIST_SOURCES = $(am__libfilter_plugin1_dsets_la_SOURCES_DIST) \
 	gen_nullspace.c gen_plist.c gen_sizes_lheap.c \
 	gen_specmetaread.c gen_udlinks.c getname.c gheap.c hdfs.c \
 	hyperslab.c istore.c lheap.c links.c links_env.c mdset.c mf.c \
-	$(mirror_vfd_SOURCES) mount.c mtime.c ntypes.c objcopy.c \
-	objcopy_ref.c ohdr.c onion.c page_buffer.c reserved.c ros3.c \
-	s3comms.c select_io_dset.c set_extent.c space_overflow.c \
-	stab.c swmr.c swmr_addrem_writer.c swmr_generator.c \
-	swmr_reader.c swmr_remove_reader.c swmr_remove_writer.c \
-	swmr_sparse_reader.c swmr_sparse_writer.c swmr_start_write.c \
-	swmr_writer.c tcheck_version.c $(testhdf5_SOURCES) testmeta.c \
-	thread_id.c timer.c $(ttsafe_SOURCES) twriteorder.c unlink.c \
-	unregister.c $(use_append_chunk_SOURCES) \
-	$(use_append_chunk_mirror_SOURCES) \
+	$(mirror_vfd_SOURCES) mount.c mt_id_test.c mtime.c ntypes.c \
+	objcopy.c objcopy_ref.c ohdr.c onion.c page_buffer.c \
+	reserved.c ros3.c s3comms.c select_io_dset.c set_extent.c \
+	space_overflow.c stab.c swmr.c swmr_addrem_writer.c \
+	swmr_generator.c swmr_reader.c swmr_remove_reader.c \
+	swmr_remove_writer.c swmr_sparse_reader.c swmr_sparse_writer.c \
+	swmr_start_write.c swmr_writer.c tcheck_version.c \
+	$(testhdf5_SOURCES) testmeta.c thread_id.c timer.c \
+	$(ttsafe_SOURCES) twriteorder.c unlink.c unregister.c \
+	$(use_append_chunk_SOURCES) $(use_append_chunk_mirror_SOURCES) \
 	$(use_append_mchunks_SOURCES) \
 	$(use_disable_mdc_flushes_SOURCES) vds.c vds_env.c \
 	vds_swmr_gen.c vds_swmr_reader.c vds_swmr_writer.c vfd.c \
@@ -1739,7 +1744,7 @@ TEST_PROG = testhdf5 \
            enc_dec_plist_cross_platform getname vfd ros3 s3comms hdfs ntypes \
            dangle dtransform reserved cross_read freespace mf vds file_image \
            unregister cache_logging cork swmr thread_id vol timer event_set \
-		   onion
+           onion mt_id_test
 
 
 # These programs generate test files for the tests.  They don't need to be
@@ -2266,6 +2271,10 @@ mount$(EXEEXT): $(mount_OBJECTS) $(mount_DEPENDENCIES) $(EXTRA_mount_DEPENDENCIE
 	@rm -f mount$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(mount_OBJECTS) $(mount_LDADD) $(LIBS)
 
+mt_id_test$(EXEEXT): $(mt_id_test_OBJECTS) $(mt_id_test_DEPENDENCIES) $(EXTRA_mt_id_test_DEPENDENCIES) 
+	@rm -f mt_id_test$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(mt_id_test_OBJECTS) $(mt_id_test_LDADD) $(LIBS)
+
 mtime$(EXEEXT): $(mtime_OBJECTS) $(mtime_DEPENDENCIES) $(EXTRA_mtime_DEPENDENCIES) 
 	@rm -f mtime$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(mtime_OBJECTS) $(mtime_LDADD) $(LIBS)
@@ -2544,6 +2553,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mf.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mirror_vfd.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mount.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mt_id_test.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mtime.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ntypes.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/null_vfd_plugin.Plo@am__quote@ # am--include-marker
@@ -3347,6 +3357,13 @@ onion.log: onion$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+mt_id_test.log: mt_id_test$(EXEEXT)
+	@p='mt_id_test$(EXEEXT)'; \
+	b='mt_id_test'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 .sh.log:
 	@p='$<'; \
 	$(am__set_b); \
@@ -3528,6 +3545,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/mf.Po
 	-rm -f ./$(DEPDIR)/mirror_vfd.Po
 	-rm -f ./$(DEPDIR)/mount.Po
+	-rm -f ./$(DEPDIR)/mt_id_test.Po
 	-rm -f ./$(DEPDIR)/mtime.Po
 	-rm -f ./$(DEPDIR)/ntypes.Po
 	-rm -f ./$(DEPDIR)/null_vfd_plugin.Plo
@@ -3741,6 +3759,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/mf.Po
 	-rm -f ./$(DEPDIR)/mirror_vfd.Po
 	-rm -f ./$(DEPDIR)/mount.Po
+	-rm -f ./$(DEPDIR)/mt_id_test.Po
 	-rm -f ./$(DEPDIR)/mtime.Po
 	-rm -f ./$(DEPDIR)/ntypes.Po
 	-rm -f ./$(DEPDIR)/null_vfd_plugin.Plo

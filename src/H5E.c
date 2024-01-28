@@ -486,6 +486,82 @@ done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Eunregister_class() */
 
+#if H5_HAVE_MULTITHREAD
+
+/*-------------------------------------------------------------------------
+ * Function:    H5E__unregister_class
+ *
+ * Purpose:     Private function to close an error class.
+ *
+ *              Reworked for multi-thread.  H5I_iterate prevents
+ *              modifications to the kernel of the data structure it uses
+ *              to represent an ID while it is calling the supplied call
+ *              back function -- resulting in a hang with H5E__close_msg_cb()
+ *              calls H5I_remove() on the target ID.  To avoid this problem,
+ *              use H5I_get_first() / H5I_get_next() instead.
+ *
+ * Return:      SUCCEED/FAIL
+ *
+ * Programmer:  Raymond Lu
+ *              Friday, July 11, 2003
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5E__unregister_class(H5E_cls_t *cls, void H5_ATTR_UNUSED **request)
+{
+    hid_t target_id;
+    void * object;
+    H5E_msg_t *err_msg;
+    herr_t ret_value = SUCCEED; /* Return value */
+
+    FUNC_ENTER_PACKAGE
+
+    /* Check arguments */
+    assert(cls);
+
+    /* Iterate over all the messages and delete those in this error class */
+    if ( H5I_get_first(H5I_ERROR_MSG, &target_id, &object) < 0 )
+
+        HGOTO_ERROR(H5E_ERROR, H5E_BADITER, FAIL, "unable to get first error message");
+
+    while ( target_id != 0 ) {
+
+        assert(object);
+
+        err_msg = (H5E_msg_t *)object;
+
+        /* Close the message if it is in the the supplied class */
+        if (err_msg->cls == cls) {
+
+            if (H5E__close_msg(err_msg, NULL) < 0)
+
+                HGOTO_ERROR(H5E_ERROR, H5E_CANTCLOSEOBJ, H5_ITER_ERROR, "unable to close error message");
+
+            if (NULL == H5I_remove(target_id))
+
+                HGOTO_ERROR(H5E_ERROR, H5E_CANTREMOVE, H5_ITER_ERROR, "unable to remove error message");
+
+        } /* end if */
+
+        if ( H5I_get_next(H5I_ERROR_MSG, target_id, &target_id, &object) < 0 )
+
+            HGOTO_ERROR(H5E_ERROR, H5E_BADITER, FAIL, "unable to get next error message");
+    }
+
+    /* Free error class structure */
+    if (H5E__free_class(cls) < 0)
+
+        HGOTO_ERROR(H5E_ERROR, H5E_CANTRELEASE, FAIL, "unable to free error class");
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5E__unregister_class() */
+
+#else /* H5_HAVE_MULTITHREAD */
+
 /*-------------------------------------------------------------------------
  * Function:    H5E__unregister_class
  *
@@ -516,6 +592,8 @@ H5E__unregister_class(H5E_cls_t *cls, void H5_ATTR_UNUSED **request)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5E__unregister_class() */
+
+#endif /* H5_HAVE_MULTITHREAD */
 
 /*-------------------------------------------------------------------------
  * Function:    H5Eget_class_name

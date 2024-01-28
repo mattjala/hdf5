@@ -36,6 +36,9 @@
 
 /* Flags for ID class */
 #define H5I_CLASS_IS_APPLICATION 0x01
+#define H5I_CLASS_IS_MT_SAFE     0x02 /* set only if all callbacks associated with the class can
+                                       * be executed safely by multiple threads simultaneeously.
+                                       */
 
 /****************************/
 /* Library Private Typedefs */
@@ -61,6 +64,7 @@ typedef struct H5I_class_t {
 /***************************************/
 /* Library-private Function Prototypes */
 /***************************************/
+H5_DLL herr_t     H5I_init(void);
 H5_DLL herr_t     H5I_register_type(const H5I_class_t *cls);
 H5_DLL int64_t    H5I_nmembers(H5I_type_t type);
 H5_DLL herr_t     H5I_clear_type(H5I_type_t type, hbool_t force, hbool_t app_ref);
@@ -75,6 +79,12 @@ H5_DLL int        H5I_dec_app_ref_always_close(hid_t id);
 H5_DLL int        H5I_dec_app_ref_always_close_async(hid_t id, void **token);
 H5_DLL int        H5I_dec_type_ref(H5I_type_t type);
 H5_DLL herr_t     H5I_find_id(const void *object, H5I_type_t type, hid_t *id /*out*/);
+
+#if H5_HAVE_MULTITHREAD
+/* External iterator for use in the multi-thread case */
+H5_DLL herr_t H5I_get_first(H5I_type_t type, hid_t *id_ptr, void ** object_ptr);
+H5_DLL herr_t H5I_get_next(H5I_type_t type, hid_t last_id, hid_t *next_id_ptr, void ** next_object_ptr);
+#endif /* H5_HAVE_MULTITHREAD */
 
 /* NOTE:    The object and ID functions below deal in non-VOL objects (i.e.;
  *          H5S_t, etc.). Similar VOL calls exist in H5VLprivate.h. Use
@@ -99,6 +109,9 @@ H5_DLL herr_t H5I_register_using_existing_id(H5I_type_t type, void *object, hboo
                                              hid_t existing_id);
 
 /* Debugging functions */
+H5_DLL void   H5I_dump_stats(FILE * file_ptr);
+H5_DLL void   H5I_dump_nz_stats(FILE * file_ptr, const char * tag);
+H5_DLL void   H5I_clear_stats(void);
 H5_DLL herr_t H5I_dump_ids_for_type(H5I_type_t type);
 
 #endif /* H5Iprivate_H */

@@ -1545,13 +1545,39 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
     H5_API_UNSET_CANCEL                                                                                      \
     H5_API_LOCK
 
+/* Version of FUNC_ENTER_API_THREADSAFE that does not grab the API lock.  This 
+ * is needed to push the global mutex below packages that are multi-thread safe.
+ *
+ * Note that while we don't acquire the mutext, we still do initialization and 
+ * block thread cancelations while in the HDF5 library.
+ */
+#define FUNC_ENTER_API_THREADSAFE_NO_MUTEX                                                                   \
+    /* Initialize the thread-safe code */                                                                    \
+    H5_FIRST_THREAD_INIT                                                                                     \
+                                                                                                             \
+    /* Block thread cancelations */                                                                          \
+    H5_API_UNSET_CANCEL
+
 /* Local variables for API routines */
 #define FUNC_ENTER_API_VARS H5TRACE_DECL
+
+#if 0 /* old version of FUNC_ENTER_API_COMMON */
 
 #define FUNC_ENTER_API_COMMON                                                                                \
     FUNC_ENTER_API_VARS                                                                                      \
     FUNC_ENTER_COMMON(H5_IS_API(__func__));                                                                  \
     FUNC_ENTER_API_THREADSAFE;
+
+#else /* new version of FUNC_ENTER_API_COMMON */
+
+/* As part of pushing the global mutex down into the HDF5 library, it is necessary 
+ * to remove FUNC_ENTER_API_THREADSAFE from FUNC_ENTER_API_COMMON.
+ */
+#define FUNC_ENTER_API_COMMON                                                                                \
+    FUNC_ENTER_API_VARS                                                                                      \
+    FUNC_ENTER_COMMON(H5_IS_API(__func__));
+
+#endif /* new version of FUNC_ENTER_API_COMMON */
 
 #define FUNC_ENTER_API_INIT(err)                                                                             \
     /* Initialize the library */                                                                             \
@@ -1571,6 +1597,7 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
         api_ctx_pushed = TRUE;
 
 /* Use this macro for all "normal" API functions */
+#if 0 /* original version */
 #define FUNC_ENTER_API(err)                                                                                  \
     {                                                                                                        \
         {                                                                                                    \
@@ -1582,11 +1609,65 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
             /* Clear thread error stack entering public functions */                                         \
             H5E_clear_stack(NULL);                                                                           \
             {
+#else /* new version */
+#define FUNC_ENTER_API(err)                                                                                  \
+    {                                                                                                        \
+        {                                                                                                    \
+            hbool_t api_ctx_pushed = FALSE;                                                                  \
+                                                                                                             \
+            FUNC_ENTER_API_COMMON                                                                            \
+            FUNC_ENTER_API_THREADSAFE;                                                                       \
+            FUNC_ENTER_API_INIT(err);                                                                        \
+            FUNC_ENTER_API_PUSH(err);                                                                        \
+            /* Clear thread error stack entering public functions */                                         \
+            H5E_clear_stack(NULL);                                                                           \
+            {
+#endif /* new version */
+
+/* version of the FUNC_ENTER_API macro that does not attempt to gain the global mutex.  This 
+ * version is used on API calls into packages that have been modified to support multi-thread.
+ * Note that in the multi-thread case, the mutex must be obtained before calling into sections 
+ * of the HDF5 library that are not thread safe.
+ *
+ * Note that some of the code called after FUNC_ENTER_API_THREADSAFE_NO_MUTEX and the end of
+ * the macro are not thread safe -- thus we have to grab the mutex briefly for now.  This 
+ * should be temporary, as this code is on the to-do list to make multi-thread safe.
+ *
+ * Other NO_MUTEX versions of FUNC_ENTER_API may be necessary in the future, but just this 
+ * single version is sufficient for now.
+ *
+ *                                                            JRM -- 11/10/23
+ */
+#if defined(H5_HAVE_MULTITHREAD)
+
+#define FUNC_ENTER_API_NO_MUTEX(err)                                                                         \
+    {                                                                                                        \
+        {                                                                                                    \
+            hbool_t api_ctx_pushed = FALSE;                                                                  \
+                                                                                                             \
+            FUNC_ENTER_API_COMMON                                                                            \
+            FUNC_ENTER_API_THREADSAFE_NO_MUTEX;                                                              \
+            H5_API_LOCK                                                                                      \
+            FUNC_ENTER_API_INIT(err);                                                                        \
+            FUNC_ENTER_API_PUSH(err);                                                                        \
+            /* Clear thread error stack entering public functions */                                         \
+            H5E_clear_stack(NULL);                                                                           \
+            H5_API_UNLOCK                                                                                    \
+            {
+
+#else /* defined(H5_HAVE_MULTITHREAD) */
+
+/* In non multi-thread builds, FUNC_ENTER_API_NO_MUTEX must be the same as FUNC_ENTER_API */
+
+#define FUNC_ENTER_API_NO_MUTEX(err)    FUNC_ENTER_API(err)
+
+#endif /* defined(H5_HAVE_MULTITHREAD) */
 
 /*
  * Use this macro for API functions that shouldn't clear the error stack
  *      like H5Eprint and H5Ewalk.
  */
+#if 0 /* original version */
 #define FUNC_ENTER_API_NOCLEAR(err)                                                                          \
     {                                                                                                        \
         {                                                                                                    \
@@ -1596,6 +1677,18 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
             FUNC_ENTER_API_INIT(err);                                                                        \
             FUNC_ENTER_API_PUSH(err);                                                                        \
             {
+#else /* modified version */
+#define FUNC_ENTER_API_NOCLEAR(err)                                                                          \
+    {                                                                                                        \
+        {                                                                                                    \
+            hbool_t api_ctx_pushed = FALSE;                                                                  \
+                                                                                                             \
+            FUNC_ENTER_API_COMMON                                                                            \
+            FUNC_ENTER_API_THREADSAFE;                                                                       \
+            FUNC_ENTER_API_INIT(err);                                                                        \
+            FUNC_ENTER_API_PUSH(err);                                                                        \
+            {
+#endif /* modified version */
 
 /*
  * Use this macro for API functions that shouldn't perform _any_ initialization
@@ -1604,6 +1697,7 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
  *      wrappers (e.g. H5VLfile_create, H5VLdataset_read, etc.), etc.
  *
  */
+#if 0 /* original version */
 #define FUNC_ENTER_API_NOINIT                                                                                \
     {                                                                                                        \
         {                                                                                                    \
@@ -1611,6 +1705,16 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
                 FUNC_ENTER_API_COMMON                                                                        \
                 H5_PUSH_FUNC                                                                                 \
                 {
+#else /* modified version */
+#define FUNC_ENTER_API_NOINIT                                                                                \
+    {                                                                                                        \
+        {                                                                                                    \
+            {                                                                                                \
+                FUNC_ENTER_API_COMMON                                                                        \
+                FUNC_ENTER_API_THREADSAFE;                                                                   \
+                H5_PUSH_FUNC                                                                                 \
+                {
+#endif /* modified version */
 
 /*
  * Use this macro for API functions that shouldn't perform _any_ initialization
@@ -1817,6 +1921,26 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
     H5_API_UNLOCK                                                                                            \
     H5_API_SET_CANCEL
 
+#if defined(H5_HAVE_MULTITHREAD) 
+
+/* Version of FUNC_LEAVE_API_THREADSAFE that does not drop the API lock.  This 
+ * is needed to push the global mutex below packages that are multi-thread safe.
+ *
+ * Note that while we don't drop the mutex, we still unblock thread cancelations
+ * as we exit the HDF5 library.
+ */
+#define FUNC_LEAVE_API_THREADSAFE_NO_MUTEX                                                                   \
+    H5_API_SET_CANCEL
+
+#else /* defined(H5_HAVE_MULTITHREAD) */
+
+/* If H5_HAVE_MULTITHREAD is not defined, FUNC_LEAVE_API_THREADSAFE_NO_MUTEX should be 
+ * identical to FUNC_LEAVE_API_THREADSAFE
+ */
+#define FUNC_LEAVE_API_THREADSAFE_NO_MUTEX      FUNC_LEAVE_API_THREADSAFE
+
+#endif /* defined(H5_HAVE_MULTITHREAD) */
+
 #define FUNC_LEAVE_API_COMMON(ret_value) H5TRACE_RETURN(ret_value);
 
 #define FUNC_LEAVE_API(ret_value)                                                                            \
@@ -1831,6 +1955,28 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
     if (err_occurred)                                                                                        \
         (void)H5E_dump_api_stack(TRUE);                                                                      \
     FUNC_LEAVE_API_THREADSAFE                                                                                \
+    return (ret_value);                                                                                      \
+    }                                                                                                        \
+    } /*end scope from beginning of FUNC_ENTER*/
+
+/* Use this macro to match the FUNC_ENTER_API_NO_MUTEX macro */
+/* Note the lock/unlock of the global mutex around the func exit code.  This is necessary for now, as this
+ * code is not currently multi-thread safe.  Needless to say, this has to be fixed.
+ */
+#define FUNC_LEAVE_API_NO_MUTEX(ret_value)                                                                   \
+    ;                                                                                                        \
+    } /*end scope from end of FUNC_ENTER*/                                                                   \
+    H5_API_LOCK                                                                                              \
+    FUNC_LEAVE_API_COMMON(ret_value);                                                                        \
+    if (api_ctx_pushed) {                                                                                    \
+        (void)H5CX_pop(TRUE);                                                                                \
+        api_ctx_pushed = FALSE;                                                                              \
+    }                                                                                                        \
+    H5_POP_FUNC                                                                                              \
+    if (err_occurred)                                                                                        \
+        (void)H5E_dump_api_stack(TRUE);                                                                      \
+    H5_API_UNLOCK                                                                                            \
+    FUNC_LEAVE_API_THREADSAFE_NO_MUTEX                                                                       \
     return (ret_value);                                                                                      \
     }                                                                                                        \
     } /*end scope from beginning of FUNC_ENTER*/

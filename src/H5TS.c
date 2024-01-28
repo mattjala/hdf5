@@ -486,6 +486,73 @@ done:
 } /* end H5TS_mutex_lock() */
 
 /*--------------------------------------------------------------------------
+ * Function:    H5TS_have_mutex
+ *
+ * Purpose:     Determine whether the current thread holds the supplied 
+ *              mutex.  If it does, set *have_mutex_ptr to TRUE.  If not, 
+ *              set *have_mutex_ptr to FALSE.  On failure, *have_mutex_ptr
+ *              is undefined.
+ *
+ *              This function was created to inteerogate the HDF5 library
+ *              global mutex, but it could be used elsewhere.
+ *
+ * Return:      Non-negative on success / Negative on failure
+ *
+ *--------------------------------------------------------------------------
+ */
+herr_t
+H5TS_have_mutex(H5TS_mutex_t *mutex, bool *have_mutex_ptr)
+{   
+    bool have_mutex = FALSE;
+    herr_t ret_value = SUCCEED;
+    
+    FUNC_ENTER_NOAPI_NAMECHECK_ONLY
+
+    assert(mutex);
+    assert(have_mutex_ptr);
+
+#ifdef H5_HAVE_WIN_THREADS
+    /* No windows thread implementation yet */
+    assert(false);
+    ret_value = -1;
+#else  /* H5_HAVE_WIN_THREADS */
+
+    /* Attempt to acquire the mutex lock */
+    if (0 == pthread_mutex_lock(&mutex->atomic_lock)) {
+
+        pthread_t my_thread_id = pthread_self();
+        
+        /* Check if the mutex is locked  */
+        if ( mutex->lock_count > 0 ) {
+
+            /* Check for this thread already owns the lock */
+
+            if ( pthread_equal(my_thread_id, mutex->owner_thread) ) {
+
+                have_mutex = true;
+            }
+        }
+        
+        if ( 0 != pthread_mutex_unlock(&mutex->atomic_lock) ) {
+
+            ret_value = -1;
+        }
+    } else {
+
+        ret_value = -1;
+    }
+#endif /* H5_HAVE_WIN_THREADS */
+
+    if ( ret_value == SUCCEED ) {
+
+        *have_mutex_ptr = have_mutex;
+    }
+    
+    FUNC_LEAVE_NOAPI_NAMECHECK_ONLY(ret_value)
+
+} /* end H5TS_have_mutex() */
+
+/*--------------------------------------------------------------------------
  * NAME
  *    H5TS__mutex_unlock
  *

@@ -124,6 +124,8 @@ H5_DLL herr_t H5TS_mutex_lock(H5TS_mutex_t *mutex);
 H5_DLL herr_t H5TS_mutex_unlock(H5TS_mutex_t *mutex);
 H5_DLL herr_t H5TS_cancel_count_inc(void);
 H5_DLL herr_t H5TS_cancel_count_dec(void);
+/* (Only used in the multi-thread build) */
+H5_DLL herr_t H5TS_have_mutex(H5TS_mutex_t *mutex, bool *have_mutex_ptr);
 
 /* Testing routines */
 H5_DLL H5TS_thread_t H5TS_create_thread(void *(*func)(void *), H5TS_attr_t *attr, void *udata);

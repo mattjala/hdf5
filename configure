@@ -31091,16 +31091,16 @@ printf "%s\n" "$as_me: Always 'no' if cross-compiling. Edit the config file if y
 fi
 
 ## ----------------------------------------------------------------------
-## Enable multithread feature of library.  It requires Pthread support
-## on POSIX systems.
+## Enable multithread feature of library.  It requires Pthread and Atomic
+## support on POSIX systems.
 ##
 
 
 ## Default is no multithread
 MULTITHREAD=no
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for multithread support" >&5
-printf %s "checking for multithread support... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for multithread configure option" >&5
+printf %s "checking for multithread configure option... " >&6; }
 # Check whether --enable-multithread was given.
 if test ${enable_multithread+y}
 then :
@@ -31434,6 +31434,142 @@ fi
           fi
         fi
         ;;
+    esac
+
+    case "$host_cpu-$host_vendor-$host_os" in
+      *linux*)
+	# Replace C99 with C11 standard to support atomic datatype
+	H5_CFLAGS=$(echo $H5_CFLAGS | sed -e "s/-std=c99/-std=c11/g")
+
+	# Propagate the change to CFLAGS, too
+	CFLAGS="$H5_CFLAGS $AM_CFLAGS $CFLAGS"
+
+	HAVE_STDATOMIC_H="yes"
+
+	# Check the presence of stdatomic.h for atomic data type
+	       for ac_header in stdatomic.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "stdatomic.h" "ac_cv_header_stdatomic_h" "$ac_includes_default"
+if test "x$ac_cv_header_stdatomic_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_STDATOMIC_H 1" >>confdefs.h
+
+else $as_nop
+  HAVE_STDATOMIC_H="no"
+fi
+
+done
+
+	# Check the presence of atomic library
+	if test "x$HAVE_STDATOMIC_H" = "xyes"; then
+	  HAVE_LIBATOMIC="yes"
+	  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for __atomic_compare_exchange_16 in -latomic" >&5
+printf %s "checking for __atomic_compare_exchange_16 in -latomic... " >&6; }
+if test ${ac_cv_lib_atomic___atomic_compare_exchange_16+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-latomic  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char __atomic_compare_exchange_16 ();
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main (void)
+{
+return __atomic_compare_exchange_16 ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_atomic___atomic_compare_exchange_16=yes
+else $as_nop
+  ac_cv_lib_atomic___atomic_compare_exchange_16=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_atomic___atomic_compare_exchange_16" >&5
+printf "%s\n" "$ac_cv_lib_atomic___atomic_compare_exchange_16" >&6; }
+if test "x$ac_cv_lib_atomic___atomic_compare_exchange_16" = xyes
+then :
+  printf "%s\n" "#define HAVE_LIBATOMIC 1" >>confdefs.h
+
+  LIBS="-latomic $LIBS"
+
+else $as_nop
+  HAVE_LIBATOMIC="no"
+fi
+
+	fi
+
+	# Define HAVE_MULTITHREAD only if stdatomic.h, atomic library, and pthread library are present
+	if  test "x$HAVE_STDATOMIC_H" = "xyes"  &&   test "x$HAVE_LIBATOMIC" = "xyes"  &&  test "x$HAVE_PTHREAD" = "xyes" ; then
+
+printf "%s\n" "#define HAVE_MULTITHREAD 1" >>confdefs.h
+
+	else
+	  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+	  as_fn_error $? "Must use Pthread and atomic library and header with multithread" "$LINENO" 5
+	fi
+	;;
+
+      *apple*)
+	# Replace C99 with C11 standard to support atomic datatype
+	H5_CFLAGS=$(echo $H5_CFLAGS | sed -e "s/-std=c99/-std=c11/g")
+
+	# Propagate the change to CFLAGS, too
+	CFLAGS="$H5_CFLAGS $AM_CFLAGS $CFLAGS"
+
+	# Check the presence of stdatomic.h for atomic data type.  Unlike GCC on Linux, clang on Mac OS doesn't need
+	# to link to the atomic library (-latomic)
+	HAVE_STDATOMIC_H="yes"
+
+	       for ac_header in stdatomic.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "stdatomic.h" "ac_cv_header_stdatomic_h" "$ac_includes_default"
+if test "x$ac_cv_header_stdatomic_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_STDATOMIC_H 1" >>confdefs.h
+
+else $as_nop
+  HAVE_STDATOMIC_H="no"
+fi
+
+done
+
+	# Define HAVE_MULTITHREAD on if stdatomic.h and pthread are present
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for multithread support (pthread and atomic libraries)" >&5
+printf %s "checking for multithread support (pthread and atomic libraries)... " >&6; }
+
+	if  test "x$HAVE_STDATOMIC_H" = "xyes"  &&  test "x$HAVE_PTHREAD" = "xyes" ; then
+	  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+
+printf "%s\n" "#define HAVE_MULTITHREAD 1" >>confdefs.h
+
+	else
+	  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+	  as_fn_error $? "Must use Pthread and atomic header with multithread" "$LINENO" 5
+	fi
+	;;
     esac
 fi
 

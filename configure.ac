@@ -1970,15 +1970,15 @@ if test "X$THREADSAFE" = "Xyes"; then
 fi
 
 ## ----------------------------------------------------------------------
-## Enable multithread feature of library.  It requires Pthread support
-## on POSIX systems.
+## Enable multithread feature of library.  It requires Pthread and Atomic
+## support on POSIX systems.
 ##
 AC_SUBST([MULTITHREAD])
 
 ## Default is no multithread
 MULTITHREAD=no
 
-AC_MSG_CHECKING([for multithread support])
+AC_MSG_CHECKING([for multithread configure option])
 AC_ARG_ENABLE([multithread],
               [AS_HELP_STRING([--enable-multithread],
                               [Enable multithread feature.
@@ -2114,6 +2114,60 @@ if test "X$MULTITHREAD" = "Xyes"; then
           fi
         fi
         ;;
+    esac
+
+    case "$host_cpu-$host_vendor-$host_os" in
+      *linux*)
+	# Replace C99 with C11 standard to support atomic datatype
+	H5_CFLAGS=$(echo $H5_CFLAGS | sed -e "s/-std=c99/-std=c11/g")
+
+	# Propagate the change to CFLAGS, too
+	CFLAGS="$H5_CFLAGS $AM_CFLAGS $CFLAGS"
+
+	HAVE_STDATOMIC_H="yes"
+
+	# Check the presence of stdatomic.h for atomic data type
+	AC_CHECK_HEADERS([stdatomic.h],,[HAVE_STDATOMIC_H="no"])
+
+	# Check the presence of atomic library
+	if test "x$HAVE_STDATOMIC_H" = "xyes"; then
+	  HAVE_LIBATOMIC="yes"
+	  AC_CHECK_LIB([atomic], [__atomic_compare_exchange_16],,[HAVE_LIBATOMIC="no"])
+	fi
+
+	# Define HAVE_MULTITHREAD only if stdatomic.h, atomic library, and pthread library are present
+	if [ test "x$HAVE_STDATOMIC_H" = "xyes" ] &&  [ test "x$HAVE_LIBATOMIC" = "xyes" ] && [ test "x$HAVE_PTHREAD" = "xyes" ]; then
+	  AC_DEFINE([HAVE_MULTITHREAD], [1], [Define if we have multithread support (pthread and atomic libraries)])
+	else
+	  AC_MSG_RESULT([no])
+	  AC_MSG_ERROR([Must use Pthread and atomic library and header with multithread])
+	fi
+	;;
+
+      *apple*)
+	# Replace C99 with C11 standard to support atomic datatype
+	H5_CFLAGS=$(echo $H5_CFLAGS | sed -e "s/-std=c99/-std=c11/g")
+
+	# Propagate the change to CFLAGS, too
+	CFLAGS="$H5_CFLAGS $AM_CFLAGS $CFLAGS"
+
+	# Check the presence of stdatomic.h for atomic data type.  Unlike GCC on Linux, clang on Mac OS doesn't need
+	# to link to the atomic library (-latomic)
+	HAVE_STDATOMIC_H="yes"
+
+	AC_CHECK_HEADERS([stdatomic.h],,[HAVE_STDATOMIC_H="no"])
+
+	# Define HAVE_MULTITHREAD on if stdatomic.h and pthread are present
+	AC_MSG_CHECKING([for multithread support (pthread and atomic libraries)])
+
+	if [ test "x$HAVE_STDATOMIC_H" = "xyes" ] && [ test "x$HAVE_PTHREAD" = "xyes" ]; then
+	  AC_MSG_RESULT([yes])
+	  AC_DEFINE([HAVE_MULTITHREAD], [1], [Define if we have multithread support (pthread and atomic header)])
+	else
+	  AC_MSG_RESULT([no])
+	  AC_MSG_ERROR([Must use Pthread and atomic header with multithread])
+	fi
+	;;
     esac
 fi
 

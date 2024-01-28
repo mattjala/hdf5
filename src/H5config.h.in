@@ -170,6 +170,9 @@
    */
 #undef HAVE_IOC_VFD
 
+/* Define to 1 if you have the `atomic' library (-latomic). */
+#undef HAVE_LIBATOMIC
+
 /* Define to 1 if you have the `crypto' library (-lcrypto). */
 #undef HAVE_LIBCRYPTO
 
@@ -218,7 +221,7 @@
 /* Define if MPI_Info_c2f and MPI_Info_f2c exist */
 #undef HAVE_MPI_MULTI_LANG_Info
 
-/* Define if we have multithread support */
+/* Define if we have multithread support (pthread and atomic header) */
 #undef HAVE_MULTITHREAD
 
 /* Define to 1 if you have the <netdb.h> header file. */

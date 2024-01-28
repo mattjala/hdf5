@@ -25,6 +25,7 @@
 #include "H5Eprivate.h"  /* Error handling                           */
 #include "H5FLprivate.h" /* Free lists                               */
 #include "H5FSprivate.h" /* File free space                          */
+#include "H5Iprivate.h"  /* Index                                    */
 #include "H5Lprivate.h"  /* Links                                    */
 #include "H5MMprivate.h" /* Memory management                        */
 #include "H5Pprivate.h"  /* Property lists                           */
@@ -249,7 +250,12 @@ H5_init_library(void)
             herr_t (*func)(void);
             const char *descr;
         } initializer[] = {
+#if H5_HAVE_MULTITHREAD
+            {H5I_init, "index"}
+        ,   {H5E_init, "error"}
+#else /* H5_HAVE_MULTITHREAD */
             {H5E_init, "error"}
+#endif /* H5_HAVE_MULTITHREAD */
         ,   {H5VL_init_phase1, "VOL"}
         ,   {H5SL_init, "skip lists"}
         ,   {H5FD_init, "VFD"}

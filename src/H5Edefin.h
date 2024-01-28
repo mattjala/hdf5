@@ -18,47 +18,60 @@
 #define H5Edefin_H
 
 /* Major error IDs */
-hid_t H5E_BTREE_g          = FAIL;      /* B-Tree node */
-hid_t H5E_SOHM_g           = FAIL;      /* Shared Object Header Messages */
-hid_t H5E_IO_g             = FAIL;      /* Low-level I/O */
-hid_t H5E_FARRAY_g         = FAIL;      /* Fixed Array */
 hid_t H5E_ID_g             = FAIL;      /* Object ID */
-hid_t H5E_DATATYPE_g       = FAIL;      /* Datatype */
-hid_t H5E_VOL_g            = FAIL;      /* Virtual Object Layer */
-hid_t H5E_FILE_g           = FAIL;      /* File accessibility */
-hid_t H5E_REFERENCE_g      = FAIL;      /* References */
-hid_t H5E_CACHE_g          = FAIL;      /* Object cache */
-hid_t H5E_PAGEBUF_g        = FAIL;      /* Page Buffering */
-hid_t H5E_PLINE_g          = FAIL;      /* Data filters */
-hid_t H5E_DATASET_g        = FAIL;      /* Dataset */
-hid_t H5E_RESOURCE_g       = FAIL;      /* Resource unavailable */
-hid_t H5E_ERROR_g          = FAIL;      /* Error API */
+hid_t H5E_FUNC_g           = FAIL;      /* Function entry/exit */
+hid_t H5E_PLIST_g          = FAIL;      /* Property lists */
 hid_t H5E_PLUGIN_g         = FAIL;      /* Plugin for dynamically loaded library */
+hid_t H5E_EARRAY_g         = FAIL;      /* Extensible Array */
+hid_t H5E_CONTEXT_g        = FAIL;      /* API Context */
+hid_t H5E_FILE_g           = FAIL;      /* File accessibility */
+hid_t H5E_FARRAY_g         = FAIL;      /* Fixed Array */
+hid_t H5E_DATATYPE_g       = FAIL;      /* Datatype */
+hid_t H5E_TST_g            = FAIL;      /* Ternary Search Trees */
+hid_t H5E_LIB_g            = FAIL;      /* General library infrastructure */
 hid_t H5E_FSPACE_g         = FAIL;      /* Free Space Manager */
 hid_t H5E_NONE_MAJOR_g     = FAIL;      /* No error */
-hid_t H5E_RS_g             = FAIL;      /* Reference Counted Strings */
-hid_t H5E_FUNC_g           = FAIL;      /* Function entry/exit */
-hid_t H5E_EFL_g            = FAIL;      /* External file list */
-hid_t H5E_TST_g            = FAIL;      /* Ternary Search Trees */
-hid_t H5E_EVENTSET_g       = FAIL;      /* Event Set */
-hid_t H5E_VFL_g            = FAIL;      /* Virtual File Layer */
 hid_t H5E_STORAGE_g        = FAIL;      /* Data storage */
-hid_t H5E_DATASPACE_g      = FAIL;      /* Dataspace */
-hid_t H5E_OHDR_g           = FAIL;      /* Object header */
-hid_t H5E_LINK_g           = FAIL;      /* Links */
-hid_t H5E_MAP_g            = FAIL;      /* Map */
-hid_t H5E_HEAP_g           = FAIL;      /* Heap */
-hid_t H5E_ATTR_g           = FAIL;      /* Attribute */
-hid_t H5E_EARRAY_g         = FAIL;      /* Extensible Array */
-hid_t H5E_SLIST_g          = FAIL;      /* Skip Lists */
-hid_t H5E_LIB_g            = FAIL;      /* General library infrastructure */
-hid_t H5E_PLIST_g          = FAIL;      /* Property lists */
-hid_t H5E_ARGS_g           = FAIL;      /* Invalid arguments to routine */
+hid_t H5E_BTREE_g          = FAIL;      /* B-Tree node */
+hid_t H5E_REFERENCE_g      = FAIL;      /* References */
+hid_t H5E_EVENTSET_g       = FAIL;      /* Event Set */
 hid_t H5E_INTERNAL_g       = FAIL;      /* Internal error (too specific to document in detail) */
+hid_t H5E_ERROR_g          = FAIL;      /* Error API */
+hid_t H5E_SOHM_g           = FAIL;      /* Shared Object Header Messages */
+hid_t H5E_SLIST_g          = FAIL;      /* Skip Lists */
+hid_t H5E_DATASET_g        = FAIL;      /* Dataset */
+hid_t H5E_ATTR_g           = FAIL;      /* Attribute */
+hid_t H5E_HEAP_g           = FAIL;      /* Heap */
+hid_t H5E_VOL_g            = FAIL;      /* Virtual Object Layer */
+hid_t H5E_RS_g             = FAIL;      /* Reference Counted Strings */
+hid_t H5E_PAGEBUF_g        = FAIL;      /* Page Buffering */
 hid_t H5E_SYM_g            = FAIL;      /* Symbol table */
-hid_t H5E_CONTEXT_g        = FAIL;      /* API Context */
+hid_t H5E_EFL_g            = FAIL;      /* External file list */
+hid_t H5E_OHDR_g           = FAIL;      /* Object header */
+hid_t H5E_PLINE_g          = FAIL;      /* Data filters */
+hid_t H5E_ARGS_g           = FAIL;      /* Invalid arguments to routine */
+hid_t H5E_DATASPACE_g      = FAIL;      /* Dataspace */
+hid_t H5E_VFL_g            = FAIL;      /* Virtual File Layer */
+hid_t H5E_RESOURCE_g       = FAIL;      /* Resource unavailable */
+hid_t H5E_CACHE_g          = FAIL;      /* Object cache */
+hid_t H5E_MAP_g            = FAIL;      /* Map */
+hid_t H5E_IO_g             = FAIL;      /* Low-level I/O */
+hid_t H5E_LINK_g           = FAIL;      /* Links */
 
 /* Minor error IDs */
+
+/* Datatype conversion errors */
+hid_t H5E_CANTCONVERT_g    = FAIL;      /* Can't convert datatypes */
+hid_t H5E_BADSIZE_g        = FAIL;      /* Bad size for object */
+
+/* Map related errors */
+hid_t H5E_CANTPUT_g        = FAIL;      /* Can't put value */
+
+/* Property list errors */
+hid_t H5E_CANTGET_g        = FAIL;      /* Can't get value */
+hid_t H5E_CANTSET_g        = FAIL;      /* Can't set value */
+hid_t H5E_DUPCLASS_g       = FAIL;      /* Duplicate class name in parent class */
+hid_t H5E_SETDISALLOWED_g  = FAIL;      /* Disallowed operation */
 
 /* Argument errors */
 hid_t H5E_UNINITIALIZED_g  = FAIL;      /* Information is uinitialized */
@@ -69,6 +82,84 @@ hid_t H5E_BADVALUE_g       = FAIL;      /* Bad value */
 
 /* Plugin errors */
 hid_t H5E_OPENERROR_g      = FAIL;      /* Can't open directory or file */
+
+/* Generic low-level file I/O errors */
+hid_t H5E_SEEKERROR_g      = FAIL;      /* Seek failed */
+hid_t H5E_READERROR_g      = FAIL;      /* Read failed */
+hid_t H5E_WRITEERROR_g     = FAIL;      /* Write failed */
+hid_t H5E_CLOSEERROR_g     = FAIL;      /* Close failed */
+hid_t H5E_OVERFLOW_g       = FAIL;      /* Address overflowed */
+hid_t H5E_FCNTL_g          = FAIL;      /* File control (fcntl) failed */
+
+/* System level errors */
+hid_t H5E_SYSERRSTR_g      = FAIL;      /* System error message */
+
+/* I/O pipeline errors */
+hid_t H5E_NOFILTER_g       = FAIL;      /* Requested filter is not available */
+hid_t H5E_CALLBACK_g       = FAIL;      /* Callback failed */
+hid_t H5E_CANAPPLY_g       = FAIL;      /* Error from filter 'can apply' callback */
+hid_t H5E_SETLOCAL_g       = FAIL;      /* Error from filter 'set local' callback */
+hid_t H5E_NOENCODER_g      = FAIL;      /* Filter present but encoding disabled */
+hid_t H5E_CANTFILTER_g     = FAIL;      /* Filter operation failed */
+
+/* No error */
+hid_t H5E_NONE_MINOR_g     = FAIL;      /* No error */
+
+/* Asynchronous operation errors */
+hid_t H5E_CANTWAIT_g       = FAIL;      /* Can't wait on operation */
+hid_t H5E_CANTCANCEL_g     = FAIL;      /* Can't cancel operation */
+
+/* Resource errors */
+hid_t H5E_NOSPACE_g        = FAIL;      /* No space available for allocation */
+hid_t H5E_CANTALLOC_g      = FAIL;      /* Can't allocate space */
+hid_t H5E_CANTCOPY_g       = FAIL;      /* Unable to copy object */
+hid_t H5E_CANTFREE_g       = FAIL;      /* Unable to free object */
+hid_t H5E_ALREADYEXISTS_g  = FAIL;      /* Object already exists */
+hid_t H5E_CANTLOCK_g       = FAIL;      /* Unable to lock object */
+hid_t H5E_CANTUNLOCK_g     = FAIL;      /* Unable to unlock object */
+hid_t H5E_CANTGC_g         = FAIL;      /* Unable to garbage collect */
+hid_t H5E_CANTGETSIZE_g    = FAIL;      /* Unable to compute size */
+hid_t H5E_OBJOPEN_g        = FAIL;      /* Object is already open */
+
+/* Object ID related errors */
+hid_t H5E_BADID_g          = FAIL;      /* Unable to find ID information (already closed?) */
+hid_t H5E_BADGROUP_g       = FAIL;      /* Unable to find ID group information */
+hid_t H5E_CANTREGISTER_g   = FAIL;      /* Unable to register new ID */
+hid_t H5E_CANTINC_g        = FAIL;      /* Unable to increment reference count */
+hid_t H5E_CANTDEC_g        = FAIL;      /* Unable to decrement reference count */
+hid_t H5E_NOIDS_g          = FAIL;      /* Out of IDs for group */
+
+/* B-tree related errors */
+hid_t H5E_NOTFOUND_g       = FAIL;      /* Object not found */
+hid_t H5E_EXISTS_g         = FAIL;      /* Object already exists */
+hid_t H5E_CANTENCODE_g     = FAIL;      /* Unable to encode value */
+hid_t H5E_CANTDECODE_g     = FAIL;      /* Unable to decode value */
+hid_t H5E_CANTSPLIT_g      = FAIL;      /* Unable to split node */
+hid_t H5E_CANTREDISTRIBUTE_g = FAIL;      /* Unable to redistribute records */
+hid_t H5E_CANTSWAP_g       = FAIL;      /* Unable to swap records */
+hid_t H5E_CANTINSERT_g     = FAIL;      /* Unable to insert object */
+hid_t H5E_CANTLIST_g       = FAIL;      /* Unable to list node */
+hid_t H5E_CANTMODIFY_g     = FAIL;      /* Unable to modify record */
+hid_t H5E_CANTREMOVE_g     = FAIL;      /* Unable to remove object */
+hid_t H5E_CANTFIND_g       = FAIL;      /* Unable to check for record */
+
+/* Free space errors */
+hid_t H5E_CANTMERGE_g      = FAIL;      /* Can't merge objects */
+hid_t H5E_CANTREVIVE_g     = FAIL;      /* Can't revive object */
+hid_t H5E_CANTSHRINK_g     = FAIL;      /* Can't shrink container */
+
+/* Link related errors */
+hid_t H5E_TRAVERSE_g       = FAIL;      /* Link traversal failure */
+hid_t H5E_NLINKS_g         = FAIL;      /* Too many soft links in path */
+hid_t H5E_NOTREGISTERED_g  = FAIL;      /* Link class not registered */
+hid_t H5E_CANTMOVE_g       = FAIL;      /* Can't move object */
+hid_t H5E_CANTSORT_g       = FAIL;      /* Can't sort objects */
+
+/* Group related errors */
+hid_t H5E_CANTOPENOBJ_g    = FAIL;      /* Can't open object */
+hid_t H5E_CANTCLOSEOBJ_g   = FAIL;      /* Can't close object */
+hid_t H5E_COMPLEN_g        = FAIL;      /* Name component is too long */
+hid_t H5E_PATH_g           = FAIL;      /* Problem with path to object */
 
 /* Function entry/exit interface errors */
 hid_t H5E_CANTINIT_g       = FAIL;      /* Unable to initialize object */
@@ -104,44 +195,6 @@ hid_t H5E_LOGGING_g        = FAIL;      /* Failure in the cache logging framewor
 hid_t H5E_CANTCORK_g       = FAIL;      /* Unable to cork an object */
 hid_t H5E_CANTUNCORK_g     = FAIL;      /* Unable to uncork an object */
 
-/* System level errors */
-hid_t H5E_SYSERRSTR_g      = FAIL;      /* System error message */
-
-/* Parallel MPI errors */
-hid_t H5E_MPI_g            = FAIL;      /* Some MPI function failed */
-hid_t H5E_MPIERRSTR_g      = FAIL;      /* MPI Error String */
-hid_t H5E_CANTRECV_g       = FAIL;      /* Can't receive data */
-hid_t H5E_CANTGATHER_g     = FAIL;      /* Can't gather data */
-hid_t H5E_NO_INDEPENDENT_g = FAIL;      /* Can't perform independent IO */
-
-/* Free space errors */
-hid_t H5E_CANTMERGE_g      = FAIL;      /* Can't merge objects */
-hid_t H5E_CANTREVIVE_g     = FAIL;      /* Can't revive object */
-hid_t H5E_CANTSHRINK_g     = FAIL;      /* Can't shrink container */
-
-/* File accessibility errors */
-hid_t H5E_FILEEXISTS_g     = FAIL;      /* File already exists */
-hid_t H5E_FILEOPEN_g       = FAIL;      /* File already open */
-hid_t H5E_CANTCREATE_g     = FAIL;      /* Unable to create file */
-hid_t H5E_CANTOPENFILE_g   = FAIL;      /* Unable to open file */
-hid_t H5E_CANTCLOSEFILE_g  = FAIL;      /* Unable to close file */
-hid_t H5E_NOTHDF5_g        = FAIL;      /* Not an HDF5 file */
-hid_t H5E_BADFILE_g        = FAIL;      /* Bad file ID accessed */
-hid_t H5E_TRUNCATED_g      = FAIL;      /* File has been truncated */
-hid_t H5E_MOUNT_g          = FAIL;      /* File mount error */
-hid_t H5E_UNMOUNT_g        = FAIL;      /* File unmount error */
-hid_t H5E_CANTDELETEFILE_g = FAIL;      /* Unable to delete file */
-hid_t H5E_CANTLOCKFILE_g   = FAIL;      /* Unable to lock file */
-hid_t H5E_CANTUNLOCKFILE_g = FAIL;      /* Unable to unlock file */
-
-/* Generic low-level file I/O errors */
-hid_t H5E_SEEKERROR_g      = FAIL;      /* Seek failed */
-hid_t H5E_READERROR_g      = FAIL;      /* Read failed */
-hid_t H5E_WRITEERROR_g     = FAIL;      /* Write failed */
-hid_t H5E_CLOSEERROR_g     = FAIL;      /* Close failed */
-hid_t H5E_OVERFLOW_g       = FAIL;      /* Address overflowed */
-hid_t H5E_FCNTL_g          = FAIL;      /* File control (fcntl) failed */
-
 /* Heap errors */
 hid_t H5E_CANTRESTORE_g    = FAIL;      /* Can't restore condition */
 hid_t H5E_CANTCOMPUTE_g    = FAIL;      /* Can't compute value */
@@ -150,73 +203,12 @@ hid_t H5E_CANTATTACH_g     = FAIL;      /* Can't attach object */
 hid_t H5E_CANTUPDATE_g     = FAIL;      /* Can't update object */
 hid_t H5E_CANTOPERATE_g    = FAIL;      /* Can't operate on object */
 
-/* I/O pipeline errors */
-hid_t H5E_NOFILTER_g       = FAIL;      /* Requested filter is not available */
-hid_t H5E_CALLBACK_g       = FAIL;      /* Callback failed */
-hid_t H5E_CANAPPLY_g       = FAIL;      /* Error from filter 'can apply' callback */
-hid_t H5E_SETLOCAL_g       = FAIL;      /* Error from filter 'set local' callback */
-hid_t H5E_NOENCODER_g      = FAIL;      /* Filter present but encoding disabled */
-hid_t H5E_CANTFILTER_g     = FAIL;      /* Filter operation failed */
-
-/* Group related errors */
-hid_t H5E_CANTOPENOBJ_g    = FAIL;      /* Can't open object */
-hid_t H5E_CANTCLOSEOBJ_g   = FAIL;      /* Can't close object */
-hid_t H5E_COMPLEN_g        = FAIL;      /* Name component is too long */
-hid_t H5E_PATH_g           = FAIL;      /* Problem with path to object */
-
-/* Object ID related errors */
-hid_t H5E_BADID_g          = FAIL;      /* Unable to find ID information (already closed?) */
-hid_t H5E_BADGROUP_g       = FAIL;      /* Unable to find ID group information */
-hid_t H5E_CANTREGISTER_g   = FAIL;      /* Unable to register new ID */
-hid_t H5E_CANTINC_g        = FAIL;      /* Unable to increment reference count */
-hid_t H5E_CANTDEC_g        = FAIL;      /* Unable to decrement reference count */
-hid_t H5E_NOIDS_g          = FAIL;      /* Out of IDs for group */
-
-/* No error */
-hid_t H5E_NONE_MINOR_g     = FAIL;      /* No error */
-
-/* Resource errors */
-hid_t H5E_NOSPACE_g        = FAIL;      /* No space available for allocation */
-hid_t H5E_CANTALLOC_g      = FAIL;      /* Can't allocate space */
-hid_t H5E_CANTCOPY_g       = FAIL;      /* Unable to copy object */
-hid_t H5E_CANTFREE_g       = FAIL;      /* Unable to free object */
-hid_t H5E_ALREADYEXISTS_g  = FAIL;      /* Object already exists */
-hid_t H5E_CANTLOCK_g       = FAIL;      /* Unable to lock object */
-hid_t H5E_CANTUNLOCK_g     = FAIL;      /* Unable to unlock object */
-hid_t H5E_CANTGC_g         = FAIL;      /* Unable to garbage collect */
-hid_t H5E_CANTGETSIZE_g    = FAIL;      /* Unable to compute size */
-hid_t H5E_OBJOPEN_g        = FAIL;      /* Object is already open */
-
-/* Property list errors */
-hid_t H5E_CANTGET_g        = FAIL;      /* Can't get value */
-hid_t H5E_CANTSET_g        = FAIL;      /* Can't set value */
-hid_t H5E_DUPCLASS_g       = FAIL;      /* Duplicate class name in parent class */
-hid_t H5E_SETDISALLOWED_g  = FAIL;      /* Disallowed operation */
-
-/* Datatype conversion errors */
-hid_t H5E_CANTCONVERT_g    = FAIL;      /* Can't convert datatypes */
-hid_t H5E_BADSIZE_g        = FAIL;      /* Bad size for object */
-
-/* Link related errors */
-hid_t H5E_TRAVERSE_g       = FAIL;      /* Link traversal failure */
-hid_t H5E_NLINKS_g         = FAIL;      /* Too many soft links in path */
-hid_t H5E_NOTREGISTERED_g  = FAIL;      /* Link class not registered */
-hid_t H5E_CANTMOVE_g       = FAIL;      /* Can't move object */
-hid_t H5E_CANTSORT_g       = FAIL;      /* Can't sort objects */
-
-/* B-tree related errors */
-hid_t H5E_NOTFOUND_g       = FAIL;      /* Object not found */
-hid_t H5E_EXISTS_g         = FAIL;      /* Object already exists */
-hid_t H5E_CANTENCODE_g     = FAIL;      /* Unable to encode value */
-hid_t H5E_CANTDECODE_g     = FAIL;      /* Unable to decode value */
-hid_t H5E_CANTSPLIT_g      = FAIL;      /* Unable to split node */
-hid_t H5E_CANTREDISTRIBUTE_g = FAIL;      /* Unable to redistribute records */
-hid_t H5E_CANTSWAP_g       = FAIL;      /* Unable to swap records */
-hid_t H5E_CANTINSERT_g     = FAIL;      /* Unable to insert object */
-hid_t H5E_CANTLIST_g       = FAIL;      /* Unable to list node */
-hid_t H5E_CANTMODIFY_g     = FAIL;      /* Unable to modify record */
-hid_t H5E_CANTREMOVE_g     = FAIL;      /* Unable to remove object */
-hid_t H5E_CANTFIND_g       = FAIL;      /* Unable to check for record */
+/* Parallel MPI errors */
+hid_t H5E_MPI_g            = FAIL;      /* Some MPI function failed */
+hid_t H5E_MPIERRSTR_g      = FAIL;      /* MPI Error String */
+hid_t H5E_CANTRECV_g       = FAIL;      /* Can't receive data */
+hid_t H5E_CANTGATHER_g     = FAIL;      /* Can't gather data */
+hid_t H5E_NO_INDEPENDENT_g = FAIL;      /* Can't perform independent IO */
 
 /* Dataspace errors */
 hid_t H5E_CANTCLIP_g       = FAIL;      /* Can't clip hyperslab region */
@@ -239,11 +231,19 @@ hid_t H5E_CANTPACK_g       = FAIL;      /* Can't pack messages */
 hid_t H5E_CANTRESET_g      = FAIL;      /* Can't reset object */
 hid_t H5E_CANTRENAME_g     = FAIL;      /* Unable to rename object */
 
-/* Asynchronous operation errors */
-hid_t H5E_CANTWAIT_g       = FAIL;      /* Can't wait on operation */
-hid_t H5E_CANTCANCEL_g     = FAIL;      /* Can't cancel operation */
-
-/* Map related errors */
-hid_t H5E_CANTPUT_g        = FAIL;      /* Can't put value */
+/* File accessibility errors */
+hid_t H5E_FILEEXISTS_g     = FAIL;      /* File already exists */
+hid_t H5E_FILEOPEN_g       = FAIL;      /* File already open */
+hid_t H5E_CANTCREATE_g     = FAIL;      /* Unable to create file */
+hid_t H5E_CANTOPENFILE_g   = FAIL;      /* Unable to open file */
+hid_t H5E_CANTCLOSEFILE_g  = FAIL;      /* Unable to close file */
+hid_t H5E_NOTHDF5_g        = FAIL;      /* Not an HDF5 file */
+hid_t H5E_BADFILE_g        = FAIL;      /* Bad file ID accessed */
+hid_t H5E_TRUNCATED_g      = FAIL;      /* File has been truncated */
+hid_t H5E_MOUNT_g          = FAIL;      /* File mount error */
+hid_t H5E_UNMOUNT_g        = FAIL;      /* File unmount error */
+hid_t H5E_CANTDELETEFILE_g = FAIL;      /* Unable to delete file */
+hid_t H5E_CANTLOCKFILE_g   = FAIL;      /* Unable to lock file */
+hid_t H5E_CANTUNLOCKFILE_g = FAIL;      /* Unable to unlock file */
 
 #endif /* H5Edefin_H */
