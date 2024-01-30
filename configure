@@ -31518,8 +31518,14 @@ fi
 
 	fi
 
+	# Define HAVE_MULTITHREAD on if stdatomic.h and atomic and pthread libraries are present
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for multithread support (pthread and atomic libraries)" >&5
+printf %s "checking for multithread support (pthread and atomic libraries)... " >&6; }
+
 	# Define HAVE_MULTITHREAD only if stdatomic.h, atomic library, and pthread library are present
 	if  test "x$HAVE_STDATOMIC_H" = "xyes"  &&   test "x$HAVE_LIBATOMIC" = "xyes"  &&  test "x$HAVE_PTHREAD" = "xyes" ; then
+	  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
 
 printf "%s\n" "#define HAVE_MULTITHREAD 1" >>confdefs.h
 
@@ -31555,8 +31561,8 @@ fi
 done
 
 	# Define HAVE_MULTITHREAD on if stdatomic.h and pthread are present
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for multithread support (pthread and atomic libraries)" >&5
-printf %s "checking for multithread support (pthread and atomic libraries)... " >&6; }
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for multithread support (pthread library and atomic header)" >&5
+printf %s "checking for multithread support (pthread library and atomic header)... " >&6; }
 
 	if  test "x$HAVE_STDATOMIC_H" = "xyes"  &&  test "x$HAVE_PTHREAD" = "xyes" ; then
 	  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5

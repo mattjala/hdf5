@@ -2135,8 +2135,12 @@ if test "X$MULTITHREAD" = "Xyes"; then
 	  AC_CHECK_LIB([atomic], [__atomic_compare_exchange_16],,[HAVE_LIBATOMIC="no"])
 	fi
 
+	# Define HAVE_MULTITHREAD on if stdatomic.h and atomic and pthread libraries are present
+	AC_MSG_CHECKING([for multithread support (pthread and atomic libraries)])
+
 	# Define HAVE_MULTITHREAD only if stdatomic.h, atomic library, and pthread library are present
 	if [ test "x$HAVE_STDATOMIC_H" = "xyes" ] &&  [ test "x$HAVE_LIBATOMIC" = "xyes" ] && [ test "x$HAVE_PTHREAD" = "xyes" ]; then
+	  AC_MSG_RESULT([yes])
 	  AC_DEFINE([HAVE_MULTITHREAD], [1], [Define if we have multithread support (pthread and atomic libraries)])
 	else
 	  AC_MSG_RESULT([no])
@@ -2158,7 +2162,7 @@ if test "X$MULTITHREAD" = "Xyes"; then
 	AC_CHECK_HEADERS([stdatomic.h],,[HAVE_STDATOMIC_H="no"])
 
 	# Define HAVE_MULTITHREAD on if stdatomic.h and pthread are present
-	AC_MSG_CHECKING([for multithread support (pthread and atomic libraries)])
+	AC_MSG_CHECKING([for multithread support (pthread library and atomic header)])
 
 	if [ test "x$HAVE_STDATOMIC_H" = "xyes" ] && [ test "x$HAVE_PTHREAD" = "xyes" ]; then
 	  AC_MSG_RESULT([yes])
