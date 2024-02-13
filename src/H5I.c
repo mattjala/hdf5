@@ -98,6 +98,7 @@ H5I_type_t
 H5Iregister_type(size_t H5_ATTR_DEBUG_API_USED hash_size, unsigned reserved, H5I_free_t free_func)
 {
     hbool_t      expected  = FALSE;
+    hbool_t      result;
     H5I_class_t *cls       = NULL;      /* New ID class */
     H5I_type_t   new_type  = H5I_BADID; /* New ID type value */
     H5I_type_t   ret_value = H5I_BADID; /* Return value */
@@ -118,8 +119,8 @@ H5Iregister_type(size_t H5_ATTR_DEBUG_API_USED hash_size, unsigned reserved, H5I
     if ( ( atomic_load(&(H5I_mt_g.next_type)) < H5I_MAX_NUM_TYPES ) && 
          ( (new_type = atomic_fetch_add(&(H5I_mt_g.next_type), 1)) < H5I_MAX_NUM_TYPES ) ) {
 
-        assert(atomic_compare_exchange_strong(&(H5I_mt_g.type_info_allocation_table[new_type]), 
-                                              &expected, TRUE));
+        result = atomic_compare_exchange_strong(&(H5I_mt_g.type_info_allocation_table[new_type]), &expected, TRUE);
+        assert(result);
 
     } else {
 

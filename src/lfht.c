@@ -35,7 +35,7 @@ bool lfht_add(struct lfht_t * lfht_ptr, unsigned long long int id, void * value)
     unsigned long long int hash;
     struct lfht_node_t * bucket_head_ptr;
     struct lfht_fl_node_t * fl_node_ptr = NULL;
-    
+
     assert(lfht_ptr);
     assert(LFHT_VALID == lfht_ptr->tag);
 #ifdef H5_HAVE_MULTITHREAD
@@ -364,11 +364,9 @@ void lfht_clear(struct lfht_t * lfht_ptr)
     struct lfht_node_t * node_ptr = NULL;
     struct lfht_fl_node_t * fl_discard_ptr = NULL;
     struct lfht_fl_node_t * fl_node_ptr = NULL;
-#if LFHT__USE_SPTR
     struct lfht_flsptr_t init_flsptr = {NULL, 0x0ULL};
     struct lfht_flsptr_t fl_shead;
     struct lfht_flsptr_t snext;
-#endif /* LFHT__USE_SPTR */
 
     assert(lfht_ptr);
     assert(LFHT_VALID == lfht_ptr->tag);
@@ -438,18 +436,11 @@ void lfht_clear(struct lfht_t * lfht_ptr)
      * this directly, as lfht_discard_node() will try to 
      * put them back on the free list.
      */
-#if LFHT__USE_SPTR
     fl_shead = atomic_load(&(lfht_ptr->fl_shead));
     fl_node_ptr = fl_shead.ptr;
 
     atomic_store(&(lfht_ptr->fl_shead), init_flsptr);
     atomic_store(&(lfht_ptr->fl_stail), init_flsptr);
-#else /* LFHT__USE_SPTR */
-    fl_node_ptr = atomic_load(&(lfht_ptr->fl_head));
-
-    atomic_store(&(lfht_ptr->fl_head), NULL);
-    atomic_store(&(lfht_ptr->fl_tail), NULL);
-#endif /* LFHT__USE_SPTR */
 
     atomic_store(&(lfht_ptr->next_sn), 0ULL);
 
@@ -458,7 +449,7 @@ void lfht_clear(struct lfht_t * lfht_ptr)
         assert(LFHT_FL_NODE_ON_FL == fl_node_ptr->tag);
 
         fl_discard_ptr = fl_node_ptr;
-#if LFHT__USE_SPTR
+
         snext = atomic_load(&(fl_discard_ptr->snext));
         fl_node_ptr = snext.ptr;
 
@@ -467,12 +458,6 @@ void lfht_clear(struct lfht_t * lfht_ptr)
         snext.ptr = NULL;
         snext.sn  = 0ULL;
         atomic_store(&(fl_discard_ptr->snext), snext);
-#else /* LFHT__USE_SPTR */
-        fl_node_ptr = atomic_load(&(fl_discard_ptr->next));
-
-        discard_ptr->tag = LFHT_FL_NODE_INVALID;
-        atomic_store(&(fl_discard_ptr->next), NULL);
-#endif /* LFHT__USE_SPTR */
 
         free((void *)fl_discard_ptr);
     }
@@ -602,6 +587,7 @@ void lfht_clear_stats(struct lfht_t * lfht_ptr)
 
 void lfht_create_hash_bucket(struct lfht_t * lfht_ptr, unsigned long long int hash, int index_bits)
 {
+    bool result;
     unsigned long long int target_index;
     unsigned long long int target_hash;
     unsigned long long int parent_index;
@@ -612,7 +598,7 @@ void lfht_create_hash_bucket(struct lfht_t * lfht_ptr, unsigned long long int ha
     assert(lfht_ptr);
     assert(LFHT_VALID == lfht_ptr->tag);
     assert(index_bits > 0);
-    
+
     target_index = lfht_hash_to_idx(hash, index_bits);
     parent_index = lfht_hash_to_idx(hash, index_bits - 1);
 
@@ -627,7 +613,8 @@ void lfht_create_hash_bucket(struct lfht_t * lfht_ptr, unsigned long long int ha
             atomic_fetch_add(&(lfht_ptr->recursive_bucket_inits), 1);
         }
 
-        assert(NULL != (bucket_head_ptr = atomic_load(&(lfht_ptr->bucket_idx[parent_index]))));
+        bucket_head_ptr = atomic_load(&(lfht_ptr->bucket_idx[parent_index]));
+        assert(NULL != bucket_head_ptr);
 
         /* it is possible that parent_index == target_index -- hence the following check */
 
@@ -652,8 +639,10 @@ void lfht_create_hash_bucket(struct lfht_t * lfht_ptr, unsigned long long int ha
 
                 /* set lfht_ptr->bucket_idx[target_index].  Do this via atomic_compare_exchange_strong(). */
                 /* assert that this succeeds, as it should be impossible for it to fail */
-                assert(atomic_compare_exchange_strong(&(lfht_ptr->bucket_idx[target_index]), 
-                                                      &null_ptr, sentinel_ptr) );
+
+                result = atomic_compare_exchange_strong(&(lfht_ptr->bucket_idx[target_index]),
+                                                      &null_ptr, sentinel_ptr);
+                assert(result);
 
                 atomic_fetch_add(&(lfht_ptr->buckets_initialized), 1);
 
@@ -718,7 +707,7 @@ struct lfht_node_t * lfht_create_node(struct lfht_t * lfht_ptr, unsigned long lo
     bool fl_search_done = false;
     struct lfht_node_t * node_ptr = NULL;
     struct lfht_fl_node_t * fl_node_ptr = NULL;
-#if LFHT__USE_SPTR
+    bool result;
     struct lfht_flsptr_t sfirst;
     struct lfht_flsptr_t new_sfirst;
     struct lfht_flsptr_t test_sfirst;
@@ -726,12 +715,6 @@ struct lfht_node_t * lfht_create_node(struct lfht_t * lfht_ptr, unsigned long lo
     struct lfht_flsptr_t new_slast;
     struct lfht_flsptr_t snext;
     struct lfht_flsptr_t new_snext;
-#else /* LFHT__USE_SPTR */
-    bool new_node = false;
-    struct lfht_fl_node_t * first = NULL;
-    struct lfht_fl_node_t * last = NULL;
-    struct lfht_fl_node_t * next = NULL;
-#endif /* LFHT__USE_SPTR */
 
     assert(lfht_ptr);
     assert(LFHT_VALID == lfht_ptr->tag);
@@ -742,7 +725,6 @@ struct lfht_node_t * lfht_create_node(struct lfht_t * lfht_ptr, unsigned long lo
     }
     assert(hash <= LFHT__MAX_HASH);
 
-#if LFHT__USE_SPTR
     sfirst = atomic_load(&(lfht_ptr->fl_shead));
     if ( NULL == sfirst.ptr ) {
 
@@ -826,84 +808,8 @@ struct lfht_node_t * lfht_create_node(struct lfht_t * lfht_ptr, unsigned long lo
                     new_snext.ptr = NULL;
                     new_snext.sn  = snext.sn + 1;
 
-                    assert(atomic_compare_exchange_strong(&(fl_node_ptr->snext), &snext, new_snext));
-
-#else /* LFHT__USE_SPTR */
-    if ( NULL == atomic_load(&(lfht_ptr->fl_head)) ) {
-
-        /* the free list hasn't been initialized yet, so skip
-         * the search of the free list.
-         */
-       fl_search_done = true;
-    }
-
-    while ( ! fl_search_done ) {
-
-        first = atomic_load(&(lfht_ptr->fl_head));
-        last = atomic_load(&(lfht_ptr->fl_tail));
-
-        assert(first);
-        assert(last);
-
-        next = atomic_load(&(first->next));
-
-        if ( first == atomic_load(&(lfht_ptr->fl_head)) ) {
-
-            if ( first == last ) {
-
-                if ( NULL == next ) {
-
-                    /* the free list is empty */
-                    atomic_fetch_add(&(lfht_ptr->num_fl_req_denied_due_to_empty), 1);
-                    fl_search_done = true;
-                    break;
-
-                } 
-
-                /* attempt to set lfht_ptr->fl_tail to next.  It doesn't 
-                 * matter whether we succeed or fail, as if we fail, it 
-                 * just means that some other thread beat us to it.
-                 *
-                 * that said, it doesn't hurt to collect stats
-                 */
-                if ( ! atomic_compare_exchange_strong(&(lfht_ptr->fl_tail), &first, next) ) {
-
-                    atomic_fetch_add(&(lfht_ptr->num_fl_tail_update_cols), 1);
-                }
-            } else {
-
-                if ( atomic_load(&(first->ref_count)) > 0 ) {
-
-                    /* The ref count on the entry at the head of the free list 
-                     * has a positive ref count, which means that there may be 
-                     * a pointer to it somewhere.  Rather than take the risk, 
-                     * let it sit on the free list until the ref count drops 
-                     * to zero.
-                     */
-                    atomic_fetch_add(&(lfht_ptr->num_fl_req_denied_due_to_ref_count), 1);
-                    fl_search_done = true;
-
-                } else if ( ! atomic_compare_exchange_strong(&(lfht_ptr->fl_head), &first, next) ) {
-
-                    /* the attempt to remove the first item from the free list
-                     * failed.  Update stats and try again.
-                     */
-                    atomic_fetch_add(&(lfht_ptr->num_fl_head_update_cols), 1);
-
-                } else {
-
-                    /* first has been removed from the free list.  Set fl_node_ptr to first,
-                     * update stats, and exit the loop by setting fl_search_done to true.
-                     */
-                    fl_node_ptr = first;
-
-                    atomic_store(&(fl_node_ptr->tag), LFHT_FL_NODE_IN_USE);
-                    assert( 0x0ULL == atomic_load(&(fl_node_ptr->ref_count)));
-                    assert(atomic_load(&(fl_node_ptr->next))); 
-
-                    /* don't set fl_node_ptr->next to NULL to avoid setting up an ABA bug */
-
-#endif /* LFHT__USE_SPTR */
+                    result = atomic_compare_exchange_strong(&(fl_node_ptr->snext), &snext, new_snext);
+                    assert(result);
 
                     node_ptr = (struct lfht_node_t *)fl_node_ptr;
 
@@ -936,13 +842,10 @@ struct lfht_node_t * lfht_create_node(struct lfht_t * lfht_ptr, unsigned long lo
         atomic_init(&(fl_node_ptr->tag), LFHT_FL_NODE_IN_USE);
         atomic_init(&(fl_node_ptr->ref_count), 0);
         atomic_init(&(fl_node_ptr->sn), 0ULL);
-#if LFHT__USE_SPTR
+
         snext.ptr = NULL;
         snext.sn  = 0ULL;
         atomic_init(&(fl_node_ptr->snext), snext);
-#else /* LFHT__USE_SPTR */
-        atomic_init(&(fl_node_ptr->next), NULL);
-#endif /* LFHT__USE_SPTR */
 
         node_ptr = (struct lfht_node_t *)fl_node_ptr;
 
@@ -1154,22 +1057,18 @@ bool lfht_delete(struct lfht_t * lfht_ptr, unsigned long long int id)
 void lfht_discard_node(struct lfht_t * lfht_ptr, struct lfht_node_t * node_ptr, unsigned int expected_ref_count)
 {
     bool done = false;
+    bool result;
     unsigned int in_use_tag = LFHT_FL_NODE_IN_USE;
     long long int fl_len;
     long long int max_fl_len;
     struct lfht_node_t * next;
     struct lfht_fl_node_t * fl_node_ptr;
-#if LFHT__USE_SPTR
     struct lfht_flsptr_t snext = {NULL, 0ULL};
     struct lfht_flsptr_t fl_stail;
     struct lfht_flsptr_t fl_snext;
     struct lfht_flsptr_t new_fl_snext;
     struct lfht_flsptr_t test_fl_stail;
     struct lfht_flsptr_t new_fl_stail;
-#else /* LFHT__USE_SPTR */
-    struct lfht_fl_node_t * fl_tail;
-    struct lfht_fl_node_t * fl_next;
-#endif /* LFHT__USE_SPTR */
 
     assert(lfht_ptr);
     assert(LFHT_VALID == lfht_ptr->tag);
@@ -1185,24 +1084,16 @@ void lfht_discard_node(struct lfht_t * lfht_ptr, struct lfht_node_t * node_ptr, 
     assert(LFHT_FL_NODE_IN_USE == atomic_load(&(fl_node_ptr->tag)));
     assert(expected_ref_count == atomic_load(&(fl_node_ptr->ref_count)));
 
-#if LFHT__USE_SPTR
     snext = atomic_load(&(fl_node_ptr->snext));
     assert(NULL == snext.ptr);
-#else /* LFHT__USE_SPTR */
-    /* fl_node_ptr->next may or may not be NULL, depending on whether it was 
-     * allocated directly from the heap, or from the free list.  In either 
-     * case, we must set it to NULL before appending it to the free list.
-     */
-    atomic_store(&(fl_node_ptr->next), NULL);
-#endif /* LFHT__USE_SPTR */
 
-    assert( atomic_compare_exchange_strong(&(fl_node_ptr->tag), &in_use_tag, LFHT_FL_NODE_ON_FL) );
+    result = atomic_compare_exchange_strong(&(fl_node_ptr->tag), &in_use_tag, LFHT_FL_NODE_ON_FL);
+    assert(result);
 
     atomic_store(&(fl_node_ptr->sn), atomic_fetch_add(&(lfht_ptr->next_sn), 1));
 
     while ( ! done ) {
 
-#if LFHT__USE_SPTR
         fl_stail = atomic_load(&(lfht_ptr->fl_stail));
 
         assert(fl_stail.ptr);
@@ -1221,7 +1112,7 @@ void lfht_discard_node(struct lfht_t * lfht_ptr, struct lfht_node_t * node_ptr, 
         if ( ( test_fl_stail.ptr == fl_stail.ptr ) && ( test_fl_stail.sn == fl_stail.sn ) ) {
 
             if ( NULL == fl_snext.ptr ) {
-
+ 
                 /* attempt to append fl_node_ptr by setting fl_tail->next to fl_node_ptr.  
                  * If this succeeds, update stats and attempt to set lfht_ptr->fl_tail
                  * to fl_node_ptr as well.  This may or may not succeed, but in either 
@@ -1237,30 +1128,6 @@ void lfht_discard_node(struct lfht_t * lfht_ptr, struct lfht_node_t * node_ptr, 
                     new_fl_stail.ptr = fl_node_ptr;
                     new_fl_stail.sn  = fl_stail.sn + 1;
                     if ( ! atomic_compare_exchange_strong(&(lfht_ptr->fl_stail), &fl_stail, new_fl_stail) ) {
-#else /* LFHT__USE_SPTR */
-        fl_tail = atomic_load(&(lfht_ptr->fl_tail));
-
-        assert(fl_tail);
-        assert(LFHT_FL_NODE_ON_FL == atomic_load(&(fl_tail->tag)));
-
-        fl_next = atomic_load(&(fl_tail->next));
-
-        if ( fl_tail == atomic_load(&(lfht_ptr->fl_tail)) ) {
-
-            if ( NULL == fl_next ) {
-
-                /* attempt to append fl_node_ptr by setting fl_tail->next to fl_node_ptr.  
-                 * If this succeeds, update stats and attempt to set lfht_ptr->fl_tail
-                 * to fl_node_ptr as well.  This may or may not succeed, but in either 
-                 * case we are done.
-                 */
-                if ( atomic_compare_exchange_strong(&(fl_tail->next), &fl_next, fl_node_ptr) ) {
-
-                    atomic_fetch_add(&(lfht_ptr->fl_len), 1);
-                    atomic_fetch_add(&(lfht_ptr->num_nodes_added_to_fl), 1);
-
-                    if ( ! atomic_compare_exchange_strong(&(lfht_ptr->fl_tail), &fl_tail, fl_node_ptr) ) {
-#endif /* LFHT__USE_SPTR */
 
                         atomic_fetch_add(&(lfht_ptr->num_fl_tail_update_cols), 1);
                     }
@@ -1284,10 +1151,9 @@ void lfht_discard_node(struct lfht_t * lfht_ptr, struct lfht_node_t * node_ptr, 
 
                 }
             } else {
-
+ 
                 // assert(LFHT_FL_NODE_ON_FL == atomic_load(&(fl_next->tag)));
 
-#if LFHT__USE_SPTR
                 /* attempt to set lfht_ptr->fl_stail to fl_next.  It doesn't 
                  * matter whether we succeed or fail, as if we fail, it 
                  * just means that some other thread beat us to it.
@@ -1297,21 +1163,13 @@ void lfht_discard_node(struct lfht_t * lfht_ptr, struct lfht_node_t * node_ptr, 
                 new_fl_stail.ptr = fl_snext.ptr;
                 new_fl_stail.sn  = fl_stail.sn + 1;
                 if ( ! atomic_compare_exchange_strong(&(lfht_ptr->fl_stail), &fl_stail, new_fl_stail) ) {
-#else /* LFHT__USE_SPTR */
-                /* attempt to set lfht_ptr->fl_tail to fl_next.  It doesn't 
-                 * matter whether we succeed or fail, as if we fail, it 
-                 * just means that some other thread beat us to it.
-                 *
-                 * that said, it doesn't hurt to collect stats
-                 */
-                if ( ! atomic_compare_exchange_strong(&(lfht_ptr->fl_tail), &fl_tail, fl_next) ) {
-#endif /* LFHT__USE_SPTR */
 
                     atomic_fetch_add(&(lfht_ptr->num_fl_tail_update_cols), 1);
                 }
             }
         }
     }
+
 #if 0 /* turn off node frees for now */
     /* Test to see if the free list is longer than the max_desired_fl_len. 
      * If so, attempt to remove an entry from the head of the free list
@@ -1326,18 +1184,15 @@ void lfht_discard_node(struct lfht_t * lfht_ptr, struct lfht_node_t * node_ptr, 
         struct lfht_fl_node_t * next;
         struct lfht_fl_node_t * discard_fl_node_ptr = NULL;
         struct lfht_node_t * discard_node_ptr = NULL;
-#if LFHT__USE_SPTR
         struct lfht_flsptr_t sfirst;
         struct lfht_flsptr_t new_sfirst;
         struct lfht_flsptr_t test_sfirst;
         struct lfht_flsptr_t slast;
         struct lfht_flsptr_t new_slast;
         struct lfht_flsptr_t snext;
-#endif /* LFHT__USE_SPTR */
 
         while ( ! fl_search_done ) {
 
-#if LFHT__USE_SPTR
             sfirst = atomic_load(&(lfht_ptr->fl_shead));
             slast = atomic_load(&(lfht_ptr->fl_stail));
 
@@ -1404,66 +1259,6 @@ void lfht_discard_node(struct lfht_t * lfht_ptr, struct lfht_node_t * node_ptr, 
                          * update stats, and exit the loop by setting fl_search_done to true.
                          */
                         discard_fl_node_ptr = sfirst.ptr;
-#else /* LFHT__USE_SPTR */
-            first = atomic_load(&(lfht_ptr->fl_head));
-            last = atomic_load(&(lfht_ptr->fl_tail));
-
-            assert(first);
-            assert(last);
-
-            next = atomic_load(&(first->next));
-
-            if ( first == atomic_load(&(lfht_ptr->fl_head)) ) {
-
-                if ( first == last ) {
-
-                    if ( NULL == next ) {
-
-                        /* the free list is empty */
-                        atomic_fetch_add(&(lfht_ptr->num_fl_frees_skiped_due_to_empty), 1);
-                        fl_search_done = true;
-                        break;
-
-                    } 
-
-                    /* attempt to set lfht_ptr->fl_tail to next.  It doesn't 
-                     * matter whether we succeed or fail, as if we fail, it 
-                     * just means that some other thread beat us to it.
-                     *
-                     * that said, it doesn't hurt to collect stats
-                     */
-                    if ( ! atomic_compare_exchange_strong(&(lfht_ptr->fl_tail), &first, next) ) {
-
-                        atomic_fetch_add(&(lfht_ptr->num_fl_tail_update_cols), 1);
-                    }
-                } else {
-
-                    if ( atomic_load(&(first->ref_count)) > 0 ) {
-
-                        /* The ref count on the entry at the head of the free list 
-                         * has a positive ref count, which means that there may be 
-                         * a pointer to it somewhere.  Rather than take the risk, 
-                         * let it sit on the free list until the ref count drops 
-                         * to zero.
-                         */
-                        atomic_fetch_add(&(lfht_ptr->num_fl_frees_skiped_due_to_ref_count), 1);
-                        fl_search_done = true;
-
-                    } else if ( ! atomic_compare_exchange_strong(&(lfht_ptr->fl_head), &first, next) ) {
-
-                        /* the attempt to remove the first item from the free list
-                         * failed.  Update stats and try again.
-                         */
-                        atomic_fetch_add(&(lfht_ptr->num_fl_head_update_cols), 1);
-                        atomic_fetch_add(&(lfht_ptr->num_node_free_candidate_selection_restarts), 1);
-
-                    } else {
-
-                        /* first has been removed from the free list.  Set discard_fl_node_ptr to first,
-                         * update stats, and exit the loop by setting fl_search_done to true.
-                         */
-                        discard_fl_node_ptr = first;
-#endif /* LFHT__USE_SPTR */
 
                         atomic_fetch_sub(&(lfht_ptr->fl_len), 1);
                         atomic_fetch_add(&(lfht_ptr->num_nodes_freed), 1);
@@ -1483,13 +1278,10 @@ void lfht_discard_node(struct lfht_t * lfht_ptr, struct lfht_node_t * node_ptr, 
 
             assert(LFHT_FL_NODE_ON_FL == atomic_load(&(discard_fl_node_ptr->tag)));
             assert(0 == atomic_load(&(discard_fl_node_ptr->ref_count)));
-#if LFHT__USE_SPTR
+
             snext.ptr = NULL;
             snext.sn  = 0ULL;
             atomic_store(&(discard_fl_node_ptr->snext), snext);
-#else /* LFHT__USE_SPTR */
-            atomic_store(&(discard_fl_node_ptr->next), NULL);
-#endif /* LFHT__USE_SPTR */
 
             discard_node_ptr = (struct lfht_node_t *)discard_fl_node_ptr;
 
@@ -1502,6 +1294,7 @@ void lfht_discard_node(struct lfht_t * lfht_ptr, struct lfht_node_t * node_ptr, 
         }
     } /* if ( atomic_load(&(lfht_ptr->fl_len)) > lfht_ptr->max_desired_fl_len ) */
 #endif /* JRM */
+
     return;
 
 } /* lfht_discard_node() */
@@ -1745,17 +1538,15 @@ struct lfht_fl_node_t * lfht_enter(struct lfht_t * lfht_ptr)
     bool done = false;
     struct lfht_fl_node_t * fl_tail;
     struct lfht_fl_node_t * fl_next;
-#if LFHT__USE_SPTR
     struct lfht_flsptr_t fl_stail;
     struct lfht_flsptr_t test_fl_stail;
     struct lfht_flsptr_t fl_snext;
-#endif /* LFHT__USE_SPTR */
 
     assert(lfht_ptr);
     assert(LFHT_VALID == lfht_ptr->tag);
 
     while ( ! done ) {
-#if LFHT__USE_SPTR
+
         fl_stail = atomic_load(&(lfht_ptr->fl_stail));
 
         assert(fl_stail.ptr);
@@ -1822,67 +1613,6 @@ struct lfht_fl_node_t * lfht_enter(struct lfht_t * lfht_ptr)
     assert(atomic_load(&(fl_stail.ptr->ref_count)) > 0);
 
     return(fl_stail.ptr);
-#else /* LFHT__USE_SPTR */
-        fl_tail = atomic_load(&(lfht_ptr->fl_tail));
-
-        assert(fl_tail);
-
-        fl_next = atomic_load(&(fl_tail->next));
-
-        if ( fl_tail == atomic_load(&(lfht_ptr->fl_tail)) ) {
-            if ( NULL == fl_next ) {
-
-                atomic_fetch_add(&(fl_tail->ref_count), 1);
-
-                /* it is possible that lfht_ptr->fl_tail has changed in the 
-                 * time since we last checked.  If so, it is remotely 
-                 * possible that *fl_tail is no longer on the free list.
-                 *
-                 * If not, update stats and return fl_tail.
-                 *
-                 * If so, decrement fl_tail->ref_count, update stats, and 
-                 * try again.
-                 */
-                if ( fl_tail == atomic_load(&(lfht_ptr->fl_tail)) ) {
-
-                    assert(LFHT_FL_NODE_ON_FL == atomic_load(&(fl_tail->tag)));
-
-                    atomic_fetch_add(&(lfht_ptr->num_fl_node_ref_cnt_incs), 1);
-
-                    done = true;
-
-                } else {
-
-                    atomic_fetch_sub(&(fl_tail->ref_count), 1);
-                    atomic_fetch_add(&(lfht_ptr->num_fl_node_ref_cnt_inc_retrys), 1);
-                }
-            } else {
-
-                /* lfht_ptr->fl_tail doesn't point to the end of the free list.  
-                 * 
-                 * Attempt to set lfht_ptr->fl_tail to point to fl_next to move towards 
-                 * correcting this.
-                 *
-                 * This will fail if lfht_ptr->fl_tail != fl_tail -- which 
-                 * is important, as if this is true, it is possible that fl_next
-                 * is no longer on the free list.
-                 *
-                 * No immediate attempt to recover if we fail, but we do collect stats.
-                 */
-                if ( ! atomic_compare_exchange_strong(&(lfht_ptr->fl_tail), &fl_tail, fl_next) ) {
-
-                    atomic_fetch_add(&(lfht_ptr->num_fl_tail_update_cols), 1);
-                }
-            }
-        }
-    } /* while ( ! done ) */
-
-    assert(fl_tail);
-    assert(LFHT_FL_NODE_ON_FL == atomic_load(&(fl_tail->tag)));
-    assert(atomic_load(&(fl_tail->ref_count)) > 0);
-
-    return(fl_tail);
-#endif /* LFHT__USE_SPTR */
 
 } /* lfht_enter() */
 
@@ -1922,13 +1652,9 @@ struct lfht_fl_node_t * lfht_enter(struct lfht_t * lfht_ptr)
 #endif 
     struct lfht_node_t * node_ptr = NULL;
     struct lfht_fl_node_t * fl_node_ptr = NULL;
-#if LFHT__USE_SPTR
 #if 0
     struct lfht_flsptr_t fl_stail;
 #endif
-#else /* LFHT__USE_SPTR */
-    struct lfht_fl_node_t * fl_tail;
-#endif /* LFHT__USE_SPTR */
 
     assert(lfht_ptr);
     assert(LFHT_VALID == lfht_ptr->tag);
@@ -1938,7 +1664,6 @@ struct lfht_fl_node_t * lfht_enter(struct lfht_t * lfht_ptr)
      * increment it with a atomic_compare_exchange_strong(),
      * and return a pointer to the node.
      */
-#if LFHT__USE_SPTR
     fl_stail = atomic_load(&(lfht_ptr->fl_stail));
 
     assert(fl_stail.ptr);
@@ -1952,22 +1677,8 @@ struct lfht_fl_node_t * lfht_enter(struct lfht_t * lfht_ptr)
             done = true;
         }
     }
-#else /* LFHT__USE_SPTR */
-    fl_tail = atomic_load(&(lfht_ptr->fl_tail));
-
-    assert(fl_tail);
-
-    if ( 0 < (curr_ref_count = atomic_load(&(fl_tail->ref_count))) ) {
-
-        if ( atomic_compare_exchange_strong(&(fl_tailr->ref_count), &curr_ref_count, curr_ref_count + 1) ) {
-
-            fl_node_ptr = fl_stail;
-            assert(LFHT_FL_NODE_ON_FL == atomic_load(&(fl_node_ptr->tag)));
-            done = true;
-        }
-    }
-#endif /* LFHT__USE_SPTR */
 #endif
+
     if ( ! done ) {
 
         node_ptr = lfht_create_node(lfht_ptr, 0ULL, 1ULL, false, NULL);
@@ -2184,7 +1895,7 @@ bool lfht_find(struct lfht_t * lfht_ptr,
     unsigned long long int hash;
     struct lfht_node_t * node_ptr = NULL;
     struct lfht_fl_node_t * fl_node_ptr;
-    
+
     assert(lfht_ptr);
     assert(LFHT_VALID == lfht_ptr->tag);
 #ifdef H5_HAVE_MULTITHREAD
@@ -2858,6 +2569,7 @@ struct lfht_node_t * lfht_get_hash_bucket_sentinel(struct lfht_t * lfht_ptr, uns
     assert(0x0ULL == (((unsigned long long)(sentinel_ptr)) & 0x01ULL));
     assert(LFHT_VALID_NODE == sentinel_ptr->tag);
     assert(sentinel_ptr->sentinel);
+
 #if 1 /* JRM */
     if ( sentinel_ptr->hash > hash ) {
 
@@ -3138,12 +2850,10 @@ void lfht_init(struct lfht_t * lfht_ptr)
 {
     int i;
     unsigned long long int mask = 0x0ULL;
-#if LFHT__USE_SPTR
     struct lfht_flsptr_t init_lfht_flsptr = {NULL, 0x0ULL};
     struct lfht_flsptr_t fl_shead;
     struct lfht_flsptr_t fl_stail;
     struct lfht_flsptr_t snext;
-#endif /* LFHT__USE_SPTR */
 
 #ifdef H5_HAVE_MULTITHREAD
     assert(LFHT__NUM_HASH_BITS == ID_BITS + 1);
@@ -3166,13 +2876,8 @@ void lfht_init(struct lfht_t * lfht_ptr)
 
 
     /* free list */
-#if LFHT__USE_SPTR
     atomic_init(&(lfht_ptr->fl_shead), init_lfht_flsptr);
     atomic_init(&(lfht_ptr->fl_stail), init_lfht_flsptr);
-#else /* LFHT__USE_SPTR */
-    atomic_init(&(lfht_ptr->fl_head), NULL);
-    atomic_init(&(lfht_ptr->fl_tail), NULL);
-#endif /* LFHT__USE_SPTR */
     atomic_init(&(lfht_ptr->fl_len), 1LL);
     lfht_ptr->max_desired_fl_len = LFHT__MAX_DESIRED_FL_LEN;
     atomic_init(&(lfht_ptr->next_sn), 0ULL);
@@ -3304,7 +3009,6 @@ void lfht_init(struct lfht_t * lfht_ptr)
     assert(fl_node_ptr);
     assert(LFHT_FL_NODE_IN_USE == fl_node_ptr->tag);
     atomic_store(&(fl_node_ptr->tag), LFHT_FL_NODE_ON_FL);
-#if LFHT__USE_SPTR
     snext = atomic_load(&(fl_node_ptr->snext));
     assert(NULL == snext.ptr);
     assert(0 == atomic_load(&(fl_node_ptr->ref_count)));
@@ -3314,12 +3018,6 @@ void lfht_init(struct lfht_t * lfht_ptr)
     fl_stail.ptr = fl_node_ptr;
     fl_stail.sn  = 1ULL;
     atomic_store(&(lfht_ptr->fl_stail), fl_stail);
-#else /* LFHT__USE_SPTR */
-    assert(NULL == atomic_load(&(fl_node_ptr->next)));
-    assert(0 == atomic_load(&(fl_node_ptr->ref_count)));
-    atomic_store(&(lfht_ptr->fl_head), fl_node_ptr);
-    atomic_store(&(lfht_ptr->fl_tail), fl_node_ptr);
-#endif /* LFHT__USE_SPTR */
 
     return;
 

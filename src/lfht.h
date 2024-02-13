@@ -19,7 +19,6 @@
 
 #endif
 #define LFHT__MAX_INDEX_BITS    10
-#define LFHT__USE_SPTR          1
 
 
 /***********************************************************************************
@@ -144,7 +143,6 @@ typedef struct lfht_flsptr_t {
  * sn:          Unique, sequential serial number assigned to each node when it 
  *              is placed on the free list.  Used for debugging.
  *
-#if LFHT__USE_SPTR
  * snext;       Atomic instance of struct lfht_flsptr_t, which contains a 
  *              pointer (ptr) to the next node on the free list for the lock 
  *              free singly linked list, and a serial number (sn) which must be 
@@ -152,10 +150,6 @@ typedef struct lfht_flsptr_t {
  *
  *              The objective here is to prevent ABA bugs, which would 
  *              otherwise occasionally allow leakage of a node.
-#else
- * next:        Atomic pointer to the next entry in the free list, or NULL if 
- *              there is no next entry.  
-#endif
  *              
  ***********************************************************************************/
 
@@ -169,11 +163,7 @@ typedef struct lfht_fl_node_t {
     _Atomic unsigned int tag;
     _Atomic unsigned int ref_count;
     _Atomic unsigned long long int sn;
-#if LFHT__USE_SPTR
    _Atomic struct lfht_flsptr_t snext;
-#else /* LFHT__USE_SPTR */
-    struct lfht_fl_node_t * _Atomic next;
-#endif /* LFHT__USE_SPTR */
 
 } lfht_fl_node_t;
 
@@ -286,7 +276,6 @@ typedef struct lfht_fl_node_t {
  * 
  * Free list related fields: 
  *
-#if LFHT__USE_SPTR
  * 
  * fl_shead:    Atomic instance of struct lfht_flsptr_t, which contains a 
  *              pointer (ptr) to the head of the free list for the lock free 
@@ -306,20 +295,6 @@ typedef struct lfht_fl_node_t {
  *              otherwise occasionally allow the tail of the free list to 
  *              get ahead of the head -- resulting in the increment of the 
  *              ref count on nodes that are no longer in the free list. 
- *
-#else
- *
- * fl_head:     Pointer to the head of the free list for the lock free singly 
- *              linked list. Once initialized, the free list will always contain
- *              at least one entry, and is logically empty if it contains only
- *              one entry (i.e. fl_head == fl_tail != NULL).
- *
- * fl_tail:     Pointer to the tail of the free list for the lock free singly
- *              linked list.  Once initialized, the free list will always contain
- *              at least one entry, and is logically empty if it contains only
- *              one entry (i.e. fl_head == fl_tail != NULL).
- *
- #endif
  * 
  * fl_len:      Atomic integer used to maintain a count of the number of nodes 
  *              on the free list.  Note that due to the delay between free list 
@@ -591,13 +566,8 @@ typedef struct lfht_t
 
    /* Free List: */
 
-#if LFHT__USE_SPTR
    _Atomic struct lfht_flsptr_t fl_shead;
    _Atomic struct lfht_flsptr_t fl_stail;
-#else /* LFHT__USE_SPTR */
-   struct lfht_fl_node_t * _Atomic fl_head;
-   struct lfht_fl_node_t * _Atomic fl_tail;
-#endif /* LFHT__USE_SPTR */
    _Atomic long long int fl_len;
    int max_desired_fl_len;
    _Atomic unsigned long long int next_sn;

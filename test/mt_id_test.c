@@ -268,6 +268,7 @@ herr_t free_func(void * obj, void ** request)
 hbool_t register_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds)
 {
     hbool_t          success = TRUE; /* will set to FALSE on failure */
+    hbool_t          result;
     int              type_id;
     id_type_kernel_t id_k;
     id_type_kernel_t mod_id_k;
@@ -329,7 +330,8 @@ hbool_t register_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds)
             mod_id_k.type_id     = type_id;
         }
 
-        assert(atomic_compare_exchange_strong(&(id_type_ptr->k), &id_k, mod_id_k));
+        result = atomic_compare_exchange_strong(&(id_type_ptr->k), &id_k, mod_id_k);
+        assert(result);
     }
 
     if ( ds ) {
@@ -455,7 +457,8 @@ hbool_t destroy_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds)
 hbool_t register_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr, 
                     hbool_t cs, hbool_t ds)
 {
-    hbool_t success = TRUE; /* will set to FALSE on failure */
+    hbool_t              success = TRUE; /* will set to FALSE on failure */
+    hbool_t              result;
     H5I_type_t           type;
     hid_t                id;
     id_type_kernel_t     id_type_k;
@@ -545,7 +548,8 @@ hbool_t register_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_obj
             mod_id_inst_k.realized    = id_inst_k.realized;
             mod_id_inst_k.id          = id_inst_k.id;
 
-            assert(atomic_compare_exchange_strong(&(id_inst_ptr->k), &id_inst_k, mod_id_inst_k));
+            result = atomic_compare_exchange_strong(&(id_inst_ptr->k), &id_inst_k, mod_id_inst_k);
+            assert(result);
 
         } else {
 
@@ -583,8 +587,11 @@ hbool_t register_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_obj
             success = FALSE;
         } 
 
-        assert(atomic_compare_exchange_strong(&(id_obj_ptr->k), &id_obj_k, mod_id_obj_k));
-        assert(atomic_compare_exchange_strong(&(id_inst_ptr->k), &id_inst_k, mod_id_inst_k));
+        result = atomic_compare_exchange_strong(&(id_obj_ptr->k), &id_obj_k, mod_id_obj_k);
+        assert(result);
+
+        result = atomic_compare_exchange_strong(&(id_inst_ptr->k), &id_inst_k, mod_id_inst_k);
+        assert(result);
     }
 
     if ( ds ) {
@@ -1218,13 +1225,16 @@ void create_types(int types_start, int types_count, int types_stride)
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
+    hbool_t result; 
     int i;
 
     for ( i = types_start; i < types_start + (types_count * types_stride); i += types_stride ) {
 
         assert(i >= 0);
         assert(i < NUM_ID_TYPES);
-        assert(register_type(&(types_array[i]), cs, ds));
+
+        result = register_type(&(types_array[i]), cs, ds);
+        assert(result);
     }
 
     return;
@@ -1235,13 +1245,16 @@ void dec_type_refs(int types_start, int types_count, int types_stride)
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
+    hbool_t result;
     int i;
 
     for ( i = types_start; i < types_start + (types_count * types_stride); i += types_stride ) {
 
         assert(i >= 0);
         assert(i < NUM_ID_TYPES);
-        assert(dec_type_ref(&(types_array[i]), cs, ds));
+
+        result = dec_type_ref(&(types_array[i]), cs, ds);
+        assert(result);
     }
 
     return;
@@ -1252,13 +1265,16 @@ void inc_type_refs(int types_start, int types_count, int types_stride)
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
+    hbool_t result;
     int i;
 
     for ( i = types_start; i < types_start + (types_count * types_stride); i += types_stride ) {
 
         assert(i >= 0);
         assert(i < NUM_ID_TYPES);
-        assert(inc_type_ref(&(types_array[i]), cs, ds));
+
+        result = inc_type_ref(&(types_array[i]), cs, ds);
+        assert(result);
     }
 
     return;
@@ -1269,13 +1285,16 @@ void destroy_types(int types_start, int types_count, int types_stride)
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
+    hbool_t result;
     int i;
 
     for ( i = types_start; i < types_start + (types_count * types_stride); i += types_stride ) {
 
         assert(i >= 0);
         assert(i < NUM_ID_TYPES);
-        assert(destroy_type(&(types_array[i]), cs, ds));
+
+        result = destroy_type(&(types_array[i]), cs, ds);
+        assert(result);
     }
 
     return;
@@ -1286,6 +1305,7 @@ void register_ids(int types_start, int types_count, int types_stride, int ids_st
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
+    hbool_t result;
     int i;
     int j;
     int k;
@@ -1298,7 +1318,8 @@ void register_ids(int types_start, int types_count, int types_stride, int ids_st
         assert( i >= types_start );
         assert( i < types_start + (types_count * types_stride) );
 
-        assert(register_id(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds));
+        result = register_id(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds);
+        assert(result);
     }
 
     return;
@@ -1309,6 +1330,7 @@ void dec_refs(int types_start, int types_count, int types_stride, int ids_start,
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
+    hbool_t result;
     int i;
     int j;
     int k;
@@ -1323,7 +1345,8 @@ void dec_refs(int types_start, int types_count, int types_stride, int ids_start,
         assert( i >= types_start );
         assert( i < types_start + (types_count * types_stride) );
 
-        assert(dec_ref(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds));
+        result = dec_ref(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds);
+        assert(result);
     }
 
     return;
@@ -1334,11 +1357,13 @@ void inc_refs(int ids_start, int ids_count, int ids_stride)
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
+    hbool_t result;
     int j;
 
     for ( j = ids_start; j < ids_start + (ids_count * ids_stride); j += ids_stride ) {
 
-        assert(inc_ref(&(id_instance_array[j]), cs, ds));
+        result = inc_ref(&(id_instance_array[j]), cs, ds);
+        assert(result);
     }
 
     return;
@@ -1349,6 +1374,7 @@ void verify_objects(int types_start, int types_count, int types_stride, int ids_
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
+    hbool_t result;
     int i;
     int j;
     int k;
@@ -1363,7 +1389,8 @@ void verify_objects(int types_start, int types_count, int types_stride, int ids_
         assert( i >= types_start );
         assert( i < types_start + (types_count * types_stride) );
 
-        assert(object_verify(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds));
+        result = object_verify(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds);
+        assert(result);
     }
 
     return;
@@ -1383,6 +1410,7 @@ void serial_test_1(void)
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
+    hbool_t result;
     int i;
     int j;
     int k;
@@ -1416,63 +1444,125 @@ void serial_test_1(void)
             fprintf(stdout, "\ni/j/k/l/m = %d/%d/%d/%d/%d\n\n", i, j, k, l, m);
         }
 
-        assert(register_type(&(types_array[i]), cs, ds));
+        result = register_type(&(types_array[i]), cs, ds);
+        assert(result);
 
-        assert(register_id(&(types_array[i]), &(id_instance_array[i]), &(objects_array[i]), cs, ds));
+        result = register_id(&(types_array[i]), &(id_instance_array[i]), &(objects_array[i]), cs, ds);
+        assert(result);
 
-        assert(object_verify(&(types_array[i]), &(id_instance_array[i]), &(objects_array[i]), cs, ds));
+        result = object_verify(&(types_array[i]), &(id_instance_array[i]), &(objects_array[i]), cs, ds);
+        assert(result);
 
-        assert(get_type(&(types_array[i]), &(id_instance_array[i]), cs, ds));
+        result = get_type(&(types_array[i]), &(id_instance_array[i]), cs, ds);
+        assert(result);
 
-        assert(remove_verify(&(types_array[i]), &(id_instance_array[i]), &(objects_array[i]), cs, ds));
+        result = remove_verify(&(types_array[i]), &(id_instance_array[i]), &(objects_array[i]), cs, ds);
+        assert(result);
 
-        assert(register_id(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds));
-        assert(register_id(&(types_array[i]), &(id_instance_array[k]), &(objects_array[k]), cs, ds));
-        assert(1 == get_ref(&(id_instance_array[j]), cs, ds));
-        assert(1 == get_ref(&(id_instance_array[k]), cs, ds));
-        assert(inc_ref(&(id_instance_array[j]), cs, ds));
-        assert(inc_ref(&(id_instance_array[k]), cs, ds));
-        assert(2 == get_ref(&(id_instance_array[j]), cs, ds));
-        assert(2 == get_ref(&(id_instance_array[k]), cs, ds));
-        assert(dec_ref(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds));
-        assert(1 == get_ref(&(id_instance_array[j]), cs, ds));
-        assert(dec_ref(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds));
+        result = register_id(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds);
+        assert(result);
+      
+        result = register_id(&(types_array[i]), &(id_instance_array[k]), &(objects_array[k]), cs, ds);
+        assert(result);
+      
+        result = (1 == get_ref(&(id_instance_array[j]), cs, ds));
+        assert(result);
 
-        assert(1 == nmembers(&(types_array[i]), cs, ds));
+        result = (1 == get_ref(&(id_instance_array[k]), cs, ds));
+        assert(result);
 
-        assert(register_id(&(types_array[i]), &(id_instance_array[l]), &(objects_array[l]), cs, ds));
-        assert(register_id(&(types_array[i]), &(id_instance_array[m]), &(objects_array[m]), cs, ds));
-        assert(1 == get_ref(&(id_instance_array[l]), cs, ds));
-        assert(1 == get_ref(&(id_instance_array[m]), cs, ds));
-        assert(inc_ref(&(id_instance_array[l]), cs, ds));
-        assert(inc_ref(&(id_instance_array[m]), cs, ds));
-        assert(2 == get_ref(&(id_instance_array[l]), cs, ds));
-        assert(2 == get_ref(&(id_instance_array[m]), cs, ds));
+        result = inc_ref(&(id_instance_array[j]), cs, ds);
+        assert(result);
 
-        assert(3 == nmembers(&(types_array[i]), cs, ds));
+        result = inc_ref(&(id_instance_array[k]), cs, ds);
+        assert(result);
 
-        assert(clear_type(&(types_array[i]), FALSE, cs, ds));
+        result = (2 == get_ref(&(id_instance_array[j]), cs, ds));
+        assert(result);
 
-        assert(3 == nmembers(&(types_array[i]), cs, ds));
+        result = (2 == get_ref(&(id_instance_array[k]), cs, ds));
+        assert(result);
 
-        assert(TRUE == type_exists(&(types_array[i]), cs, ds));
+        result = dec_ref(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds);
+        assert(result);
 
-        assert(inc_type_ref(&(types_array[i]), cs, ds));
+        result = (1 == get_ref(&(id_instance_array[j]), cs, ds));
+        assert(result);
 
-        assert(dec_type_ref(&(types_array[i]), cs, ds));
+        result = dec_ref(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds);
+        assert(result);
 
-        assert(TRUE == type_exists(&(types_array[i]), cs, ds));
+
+        result = (1 == nmembers(&(types_array[i]), cs, ds));
+        assert(result);
+
+
+        result = register_id(&(types_array[i]), &(id_instance_array[l]), &(objects_array[l]), cs, ds);
+        assert(result);
+
+        result = register_id(&(types_array[i]), &(id_instance_array[m]), &(objects_array[m]), cs, ds);
+        assert(result);
+
+        result = (1 == get_ref(&(id_instance_array[l]), cs, ds));
+        assert(result);
+
+        result = (1 == get_ref(&(id_instance_array[m]), cs, ds));
+        assert(result);
+
+        result = inc_ref(&(id_instance_array[l]), cs, ds);
+        assert(result);
+
+        result = inc_ref(&(id_instance_array[m]), cs, ds);
+        assert(result);
+
+        result = (2 == get_ref(&(id_instance_array[l]), cs, ds));
+        assert(result);
+
+        result = (2 == get_ref(&(id_instance_array[m]), cs, ds));
+        assert(result);
+
+
+        result = (3 == nmembers(&(types_array[i]), cs, ds));
+        assert(result);
+
+
+        result = clear_type(&(types_array[i]), FALSE, cs, ds);
+        assert(result);
+
+
+        result = (3 == nmembers(&(types_array[i]), cs, ds));
+        assert(result);
+
+
+        result = (TRUE == type_exists(&(types_array[i]), cs, ds));
+        assert(result);
+
+
+        result = inc_type_ref(&(types_array[i]), cs, ds);
+        assert(result);
+
+
+        result = dec_type_ref(&(types_array[i]), cs, ds);
+        assert(result);
+
+
+        result = (TRUE == type_exists(&(types_array[i]), cs, ds));
+        assert(result);
+
 
         if ( (i % 2) > 0 ) {
 
-            assert(dec_type_ref(&(types_array[i]), cs, ds));
+            result = dec_type_ref(&(types_array[i]), cs, ds);
+            assert(result);
 
         } else {
 
-            assert(destroy_type(&(types_array[i]), cs, ds));
+            result = destroy_type(&(types_array[i]), cs, ds);
+            assert(result);
         }
 
-        assert(FALSE == type_exists(&(types_array[i]), cs, ds));
+        result = (FALSE == type_exists(&(types_array[i]), cs, ds));
+        assert(result);
     }
 
     fprintf(stdout, "Done.\n");
@@ -1488,6 +1578,7 @@ void serial_test_2(int types_start, int types_count, int ids_start, int ids_coun
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
+    hbool_t result;
     int i;
     int j;
 
@@ -1500,7 +1591,8 @@ void serial_test_2(int types_start, int types_count, int ids_start, int ids_coun
 
     for ( i = types_start; i < types_start + types_count; i++ ) {
 
-        assert(register_type(&(types_array[i]), cs, ds));
+        result = register_type(&(types_array[i]), cs, ds);
+        assert(result);
     }
 
     for ( j = ids_start; j < ids_start + ids_count; j++ ) {
@@ -1509,7 +1601,8 @@ void serial_test_2(int types_start, int types_count, int ids_start, int ids_coun
         assert( i >= types_start );
         assert( i < types_start + types_count );
 
-        assert(register_id(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds));
+        result = register_id(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds);
+        assert(result);
     }
 
     for ( j = ids_start + ids_count - 1; j >= ids_start; j-- ) {
@@ -1523,8 +1616,9 @@ void serial_test_2(int types_start, int types_count, int ids_start, int ids_coun
 
     for ( i = types_start; i < types_start + types_count; i++ ) {
 
-        assert(nmembers(&(types_array[i]), cs, ds) == (ids_count / types_count) + 
-                                                      (((ids_count % types_count) > i) ? 1 : 0) );
+        result = ( nmembers(&(types_array[i]), cs, ds) == (ids_count / types_count) + 
+                                                          (((ids_count % types_count) > i) ? 1 : 0) );
+        assert(result);
     }
 
     for ( j = ids_start; j < ids_start + ids_count; j++ ) {
@@ -1535,17 +1629,19 @@ void serial_test_2(int types_start, int types_count, int ids_start, int ids_coun
 
         if ( j % 2 > 0 ) {
 
-            assert(inc_ref(&(id_instance_array[j]), cs, ds));
+            result = (inc_ref(&(id_instance_array[j]), cs, ds));
+            assert(result);
 
         } else {
 
-            assert(dec_ref(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds));
+            assert(result);
         }
     }
 
     for ( i = types_start; i < types_start + types_count; i++ ) {
 
-        assert(clear_type(&(types_array[i]), FALSE, cs, ds));
+        result = clear_type(&(types_array[i]), FALSE, cs, ds);
+        assert(result);
     }
 
     for ( j = ids_start + 1; j < ids_start + ids_count; j += 2 ) {
@@ -1554,18 +1650,21 @@ void serial_test_2(int types_start, int types_count, int ids_start, int ids_coun
         assert( i >= types_start );
         assert( i < types_start + types_count );
 
-        assert(object_verify(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds));
+        result = object_verify(&(types_array[i]), &(id_instance_array[j]), &(objects_array[j]), cs, ds);
+        assert(result);
     }
 
     for ( i = types_start; i < types_start + types_count; i++ ) {
 
         if ( (i % 2) > 0 ) {
 
-            assert(dec_type_ref(&(types_array[i]), cs, ds));
+            result = dec_type_ref(&(types_array[i]), cs, ds);
+            assert(result);
 
         } else {
-            
-            assert(destroy_type(&(types_array[i]), cs, ds));
+
+            result = destroy_type(&(types_array[i]), cs, ds);
+            assert(result);
         }
     }
 
@@ -1574,7 +1673,8 @@ void serial_test_2(int types_start, int types_count, int ids_start, int ids_coun
 
     // H5I_dump_stats(stdout);
 
-    assert(H5close() >= 0 );
+    result = ( H5close() >= 0 );
+    assert(result);
 
     return;
 
@@ -1790,6 +1890,7 @@ void mt_test_fcn_1_serial_test(void)
 
 void mt_test_1(int num_threads) 
 {
+    hbool_t          result;
     int              i;
     pthread_t        threads[MAX_NUM_THREADS];
     mt_test_params_t params[MAX_NUM_THREADS];
@@ -1800,7 +1901,8 @@ void mt_test_1(int num_threads)
     fprintf(stdout, "\n running mt_test_fcn_1 ... ");
     fflush(stdout);
 
-    assert(H5open() >= 0 );
+    result = (H5open() >= 0 );
+    assert(result);
 
     for ( i = 0; i < num_threads; i++ ) {
 
@@ -1821,18 +1923,20 @@ void mt_test_1(int num_threads)
 
     for ( i = 0;  i < num_threads; i++ ) {
 
-        assert(0 == pthread_create(&(threads[i]), NULL, &mt_test_fcn_1, (void *)(&(params[i]))));
+        result = (0 == pthread_create(&(threads[i]), NULL, &mt_test_fcn_1, (void *)(&(params[i]))));
+        assert(result);
     }
 
     /* Wait for all the threads to complete */
     for (i = 0; i < num_threads; i++) {
 
-        assert(0 == pthread_join(threads[i], NULL));
+        result = (0 == pthread_join(threads[i], NULL));
+        assert(result);
     }
 
     destroy_types(params[0].types_start, params[0].types_count, params[0].types_stride);
 
-    H5I_dump_stats(stdout);
+    // H5I_dump_stats(stdout);
 
     assert(H5close() >= 0);
 
@@ -1845,6 +1949,8 @@ void mt_test_1(int num_threads)
 
 int main() 
 {
+    H5open();
+
     init_globals();
 
     serial_test_1();

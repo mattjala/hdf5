@@ -498,6 +498,7 @@ int
 H5I_term_package(void)
 {
     int in_use = 0; /* Number of ID types still in use */
+    herr_t result;
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
@@ -535,8 +536,11 @@ H5I_term_package(void)
         }
 
         /* discard the contents of the id and type info free lists */
-        assert( H5I__clear_mt_id_info_free_list() >= 0 );
-        assert( H5I__clear_mt_type_info_free_list() >= 0 );
+        result = H5I__clear_mt_id_info_free_list();
+        assert( result >= 0 );
+
+        result = H5I__clear_mt_type_info_free_list();
+        assert( result >= 0 );
 
         if ( atomic_load(&(H5I_mt_g.dump_stats_on_shutdown)) ) {
 
@@ -1714,6 +1718,7 @@ H5I_register_type(const H5I_class_t *cls)
 {
     H5I_mt_type_info_t *type_info_ptr  = NULL;    /* Pointer to the ID type*/
     H5I_mt_type_info_t *expected_ptr   = NULL;    /* Pointer to the ID type*/
+    herr_t              result;                   /* for sanity checking */
     herr_t              ret_value      = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
@@ -1786,7 +1791,8 @@ H5I_register_type(const H5I_class_t *cls)
             lfht_clear(&(type_info_ptr->lfht));
             atomic_store(&(type_info_ptr->lfht_cleared), TRUE);
 #if 1
-            assert(H5I__discard_mt_type_info(type_info_ptr) >= 0);
+            result = H5I__discard_mt_type_info(type_info_ptr);
+            assert(result >= 0);
 #else 
             H5MM_free(type_info_ptr);
 #endif
@@ -2392,6 +2398,7 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
     hbool_t                 done = FALSE;
     hbool_t                 have_global_mutex = TRUE; /*trivially so for single thread builds */
     hbool_t                 cls_is_mt_safe;
+    hbool_t                 bool_result;
     int                     pass = 0;
     H5I_mt_id_info_kernel_t info_k;
     H5I_mt_id_info_kernel_t mod_info_k;
@@ -2774,7 +2781,8 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
                 assert( info_k.do_not_disturb );
                 assert( ! mod_info_k.do_not_disturb );
 
-                assert(atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k));
+                bool_result = atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k);
+                assert(bool_result);
 
                 /* update stats */
                 atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_resets), 1ULL);
@@ -2944,6 +2952,7 @@ herr_t
 H5I__destroy_type(H5I_type_t type)
 {
     hbool_t             expected  = TRUE;
+    hbool_t             result;
     H5I_mt_type_info_t *type_info_ptr = NULL;    /* Pointer to the ID type */
     herr_t              ret_value = SUCCEED;     /* Return value */
 
@@ -2979,8 +2988,11 @@ H5I__destroy_type(H5I_type_t type)
 
     atomic_store(&(type_info_ptr->lfht_cleared), TRUE);
 
-    assert(atomic_compare_exchange_strong(&(H5I_mt_g.type_info_array[type]), &type_info_ptr, NULL));
-    assert(atomic_compare_exchange_strong(&(H5I_mt_g.type_info_allocation_table[type]), &expected, FALSE));
+    result = atomic_compare_exchange_strong(&(H5I_mt_g.type_info_array[type]), &type_info_ptr, NULL);
+    assert(result);
+
+    result = atomic_compare_exchange_strong(&(H5I_mt_g.type_info_allocation_table[type]), &expected, FALSE);
+    assert(result);
 
 #if 1 /* JRM */
     H5I__discard_mt_type_info(type_info_ptr);
@@ -3076,6 +3088,7 @@ hid_t
 H5I__register(H5I_type_t type, const void *object, hbool_t app_ref, H5I_future_realize_func_t realize_cb,
               H5I_future_discard_func_t discard_cb)
 {
+    hbool_t             result;
     H5I_mt_type_info_t *type_info_ptr = NULL;            /* Pointer to the type */
     H5I_mt_id_info_t   *id_info_ptr   = NULL;            /* Pointer to the new ID information */
     hid_t               new_id        = H5I_INVALID_HID; /* New ID */
@@ -3135,7 +3148,8 @@ H5I__register(H5I_type_t type, const void *object, hbool_t app_ref, H5I_future_r
 
     /* Insert into the lock free hash table */
     /* todo -- make this throw and error */
-    assert(lfht_add(&(type_info_ptr->lfht), (unsigned long long int)new_id, (void *)id_info_ptr));
+    result = lfht_add(&(type_info_ptr->lfht), (unsigned long long int)new_id, (void *)id_info_ptr);
+    assert(result);
 
     /* Set the most recent ID to this object */
     atomic_store(&(type_info_ptr->last_id_info), id_info_ptr);
@@ -3144,6 +3158,10 @@ H5I__register(H5I_type_t type, const void *object, hbool_t app_ref, H5I_future_r
     ret_value = new_id;
 
 done:
+
+#if H5I_MT_DEBUG
+    fprintf(stdout, "\n\n   H5I__register() exiting. \n\n\n");
+#endif /* H5I_MT_DEBUG */
 
     FUNC_LEAVE_NOAPI(ret_value)
 
@@ -3294,6 +3312,7 @@ done:
 herr_t
 H5I_register_using_existing_id(H5I_type_t type, void *object, hbool_t app_ref, hid_t existing_id)
 {
+    hbool_t                 result;
     H5I_mt_id_info_kernel_t info_k;
     H5I_mt_type_info_t     *type_info_ptr    = NULL;    /* Pointer to the type */
     H5I_mt_id_info_t       *old_id_info_ptr  = NULL;    /* Pointer to the old ID information */
@@ -3402,7 +3421,8 @@ H5I_register_using_existing_id(H5I_type_t type, void *object, hbool_t app_ref, h
     } 
 
     /* return an error on failure here */
-    assert(lfht_add(&(type_info_ptr->lfht), (unsigned long long int)existing_id, (void *)new_id_info_ptr));
+    result = lfht_add(&(type_info_ptr->lfht), (unsigned long long int)existing_id, (void *)new_id_info_ptr);
+    assert(result);
      
     atomic_fetch_add(&(type_info_ptr->id_count), 1);
 
@@ -3442,6 +3462,7 @@ done:
 herr_t
 H5I_register_using_existing_id(H5I_type_t type, void *object, hbool_t app_ref, hid_t existing_id)
 {
+    hbool_t          result;
     H5I_type_info_t *type_info = NULL;    /* Pointer to the type */
     H5I_id_info_t   *info      = NULL;    /* Pointer to the new ID information */
     herr_t           ret_value = SUCCEED; /* Return value */
@@ -3488,8 +3509,11 @@ H5I_register_using_existing_id(H5I_type_t type, void *object, hbool_t app_ref, h
 
     /* Insert into the type */
 #if H5_HAVE_MULTITHREAD
+
     /* todo -- make this throw an error */
-    assert(lfht_add(&(type_info->lfht), (unsigned long long int)existing_id, (void *)info));
+    result = lfht_add(&(type_info->lfht), (unsigned long long int)existing_id, (void *)info);
+    assert(result);
+
 #else /* H5_HAVE_MULTITHREAD */
     HASH_ADD(hh, type_info->hash_table, id, sizeof(hid_t), info);
 #endif /* H5_HAVE_MULTITHREAD */
@@ -3704,7 +3728,7 @@ H5I_object(hid_t id)
     FUNC_ENTER_NOAPI_NOERR
 
 #if H5I_MT_DEBUG
-    fprintf(stdout, "   H5I_object(0x%llx) called. \n", (unsigned long long)id);
+    fprintf(stderr, "   H5I_object(0x%llx) called. \n", (unsigned long long)id);
 #endif /* H5I_MT_DEBUG */
 
     /* General lookup of the ID */
@@ -3720,7 +3744,7 @@ H5I_object(hid_t id)
     }
 
 #if H5I_MT_DEBUG
-    fprintf(stdout, "   H5I_object(0x%llx) returns 0x%llx. \n", 
+    fprintf(stderr, "   H5I_object(0x%llx) returns 0x%llx. \n", 
               (unsigned long long)id, (unsigned long long)ret_value);
 #endif /* H5I_MT_DEBUG */
 
@@ -4492,6 +4516,7 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
     hbool_t                  marked_for_deletion;
     hbool_t                  have_global_mutex = TRUE; /* trivially so in single thread builds */
     hbool_t                  cls_is_mt_safe;
+    hbool_t                  bool_result;
     int                      pass                = 0;
     H5I_mt_id_info_kernel_t  info_k;
     H5I_mt_id_info_kernel_t  mod_info_k;
@@ -4859,7 +4884,8 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
             /* since we have the do_not_disturb flag, the following atomic_compare_exchange_strong()
              * must succeed.
              */
-            assert(atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k));
+            bool_result = atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k);
+            assert(bool_result);
 
             atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_resets), 1ULL);
 
@@ -5948,6 +5974,7 @@ static int
 H5I__iterate_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
 {
     hbool_t                  have_global_mutex;
+    hbool_t                  bool_result;
     H5I_mt_id_info_t        *id_info_ptr       = (H5I_mt_id_info_t *)_item;  /* Pointer to the ID info */
     H5I_iterate_ud_t        *udata             = (H5I_iterate_ud_t *)_udata; /* User data for callback */
     H5I_mt_id_info_kernel_t  info_k;
@@ -6204,7 +6231,8 @@ H5I__iterate_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
 
                 assert( ! mod_info_k.do_not_disturb );
 
-                assert(atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k));
+                bool_result = atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k);
+                assert(bool_result);
 
                 atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_resets), 1ULL);
 
@@ -6704,6 +6732,7 @@ H5I__find_id(hid_t id)
     hbool_t                 done = FALSE;
     hbool_t                 have_global_mutex = TRUE; /* trivially true in the serial case */
     hbool_t                 cls_is_mt_safe;
+    hbool_t                 bool_result;
     int                     pass = 0;
     herr_t                  result;
     H5I_type_t              type;                      /* ID's type */
@@ -6785,6 +6814,7 @@ H5I__find_id(hid_t id)
 
             /* Remember this ID */
             atomic_store(&(type_info_ptr->last_id_info), id_info_ptr);
+
         }
 
         if ( id_info_ptr ) {
@@ -7097,7 +7127,8 @@ H5I__find_id(hid_t id)
 
                 assert( ! mod_info_k.do_not_disturb );
 
-                assert(atomic_compare_exchange_strong(&(dup_id_info_ptr->k), &info_k, mod_info_k));
+                bool_result = atomic_compare_exchange_strong(&(dup_id_info_ptr->k), &info_k, mod_info_k);
+                assert(bool_result);
 
                 atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_resets), 1ULL);
 
@@ -7493,6 +7524,7 @@ done:
 static herr_t
 H5I__clear_mt_id_info_free_list(void)
 {
+    uint64_t              test_val;
     H5I_mt_id_info_sptr_t fl_head;
     H5I_mt_id_info_sptr_t null_snext = {NULL, 0ULL};
     H5I_mt_id_info_t    * fl_head_ptr;
@@ -7527,7 +7559,8 @@ H5I__clear_mt_id_info_free_list(void)
         free(id_info_ptr);
 
         atomic_fetch_add(&(H5I_mt_g.num_id_info_structs_freed), 1ULL);
-        assert(atomic_fetch_sub(&(H5I_mt_g.id_info_fl_len), 1ULL) > 0ULL);
+        test_val = atomic_fetch_sub(&(H5I_mt_g.id_info_fl_len), 1ULL);
+        assert( test_val > 0ULL);
     }
     atomic_store(&(H5I_mt_g.id_info_fl_shead), null_snext);
     atomic_store(&(H5I_mt_g.id_info_fl_stail), null_snext);
@@ -7560,6 +7593,7 @@ H5I__discard_mt_id_info(H5I_mt_id_info_t * id_info_ptr)
 {
     hbool_t done = FALSE;
     hbool_t on_fl = FALSE;
+    hbool_t result;
     uint64_t fl_len;
     uint64_t max_fl_len;
     H5I_mt_id_info_sptr_t snext = {NULL, 0ULL};
@@ -7596,9 +7630,12 @@ H5I__discard_mt_id_info(H5I_mt_id_info_t * id_info_ptr)
 
     atomic_store(&(id_info_ptr->fl_snext), new_snext);
 
-    assert( atomic_compare_exchange_strong(&(id_info_ptr->on_fl), &on_fl, TRUE) );
+    result = atomic_compare_exchange_strong(&(id_info_ptr->on_fl), &on_fl, TRUE);
+    assert( result );
+
 #if 1 /* JRM */
-    assert( atomic_compare_exchange_strong(&(id_info_ptr->re_allocable), &on_fl, TRUE) );
+    result = atomic_compare_exchange_strong(&(id_info_ptr->re_allocable), &on_fl, TRUE);
+    assert( result );
 #endif /* JRM */
 
     while ( ! done ) {
@@ -7711,6 +7748,7 @@ H5I__new_mt_id_info(hid_t id, unsigned count, unsigned app_count, const void * o
                     H5I_future_realize_func_t realize_cb, H5I_future_discard_func_t discard_cb)
 {
     hbool_t fl_search_done = FALSE;;
+    hbool_t result;
     H5I_mt_id_info_t * id_info_ptr = NULL;
     H5I_mt_id_info_sptr_t sfirst;
     H5I_mt_id_info_sptr_t new_sfirst;
@@ -7813,7 +7851,8 @@ H5I__new_mt_id_info(hid_t id, unsigned count, unsigned app_count, const void * o
                     new_snext.ptr = NULL;
                     new_snext.sn  = snext.sn + 1;
 
-                    assert(atomic_compare_exchange_strong(&(id_info_ptr->fl_snext), &snext, new_snext));
+                    result = atomic_compare_exchange_strong(&(id_info_ptr->fl_snext), &snext, new_snext);
+                    assert(result);
 
                     old_k = atomic_load(&(id_info_ptr->k));
 
@@ -7886,6 +7925,7 @@ done:
 static herr_t
 H5I__clear_mt_type_info_free_list(void)
 {
+    uint64_t                test_val;
     H5I_mt_type_info_sptr_t fl_head;
     H5I_mt_type_info_sptr_t null_snext = {NULL, 0ULL};
     H5I_mt_type_info_t    * fl_head_ptr;
@@ -7923,7 +7963,8 @@ H5I__clear_mt_type_info_free_list(void)
         free(type_info_ptr);
 
         atomic_fetch_add(&(H5I_mt_g.num_type_info_structs_freed), 1ULL);
-        assert(atomic_fetch_sub(&(H5I_mt_g.type_info_fl_len), 1ULL) > 0ULL);
+        test_val = atomic_fetch_sub(&(H5I_mt_g.type_info_fl_len), 1ULL);
+        assert(test_val > 0ULL);
     }
     atomic_store(&(H5I_mt_g.type_info_fl_shead), null_snext);
     atomic_store(&(H5I_mt_g.type_info_fl_stail), null_snext);
@@ -7956,6 +7997,7 @@ H5I__discard_mt_type_info(H5I_mt_type_info_t * type_info_ptr)
 {
     hbool_t done = FALSE;
     hbool_t on_fl = FALSE;
+    hbool_t result;
     uint64_t fl_len;
     uint64_t max_fl_len;
     H5I_mt_type_info_sptr_t snext = {NULL, 0ULL};
@@ -7987,10 +8029,13 @@ H5I__discard_mt_type_info(H5I_mt_type_info_t * type_info_ptr)
 
     atomic_store(&(type_info_ptr->fl_snext), new_snext);
 
-    assert( atomic_compare_exchange_strong(&(type_info_ptr->on_fl), &on_fl, TRUE) );
+    result = atomic_compare_exchange_strong(&(type_info_ptr->on_fl), &on_fl, TRUE);
+    assert(result);
+
 
 #if 1 /* JRM */
-    assert( atomic_compare_exchange_strong(&(type_info_ptr->re_allocable), &on_fl, TRUE) );
+    result = atomic_compare_exchange_strong(&(type_info_ptr->re_allocable), &on_fl, TRUE);
+    assert(result);
 #endif /* JRM */
 
     while ( ! done ) {
@@ -8101,7 +8146,8 @@ H5I__discard_mt_type_info(H5I_mt_type_info_t * type_info_ptr)
 static H5I_mt_type_info_t * 
 H5I__new_mt_type_info(const H5I_class_t *cls, unsigned reserved)
 {
-    hbool_t fl_search_done = FALSE;;
+    hbool_t fl_search_done = FALSE;
+    hbool_t result;
     H5I_mt_type_info_t * type_info_ptr = NULL;
     H5I_mt_type_info_sptr_t sfirst;
     H5I_mt_type_info_sptr_t new_sfirst;
@@ -8212,7 +8258,8 @@ H5I__new_mt_type_info(const H5I_class_t *cls, unsigned reserved)
                     new_snext.ptr = NULL;
                     new_snext.sn  = snext.sn + 1;
 
-                    assert(atomic_compare_exchange_strong(&(type_info_ptr->fl_snext), &snext, new_snext));
+                    result = atomic_compare_exchange_strong(&(type_info_ptr->fl_snext), &snext, new_snext);
+                    assert(result);
 
                     atomic_fetch_sub(&(H5I_mt_g.type_info_fl_len), 1ULL);
                     atomic_fetch_add(&(H5I_mt_g.num_type_info_structs_alloced_from_fl), 1ULL);
