@@ -31,7 +31,7 @@
 #include "H5Tprivate.h"  /* Datatypes                                */
 #include "H5VLprivate.h" /* Virtual Object Layer                     */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 #include "lfht.c" 
 #endif /* H5_HAVE_MULTITHREAD */
 
@@ -39,7 +39,7 @@
 /* Local Macros */
 /****************/
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 #define H5I_MT_DEBUG                    0
 #define H5I_MT_DEBUG_DO_NOT_DISTURB     0
@@ -96,7 +96,7 @@ typedef struct {
     hid_t       ret_id;   /* ID returned */
 } H5I_get_id_ud_t;
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /* User data for iterator callback for ID iteration */
 typedef struct {
@@ -120,7 +120,7 @@ typedef struct {
 #endif /* H5_HAVE_MULTITHREAD */
 
 /* User data for H5I__clear_type_cb */
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 typedef struct {
     H5I_mt_type_info_t *type_info; /* Pointer to the type's info to be cleared */
     hbool_t          force;     /* Whether to always remove the ID */
@@ -145,7 +145,7 @@ typedef struct {
 static herr_t H5I__mark_node(void *_id, void *key, void *udata);
 static void  *H5I__remove_common(H5I_type_info_t *type_info, hid_t id);
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 static herr_t H5I__unwrap(void *object, H5I_type_t type, void **unwrapped_object_ptr);
 static int    H5I__dec_ref(hid_t id, void **request, hbool_t app);
@@ -161,7 +161,7 @@ static int    H5I__dec_app_ref(hid_t id, void **request);
 static int    H5I__dec_app_ref_always_close(hid_t id, void **request);
 static int    H5I__find_id_cb(void *_item, void *_key, void *_udata);
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 static herr_t H5I__clear_mt_id_info_free_list(void);
 static herr_t H5I__discard_mt_id_info(H5I_mt_id_info_t * id_info_ptr);
@@ -178,7 +178,7 @@ static H5I_mt_type_info_t * H5I__new_mt_type_info(const H5I_class_t *cls, unsign
 /*********************/
 
 /* Declared extern in H5Ipkg.h and documented there */
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 H5I_mt_t              H5I_mt_g;
 
@@ -224,7 +224,7 @@ H5I_init(void)
 {
     herr_t     ret_value = SUCCEED; /* Return value */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
     int i;
     H5I_mt_id_info_sptr_t init_id_sptr = {NULL, 0ULL};
     H5I_mt_id_info_sptr_t id_sptr;
@@ -476,7 +476,7 @@ done:
 
 } /* H5I_init() */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_term_package
@@ -602,7 +602,7 @@ H5I_term_package(void)
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_clear_stats
@@ -771,7 +771,7 @@ H5I_clear_stats(void)
 
 #endif /* H5I__INIT() */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_dump_stats
@@ -1696,7 +1696,7 @@ H5I_dump_nz_stats(FILE * file_ptr, const char * tag)
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_register_type
@@ -1899,7 +1899,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_nmembers
@@ -1987,7 +1987,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__unwrap
@@ -2147,7 +2147,7 @@ H5I__unwrap(void *object, H5I_type_t type)
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_clear_type
@@ -2334,7 +2334,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__mark_node
@@ -2931,7 +2931,7 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__destroy_type
@@ -3063,7 +3063,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__register
@@ -3259,7 +3259,7 @@ H5I_register(H5I_type_t type, const void *object, hbool_t app_ref)
 
     FUNC_ENTER_NOAPI(H5I_INVALID_HID)
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 #if H5I_MT_DEBUG
     fprintf(stdout, "   H5I_register(type = %d, object = 0x%llx, app_ref = %d) called. \n", 
               (int)type, (unsigned long long)object, (int)app_ref);
@@ -3276,7 +3276,7 @@ H5I_register(H5I_type_t type, const void *object, hbool_t app_ref)
 
 done:
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 #if H5I_MT_DEBUG
     fprintf(stdout, "   H5I_register(type = %d, object = 0x%llx, app_ref = %d) returns %llx. \n", 
               (int)type, (unsigned long long)object, (int)app_ref, (unsigned long long)ret_value);
@@ -3287,7 +3287,7 @@ done:
 
 } /* end H5I_register() */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_register_using_existing_id
@@ -3508,7 +3508,7 @@ H5I_register_using_existing_id(H5I_type_t type, void *object, hbool_t app_ref, h
     info->marked     = FALSE;
 
     /* Insert into the type */
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
     /* todo -- make this throw an error */
     result = lfht_add(&(type_info->lfht), (unsigned long long int)existing_id, (void *)info);
@@ -3528,7 +3528,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_subst
@@ -3702,7 +3702,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_object
@@ -3787,7 +3787,7 @@ H5I_object(hid_t id)
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_object_verify
@@ -3908,7 +3908,7 @@ H5I_get_type(hid_t id)
 
     FUNC_ENTER_NOAPI_NOERR
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 #if H5I_MT_DEBUG
     fprintf(stdout, "\n\n   H5I_get_type() called. \n\n\n");
 #endif /* H5I_MT_DEBUG */
@@ -3917,7 +3917,7 @@ H5I_get_type(hid_t id)
     if (id > 0)
         ret_value = H5I_TYPE(id);
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
     assert(ret_value >= H5I_BADID && (int)ret_value < H5I_mt_g.next_type);
 #else /* H5_HAVE_MULTITHREAD */
     assert(ret_value >= H5I_BADID && (int)ret_value < H5I_next_type_g);
@@ -3926,7 +3926,7 @@ H5I_get_type(hid_t id)
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I_get_type() */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_is_file_object
@@ -4123,7 +4123,7 @@ H5I__remove_verify(hid_t id, H5I_type_t type)
 
     FUNC_ENTER_PACKAGE_NOERR
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 #if H5I_MT_DEBUG
     fprintf(stdout, "\n\n   H5I__remove_verify() called. \n\n\n");
 #endif /* H5I_MT_DEBUG */
@@ -4138,7 +4138,7 @@ H5I__remove_verify(hid_t id, H5I_type_t type)
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I__remove_verify() */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__remove_common
@@ -4379,7 +4379,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_remove
@@ -4470,7 +4470,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__dec_ref
@@ -5010,7 +5010,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_dec_ref
@@ -5084,7 +5084,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__dec_app_ref
@@ -5201,7 +5201,7 @@ H5I_dec_app_ref(hid_t id)
 
     FUNC_ENTER_NOAPI((-1))
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 #if H5I_MT_DEBUG
     fprintf(stdout, "\n\n   H5I_dec_app_ref() called. \n\n\n");
 #endif /* H5I_MT_DEBUG */
@@ -5242,7 +5242,7 @@ H5I_dec_app_ref_async(hid_t id, void **token)
 
     FUNC_ENTER_NOAPI((-1))
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 #if H5I_MT_DEBUG
     fprintf(stdout, "\n\n   H5I_dec_app_ref_async() called. \n\n\n");
 #endif /* H5I_MT_DEBUG */
@@ -5281,7 +5281,7 @@ H5I__dec_app_ref_always_close(hid_t id, void **request)
 
     FUNC_ENTER_PACKAGE
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 #if H5I_MT_DEBUG
     fprintf(stdout, "\n\n   H5I__dec_app_ref_always_close() called. \n\n\n");
 #endif /* H5I_MT_DEBUG */
@@ -5329,7 +5329,7 @@ H5I_dec_app_ref_always_close(hid_t id)
 
     FUNC_ENTER_NOAPI((-1))
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 #if H5I_MT_DEBUG
     fprintf(stdout, "\n\n   H5I_dec_app_ref_always_close() called. \n\n\n");
 #endif /* H5I_MT_DEBUG */
@@ -5367,7 +5367,7 @@ H5I_dec_app_ref_always_close_async(hid_t id, void **token)
 
     FUNC_ENTER_NOAPI((-1))
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 #if H5I_MT_DEBUG
     fprintf(stdout, "\n\n   H5I_dec_app_ref_always_close_async() called. \n\n\n");
 #endif /* H5I_MT_DEBUG */
@@ -5384,7 +5384,7 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I_dec_app_ref_always_close_async() */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_inc_ref
@@ -5581,7 +5581,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_get_ref
@@ -5662,7 +5662,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__inc_type_ref
@@ -5744,7 +5744,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_dec_type_ref
@@ -5865,7 +5865,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__get_type_ref
@@ -5954,7 +5954,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__iterate_cb
@@ -6308,7 +6308,7 @@ H5I__iterate_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_iterate
@@ -6483,7 +6483,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_get_first
@@ -6711,7 +6711,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__find_id
@@ -7253,7 +7253,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__find_id_cb
@@ -7365,7 +7365,7 @@ H5I__find_id_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_find_id
@@ -7504,7 +7504,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /************************************************************************
  *

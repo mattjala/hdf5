@@ -72,7 +72,7 @@ static int H5I__iterate_pub_cb(void *obj, hid_t id, void *udata);
 /* Local Variables */
 /*******************/
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iregister_type
@@ -271,7 +271,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Itype_exists
@@ -347,7 +347,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Inmembers
@@ -479,7 +479,7 @@ done:
 
 #endif /* H5I_MT */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iclear_type
@@ -555,7 +555,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Idestroy_type
@@ -633,7 +633,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iregister
@@ -703,7 +703,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iregister_future
@@ -781,7 +781,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iobject_verify
@@ -864,7 +864,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iget_type
@@ -934,10 +934,10 @@ H5Iget_type(hid_t id)
 
     ret_value = H5I_get_type(id);
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
     if (ret_value <= H5I_BADID || (int)ret_value >= atomic_load(&(H5I_mt_g.next_type)) || NULL == H5I_object(id))
         HGOTO_DONE(H5I_BADID);
-#else /* H5I_MT */
+#else /* H5_HAVE_MULTITHREAD */
     if (ret_value <= H5I_BADID || (int)ret_value >= H5I_next_type_g || NULL == H5I_object(id))
         HGOTO_DONE(H5I_BADID);
 #endif /* H5_HAVE_MULTITHREAD */
@@ -948,7 +948,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iremove_verify
@@ -1030,7 +1030,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Idec_ref
@@ -1112,7 +1112,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iinc_ref
@@ -1184,7 +1184,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iget_ref
@@ -1256,7 +1256,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iinc_type_ref
@@ -1336,7 +1336,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Idec_type_ref
@@ -1434,7 +1434,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iget_type_ref
@@ -1514,7 +1514,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5Iis_valid
@@ -1664,7 +1664,7 @@ H5Isearch(H5I_type_t type, H5I_search_func_t func, void *key)
     FUNC_ENTER_API(NULL)
     H5TRACE3("*x", "ItIS*x", type, func, key);
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
     H5I__enter(TRUE);
 #endif /* H5_HAVE_MULTITHREAD */
 
@@ -1687,7 +1687,7 @@ H5Isearch(H5I_type_t type, H5I_search_func_t func, void *key)
 
 done:
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
     H5I__exit();
 #endif /* H5_HAVE_MULTITHREAD */
 
@@ -1769,7 +1769,7 @@ H5Iiterate(H5I_type_t type, H5I_iterate_func_t op, void *op_data)
     FUNC_ENTER_API(FAIL)
     H5TRACE3("e", "ItII*x", type, op, op_data);
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
     H5I__enter(FALSE);
 #endif /* H5_HAVE_MULTITHREAD */
 
@@ -1785,7 +1785,7 @@ H5Iiterate(H5I_type_t type, H5I_iterate_func_t op, void *op_data)
 
 done:
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
     H5I__exit();
 #endif /* H5_HAVE_MULTITHREAD */
 
@@ -1818,7 +1818,7 @@ H5Iget_file_id(hid_t obj_id)
     FUNC_ENTER_API(H5I_INVALID_HID)
     H5TRACE1("i", "i", obj_id);
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
     H5I__enter(FALSE);
 #endif /* H5_HAVE_MULTITHREAD */
 
@@ -1841,7 +1841,7 @@ H5Iget_file_id(hid_t obj_id)
     else
         HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, H5I_INVALID_HID, "not an ID of a file object");
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
     H5I__exit();
 #endif /* H5_HAVE_MULTITHREAD */
 
@@ -1886,7 +1886,7 @@ H5Iget_name(hid_t id, char *name /*out*/, size_t size)
     FUNC_ENTER_API((-1))
     H5TRACE3("Zs", "ixz", id, name, size);
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
     H5I__enter(FALSE);
 #endif /* H5_HAVE_MULTITHREAD */
 
@@ -1913,7 +1913,7 @@ H5Iget_name(hid_t id, char *name /*out*/, size_t size)
 
 done:
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
     H5I__exit();
 #endif /* H5_HAVE_MULTITHREAD */
 

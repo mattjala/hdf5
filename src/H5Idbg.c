@@ -62,7 +62,7 @@ static int H5I__id_dump_cb(void *_item, void *_key, void *_udata);
 /* Local Variables */
 /*******************/
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__id_dump_cb
@@ -278,7 +278,7 @@ H5I__id_dump_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_dump_ids_for_type
@@ -368,7 +368,7 @@ H5I_dump_ids_for_type(H5I_type_t type)
     if (type_info) {
 
         H5I_id_info_t *item = NULL;
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
         unsigned long long int id;
         void * value;
 #else /* H5_HAVE_MULTITHREAD */
@@ -391,7 +391,7 @@ H5I_dump_ids_for_type(H5I_type_t type)
              * XXX: Update this to emit an error message on errors?
              */
             fprintf(stderr, "     (HASH TABLE)\n");
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
             if ( lfht_get_first(&(type_info->lfht), &id, &value) ) {
 
                 do {

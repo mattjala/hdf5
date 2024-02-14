@@ -486,7 +486,7 @@ done:
     FUNC_LEAVE_API(ret_value)
 } /* end H5Eunregister_class() */
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
  * Function:    H5E__unregister_class

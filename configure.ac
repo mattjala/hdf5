@@ -2121,6 +2121,11 @@ if test "X$MULTITHREAD" = "Xyes"; then
 	# Replace C99 with C11 standard to support atomic datatype
 	H5_CFLAGS=$(echo $H5_CFLAGS | sed -e "s/-std=c99/-std=c11/g")
 
+        # Remove the flag -Wc99-c11-compat to supress compiler warnings
+        # No need of the warnings for the features not in C99 because we
+        # have to use C11
+        H5_CFLAGS=$(echo $H5_CFLAGS | sed -e "s/-Wc99-c11-compat//g")
+
 	# Propagate the change to CFLAGS, too
 	CFLAGS="$H5_CFLAGS $AM_CFLAGS $CFLAGS"
 

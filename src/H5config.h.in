@@ -22,11 +22,11 @@
 /* Define the examples directory */
 #undef EXAMPLESDIR
 
-/* Define to dummy `main' function (if any) required to link to the Fortran
+/* Define to dummy 'main' function (if any) required to link to the Fortran
    libraries. */
 #undef FC_DUMMY_MAIN
 
-/* Define if F77 and FC dummy `main' functions are identical. */
+/* Define if F77 and FC dummy 'main' functions are identical. */
 #undef FC_DUMMY_MAIN_EQ_F77
 
 /* Define to a macro mangling the given C identifier (in lower and upper
@@ -72,19 +72,19 @@
 /* Define valid Fortran REAL KINDs Sizeof */
 #undef H5CONFIG_F_RKIND_SIZEOF
 
-/* Define to 1 if you have the `alarm' function. */
+/* Define to 1 if you have the 'alarm' function. */
 #undef HAVE_ALARM
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
 
-/* Define to 1 if you have the `asprintf' function. */
+/* Define to 1 if you have the 'asprintf' function. */
 #undef HAVE_ASPRINTF
 
 /* Define if the __attribute__(()) extension is present */
 #undef HAVE_ATTRIBUTE
 
-/* Define to 1 if you have the `clock_gettime' function. */
+/* Define to 1 if you have the 'clock_gettime' function. */
 #undef HAVE_CLOCK_GETTIME
 
 /* Define if has CLOCK_MONOTONIC_COARSE */
@@ -111,7 +111,7 @@
 /* Define if library information should be embedded in the executables */
 #undef HAVE_EMBEDDED_LIBINFO
 
-/* Define to 1 if you have the `fcntl' function. */
+/* Define to 1 if you have the 'fcntl' function. */
 #undef HAVE_FCNTL
 
 /* Define to 1 if you have the <features.h> header file. */
@@ -126,31 +126,31 @@
 /* Determine if __float128 is available */
 #undef HAVE_FLOAT128
 
-/* Define to 1 if you have the `flock' function. */
+/* Define to 1 if you have the 'flock' function. */
 #undef HAVE_FLOCK
 
-/* Define to 1 if you have the `fork' function. */
+/* Define to 1 if you have the 'fork' function. */
 #undef HAVE_FORK
 
 /* Determine if INTEGER*16 is available */
 #undef HAVE_Fortran_INTEGER_SIZEOF_16
 
-/* Define to 1 if you have the `GetConsoleScreenBufferInfo' function. */
+/* Define to 1 if you have the 'GetConsoleScreenBufferInfo' function. */
 #undef HAVE_GETCONSOLESCREENBUFFERINFO
 
-/* Define to 1 if you have the `gethostname' function. */
+/* Define to 1 if you have the 'gethostname' function. */
 #undef HAVE_GETHOSTNAME
 
-/* Define to 1 if you have the `getpwuid' function. */
+/* Define to 1 if you have the 'getpwuid' function. */
 #undef HAVE_GETPWUID
 
-/* Define to 1 if you have the `getrusage' function. */
+/* Define to 1 if you have the 'getrusage' function. */
 #undef HAVE_GETRUSAGE
 
-/* Define to 1 if you have the `gettextinfo' function. */
+/* Define to 1 if you have the 'gettextinfo' function. */
 #undef HAVE_GETTEXTINFO
 
-/* Define to 1 if you have the `gettimeofday' function. */
+/* Define to 1 if you have the 'gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
 /* Define to 1 if you have the <hdfs.h> header file. */
@@ -163,44 +163,44 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `ioctl' function. */
+/* Define to 1 if you have the 'ioctl' function. */
 #undef HAVE_IOCTL
 
 /* Define if the I/O Concentrator virtual file driver (VFD) should be compiled
    */
 #undef HAVE_IOC_VFD
 
-/* Define to 1 if you have the `atomic' library (-latomic). */
+/* Define to 1 if you have the 'atomic' library (-latomic). */
 #undef HAVE_LIBATOMIC
 
-/* Define to 1 if you have the `crypto' library (-lcrypto). */
+/* Define to 1 if you have the 'crypto' library (-lcrypto). */
 #undef HAVE_LIBCRYPTO
 
-/* Define to 1 if you have the `curl' library (-lcurl). */
+/* Define to 1 if you have the 'curl' library (-lcurl). */
 #undef HAVE_LIBCURL
 
-/* Define to 1 if you have the `dl' library (-ldl). */
+/* Define to 1 if you have the 'dl' library (-ldl). */
 #undef HAVE_LIBDL
 
 /* Proceed to build with libhdfs */
 #undef HAVE_LIBHDFS
 
-/* Define to 1 if you have the `jvm' library (-ljvm). */
+/* Define to 1 if you have the 'jvm' library (-ljvm). */
 #undef HAVE_LIBJVM
 
-/* Define to 1 if you have the `m' library (-lm). */
+/* Define to 1 if you have the 'm' library (-lm). */
 #undef HAVE_LIBM
 
-/* Define to 1 if you have the `pthread' library (-lpthread). */
+/* Define to 1 if you have the 'pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
 
-/* Define to 1 if you have the `sz' library (-lsz). */
+/* Define to 1 if you have the 'sz' library (-lsz). */
 #undef HAVE_LIBSZ
 
-/* Define to 1 if you have the `ws2_32' library (-lws2_32). */
+/* Define to 1 if you have the 'ws2_32' library (-lws2_32). */
 #undef HAVE_LIBWS2_32
 
-/* Define to 1 if you have the `z' library (-lz). */
+/* Define to 1 if you have the 'z' library (-lz). */
 #undef HAVE_LIBZ
 
 /* Define if the map API (H5M) should be compiled */
@@ -263,10 +263,10 @@
 /* Define to 1 if you have the <quadmath.h> header file. */
 #undef HAVE_QUADMATH_H
 
-/* Define to 1 if you have the `random' function. */
+/* Define to 1 if you have the 'random' function. */
 #undef HAVE_RANDOM
 
-/* Define to 1 if you have the `rand_r' function. */
+/* Define to 1 if you have the 'rand_r' function. */
 #undef HAVE_RAND_R
 
 /* Define whether the Read-Only S3 virtual file driver (VFD) should be
@@ -288,10 +288,10 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define to 1 if you have the `strcasestr' function. */
+/* Define to 1 if you have the 'strcasestr' function. */
 #undef HAVE_STRCASESTR
 
-/* Define to 1 if you have the `strdup' function. */
+/* Define to 1 if you have the 'strdup' function. */
 #undef HAVE_STRDUP
 
 /* Define to 1 if you have the <strings.h> header file. */
@@ -309,7 +309,7 @@
 /* Define if the subfiling I/O virtual file driver (VFD) should be compiled */
 #undef HAVE_SUBFILING_VFD
 
-/* Define to 1 if you have the `symlink' function. */
+/* Define to 1 if you have the 'symlink' function. */
 #undef HAVE_SYMLINK
 
 /* Define to 1 if you have the <sys/file.h> header file. */
@@ -348,7 +348,7 @@
 /* Define if the ioctl TIOGWINSZ is defined */
 #undef HAVE_TIOCGWINSZ
 
-/* Define to 1 if you have the `tmpfile' function. */
+/* Define to 1 if you have the 'tmpfile' function. */
 #undef HAVE_TMPFILE
 
 /* Define if tm_gmtoff is a member of struct tm */
@@ -357,10 +357,10 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if you have the `vasprintf' function. */
+/* Define to 1 if you have the 'vasprintf' function. */
 #undef HAVE_VASPRINTF
 
-/* Define to 1 if you have the `waitpid' function. */
+/* Define to 1 if you have the 'waitpid' function. */
 #undef HAVE_WAITPID
 
 /* Define if on the Windows platform using the Win32 API */
@@ -375,10 +375,10 @@
 /* Define to 1 if you have the <zlib.h> header file. */
 #undef HAVE_ZLIB_H
 
-/* Define to 1 if you have the `_getvideoconfig' function. */
+/* Define to 1 if you have the '_getvideoconfig' function. */
 #undef HAVE__GETVIDEOCONFIG
 
-/* Define to 1 if you have the `_scrsize' function. */
+/* Define to 1 if you have the '_scrsize' function. */
 #undef HAVE__SCRSIZE
 
 /* Define if the library will ignore file locks when disabled */
@@ -436,130 +436,130 @@
 /* Define Fortran Maximum Real Decimal Precision */
 #undef PAC_FC_MAX_REAL_PRECISION
 
-/* The size of `bool', as computed by sizeof. */
+/* The size of 'bool', as computed by sizeof. */
 #undef SIZEOF_BOOL
 
-/* The size of `char', as computed by sizeof. */
+/* The size of 'char', as computed by sizeof. */
 #undef SIZEOF_CHAR
 
-/* The size of `double', as computed by sizeof. */
+/* The size of 'double', as computed by sizeof. */
 #undef SIZEOF_DOUBLE
 
-/* The size of `float', as computed by sizeof. */
+/* The size of 'float', as computed by sizeof. */
 #undef SIZEOF_FLOAT
 
-/* The size of `int', as computed by sizeof. */
+/* The size of 'int', as computed by sizeof. */
 #undef SIZEOF_INT
 
-/* The size of `int16_t', as computed by sizeof. */
+/* The size of 'int16_t', as computed by sizeof. */
 #undef SIZEOF_INT16_T
 
-/* The size of `int32_t', as computed by sizeof. */
+/* The size of 'int32_t', as computed by sizeof. */
 #undef SIZEOF_INT32_T
 
-/* The size of `int64_t', as computed by sizeof. */
+/* The size of 'int64_t', as computed by sizeof. */
 #undef SIZEOF_INT64_T
 
-/* The size of `int8_t', as computed by sizeof. */
+/* The size of 'int8_t', as computed by sizeof. */
 #undef SIZEOF_INT8_T
 
-/* The size of `int_fast16_t', as computed by sizeof. */
+/* The size of 'int_fast16_t', as computed by sizeof. */
 #undef SIZEOF_INT_FAST16_T
 
-/* The size of `int_fast32_t', as computed by sizeof. */
+/* The size of 'int_fast32_t', as computed by sizeof. */
 #undef SIZEOF_INT_FAST32_T
 
-/* The size of `int_fast64_t', as computed by sizeof. */
+/* The size of 'int_fast64_t', as computed by sizeof. */
 #undef SIZEOF_INT_FAST64_T
 
-/* The size of `int_fast8_t', as computed by sizeof. */
+/* The size of 'int_fast8_t', as computed by sizeof. */
 #undef SIZEOF_INT_FAST8_T
 
-/* The size of `int_least16_t', as computed by sizeof. */
+/* The size of 'int_least16_t', as computed by sizeof. */
 #undef SIZEOF_INT_LEAST16_T
 
-/* The size of `int_least32_t', as computed by sizeof. */
+/* The size of 'int_least32_t', as computed by sizeof. */
 #undef SIZEOF_INT_LEAST32_T
 
-/* The size of `int_least64_t', as computed by sizeof. */
+/* The size of 'int_least64_t', as computed by sizeof. */
 #undef SIZEOF_INT_LEAST64_T
 
-/* The size of `int_least8_t', as computed by sizeof. */
+/* The size of 'int_least8_t', as computed by sizeof. */
 #undef SIZEOF_INT_LEAST8_T
 
-/* The size of `long', as computed by sizeof. */
+/* The size of 'long', as computed by sizeof. */
 #undef SIZEOF_LONG
 
-/* The size of `long double', as computed by sizeof. */
+/* The size of 'long double', as computed by sizeof. */
 #undef SIZEOF_LONG_DOUBLE
 
-/* The size of `long long', as computed by sizeof. */
+/* The size of 'long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
 
-/* The size of `off_t', as computed by sizeof. */
+/* The size of 'off_t', as computed by sizeof. */
 #undef SIZEOF_OFF_T
 
-/* The size of `ptrdiff_t', as computed by sizeof. */
+/* The size of 'ptrdiff_t', as computed by sizeof. */
 #undef SIZEOF_PTRDIFF_T
 
-/* The size of `short', as computed by sizeof. */
+/* The size of 'short', as computed by sizeof. */
 #undef SIZEOF_SHORT
 
-/* The size of `size_t', as computed by sizeof. */
+/* The size of 'size_t', as computed by sizeof. */
 #undef SIZEOF_SIZE_T
 
-/* The size of `ssize_t', as computed by sizeof. */
+/* The size of 'ssize_t', as computed by sizeof. */
 #undef SIZEOF_SSIZE_T
 
-/* The size of `time_t', as computed by sizeof. */
+/* The size of 'time_t', as computed by sizeof. */
 #undef SIZEOF_TIME_T
 
-/* The size of `uint16_t', as computed by sizeof. */
+/* The size of 'uint16_t', as computed by sizeof. */
 #undef SIZEOF_UINT16_T
 
-/* The size of `uint32_t', as computed by sizeof. */
+/* The size of 'uint32_t', as computed by sizeof. */
 #undef SIZEOF_UINT32_T
 
-/* The size of `uint64_t', as computed by sizeof. */
+/* The size of 'uint64_t', as computed by sizeof. */
 #undef SIZEOF_UINT64_T
 
-/* The size of `uint8_t', as computed by sizeof. */
+/* The size of 'uint8_t', as computed by sizeof. */
 #undef SIZEOF_UINT8_T
 
-/* The size of `uint_fast16_t', as computed by sizeof. */
+/* The size of 'uint_fast16_t', as computed by sizeof. */
 #undef SIZEOF_UINT_FAST16_T
 
-/* The size of `uint_fast32_t', as computed by sizeof. */
+/* The size of 'uint_fast32_t', as computed by sizeof. */
 #undef SIZEOF_UINT_FAST32_T
 
-/* The size of `uint_fast64_t', as computed by sizeof. */
+/* The size of 'uint_fast64_t', as computed by sizeof. */
 #undef SIZEOF_UINT_FAST64_T
 
-/* The size of `uint_fast8_t', as computed by sizeof. */
+/* The size of 'uint_fast8_t', as computed by sizeof. */
 #undef SIZEOF_UINT_FAST8_T
 
-/* The size of `uint_least16_t', as computed by sizeof. */
+/* The size of 'uint_least16_t', as computed by sizeof. */
 #undef SIZEOF_UINT_LEAST16_T
 
-/* The size of `uint_least32_t', as computed by sizeof. */
+/* The size of 'uint_least32_t', as computed by sizeof. */
 #undef SIZEOF_UINT_LEAST32_T
 
-/* The size of `uint_least64_t', as computed by sizeof. */
+/* The size of 'uint_least64_t', as computed by sizeof. */
 #undef SIZEOF_UINT_LEAST64_T
 
-/* The size of `uint_least8_t', as computed by sizeof. */
+/* The size of 'uint_least8_t', as computed by sizeof. */
 #undef SIZEOF_UINT_LEAST8_T
 
-/* The size of `unsigned', as computed by sizeof. */
+/* The size of 'unsigned', as computed by sizeof. */
 #undef SIZEOF_UNSIGNED
 
-/* The size of `_Quad', as computed by sizeof. */
+/* The size of '_Quad', as computed by sizeof. */
 #undef SIZEOF__QUAD
 
-/* The size of `__float128', as computed by sizeof. */
+/* The size of '__float128', as computed by sizeof. */
 #undef SIZEOF___FLOAT128
 
-/* Define to 1 if all of the C90 standard headers exist (not just the ones
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
@@ -624,7 +624,7 @@
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
 
-/* Define to `long int' if <sys/types.h> does not define. */
+/* Define to 'long int' if <sys/types.h> does not define. */
 #undef off_t
 
 /* Define to `long' if <sys/types.h> does not define. */

@@ -695,5 +695,3 @@ unsigned long long lfht_id_to_hash(unsigned long long id, bool sentinel_hash);
 void lfht_init(struct lfht_t * lfht_ptr);
 bool lfht_swap_value(struct lfht_t * lfht_ptr, unsigned long long int id, void * new_value,
                      void ** old_value_ptr);
-
-

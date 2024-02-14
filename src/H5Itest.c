@@ -50,7 +50,7 @@
 /* Local Variables */
 /*******************/
 
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__get_name_test

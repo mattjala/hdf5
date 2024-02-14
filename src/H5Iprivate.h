@@ -80,7 +80,7 @@ H5_DLL int        H5I_dec_app_ref_always_close_async(hid_t id, void **token);
 H5_DLL int        H5I_dec_type_ref(H5I_type_t type);
 H5_DLL herr_t     H5I_find_id(const void *object, H5I_type_t type, hid_t *id /*out*/);
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 /* External iterator for use in the multi-thread case */
 H5_DLL herr_t H5I_get_first(H5I_type_t type, hid_t *id_ptr, void ** object_ptr);
 H5_DLL herr_t H5I_get_next(H5I_type_t type, hid_t last_id, hid_t *next_id_ptr, void ** next_object_ptr);

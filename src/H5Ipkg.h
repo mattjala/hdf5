@@ -50,14 +50,14 @@
 /* Map an ID to an ID type number */
 #define H5I_TYPE(a) ((H5I_type_t)(((hid_t)(a) >> ID_BITS) & TYPE_MASK))
 
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 #include "lfht.h"
 #endif /* H5_HAVE_MULTITHREAD */
 
 /****************************/
 /* Package Private Typedefs */
 /****************************/
-#if H5_HAVE_MULTITHREAD /****************************************************************************************/
+#ifdef H5_HAVE_MULTITHREAD /****************************************************************************************/
 
 /****************************************************************************************
  *
@@ -1376,7 +1376,7 @@ typedef struct H5I_type_info_t {
 /*****************************/
 
 /* Array of pointers to ID types */
-#if H5_HAVE_MULTITHREAD 
+#ifdef H5_HAVE_MULTITHREAD 
 
 /* This structure contains cognates of H5I_type_info_array_g and H5I_next_type_g globals, 
  * additional global variables need for the multi-thread version of H5I, and statistics.
@@ -1407,7 +1407,7 @@ H5_DLL int            H5I__destroy_type(H5I_type_t type);
 H5_DLL void          *H5I__remove_verify(hid_t id, H5I_type_t type);
 H5_DLL int            H5I__inc_type_ref(H5I_type_t type);
 H5_DLL int            H5I__get_type_ref(H5I_type_t type);
-#if H5_HAVE_MULTITHREAD
+#ifdef H5_HAVE_MULTITHREAD
 H5_DLL H5I_mt_id_info_t *H5I__find_id(hid_t id);
 H5_DLL void H5I__enter(hbool_t public_api);
 H5_DLL void H5I__exit(void);
