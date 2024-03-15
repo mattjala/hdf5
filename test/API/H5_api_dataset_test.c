@@ -1277,10 +1277,10 @@ test_create_dataset_predefined_types(void)
     hid_t  fspace_id                    = H5I_INVALID_HID;
     hid_t  dset_id                      = H5I_INVALID_HID;
     hid_t  predefined_type_test_table[] = {H5T_STD_U8LE,   H5T_STD_U8BE,   H5T_STD_I8LE,   H5T_STD_I8BE,
-                                          H5T_STD_U16LE,  H5T_STD_U16BE,  H5T_STD_I16LE,  H5T_STD_I16BE,
-                                          H5T_STD_U32LE,  H5T_STD_U32BE,  H5T_STD_I32LE,  H5T_STD_I32BE,
-                                          H5T_STD_U64LE,  H5T_STD_U64BE,  H5T_STD_I64LE,  H5T_STD_I64BE,
-                                          H5T_IEEE_F32LE, H5T_IEEE_F32BE, H5T_IEEE_F64LE, H5T_IEEE_F64BE};
+                                           H5T_STD_U16LE,  H5T_STD_U16BE,  H5T_STD_I16LE,  H5T_STD_I16BE,
+                                           H5T_STD_U32LE,  H5T_STD_U32BE,  H5T_STD_I32LE,  H5T_STD_I32BE,
+                                           H5T_STD_U64LE,  H5T_STD_U64BE,  H5T_STD_I64LE,  H5T_STD_I64BE,
+                                           H5T_IEEE_F32LE, H5T_IEEE_F32BE, H5T_IEEE_F64LE, H5T_IEEE_F64BE};
 
     TESTING("dataset creation with predefined datatypes");
 
@@ -9840,9 +9840,13 @@ test_dataset_vlen_io(void)
     hid_t container_group = H5I_INVALID_HID;
     hid_t space_id        = H5I_INVALID_HID;
     hid_t dset_int        = H5I_INVALID_HID;
+    hid_t dset_int_point = H5I_INVALID_HID;
+    hid_t dset_int_slab   = H5I_INVALID_HID;
     hid_t dset_float      = H5I_INVALID_HID;
     hid_t dset_string     = H5I_INVALID_HID;
     hid_t vlen_int        = H5I_INVALID_HID;
+    hid_t vlen_int_point = H5I_INVALID_HID;
+    hid_t vlen_int_slab = H5I_INVALID_HID;
     hid_t vlen_float      = H5I_INVALID_HID;
     hid_t vlen_string     = H5I_INVALID_HID;
     hid_t str_base_type   = H5I_INVALID_HID;
@@ -9861,8 +9865,7 @@ test_dataset_vlen_io(void)
 
     /* Make sure the connector supports the API functions being tested */
     if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
-        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_MORE) ||
-        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_MORE)) {
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_MORE)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this "
                "connector\n");
@@ -9883,78 +9886,19 @@ test_dataset_vlen_io(void)
         goto error;
     }
 
-    if ((space_id = H5Screate_simple(1, dims, NULL)) < 0) {
+    if (H5Gclose(container_group) < 0) {
         H5_FAILED();
-        printf("    couldn't create dataspace");
-        goto error;
+        printf("    couldn't close container group");
     }
 
-    if ((vlen_int = H5Tvlen_create(H5T_NATIVE_INT)) < 0) {
+    container_group = H5I_INVALID_HID;
+
+    if (H5Fclose(file_id) < 0) {
         H5_FAILED();
-        printf("    couldn't create vlen integer sequence");
-        goto error;
+        printf("    couldn't close file");
     }
 
-    if ((vlen_float = H5Tvlen_create(H5T_NATIVE_FLOAT)) < 0) {
-        H5_FAILED();
-        printf("    couldn't create vlen float sequence");
-        goto error;
-    }
-
-    if ((str_base_type = H5Tcopy(H5T_C_S1)) < 0)
-        TEST_ERROR;
-
-    if ((H5Tset_size(str_base_type, DATASET_VLEN_IO_STR_LEN)) < 0)
-        TEST_ERROR;
-
-    if ((vlen_string = H5Tvlen_create(str_base_type)) < 0) {
-        H5_FAILED();
-        printf("    couldn't create vlen string sequence");
-        goto error;
-    }
-
-    if ((dset_int = H5Dcreate2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", vlen_int, space_id,
-                               H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
-        printf("    couldn't create dataset with vlen integer sequence datatype");
-        goto error;
-    }
-
-    if ((dset_float = H5Dcreate2(container_group, DATASET_VLEN_IO_DSET_NAME "_float", vlen_float, space_id,
-                                 H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
-        printf("    couldn't create dataset with vlen float sequence datatype");
-        goto error;
-    }
-
-    if ((dset_string = H5Dcreate2(container_group, DATASET_VLEN_IO_DSET_NAME "_string", vlen_string, space_id,
-                                  H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
-        printf("    couldn't create dataset with vlen string sequence datatype");
-        goto error;
-    }
-
-    /* Close datasets until individual tests */
-    if (H5Dclose(dset_int) < 0) {
-        H5_FAILED();
-        printf("    couldn't close dataset with vlen integer sequence datatype");
-    }
-
-    dset_int = H5I_INVALID_HID;
-
-    if (H5Dclose(dset_float) < 0) {
-        H5_FAILED();
-        printf("    couldn't close dataset with vlen float sequence datatype");
-    }
-
-    dset_float = H5I_INVALID_HID;
-
-    if (H5Dclose(dset_string) < 0) {
-        H5_FAILED();
-        printf("    couldn't close dataset with vlen string sequence datatype");
-    }
-
-    dset_string = H5I_INVALID_HID;
+    file_id = H5I_INVALID_HID;
 
     PASSED();
 
@@ -9963,6 +9907,9 @@ test_dataset_vlen_io(void)
         PART_BEGIN(rw_all_int)
         {
             TESTING_2("write and read entire dataspace with integer sequence");
+            if ((vlen_int = H5Tvlen_create(H5T_NATIVE_INT)) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
             /* Set up write buffer */
             for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
                 if ((wbuf[i].p = calloc(i + 1, sizeof(int) * (i + 1))) == NULL)
@@ -9975,16 +9922,26 @@ test_dataset_vlen_io(void)
                 wbuf[i].len = i + 1;
             }
 
-            /* Open dataset */
-            if ((dset_int = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
+            if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_int);
+            
+            if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            if ((space_id = H5Screate_simple(1, dims, NULL)) < 0) {
+                H5_FAILED();
+                printf("    couldn't create dataspace");
+                goto error;
+            }
+
+            /* Create dataset */
+            if ((dset_int = H5Dcreate2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", vlen_int, space_id,
+                                    H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
                 PART_TEST_ERROR(rw_all_int);
 
             /* Perform write */
-            if ((H5Dwrite(dset_int, vlen_int, space_id, H5S_ALL, H5P_DEFAULT, (const void *)wbuf)) < 0)
+            if ((H5Dwrite(dset_int, vlen_int, H5S_ALL, H5S_ALL, H5P_DEFAULT, (const void *)wbuf)) < 0)
                 PART_TEST_ERROR(rw_all_int);
-
-            if (H5Dflush(dset_int) < 0)
-                PART_TEST_ERROR(rw_hyperslab_selection);
 
             /* Close and reopen file objects to flush cache */
             if (H5Dclose(dset_int) < 0)
@@ -10012,13 +9969,23 @@ test_dataset_vlen_io(void)
                 PART_TEST_ERROR(rw_all_int);
 
             /* Perform read */
-            if ((H5Dread(dset_int, vlen_int, space_id, H5S_ALL, H5P_DEFAULT, (void *)rbuf)) < 0)
+            if ((H5Dread(dset_int, vlen_int, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)rbuf)) < 0)
                 PART_TEST_ERROR(rw_all_int);
 
             /* Close to finalize read */
             if (H5Dclose(dset_int) < 0)
                 PART_TEST_ERROR(rw_all_int);
             dset_int = H5I_INVALID_HID;
+
+            if (H5Gclose(container_group) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            container_group = H5I_INVALID_HID;
+
+            if (H5Fclose(file_id) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            file_id = H5I_INVALID_HID;
 
             /* Verify data */
             for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
@@ -10040,8 +10007,16 @@ test_dataset_vlen_io(void)
             if (H5Treclaim(vlen_int, space_id, H5P_DEFAULT, wbuf) < 0)
                 PART_TEST_ERROR(rw_all_int);
 
+            if (H5Sclose(space_id) < 0)
+                PART_TEST_ERROR(rw_all_int);
+            space_id = H5I_INVALID_HID;
+
             memset(wbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
             memset(rbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+
+            if (H5Tclose(vlen_int) < 0)
+                PART_TEST_ERROR(rw_all_int);
+            vlen_int = H5I_INVALID_HID;
 
             PASSED();
         }
@@ -10049,6 +10024,13 @@ test_dataset_vlen_io(void)
         PART_BEGIN(rw_all_float)
         {
             TESTING_2("write and read entire dataspace with float sequence");
+
+            if ((vlen_float = H5Tvlen_create(H5T_NATIVE_FLOAT)) < 0) {
+                H5_FAILED();
+                printf("    couldn't create vlen float sequence");
+                goto error;
+            }
+
             /* Set up write buffer */
             for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
                 if ((wbuf[i].p = calloc(i + 1, sizeof(float) * (i + 1))) == NULL)
@@ -10061,16 +10043,23 @@ test_dataset_vlen_io(void)
                 wbuf[i].len = i + 1;
             }
 
-            /* Open dataset */
-            if ((dset_float = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_float", H5P_DEFAULT)) < 0)
+            if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
                 PART_TEST_ERROR(rw_all_float);
+            
+            if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            if ((space_id = H5Screate_simple(1, dims, NULL)) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            /* Open dataset */
+            if ((dset_float = H5Dcreate2(container_group, DATASET_VLEN_IO_DSET_NAME "_float", vlen_float, space_id,
+                                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_float);                                        
 
             /* Perform write */
-            if ((H5Dwrite(dset_float, vlen_float, space_id, H5S_ALL, H5P_DEFAULT, (const void *)wbuf)) < 0)
+            if ((H5Dwrite(dset_float, vlen_float, H5S_ALL, H5S_ALL, H5P_DEFAULT, (const void *)wbuf)) < 0)
                 PART_TEST_ERROR(rw_all_float);
-
-            if (H5Dflush(dset_float) < 0)
-                PART_TEST_ERROR(rw_hyperslab_selection);
 
             /* Close and reopen file objects to flush cache */
             if (H5Dclose(dset_float) < 0)
@@ -10098,13 +10087,23 @@ test_dataset_vlen_io(void)
                 PART_TEST_ERROR(rw_all_float);
 
             /* Perform read */
-            if ((H5Dread(dset_float, vlen_float, space_id, H5S_ALL, H5P_DEFAULT, (void *)rbuf)) < 0)
+            if ((H5Dread(dset_float, vlen_float, H5S_ALL, H5S_ALL, H5P_DEFAULT, (void *)rbuf)) < 0)
                 PART_TEST_ERROR(rw_all_float);
 
             /* Close to finalize read */
             if (H5Dclose(dset_float) < 0)
                 PART_TEST_ERROR(rw_all_float);
             dset_float = H5I_INVALID_HID;
+
+            if (H5Gclose(container_group) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            container_group = H5I_INVALID_HID;
+
+            if (H5Fclose(file_id) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            file_id = H5I_INVALID_HID;
 
             /* Verify data */
             for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
@@ -10130,6 +10129,10 @@ test_dataset_vlen_io(void)
             if (H5Treclaim(vlen_float, space_id, H5P_DEFAULT, wbuf) < 0)
                 PART_TEST_ERROR(rw_all_float);
 
+            if (H5Sclose(space_id) < 0)
+                PART_TEST_ERROR(rw_all_float);
+            space_id = H5I_INVALID_HID;
+
             memset(wbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
             memset(rbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
 
@@ -10140,6 +10143,19 @@ test_dataset_vlen_io(void)
         PART_BEGIN(rw_all_string)
         {
             TESTING_2("write and read entire dataspace with string sequence");
+
+            if ((str_base_type = H5Tcopy(H5T_C_S1)) < 0)
+                TEST_ERROR;
+
+            if ((H5Tset_size(str_base_type, DATASET_VLEN_IO_STR_LEN)) < 0)
+                TEST_ERROR;
+
+            if ((vlen_string = H5Tvlen_create(str_base_type)) < 0) {
+                H5_FAILED();
+                printf("    couldn't create vlen string sequence");
+                goto error;
+            }
+
             /* Set up write buffer */
             for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
                 if ((wbuf[i].p = calloc(i + 1, DATASET_VLEN_IO_STR_LEN)) == NULL)
@@ -10153,17 +10169,26 @@ test_dataset_vlen_io(void)
                 wbuf[i].len = i + 1;
             }
 
-            /* Open the dataset */
-            if ((dset_string = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_string", H5P_DEFAULT)) <
-                0)
+            if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
                 PART_TEST_ERROR(rw_all_string);
+            
+            if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            if ((space_id = H5Screate_simple(1, dims, NULL)) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            /* Create the dataset */
+            if ((dset_string = H5Dcreate2(container_group, DATASET_VLEN_IO_DSET_NAME "_string", vlen_string, space_id,
+                                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+                H5_FAILED();
+                printf("    couldn't create dataset with vlen string sequence datatype");
+                goto error;
+            }
 
             /* Perform write */
-            if ((H5Dwrite(dset_string, vlen_string, space_id, H5S_ALL, H5P_DEFAULT, (const void *)wbuf)) < 0)
+            if ((H5Dwrite(dset_string, vlen_string, H5S_ALL, H5S_ALL, H5P_DEFAULT, (const void *)wbuf)) < 0)
                 PART_TEST_ERROR(rw_all_string);
-
-            if (H5Dflush(dset_string) < 0)
-                PART_TEST_ERROR(rw_hyperslab_selection);
 
             /* Close and reopen file objects to flush cache */
             if (H5Dclose(dset_string) < 0)
@@ -10200,6 +10225,16 @@ test_dataset_vlen_io(void)
                 PART_TEST_ERROR(rw_all_string);
             dset_string = H5I_INVALID_HID;
 
+            if (H5Gclose(container_group) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            container_group = H5I_INVALID_HID;
+
+            if (H5Fclose(file_id) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            file_id = H5I_INVALID_HID;
+
             /* Verify data */
             for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
                 if (!rbuf[i].p)
@@ -10226,6 +10261,10 @@ test_dataset_vlen_io(void)
             if (H5Treclaim(vlen_string, space_id, H5P_DEFAULT, wbuf) < 0)
                 PART_TEST_ERROR(rw_all_string);
 
+            if (H5Sclose(space_id) < 0)
+                PART_TEST_ERROR(rw_all_string);
+            space_id = H5I_INVALID_HID;
+
             memset(wbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
             memset(rbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
 
@@ -10236,9 +10275,16 @@ test_dataset_vlen_io(void)
         PART_BEGIN(rw_point_selection)
         {
             TESTING_2("write with point selection");
+
+            if ((vlen_int_point = H5Tvlen_create(H5T_NATIVE_INT)) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
             /* Select even-indexed points */
             for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS / 2; i++)
                 point_coords[i] = i * 2;
+
+            if ((space_id = H5Screate_simple(1, dims, NULL)) < 0)
+                PART_TEST_ERROR(rw_point_selection);
 
             /* Select points on dataspace */
             if (H5Sselect_elements(space_id, H5S_SELECT_SET, DATASET_VLEN_IO_DSET_DIMS / 2,
@@ -10257,21 +10303,25 @@ test_dataset_vlen_io(void)
                 wbuf[i].len = i + 1;
             }
 
-            /* Open dataset */
-            if ((dset_int = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
+            if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+            
+            if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            /* Create dataset */
+            if ((dset_int_point = H5Dcreate2(container_group, DATASET_VLEN_IO_DSET_NAME "_int_point", vlen_int_point, space_id,
+                                    H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
                 PART_TEST_ERROR(rw_point_selection);
 
             /* Perform write */
-            if ((H5Dwrite(dset_int, vlen_int, space_id, space_id, H5P_DEFAULT, (const void *)wbuf)) < 0)
+            if ((H5Dwrite(dset_int_point, vlen_int_point, space_id, space_id, H5P_DEFAULT, (const void *)wbuf)) < 0)
                 PART_TEST_ERROR(rw_point_selection);
-
-            if (H5Dflush(dset_int) < 0)
-                PART_TEST_ERROR(rw_hyperslab_selection);
 
             /* Close and reopen file objects to flush cache */
-            if (H5Dclose(dset_int) < 0)
+            if (H5Dclose(dset_int_point) < 0)
                 PART_TEST_ERROR(rw_point_selection);
-            dset_int = H5I_INVALID_HID;
+            dset_int_point = H5I_INVALID_HID;
 
             if (H5Gclose(container_group) < 0)
                 PART_TEST_ERROR(rw_point_selection);
@@ -10287,17 +10337,27 @@ test_dataset_vlen_io(void)
             if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
                 PART_TEST_ERROR(rw_point_selection);
 
-            if ((dset_int = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
+            if ((dset_int_point = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int_point", H5P_DEFAULT)) < 0)
                 PART_TEST_ERROR(rw_point_selection);
 
             /* Perform read */
-            if ((H5Dread(dset_int, vlen_int, space_id, space_id, H5P_DEFAULT, (void *)rbuf)) < 0)
+            if ((H5Dread(dset_int_point, vlen_int_point, space_id, space_id, H5P_DEFAULT, (void *)rbuf)) < 0)
                 PART_TEST_ERROR(rw_point_selection);
 
             /* Close to finalize read */
-            if (H5Dclose(dset_int) < 0)
+            if (H5Dclose(dset_int_point) < 0)
                 PART_TEST_ERROR(rw_point_selection);
-            dset_int = H5I_INVALID_HID;
+            dset_int_point = H5I_INVALID_HID;
+
+            if (H5Gclose(container_group) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            container_group = H5I_INVALID_HID;
+
+            if (H5Fclose(file_id) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            file_id = H5I_INVALID_HID;
 
             /* Verify data */
             for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
@@ -10322,14 +10382,21 @@ test_dataset_vlen_io(void)
             }
 
             /* Reset buffers */
-            if (H5Treclaim(vlen_int, space_id, H5P_DEFAULT, rbuf) < 0)
+            if (H5Treclaim(vlen_int_point, space_id, H5P_DEFAULT, rbuf) < 0)
                 PART_TEST_ERROR(rw_point_selection);
 
-            if (H5Treclaim(vlen_int, space_id, H5P_DEFAULT, wbuf) < 0)
+            if (H5Treclaim(vlen_int_point, space_id, H5P_DEFAULT, wbuf) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            if (H5Sclose(space_id) < 0)
                 PART_TEST_ERROR(rw_point_selection);
 
             memset(wbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
             memset(rbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+
+            if (H5Tclose(vlen_int_point) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+            vlen_int_point = H5I_INVALID_HID;
 
             PASSED();
         }
@@ -10338,11 +10405,18 @@ test_dataset_vlen_io(void)
         PART_BEGIN(rw_hyperslab_selection)
         {
             TESTING_2("write with hyperslab selection");
+
+            if ((vlen_int_slab = H5Tvlen_create(H5T_NATIVE_INT)) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
             /* Select hyperslab of every 3rd element */
             const hsize_t start[1]  = {0};
             const hsize_t stride[1] = {3};
             const hsize_t count[1]  = {1 + (DATASET_VLEN_IO_DSET_DIMS / stride[0])};
             const hsize_t block[1]  = {1};
+
+            if ((space_id = H5Screate_simple(1, dims, NULL)) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
 
             if ((H5Sselect_hyperslab(space_id, H5S_SELECT_SET, start, stride, count, block)) < 0)
                 PART_TEST_ERROR(rw_hyperslab_selection);
@@ -10359,21 +10433,25 @@ test_dataset_vlen_io(void)
                 wbuf[i].len = i + 1;
             }
 
-            /* Open dataset */
-            if ((dset_int = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
+            if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+            
+            if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            /* Create dataset */
+            if ((dset_int_slab = H5Dcreate2(container_group, DATASET_VLEN_IO_DSET_NAME "_int_slab", vlen_int_slab, space_id,
+                                    H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0)
                 PART_TEST_ERROR(rw_hyperslab_selection);
 
             /* Perform write */
-            if ((H5Dwrite(dset_int, vlen_int, space_id, space_id, H5P_DEFAULT, (const void *)wbuf)) < 0)
-                PART_TEST_ERROR(rw_hyperslab_selection);
-
-            if (H5Dflush(dset_int) < 0)
+            if ((H5Dwrite(dset_int_slab, vlen_int_slab, space_id, space_id, H5P_DEFAULT, (const void *)wbuf)) < 0)
                 PART_TEST_ERROR(rw_hyperslab_selection);
 
             /* Close and reopen file objects to flush cache */
-            if (H5Dclose(dset_int) < 0)
+            if (H5Dclose(dset_int_slab) < 0)
                 PART_TEST_ERROR(rw_hyperslab_selection);
-            dset_int = H5I_INVALID_HID;
+            dset_int_slab = H5I_INVALID_HID;
 
             if (H5Gclose(container_group) < 0)
                 PART_TEST_ERROR(rw_hyperslab_selection);
@@ -10389,17 +10467,27 @@ test_dataset_vlen_io(void)
             if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
                 PART_TEST_ERROR(rw_hyperslab_selection);
 
-            if ((dset_int = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
+            if ((dset_int_slab = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
                 PART_TEST_ERROR(rw_hyperslab_selection);
 
             /* Perform read */
-            if ((H5Dread(dset_int, vlen_int, space_id, space_id, H5P_DEFAULT, (void *)rbuf)) < 0)
+            if ((H5Dread(dset_int_slab, vlen_int_slab, space_id, space_id, H5P_DEFAULT, (void *)rbuf)) < 0)
                 PART_TEST_ERROR(rw_hyperslab_selection);
 
             /* Close to finalize read */
-            if (H5Dclose(dset_int) < 0)
+            if (H5Dclose(dset_int_slab) < 0)
                 PART_TEST_ERROR(rw_hyperslab_selection);
-            dset_int = H5I_INVALID_HID;
+            dset_int_slab = H5I_INVALID_HID;
+
+            if (H5Gclose(container_group) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            container_group = H5I_INVALID_HID;
+
+            if (H5Fclose(file_id) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            file_id = H5I_INVALID_HID;
 
             /* Verify data */
             for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
@@ -10424,14 +10512,23 @@ test_dataset_vlen_io(void)
             }
 
             /* Reset buffers */
-            if (H5Treclaim(vlen_int, space_id, H5P_DEFAULT, rbuf) < 0)
+            if (H5Treclaim(vlen_int_slab, space_id, H5P_DEFAULT, rbuf) < 0)
                 PART_TEST_ERROR(rw_hyperslab_selection);
 
-            if (H5Treclaim(vlen_int, space_id, H5P_DEFAULT, wbuf) < 0)
+            if (H5Treclaim(vlen_int_slab, space_id, H5P_DEFAULT, wbuf) < 0)
                 PART_TEST_ERROR(rw_hyperslab_selection);
+
+            if (H5Sclose(space_id) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+            space_id = H5I_INVALID_HID;
 
             memset(wbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
             memset(rbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+
+            if (H5Tclose(vlen_int_slab) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+            
+            vlen_int_slab = H5I_INVALID_HID;
 
             PASSED();
         }
@@ -10441,48 +10538,33 @@ test_dataset_vlen_io(void)
 
     TESTING_2("test cleanup");
 
-    if (H5Sclose(space_id) < 0)
-        TEST_ERROR;
-
-    /* In case of memory allocation error, not all hvl_t buffers in array may be allocated.
-     * Free one-by-one */
-    for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
-        if (wbuf[i].p) {
-            free(wbuf[i].p);
-            wbuf[i].p = NULL;
-        }
-    }
-
-    for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
-        if (rbuf[i].p) {
-            free(rbuf[i].p);
-            rbuf[i].p = NULL;
-        }
-    }
-
-    if (H5Tclose(vlen_int) < 0)
-        TEST_ERROR;
-    if (H5Tclose(vlen_float) < 0)
-        TEST_ERROR;
-    if (H5Tclose(vlen_string) < 0)
-        TEST_ERROR;
-    if (H5Gclose(container_group) < 0)
-        TEST_ERROR;
-    if (H5Fclose(file_id) < 0)
-        TEST_ERROR;
     PASSED();
     return 0;
 error:
 
     H5E_BEGIN_TRY
     {
+        H5Tclose(vlen_int);
+        H5Tclose(vlen_int_point);
+        H5Tclose(vlen_int_slab);
+        H5Tclose(vlen_float);
+        H5Tclose(vlen_string);
+
         if (dset_int != H5I_INVALID_HID)
             H5Dclose(dset_int);
         if (dset_float != H5I_INVALID_HID)
             H5Dclose(dset_float);
         if (dset_string != H5I_INVALID_HID)
             H5Dclose(dset_string);
+        if (dset_int_point != H5I_INVALID_HID)
+            H5Dclose(dset_int);
+        if (dset_int_slab != H5I_INVALID_HID)
+            H5Dclose(dset_int);
+
         H5Sclose(space_id);
+
+        /* In case of memory allocation error, not all hvl_t buffers in array may be allocated.
+        * Free one-by-one */
         for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
             if (wbuf[i].p) {
                 free(wbuf[i].p);
@@ -10496,11 +10578,11 @@ error:
                 rbuf[i].p = NULL;
             }
         }
-        H5Tclose(vlen_int);
-        H5Tclose(vlen_float);
-        H5Tclose(vlen_string);
-        H5Gclose(container_group);
-        H5Fclose(file_id);
+
+        if (container_group != H5I_INVALID_HID)
+            H5Gclose(container_group);
+        if (file_id != H5I_INVALID_HID)
+            H5Fclose(file_id);
     }
     H5E_END_TRY
 
