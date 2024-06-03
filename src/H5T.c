@@ -2536,8 +2536,12 @@ H5T__register(H5T_pers_t pers, const char *name, H5T_t *src, H5T_t *dst, H5T_con
             memset(&cdata, 0, sizeof cdata);
             cdata.command = H5T_CONV_INIT;
             if (conv->is_app) {
-                if ((conv->u.app_func)(tmp_sid, tmp_did, &cdata, (size_t)0, (size_t)0, (size_t)0, NULL, NULL,
-                                       H5CX_get_dxpl()) < 0) {
+                herr_t app_ret_value = FAIL;
+                H5_BEFORE_USER_CB(FAIL) {
+                    app_ret_value = (conv->u.app_func)(tmp_sid, tmp_did, &cdata, (size_t)0, (size_t)0, (size_t)0,
+                                                       NULL, NULL, H5CX_get_dxpl());
+                } H5_AFTER_USER_CB(FAIL)
+                if (app_ret_value < 0) {
                     H5I_dec_ref(tmp_sid);
                     H5I_dec_ref(tmp_did);
                     tmp_sid = tmp_did = -1;
