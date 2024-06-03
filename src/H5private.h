@@ -1287,6 +1287,14 @@ extern const char H5libhdf5_settings[];
         } /* end else */                        \
     }
 
+#define H5_BEFORE_USER_CB_NOCHECK   \
+    {                               \
+        H5_user_cb_prepare(); \
+
+#define H5_AFTER_USER_CB_NOCHECK    \
+        H5_user_cb_restore(); \
+    }
+
 
 /*-------------------------------------------------------------------------
  * Purpose: These macros are inserted automatically just after the
