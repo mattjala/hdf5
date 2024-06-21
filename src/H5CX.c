@@ -170,17 +170,13 @@
  *      H5CX_TEST_SET_PROP and H5CX_SET_PROP macros to work properly.
  *
  * - "Return-and-read" properties that are returned to the application to send out introspection information,
- *      but are also queried by the library internally. Internal queries always retrieve the original value
- *      from the property list, and update the context's value to match. These properties have both a 'valid'
- *      and 'set' flag. <foo>_valid is true if the field has ever been populated from its underlying property
- *      list. <foo>_set flag is true if this field has ever been set on the context for application
- *      introspection. The naming of these fields is important for the H5CX_RETRIEVE_PROP_VALID_SET macro to
- *      work properly.
+ *      but are also queried by the library internally. If the context value has been 'set' by an accessor,
+ *      all future queries will return the stored value from the context, to avoid later queries overwriting
+ *      that stored value with the value from the property list.
  *
- *      Note that if a set operation is followed by an internal read, it is possible for <foo>_set to be true
- *      while the value in the context matches the underlying property list, resulting in a redundant write to
- *      the property list when the context is popped. Similarly, if a field has been set on the context but
- *      never read internally, <foo>_valid will be false despite the context containing a meaningful value.
+ *      These properties have both a 'valid' and 'set' flag. <foo>_valid indicates whether the context
+ *      contains a cached value. <foo>_set indicates whether the context contains a value set by an accessor.
+ *      The naming of these fields is important for the H5CX_RETRIEVE_PROP_VALID_SET macro to work properly.
  */
 typedef struct H5CX_t {
     /* DXPL */
@@ -2595,11 +2591,14 @@ H5CX_get_actual_selection_io_mode(uint32_t *actual_selection_io_mode)
      * if it has not been set yet. */
     if ((*head)->ctx.dxpl_id != H5P_DATASET_XFER_DEFAULT && !(*head)->ctx.actual_selection_io_mode_set &&
         !(*head)->ctx.actual_selection_io_mode_valid) {
-        (*head)->ctx.actual_selection_io_mode     = H5CX_def_dxpl_cache.actual_selection_io_mode;
-        (*head)->ctx.actual_selection_io_mode_set = true;
+        (*head)->ctx.actual_selection_io_mode       = H5CX_def_dxpl_cache.actual_selection_io_mode;
+        (*head)->ctx.actual_selection_io_mode_set   = true;
+        (*head)->ctx.actual_selection_io_mode_valid = true;
     }
-    H5CX_RETRIEVE_PROP_VALID_SET(dxpl, H5P_DATASET_XFER_DEFAULT, H5D_XFER_ACTUAL_SELECTION_IO_MODE_NAME,
-                                 actual_selection_io_mode)
+    else {
+        H5CX_RETRIEVE_PROP_VALID_SET(dxpl, H5P_DATASET_XFER_DEFAULT, H5D_XFER_ACTUAL_SELECTION_IO_MODE_NAME,
+                                     actual_selection_io_mode)
+    }
 
     /* Get the value */
     *actual_selection_io_mode = (*head)->ctx.actual_selection_io_mode;
@@ -3281,8 +3280,9 @@ H5CX_set_mpio_local_no_coll_cause(uint32_t mpio_local_no_coll_cause)
     /* If we're using the default DXPL, don't modify it */
     if ((*head)->ctx.dxpl_id != H5P_DATASET_XFER_DEFAULT) {
         /* Cache the value for later, marking it to set in DXPL when context popped */
-        (*head)->ctx.mpio_local_no_coll_cause     = mpio_local_no_coll_cause;
-        (*head)->ctx.mpio_local_no_coll_cause_set = true;
+        (*head)->ctx.mpio_local_no_coll_cause       = mpio_local_no_coll_cause;
+        (*head)->ctx.mpio_local_no_coll_cause_set   = true;
+        (*head)->ctx.mpio_local_no_coll_cause_valid = true;
     } /* end if */
 
     FUNC_LEAVE_NOAPI_VOID
@@ -3312,8 +3312,9 @@ H5CX_set_mpio_global_no_coll_cause(uint32_t mpio_global_no_coll_cause)
     /* If we're using the default DXPL, don't modify it */
     if ((*head)->ctx.dxpl_id != H5P_DATASET_XFER_DEFAULT) {
         /* Cache the value for later, marking it to set in DXPL when context popped */
-        (*head)->ctx.mpio_global_no_coll_cause     = mpio_global_no_coll_cause;
-        (*head)->ctx.mpio_global_no_coll_cause_set = true;
+        (*head)->ctx.mpio_global_no_coll_cause       = mpio_global_no_coll_cause;
+        (*head)->ctx.mpio_global_no_coll_cause_set   = true;
+        (*head)->ctx.mpio_global_no_coll_cause_valid = true;
     } /* end if */
 
     FUNC_LEAVE_NOAPI_VOID
@@ -3561,8 +3562,9 @@ H5CX_set_no_selection_io_cause(uint32_t no_selection_io_cause)
     /* If we're using the default DXPL, don't modify it */
     if ((*head)->ctx.dxpl_id != H5P_DATASET_XFER_DEFAULT) {
         /* Cache the value for later, marking it to set in DXPL when context popped */
-        (*head)->ctx.no_selection_io_cause     = no_selection_io_cause;
-        (*head)->ctx.no_selection_io_cause_set = true;
+        (*head)->ctx.no_selection_io_cause       = no_selection_io_cause;
+        (*head)->ctx.no_selection_io_cause_set   = true;
+        (*head)->ctx.no_selection_io_cause_valid = true;
     } /* end if */
 
     FUNC_LEAVE_NOAPI_VOID
@@ -3593,8 +3595,9 @@ H5CX_set_actual_selection_io_mode(uint32_t actual_selection_io_mode)
     /* If we're using the default DXPL, don't modify it */
     if ((*head)->ctx.dxpl_id != H5P_DATASET_XFER_DEFAULT) {
         /* Cache the value for later, marking it to set in DXPL when context popped */
-        (*head)->ctx.actual_selection_io_mode     = actual_selection_io_mode;
-        (*head)->ctx.actual_selection_io_mode_set = true;
+        (*head)->ctx.actual_selection_io_mode       = actual_selection_io_mode;
+        (*head)->ctx.actual_selection_io_mode_set   = true;
+        (*head)->ctx.actual_selection_io_mode_valid = true;
     }
 
     FUNC_LEAVE_NOAPI_VOID
@@ -3660,8 +3663,9 @@ H5CX__pop_common(bool update_dxpl_props)
          * to leave the (possibly incorrect) old value in the property list, so set from the default property
          * list */
         if ((*head)->ctx.dxpl_id != H5P_DATASET_XFER_DEFAULT && !(*head)->ctx.actual_selection_io_mode_set) {
-            (*head)->ctx.actual_selection_io_mode     = H5CX_def_dxpl_cache.actual_selection_io_mode;
-            (*head)->ctx.actual_selection_io_mode_set = true;
+            (*head)->ctx.actual_selection_io_mode       = H5CX_def_dxpl_cache.actual_selection_io_mode;
+            (*head)->ctx.actual_selection_io_mode_set   = true;
+            (*head)->ctx.actual_selection_io_mode_valid = false;
         }
 
         H5CX_SET_PROP(H5D_XFER_NO_SELECTION_IO_CAUSE_NAME, no_selection_io_cause)

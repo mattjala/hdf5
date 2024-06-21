@@ -2905,7 +2905,7 @@ error:
 } /* test_set_get_select_io_mode() */
 
 /*
- * To test with various test_mode that no selelction I/O is performed
+ * To test with various test_mode that no selection I/O is performed
  *
  * Note: It's the responsibility of the tester to feed proper combination
  *       of test_mode as needed.
@@ -3110,6 +3110,8 @@ test_no_selection_io_cause_mode(const char *filename, hid_t fapl, uint32_t test_
     if (H5Pclose(fcpl) < 0)
         TEST_ERROR;
 
+    PASSED();
+
     return SUCCEED;
 
 error:
@@ -3138,8 +3140,7 @@ test_get_no_selection_io_cause(const char *filename, hid_t fapl)
     H5D_selection_io_mode_t selection_io_mode;
     int                     errs = 0;
 
-    printf("\n");
-    TESTING("H5Pget_no_selection_io_cause()");
+    printf("\nH5Pget_no_selection_io_cause()");
 
     if ((dxpl = H5Pcreate(H5P_DATASET_XFER)) < 0)
         TEST_ERROR;
@@ -3157,18 +3158,37 @@ test_get_no_selection_io_cause(const char *filename, hid_t fapl)
         return SUCCEED;
     }
 
+    TESTING_2("disable by API");
     errs += test_no_selection_io_cause_mode(filename, fapl, TEST_DISABLE_BY_API);
+
+    TESTING_2("not contiguous or chunked dataset");
     errs += test_no_selection_io_cause_mode(filename, fapl, TEST_NOT_CONTIGUOUS_OR_CHUNKED_DATASET);
+
+    TESTING_2("contiguous sieve buffer");
     errs += test_no_selection_io_cause_mode(filename, fapl, TEST_CONTIGUOUS_SIEVE_BUFFER);
+
+    TESTING_2("dataset filter");
     errs += test_no_selection_io_cause_mode(filename, fapl, TEST_DATASET_FILTER);
+
+    TESTING_2("chunk cache");
     errs += test_no_selection_io_cause_mode(filename, fapl, TEST_CHUNK_CACHE);
+
+    TESTING_2("no vector or selection I/O callback");
     errs += test_no_selection_io_cause_mode(filename, fapl, TEST_NO_VECTOR_OR_SELECTION_IO_CB);
+
+    TESTING_2("datatype conversion");
     errs += test_no_selection_io_cause_mode(filename, fapl, TEST_DATATYPE_CONVERSION);
+
+    TESTING_2("datatype conversion with buffer too small");
     errs +=
         test_no_selection_io_cause_mode(filename, fapl, TEST_DATATYPE_CONVERSION | TEST_TCONV_BUF_TOO_SMALL);
+
+    TESTING_2("datatype conversion with buffer too small and in-place type conversion");
     errs += test_no_selection_io_cause_mode(
         filename, fapl, TEST_DATATYPE_CONVERSION | TEST_TCONV_BUF_TOO_SMALL | TEST_IN_PLACE_TCONV);
+
 #ifndef H5_HAVE_PARALLEL
+    TESTING_2("page buffer with parallel");
     errs += test_no_selection_io_cause_mode(filename, fapl, TEST_PAGE_BUFFER);
 #endif
 
