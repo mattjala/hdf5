@@ -34,13 +34,13 @@
 
 /* API context state */
 typedef struct H5CX_state_t {
-    hid_t                 fapl_id;            /* FAPL for operation */
-    hid_t                 dapl_id;            /* DAPL for operation */
-    hid_t                 dcpl_id;            /* DCPL for operation */
-    hid_t                 dxpl_id;            /* DXPL for operation */
-    hid_t                 lapl_id;            /* LAPL for operation */
-    hid_t                 lcpl_id;            /* LCPL for operation */
-    void                 *vol_wrap_ctx;       /* VOL connector's "wrap context" for creating IDs */
+    hid_t fapl_id;      /* FAPL for operation */
+    hid_t dapl_id;      /* DAPL for operation */
+    hid_t dcpl_id;      /* DCPL for operation */
+    hid_t dxpl_id;      /* DXPL for operation */
+    hid_t lapl_id;      /* LAPL for operation */
+    hid_t lcpl_id;      /* LCPL for operation */
+    void *vol_wrap_ctx; /* VOL connector's "wrap context" for creating IDs */
 
 #ifdef H5_HAVE_PARALLEL
     /* Internal: Parallel I/O settings */
