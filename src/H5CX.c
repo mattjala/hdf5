@@ -91,6 +91,27 @@
         H5CX_RETRIEVE_PROP_COMMON(PL, DEF_PL, PROP_NAME, PROP_FIELD)                                         \
     } /* end if */
 
+/* Macro to retrieve a value from a plist if the context value is invalid,
+ * without potentially deep copying via the property's 'get' callback */
+#define H5CX_RETRIEVE_PROP_VALID_PEEK(PL, DEF_PL, PROP_NAME, PROP_FIELD)                                     \
+    /* Check if the value has been retrieved already */                                                      \
+    if (!(*head)->ctx.H5_GLUE(PROP_FIELD, _valid)) {                                                         \
+        /* Check for default property list */                                                                \
+        if ((*head)->ctx.H5_GLUE(PL, _id) == (DEF_PL))                                                       \
+            (*head)->ctx.PROP_FIELD = H5_GLUE3(H5CX_def_, PL, _cache).PROP_FIELD;                            \
+        else {                                                                                               \
+            /* Check if the property list is already available */                                            \
+            H5CX_RETRIEVE_PLIST(PL, FAIL)                                                                    \
+                                                                                                             \
+            /* Get property value through 'peek' and not 'get' */                                            \
+            if (H5P_peek((*head)->ctx.PL, (PROP_NAME), &(*head)->ctx.PROP_FIELD) < 0)                        \
+                HGOTO_ERROR(H5E_CONTEXT, H5E_CANTGET, FAIL, "can't retrieve value from property list");      \
+        }                                                                                                    \
+                                                                                                             \
+        /* Mark the value as valid */                                                                        \
+        (*head)->ctx.H5_GLUE(PROP_FIELD, _valid) = true;                                                     \
+    }
+
 /* Macro for the duplicated code to retrieve a value from a plist if the context value is invalid, or the
  * library has previously modified the context value for return */
 #define H5CX_RETRIEVE_PROP_VALID_SET(PL, DEF_PL, PROP_NAME, PROP_FIELD)                                      \
@@ -436,8 +457,8 @@ typedef struct H5CX_dapl_cache_t {
 /* Typedef for cached default file access property list information */
 /* (Same as the cached DXPL struct, above, except for the default DCPL) */
 typedef struct H5CX_fapl_cache_t {
-    H5F_libver_t low_bound;  /* low_bound property for H5Pset_libver_bounds() */
-    H5F_libver_t high_bound; /* high_bound property for H5Pset_libver_bounds() */
+    H5F_libver_t          low_bound;          /* low_bound property for H5Pset_libver_bounds() */
+    H5F_libver_t          high_bound;         /* high_bound property for H5Pset_libver_bounds() */
     H5VL_connector_prop_t vol_connector_prop; /* VOL connector property for H5Pset_vol */
 } H5CX_fapl_cache_t;
 
@@ -690,7 +711,7 @@ H5CX_init(void)
 
     if (H5P_get(fa_plist, H5F_ACS_LIBVER_HIGH_BOUND_NAME, &H5CX_def_fapl_cache.high_bound) < 0)
         HGOTO_ERROR(H5E_CONTEXT, H5E_CANTGET, FAIL, "Can't retrieve dataset minimize flag");
-    
+
     if (H5P_get(fa_plist, H5F_ACS_VOL_CONN_NAME, &H5CX_def_fapl_cache.vol_connector_prop) < 0)
         HGOTO_ERROR(H5E_CONTEXT, H5E_CANTGET, FAIL, "Can't retrieve VOL connector property");
 
@@ -1677,27 +1698,7 @@ H5CX_get_vol_connector_prop(H5VL_connector_prop_t *vol_connector_prop)
     /* This getter does not use H5CX_RETRIEVE_PROP_VALID in order to use H5P_peek instead of H5P_get.
        This prevents invocation of the VOL connector property's library-defined copy callback */
 
-    /* Check if the value has been retrieved already */
-    if (!(*head)->ctx.vol_connector_prop_valid) {
-        /* Check for default FAPL */
-        if ((*head)->ctx.fapl_id == H5P_DATASET_ACCESS_DEFAULT)
-            (*head)->ctx.vol_connector_prop = H5CX_def_fapl_cache.vol_connector_prop;
-        else {
-            /* Check if the property list is already available */
-            if (NULL == (*head)->ctx.fapl)
-                /* Get the file access property list pointer */
-                if (NULL == ((*head)->ctx.fapl = (H5P_genplist_t *)H5I_object((*head)->ctx.fapl_id)))
-                    HGOTO_ERROR(H5E_CONTEXT, H5E_BADTYPE, FAIL, "can't find object for ID");
-            
-            /* Get VOL connector property value */
-            /* (Note: 'peek', not 'get', to avoid invoking the property's copy routine) */
-            if (H5P_peek((*head)->ctx.fapl, H5F_ACS_VOL_CONN_NAME, &(*head)->ctx.vol_connector_prop) < 0)
-                HGOTO_ERROR(H5E_CONTEXT, H5E_CANTGET, FAIL, "can't get VOL connector property");
-        }
-
-        /* Mark the value as valid */
-        (*head)->ctx.vol_connector_prop_valid = true;
-    }
+    H5CX_RETRIEVE_PROP_VALID_PEEK(fapl, H5P_FILE_ACCESS_DEFAULT, H5F_ACS_VOL_CONN_NAME, vol_connector_prop)
 
     /* Get the value */
     *vol_connector_prop = (*head)->ctx.vol_connector_prop;
@@ -2391,31 +2392,7 @@ H5CX_get_data_transform(H5Z_data_xform_t **data_transform)
 
     /* This getter does not use H5CX_RETRIEVE_PROP_VALID in order to use H5P_peek instead of H5P_get.
        This prevents invocation of the data transform property's library-defined copy callback */
-
-    /* Check if the value has been retrieved already */
-    if (!(*head)->ctx.data_transform_valid) {
-        /* Check for default DXPL */
-        if ((*head)->ctx.dxpl_id == H5P_DATASET_XFER_DEFAULT)
-            (*head)->ctx.data_transform = H5CX_def_dxpl_cache.data_transform;
-        else {
-            /* Check if the property list is already available */
-            if (NULL == (*head)->ctx.dxpl)
-                /* Get the dataset transfer property list pointer */
-                if (NULL == ((*head)->ctx.dxpl = (H5P_genplist_t *)H5I_object((*head)->ctx.dxpl_id)))
-                    HGOTO_ERROR(H5E_CONTEXT, H5E_BADTYPE, FAIL,
-                                "can't get default dataset transfer property list");
-
-            /* Get data transform info value */
-            /* (Note: 'peek', not 'get' - if this turns out to be a problem, we may need
-             *          to copy it and free this in the H5CX pop routine. -QAK)
-             */
-            if (H5P_peek((*head)->ctx.dxpl, H5D_XFER_XFORM_NAME, &(*head)->ctx.data_transform) < 0)
-                HGOTO_ERROR(H5E_CONTEXT, H5E_CANTGET, FAIL, "Can't retrieve data transform info");
-        } /* end else */
-
-        /* Mark the value as valid */
-        (*head)->ctx.data_transform_valid = true;
-    } /* end if */
+    H5CX_RETRIEVE_PROP_VALID_PEEK(dxpl, H5P_DATASET_XFER_DEFAULT, H5D_XFER_XFORM_NAME, data_transform)
 
     /* Get the value */
     *data_transform = (*head)->ctx.data_transform;
