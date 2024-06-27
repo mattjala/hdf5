@@ -437,7 +437,8 @@ typedef struct H5CX_dapl_cache_t {
 /* (Same as the cached DXPL struct, above, except for the default DCPL) */
 typedef struct H5CX_fapl_cache_t {
     H5F_libver_t low_bound;  /* low_bound property for H5Pset_libver_bounds() */
-    H5F_libver_t high_bound; /* high_bound property for H5Pset_libver_bounds */
+    H5F_libver_t high_bound; /* high_bound property for H5Pset_libver_bounds() */
+    H5VL_connector_prop_t vol_connector_prop; /* VOL connector property for H5Pset_vol */
 } H5CX_fapl_cache_t;
 
 /********************/
@@ -689,6 +690,10 @@ H5CX_init(void)
 
     if (H5P_get(fa_plist, H5F_ACS_LIBVER_HIGH_BOUND_NAME, &H5CX_def_fapl_cache.high_bound) < 0)
         HGOTO_ERROR(H5E_CONTEXT, H5E_CANTGET, FAIL, "Can't retrieve dataset minimize flag");
+    
+    if (H5P_get(fa_plist, H5F_ACS_VOL_CONN_NAME, &H5CX_def_fapl_cache.vol_connector_prop) < 0)
+        HGOTO_ERROR(H5E_CONTEXT, H5E_CANTGET, FAIL, "Can't retrieve VOL connector property");
+
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 }
@@ -1007,37 +1012,6 @@ H5CX_retrieve_state(H5CX_state_t **api_state)
             HGOTO_ERROR(H5E_CONTEXT, H5E_CANTINC, FAIL, "can't increment refcount on VOL wrapping context");
     } /* end if */
 
-    /* Keep a copy of the VOL connector property, if there is one */
-    if ((*head)->ctx.vol_connector_prop_valid && (*head)->ctx.vol_connector_prop.connector_id > 0) {
-        /* Get the connector property */
-        H5MM_memcpy(&(*api_state)->vol_connector_prop, &(*head)->ctx.vol_connector_prop,
-                    sizeof(H5VL_connector_prop_t));
-
-        /* Check for actual VOL connector property */
-        if ((*api_state)->vol_connector_prop.connector_id) {
-            /* Copy connector info, if it exists */
-            if ((*api_state)->vol_connector_prop.connector_info) {
-                H5VL_class_t *connector;                 /* Pointer to connector */
-                void         *new_connector_info = NULL; /* Copy of connector info */
-
-                /* Retrieve the connector for the ID */
-                if (NULL ==
-                    (connector = (H5VL_class_t *)H5I_object((*api_state)->vol_connector_prop.connector_id)))
-                    HGOTO_ERROR(H5E_CONTEXT, H5E_BADTYPE, FAIL, "not a VOL connector ID");
-
-                /* Allocate and copy connector info */
-                if (H5VL_copy_connector_info(connector, &new_connector_info,
-                                             (*api_state)->vol_connector_prop.connector_info) < 0)
-                    HGOTO_ERROR(H5E_CONTEXT, H5E_CANTCOPY, FAIL, "connector info copy failed");
-                (*api_state)->vol_connector_prop.connector_info = new_connector_info;
-            } /* end if */
-
-            /* Increment the refcount on the connector ID */
-            if (H5I_inc_ref((*api_state)->vol_connector_prop.connector_id, false) < 0)
-                HGOTO_ERROR(H5E_CONTEXT, H5E_CANTINC, FAIL, "incrementing VOL connector ID failed");
-        } /* end if */
-    }     /* end if */
-
 #ifdef H5_HAVE_PARALLEL
     /* Save parallel I/O settings */
     (*api_state)->coll_metadata_read = (*head)->ctx.coll_metadata_read;
@@ -1112,13 +1086,6 @@ H5CX_restore_state(const H5CX_state_t *api_state)
     if (NULL != (*head)->ctx.vol_wrap_ctx)
         (*head)->ctx.vol_wrap_ctx_valid = true;
 
-    /* Restore the VOL connector info */
-    if (api_state->vol_connector_prop.connector_id) {
-        H5MM_memcpy(&(*head)->ctx.vol_connector_prop, &api_state->vol_connector_prop,
-                    sizeof(H5VL_connector_prop_t));
-        (*head)->ctx.vol_connector_prop_valid = true;
-    } /* end if */
-
 #ifdef H5_HAVE_PARALLEL
     /* Restore parallel I/O settings */
     (*head)->ctx.coll_metadata_read = api_state->coll_metadata_read;
@@ -1180,19 +1147,6 @@ H5CX_free_state(H5CX_state_t *api_state)
     if (api_state->vol_wrap_ctx)
         if (H5VL_dec_vol_wrapper(api_state->vol_wrap_ctx) < 0)
             HGOTO_ERROR(H5E_CONTEXT, H5E_CANTDEC, FAIL, "can't decrement refcount on VOL wrapping context");
-
-    /* Release the VOL connector property, if it was set */
-    if (api_state->vol_connector_prop.connector_id) {
-        /* Clean up any VOL connector info */
-        if (api_state->vol_connector_prop.connector_info)
-            if (H5VL_free_connector_info(api_state->vol_connector_prop.connector_id,
-                                         api_state->vol_connector_prop.connector_info) < 0)
-                HGOTO_ERROR(H5E_CONTEXT, H5E_CANTRELEASE, FAIL,
-                            "unable to release VOL connector info object");
-        /* Decrement connector ID */
-        if (H5I_dec_ref(api_state->vol_connector_prop.connector_id) < 0)
-            HDONE_ERROR(H5E_CONTEXT, H5E_CANTDEC, FAIL, "can't close VOL connector ID");
-    } /* end if */
 
     /* Free the state */
     api_state = H5FL_FREE(H5CX_state_t, api_state);
@@ -1713,20 +1667,42 @@ H5CX_get_vol_connector_prop(H5VL_connector_prop_t *vol_connector_prop)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
     assert(vol_connector_prop);
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
     assert(head && *head);
 
-    /* Check for value that was set */
-    if ((*head)->ctx.vol_connector_prop_valid)
-        /* Get the value */
-        H5MM_memcpy(vol_connector_prop, &(*head)->ctx.vol_connector_prop, sizeof(H5VL_connector_prop_t));
-    else
-        memset(vol_connector_prop, 0, sizeof(H5VL_connector_prop_t));
+    /* This getter does not use H5CX_RETRIEVE_PROP_VALID in order to use H5P_peek instead of H5P_get.
+       This prevents invocation of the VOL connector property's library-defined copy callback */
 
+    /* Check if the value has been retrieved already */
+    if (!(*head)->ctx.vol_connector_prop_valid) {
+        /* Check for default FAPL */
+        if ((*head)->ctx.fapl_id == H5P_DATASET_ACCESS_DEFAULT)
+            (*head)->ctx.vol_connector_prop = H5CX_def_fapl_cache.vol_connector_prop;
+        else {
+            /* Check if the property list is already available */
+            if (NULL == (*head)->ctx.fapl)
+                /* Get the file access property list pointer */
+                if (NULL == ((*head)->ctx.fapl = (H5P_genplist_t *)H5I_object((*head)->ctx.fapl_id)))
+                    HGOTO_ERROR(H5E_CONTEXT, H5E_BADTYPE, FAIL, "can't find object for ID");
+            
+            /* Get VOL connector property value */
+            /* (Note: 'peek', not 'get', to avoid invoking the property's copy routine) */
+            if (H5P_peek((*head)->ctx.fapl, H5F_ACS_VOL_CONN_NAME, &(*head)->ctx.vol_connector_prop) < 0)
+                HGOTO_ERROR(H5E_CONTEXT, H5E_CANTGET, FAIL, "can't get VOL connector property");
+        }
+
+        /* Mark the value as valid */
+        (*head)->ctx.vol_connector_prop_valid = true;
+    }
+
+    /* Get the value */
+    *vol_connector_prop = (*head)->ctx.vol_connector_prop;
+
+done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5CX_get_vol_connector_prop() */
 
