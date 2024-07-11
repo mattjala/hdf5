@@ -1420,7 +1420,7 @@ H5F__reopen_api_common(hid_t file_id, void **token_ptr)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, H5I_INVALID_HID, "unable to reopen file");
 
     /* Get an ID for the file */
-    if ((ret_value = H5VL_register(H5I_FILE, reopen_file, vol_obj->connector, true)) < 0)
+    if ((ret_value = H5VL_register(H5I_FILE, reopen_file, &vol_obj->connector, true)) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register file handle");
 
 done:

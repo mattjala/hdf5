@@ -119,7 +119,7 @@ H5O__open_api_common(hid_t loc_id, const char *name, hid_t lapl_id, void **token
         HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENOBJ, H5I_INVALID_HID, "unable to open object");
 
     /* Get an atom for the object */
-    if ((ret_value = H5VL_register(opened_type, opened_obj, (*vol_obj_ptr)->connector, true)) < 0)
+    if ((ret_value = H5VL_register(opened_type, opened_obj, &(*vol_obj_ptr)->connector, true)) < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to atomize object handle");
 
 done:
@@ -242,7 +242,7 @@ H5O__open_by_idx_api_common(hid_t loc_id, const char *group_name, H5_index_t idx
         HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENOBJ, H5I_INVALID_HID, "unable to open object");
 
     /* Get an ID for the object */
-    if ((ret_value = H5VL_register(opened_type, opened_obj, (*vol_obj_ptr)->connector, true)) < 0)
+    if ((ret_value = H5VL_register(opened_type, opened_obj, &(*vol_obj_ptr)->connector, true)) < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object handle");
 
 done:
@@ -376,7 +376,7 @@ H5Oopen_by_token(hid_t loc_id, H5O_token_t token)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTOPENOBJ, H5I_INVALID_HID, "unable to open object");
 
     /* Register the object's ID */
-    if ((ret_value = H5VL_register(opened_type, opened_obj, vol_obj->connector, true)) < 0)
+    if ((ret_value = H5VL_register(opened_type, opened_obj, &vol_obj->connector, true)) < 0)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object handle");
 
 done:

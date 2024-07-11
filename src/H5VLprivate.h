@@ -123,7 +123,7 @@ H5_DLL herr_t H5VL_finish_lib_state(void);
 H5_DLL herr_t H5VL_free_lib_state(void *state);
 
 /* ID registration functions */
-H5_DLL hid_t  H5VL_register(H5I_type_t type, void *object, H5VL_t *vol_connector, bool app_ref);
+H5_DLL hid_t  H5VL_register(H5I_type_t type, void *object, H5VL_t **vol_connector, bool app_ref);
 H5_DLL hid_t  H5VL_wrap_register(H5I_type_t type, void *obj, bool app_ref);
 H5_DLL hid_t  H5VL_register_using_vol_id(H5I_type_t type, void *obj, hid_t connector_id, bool app_ref);
 H5_DLL herr_t H5VL_register_using_existing_id(H5I_type_t type, void *object, H5VL_t *vol_connector,

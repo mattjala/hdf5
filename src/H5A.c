@@ -125,7 +125,7 @@ H5A__create_common(H5VL_object_t *vol_obj, H5VL_loc_params_t *loc_params, const 
         HGOTO_ERROR(H5E_ATTR, H5E_CANTINIT, H5I_INVALID_HID, "unable to create attribute");
 
     /* Register the new attribute and get an ID for it */
-    if ((ret_value = H5VL_register(H5I_ATTR, attr, vol_obj->connector, true)) < 0)
+    if ((ret_value = H5VL_register(H5I_ATTR, attr, &vol_obj->connector, true)) < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register attribute for ID");
 
 done:
@@ -454,7 +454,7 @@ H5A__open_common(H5VL_object_t *vol_obj, H5VL_loc_params_t *loc_params, const ch
         HGOTO_ERROR(H5E_ATTR, H5E_CANTOPENOBJ, H5I_INVALID_HID, "unable to open attribute: '%s'", attr_name);
 
     /* Register the attribute and get an ID for it */
-    if ((ret_value = H5VL_register(H5I_ATTR, attr, vol_obj->connector, true)) < 0)
+    if ((ret_value = H5VL_register(H5I_ATTR, attr, &vol_obj->connector, true)) < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register attribute for ID");
 
 done:

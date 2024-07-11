@@ -184,7 +184,7 @@ H5G__create_api_common(hid_t loc_id, const char *name, hid_t lcpl_id, hid_t gcpl
         HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, H5I_INVALID_HID, "unable to create group");
 
     /* Get an ID for the group */
-    if ((ret_value = H5VL_register(H5I_GROUP, grp, (*vol_obj_ptr)->connector, true)) < 0)
+    if ((ret_value = H5VL_register(H5I_GROUP, grp, &(*vol_obj_ptr)->connector, true)) < 0)
         HGOTO_ERROR(H5E_SYM, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to get ID for group handle");
 
 done:
@@ -349,7 +349,7 @@ H5Gcreate_anon(hid_t loc_id, hid_t gcpl_id, hid_t gapl_id)
         HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, H5I_INVALID_HID, "unable to create group");
 
     /* Get an ID for the group */
-    if ((ret_value = H5VL_register(H5I_GROUP, grp, vol_obj->connector, true)) < 0)
+    if ((ret_value = H5VL_register(H5I_GROUP, grp, &vol_obj->connector, true)) < 0)
         HGOTO_ERROR(H5E_SYM, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to get ID for group handle");
 
 done:
@@ -399,7 +399,7 @@ H5G__open_api_common(hid_t loc_id, const char *name, hid_t gapl_id, void **token
         HGOTO_ERROR(H5E_SYM, H5E_CANTOPENOBJ, H5I_INVALID_HID, "unable to open group");
 
     /* Register an ID for the group */
-    if ((ret_value = H5VL_register(H5I_GROUP, grp, (*vol_obj_ptr)->connector, true)) < 0)
+    if ((ret_value = H5VL_register(H5I_GROUP, grp, &(*vol_obj_ptr)->connector, true)) < 0)
         HGOTO_ERROR(H5E_SYM, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register group");
 
 done:

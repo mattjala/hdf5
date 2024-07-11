@@ -535,7 +535,7 @@ H5R__open_object_api_common(H5R_ref_t *ref_ptr, hid_t rapl_id, hid_t oapl_id, vo
         HGOTO_ERROR(H5E_REFERENCE, H5E_CANTOPENOBJ, H5I_INVALID_HID, "unable to open object by token");
 
     /* Register object */
-    if ((ret_value = H5VL_register(opened_type, opened_obj, (*vol_obj_ptr)->connector, true)) < 0)
+    if ((ret_value = H5VL_register(opened_type, opened_obj, &(*vol_obj_ptr)->connector, true)) < 0)
         HGOTO_ERROR(H5E_REFERENCE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object handle");
 
 done:
@@ -672,7 +672,7 @@ H5R__open_region_api_common(H5R_ref_t *ref_ptr, hid_t rapl_id, hid_t oapl_id, vo
         HGOTO_ERROR(H5E_REFERENCE, H5E_CANTOPENOBJ, H5I_INVALID_HID, "unable to open object by token");
 
     /* Register object */
-    if ((opened_obj_id = H5VL_register(opened_type, opened_obj, (*vol_obj_ptr)->connector, false)) < 0)
+    if ((opened_obj_id = H5VL_register(opened_type, opened_obj, &(*vol_obj_ptr)->connector, false)) < 0)
         HGOTO_ERROR(H5E_REFERENCE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object handle");
 
     /* Get VOL object object */
@@ -840,7 +840,7 @@ H5R__open_attr_api_common(H5R_ref_t *ref_ptr, hid_t rapl_id, hid_t aapl_id, void
         HGOTO_ERROR(H5E_REFERENCE, H5E_CANTOPENOBJ, H5I_INVALID_HID, "unable to open object by token");
 
     /* Register object */
-    if ((opened_obj_id = H5VL_register(opened_type, opened_obj, (*vol_obj_ptr)->connector, false)) < 0)
+    if ((opened_obj_id = H5VL_register(opened_type, opened_obj, &(*vol_obj_ptr)->connector, false)) < 0)
         HGOTO_ERROR(H5E_REFERENCE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object handle");
 
     /* Verify access property list and set up collective metadata if appropriate */
@@ -863,7 +863,7 @@ H5R__open_attr_api_common(H5R_ref_t *ref_ptr, hid_t rapl_id, hid_t aapl_id, void
                     H5R_REF_ATTRNAME((const H5R_ref_priv_t *)ref_ptr));
 
     /* Register the attribute and get an ID for it */
-    if ((ret_value = H5VL_register(H5I_ATTR, opened_attr, (*vol_obj_ptr)->connector, true)) < 0)
+    if ((ret_value = H5VL_register(H5I_ATTR, opened_attr, &(*vol_obj_ptr)->connector, true)) < 0)
         HGOTO_ERROR(H5E_REFERENCE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register attribute handle");
 
 done:

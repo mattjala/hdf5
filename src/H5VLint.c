@@ -692,7 +692,7 @@ done:
  *-------------------------------------------------------------------------
  */
 hid_t
-H5VL_register(H5I_type_t type, void *object, H5VL_t *vol_connector, bool app_ref)
+H5VL_register(H5I_type_t type, void *object, H5VL_t **vol_connector, bool app_ref)
 {
     H5VL_object_t *vol_obj   = NULL;            /* VOL object wrapper for library object */
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
@@ -701,11 +701,11 @@ H5VL_register(H5I_type_t type, void *object, H5VL_t *vol_connector, bool app_ref
 
     /* Check arguments */
     assert(object);
-    assert(vol_connector);
+    assert(*vol_connector);
 
     /* Set up VOL object for the passed-in data */
     /* (Does not wrap object, since it's from a VOL callback) */
-    if (NULL == (vol_obj = H5VL__new_vol_obj(type, object, &vol_connector, false)))
+    if (NULL == (vol_obj = H5VL__new_vol_obj(type, object, vol_connector, false)))
         HGOTO_ERROR(H5E_VOL, H5E_CANTCREATE, FAIL, "can't create VOL object");
 
     /* Register VOL object as _object_ type, for future object API calls */
@@ -836,7 +836,7 @@ H5VL_register_using_vol_id(H5I_type_t type, void *obj, hid_t connector_id, bool 
         HGOTO_ERROR(H5E_VOL, H5E_CANTCREATE, H5I_INVALID_HID, "can't create VOL connector object");
 
     /* Get an ID for the VOL object */
-    if ((ret_value = H5VL_register(type, obj, connector, app_ref)) < 0)
+    if ((ret_value = H5VL_register(type, obj, &connector, app_ref)) < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object handle");
 
 done:

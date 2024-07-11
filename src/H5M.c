@@ -253,7 +253,7 @@ H5M__create_api_common(hid_t loc_id, const char *name, hid_t key_type_id, hid_t 
     map = map_args.create.map;
 
     /* Get an ID for the map */
-    if ((ret_value = H5VL_register(H5I_MAP, map, (*vol_obj_ptr)->connector, true)) < 0)
+    if ((ret_value = H5VL_register(H5I_MAP, map, &(*vol_obj_ptr)->connector, true)) < 0)
         HGOTO_ERROR(H5E_MAP, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register map handle");
 
 done:
@@ -421,7 +421,7 @@ H5Mcreate_anon(hid_t loc_id, hid_t key_type_id, hid_t val_type_id, hid_t mcpl_id
     map = map_args.create.map;
 
     /* Get an ID for the map */
-    if ((ret_value = H5VL_register(H5I_MAP, map, vol_obj->connector, true)) < 0)
+    if ((ret_value = H5VL_register(H5I_MAP, map, &vol_obj->connector, true)) < 0)
         HGOTO_ERROR(H5E_MAP, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register map");
 
 done:
@@ -485,7 +485,7 @@ H5M__open_api_common(hid_t loc_id, const char *name, hid_t mapl_id, void **token
     map = map_args.open.map;
 
     /* Register an ID for the map */
-    if ((ret_value = H5VL_register(H5I_MAP, map, (*vol_obj_ptr)->connector, true)) < 0)
+    if ((ret_value = H5VL_register(H5I_MAP, map, &(*vol_obj_ptr)->connector, true)) < 0)
         HGOTO_ERROR(H5E_MAP, H5E_CANTREGISTER, H5I_INVALID_HID, "can't register map ID");
 
 done:
