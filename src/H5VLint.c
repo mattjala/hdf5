@@ -95,7 +95,7 @@ typedef struct {
 static herr_t         H5VL__free_cls(H5VL_class_t *cls, void **request);
 static int            H5VL__get_connector_cb(void *obj, hid_t id, void *_op_data);
 static void          *H5VL__wrap_obj(void *obj, H5I_type_t obj_type);
-static H5VL_object_t *H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *vol_connector, bool wrap_obj);
+static H5VL_object_t *H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t **vol_connector, bool wrap_obj);
 static void          *H5VL__object(hid_t id, H5I_type_t obj_type);
 static herr_t         H5VL__free_vol_wrapper(H5VL_wrap_ctx_t *vol_wrap_ctx);
 
@@ -526,23 +526,26 @@ done:
  *
  * Purpose:     Creates a new VOL object, to use when registering an ID.
  *
+ *              If the provided connector has no references and this routine fails,
+ *              the connector will be freed and the pointer set to NULL.
+ *
  * Return:      Success:        VOL object pointer
  *              Failure:        NULL
  *
  *-------------------------------------------------------------------------
  */
 static H5VL_object_t *
-H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *vol_connector, bool wrap_obj)
+H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t **vol_connector, bool wrap_obj)
 {
-    H5VL_object_t *new_vol_obj  = NULL;  /* Pointer to new VOL object                    */
-    bool           conn_rc_incr = false; /* Whether the VOL connector refcount has been incremented */
-    H5VL_object_t *ret_value    = NULL;  /* Return value                                 */
-
+    H5VL_object_t *new_vol_obj    = NULL;  /* Pointer to new VOL object                    */
+    bool           conn_rc_incr   = false; /* Whether the VOL connector refcount has been incremented */
+    H5VL_object_t *ret_value      = NULL;  /* Return value                                 */
+    int64_t        rc_after_close = 0;     /* Ref count of the connector after closing */
     FUNC_ENTER_PACKAGE
 
     /* Check arguments */
     assert(object);
-    assert(vol_connector);
+    assert(*vol_connector);
 
     /* Make sure type number is valid */
     if (type != H5I_ATTR && type != H5I_DATASET && type != H5I_DATATYPE && type != H5I_FILE &&
@@ -552,7 +555,7 @@ H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *vol_connector, bool wra
     /* Create the new VOL object */
     if (NULL == (new_vol_obj = H5FL_CALLOC(H5VL_object_t)))
         HGOTO_ERROR(H5E_VOL, H5E_CANTALLOC, NULL, "can't allocate memory for VOL object");
-    new_vol_obj->connector = vol_connector;
+    new_vol_obj->connector = *vol_connector;
     if (wrap_obj) {
         if (NULL == (new_vol_obj->data = H5VL__wrap_obj(object, type)))
             HGOTO_ERROR(H5E_VOL, H5E_CANTCREATE, NULL, "can't wrap library object");
@@ -562,7 +565,7 @@ H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *vol_connector, bool wra
     new_vol_obj->rc = 1;
 
     /* Bump the reference count on the VOL connector */
-    H5VL_conn_inc_rc(vol_connector);
+    H5VL_conn_inc_rc(*vol_connector);
     conn_rc_incr = true;
 
     /* If this is a datatype, we have to hide the VOL object under the H5T_t pointer */
@@ -576,8 +579,13 @@ H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *vol_connector, bool wra
 done:
     /* Cleanup on error */
     if (NULL == ret_value) {
-        if (conn_rc_incr && H5VL_conn_dec_rc(vol_connector) < 0)
-            HDONE_ERROR(H5E_VOL, H5E_CANTDEC, NULL, "unable to decrement ref count on VOL connector");
+        if (conn_rc_incr)
+            if ((rc_after_close = H5VL_conn_dec_rc(*vol_connector)) < 0)
+                HDONE_ERROR(H5E_VOL, H5E_CANTDEC, NULL, "unable to decrement ref count on VOL connector");
+
+        /* If connector has been freed, propagate this information to caller */
+        if (rc_after_close == 0)
+            *vol_connector = NULL;
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -697,7 +705,7 @@ H5VL_register(H5I_type_t type, void *object, H5VL_t *vol_connector, bool app_ref
 
     /* Set up VOL object for the passed-in data */
     /* (Does not wrap object, since it's from a VOL callback) */
-    if (NULL == (vol_obj = H5VL__new_vol_obj(type, object, vol_connector, false)))
+    if (NULL == (vol_obj = H5VL__new_vol_obj(type, object, &vol_connector, false)))
         HGOTO_ERROR(H5E_VOL, H5E_CANTCREATE, FAIL, "can't create VOL object");
 
     /* Register VOL object as _object_ type, for future object API calls */
@@ -741,7 +749,7 @@ H5VL_register_using_existing_id(H5I_type_t type, void *object, H5VL_t *vol_conne
 
     /* Set up VOL object for the passed-in data */
     /* (Wraps object, since it's a library object) */
-    if (NULL == (new_vol_obj = H5VL__new_vol_obj(type, object, vol_connector, true)))
+    if (NULL == (new_vol_obj = H5VL__new_vol_obj(type, object, &vol_connector, true)))
         HGOTO_ERROR(H5E_VOL, H5E_CANTCREATE, FAIL, "can't create VOL object");
 
     /* Call the underlying H5I function to complete the registration */
@@ -919,7 +927,7 @@ H5VL_create_object_using_vol_id(H5I_type_t type, void *obj, hid_t connector_id)
 
     /* Set up VOL object for the passed-in data */
     /* (Wraps object, since it's a library object) */
-    if (NULL == (ret_value = H5VL__new_vol_obj(type, obj, connector, true)))
+    if (NULL == (ret_value = H5VL__new_vol_obj(type, obj, &connector, true)))
         HGOTO_ERROR(H5E_VOL, H5E_CANTCREATE, NULL, "can't create VOL object");
 
 done:
