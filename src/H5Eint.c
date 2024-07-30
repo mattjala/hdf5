@@ -601,6 +601,22 @@ H5E__set_auto(H5E_t *estack, const H5E_auto_op_t *op, void *client_data)
 
     assert(estack);
 
+#ifdef H5_HAVE_MULTITHREAD
+
+    /* review of the code indicates that this function call only be 
+     * called when the global lock is held in the multithread case.
+     * Verify this.
+     */
+    {
+        bool have_global_mutex;
+
+        assert( 0 >= H5TS_have_mutex(&H5_g.init_lock, &have_global_mutex) );
+        assert(have_global_mutex);
+    }
+
+#endif /* H5_HAVE_MULTITHREAD */
+    
+
     /* Set the automatic error reporting info */
     estack->auto_op   = *op;
     estack->auto_data = client_data;
@@ -746,8 +762,19 @@ H5E__push_stack(H5E_t *estack, const char *file, const char *func, unsigned line
         estack->slot[estack->nused].func_name = func;
         estack->slot[estack->nused].file_name = file;
         estack->slot[estack->nused].line      = line;
+
+#ifdef H5_HAVE_MULTITHREAD
+
+        if (NULL == (estack->slot[estack->nused].desc = strdup(desc)))
+            HGOTO_DONE(FAIL);
+
+#else /* H5_HAVE_MULTITHREAD */
+
         if (NULL == (estack->slot[estack->nused].desc = H5MM_xstrdup(desc)))
             HGOTO_DONE(FAIL);
+
+#endif /* H5_HAVE_MULTITHREAD */
+
         estack->nused++;
     } /* end if */
 
@@ -797,8 +824,22 @@ H5E__clear_entries(H5E_t *estack, size_t nentries)
          */
         error->func_name = NULL;
         error->file_name = NULL;
+
+#ifdef H5_HAVE_MULTITHREAD
+
+        if (error->desc) {
+
+            free((void *)((uintptr_t)(error->desc)));
+            error->desc = NULL;
+        }
+
+#else /* H5_HAVE_MULTITHREAD */
+
         if (error->desc)
             error->desc = (const char *)H5MM_xfree_const(error->desc);
+
+#endif /* H5_HAVE_MULTITHREAD */
+
     }
 
     /* Decrement number of errors on stack */
@@ -825,11 +866,51 @@ H5E_clear_stack(H5E_t *estack)
 
     FUNC_ENTER_NOAPI(FAIL)
 
+#ifdef H5_HAVE_MULTITHREAD
+    /* In the multi-thread case, we don't need to worry about mutual exclusion
+     * if extack is NULL, since that implies that we are operating on the thread
+     * local error stack.
+     *
+     * However, if estack is not NULL, the target stack is in the H5I_ERROR_STACK
+     * index, and thus accessible to all threads.  Since a failure of mutual 
+     * exclusion is possible here, verify that we hold the global mutex in 
+     * this case.
+     */
+
+    if (estack == NULL) {
+
+        /* Set estack to point to the default (in this case thread local) error stack */
+
+        if (NULL == (estack = H5E__get_my_stack())) /*lint !e506 !e774 Make lint 'constant value Boolean' in
+                                                       non-threaded case */
+            HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, FAIL, "can't get current error stack");
+
+    } else {
+
+        bool have_global_mutex;
+        
+        /* Verify that the have the global lock.  */
+        if ( H5TS_have_mutex(&H5_g.init_lock, &have_global_mutex) < 0 )
+
+            HGOTO_ERROR(H5E_LIB, H5E_CANTGET, FAIL, "Can't determine whether we have the global mutex");
+
+        assert(have_global_mutex);
+
+        if ( ! have_global_mutex )
+
+            HGOTO_ERROR(H5E_LIB, H5E_SYSTEM, FAIL, "Don't have global mutex on entry.");
+
+    }
+
+#else /* H5_HAVE_MULTITHREAD */
+
     /* Check for 'default' error stack */
     if (estack == NULL)
         if (NULL == (estack = H5E__get_my_stack())) /*lint !e506 !e774 Make lint 'constant value Boolean' in
                                                        non-threaded case */
             HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, FAIL, "can't get current error stack");
+
+#endif /* H5_HAVE_MULTITHREAD */
 
     /* Empty the error stack */
     assert(estack);

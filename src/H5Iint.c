@@ -253,9 +253,10 @@ H5I_init(void)
 
             atomic_init(&(H5I_mt_g.type_info_allocation_table[i]), FALSE);
         }
+
+        atomic_init(&(H5I_mt_g.marking_array[i]), 0);
     }
     atomic_init(&(H5I_mt_g.next_type), (int)H5I_NTYPES);
-    atomic_init(&(H5I_mt_g.marking), (int)0);
 
 
     /* initialized new globals needed by the MT version of H5I */
@@ -269,13 +270,13 @@ H5I_init(void)
     atomic_init(&(H5I_mt_g.id_info_fl_stail), init_id_sptr);
     atomic_init(&(H5I_mt_g.id_info_fl_len), 0ULL);
     atomic_init(&(H5I_mt_g.max_desired_id_info_fl_len), H5I__MAX_DESIRED_ID_INFO_FL_LEN);
+    atomic_init(&(H5I_mt_g.num_id_info_fl_entries_reallocable), 0ULL);
 
     /* allocate the initial entry in the id info free list and initialize the id info free list */
     id_info_ptr = H5I__new_mt_id_info(0, 0, 0, NULL, FALSE, NULL, NULL);
     if ( NULL == id_info_ptr) 
         HGOTO_ERROR(H5E_ID, H5E_CANTINIT, FAIL, "Can't initialize id info free list");
 
-    atomic_store(&(id_info_ptr->re_allocable), FALSE);
     atomic_store(&(id_info_ptr->on_fl), TRUE);
 
     id_sptr.ptr = id_info_ptr;
@@ -292,6 +293,12 @@ H5I_init(void)
     atomic_init(&(H5I_mt_g.type_info_fl_stail), init_type_sptr);
     atomic_init(&(H5I_mt_g.type_info_fl_len), 0ULL);
     atomic_init(&(H5I_mt_g.max_desired_type_info_fl_len), H5I__MAX_DESIRED_TYPE_INFO_FL_LEN);
+#if 1
+    atomic_init(&(H5I_mt_g.num_type_info_fl_entries_reallocable), 0ULL);
+#else
+    H5I_suint64_t init_suint64 = {0ULL, 0ULL};
+    atomic_init(&(H5I_mt_g.snum_type_info_fl_entries_reallocable), init_suint64);
+#endif
 
     /* allocate the initial entry in the id info free list and initialize the id info free list */
     type_info_ptr = H5I__new_mt_type_info(NULL, 0);
@@ -305,7 +312,6 @@ H5I_init(void)
     lfht_clear(&(type_info_ptr->lfht));
     atomic_store(&(type_info_ptr->lfht_cleared), TRUE);
 
-    atomic_store(&(type_info_ptr->re_allocable), FALSE);
     atomic_store(&(type_info_ptr->on_fl), TRUE);
 
     type_sptr.ptr = type_info_ptr;
@@ -334,9 +340,19 @@ H5I_init(void)
     atomic_init(&(H5I_mt_g.num_id_info_fl_append_cols), 0ULL);
     atomic_init(&(H5I_mt_g.num_id_info_structs_marked_reallocatable), 0ULL);
     atomic_init(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_empty), 0ULL);
-    atomic_init(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_head_not_reallocable), 0ULL);
+    atomic_init(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_no_reallocable_entries), 0ULL);
     atomic_init(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_empty), 0ULL);
-    atomic_init(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_head_not_reallocable), 0ULL);
+    atomic_init(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_fl_too_small), 0ULL);
+    atomic_init(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_no_reallocable_entries), 0ULL);
+    atomic_init(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_aborts), 0ULL);
+    atomic_init(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_noops), 0ULL);
+    atomic_init(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_collisions), 0ULL);
+    atomic_init(&(H5I_mt_g.num_id_info_fl_num_reallocable_updates), 0ULL);
+    atomic_init(&(H5I_mt_g.num_id_info_fl_num_reallocable_total), 0ULL);
+    atomic_init(&(H5I_mt_g.H5I__discard_mt_id_info__num_calls), 0ULL);
+    atomic_init(&(H5I_mt_g.H5I__new_mt_id_info__num_calls), 0ULL);
+    atomic_init(&(H5I_mt_g.H5I__clear_mt_id_info_free_list__num_calls), 0ULL);
+
 
     atomic_init(&(H5I_mt_g.max_type_info_fl_len), 1ULL);
     atomic_init(&(H5I_mt_g.num_type_info_structs_alloced_from_heap), 1ULL); 
@@ -348,9 +364,19 @@ H5I_init(void)
     atomic_init(&(H5I_mt_g.num_type_info_fl_append_cols), 0ULL);
     atomic_init(&(H5I_mt_g.num_type_info_structs_marked_reallocatable), 0ULL);
     atomic_init(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_empty), 0ULL);
-    atomic_init(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_head_not_reallocable), 0ULL);
+    atomic_init(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_no_reallocable_entries), 0ULL);
     atomic_init(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_empty), 0ULL);
-    atomic_init(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_head_not_reallocable), 0ULL);
+    atomic_init(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_fl_too_small), 0ULL);
+    atomic_init(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_no_reallocable_entries), 0ULL);
+    atomic_init(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_aborts), 0ULL);
+    atomic_init(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_noops), 0ULL);
+    atomic_init(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions), 0ULL);
+    atomic_init(&(H5I_mt_g.num_type_info_fl_num_reallocable_updates), 0ULL);
+    atomic_init(&(H5I_mt_g.num_type_info_fl_num_reallocable_total), 0ULL);
+    atomic_init(&(H5I_mt_g.H5I__discard_mt_type_info__num_calls), 0ULL);
+    atomic_init(&(H5I_mt_g.H5I__new_mt_type_info__num_calls), 0ULL);
+    atomic_init(&(H5I_mt_g.H5I__clear_mt_type_info_free_list__num_calls), 0ULL);
+
 
     atomic_init(&(H5I_mt_g.H5I__mark_node__num_calls), 0ULL);
     atomic_init(&(H5I_mt_g.H5I__mark_node__num_calls_with_global_mutex), 0ULL);
@@ -385,6 +411,7 @@ H5I_init(void)
     atomic_init(&(H5I_mt_g.H5I__find_id__num_calls_to_realize_cb), 0ULL);
     atomic_init(&(H5I_mt_g.H5I__find_id__global_mutex_locks_for_realize_cb), 0ULL);
     atomic_init(&(H5I_mt_g.H5I__find_id__global_mutex_unlocks_for_realize_cb), 0ULL);
+    atomic_init(&(H5I_mt_g.H5I__find_id__num_calls_to_H5I__remove_common), 0ULL);
     atomic_init(&(H5I_mt_g.H5I__find_id__num_calls_to_discard_cb), 0ULL);
     atomic_init(&(H5I_mt_g.H5I__find_id__global_mutex_locks_for_discard_cb), 0ULL);
     atomic_init(&(H5I_mt_g.H5I__find_id__global_mutex_unlocks_for_discard_cb), 0ULL);
@@ -398,6 +425,8 @@ H5I_init(void)
     atomic_init(&(H5I_mt_g.H5I_register_using_existing_id__num_failures), 0ULL);
 
     atomic_init(&(H5I_mt_g.H5I_subst__num_calls), 0ULL);
+    atomic_init(&(H5I_mt_g.H5I_subst__num_calls__with_global_mutex), 0ULL);
+    atomic_init(&(H5I_mt_g.H5I_subst__num_calls__without_global_mutex), 0ULL);
     atomic_init(&(H5I_mt_g.H5I_subst__marked_on_entry), 0ULL);
     atomic_init(&(H5I_mt_g.H5I_subst__marked_during_call), 0ULL);
     atomic_init(&(H5I_mt_g.H5I_subst__retries), 0ULL);
@@ -456,6 +485,7 @@ H5I_init(void)
     atomic_init(&(H5I_mt_g.num_successful_do_not_disturb_sets), 0ULL);
     atomic_init(&(H5I_mt_g.num_failed_do_not_disturb_sets), 0ULL);
     atomic_init(&(H5I_mt_g.num_do_not_disturb_resets), 0ULL);
+    atomic_init(&(H5I_mt_g.num_do_not_disturb_bypasses), 0ULL);
 
     atomic_init(&(H5I_mt_g.num_H5I_entries_via_public_API), 0ULL);
     atomic_init(&(H5I_mt_g.num_H5I_entries_via_internal_API), 0ULL);
@@ -637,9 +667,18 @@ H5I_clear_stats(void)
     atomic_store(&(H5I_mt_g.num_id_info_fl_append_cols), 0ULL);
     atomic_store(&(H5I_mt_g.num_id_info_structs_marked_reallocatable), 0ULL);
     atomic_store(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_empty), 0ULL);
-    atomic_store(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_head_not_reallocable), 0ULL);
+    atomic_store(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_no_reallocable_entries), 0ULL);
     atomic_store(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_empty), 0ULL);
-    atomic_store(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_head_not_reallocable), 0ULL);
+    atomic_store(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_fl_too_small), 0ULL);
+    atomic_store(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_no_reallocable_entries), 0ULL);
+    atomic_store(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_aborts), 0ULL);
+    atomic_store(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_noops), 0ULL);
+    atomic_store(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_collisions), 0ULL);
+    atomic_store(&(H5I_mt_g.num_id_info_fl_num_reallocable_updates), 0ULL);
+    atomic_store(&(H5I_mt_g.num_id_info_fl_num_reallocable_total), 0ULL);
+    atomic_store(&(H5I_mt_g.H5I__discard_mt_id_info__num_calls), 0ULL);
+    atomic_store(&(H5I_mt_g.H5I__new_mt_id_info__num_calls), 0ULL);
+    atomic_store(&(H5I_mt_g.H5I__clear_mt_id_info_free_list__num_calls), 0ULL);
 
     atomic_store(&(H5I_mt_g.max_type_info_fl_len), 0ULL);
     atomic_store(&(H5I_mt_g.num_type_info_structs_alloced_from_heap), 0ULL);
@@ -651,9 +690,18 @@ H5I_clear_stats(void)
     atomic_store(&(H5I_mt_g.num_type_info_fl_append_cols), 0ULL);
     atomic_store(&(H5I_mt_g.num_type_info_structs_marked_reallocatable), 0ULL);
     atomic_store(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_empty), 0ULL);
-    atomic_store(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_head_not_reallocable), 0ULL);
+    atomic_store(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_no_reallocable_entries), 0ULL);
     atomic_store(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_empty), 0ULL);
-    atomic_store(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_head_not_reallocable), 0ULL);
+    atomic_store(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_fl_too_small), 0ULL);
+    atomic_store(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_no_reallocable_entries), 0ULL);
+    atomic_store(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_aborts), 0ULL);
+    atomic_store(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_noops), 0ULL);
+    atomic_store(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions), 0ULL);
+    atomic_store(&(H5I_mt_g.num_type_info_fl_num_reallocable_updates), 0ULL);
+    atomic_store(&(H5I_mt_g.num_type_info_fl_num_reallocable_total), 0ULL);
+    atomic_store(&(H5I_mt_g.H5I__discard_mt_type_info__num_calls), 0ULL);
+    atomic_store(&(H5I_mt_g.H5I__new_mt_type_info__num_calls), 0ULL);
+    atomic_store(&(H5I_mt_g.H5I__clear_mt_type_info_free_list__num_calls), 0ULL);
 
     atomic_store(&(H5I_mt_g.H5I__mark_node__num_calls), 0ULL);
     atomic_store(&(H5I_mt_g.H5I__mark_node__num_calls_with_global_mutex), 0ULL);
@@ -688,6 +736,7 @@ H5I_clear_stats(void)
     atomic_store(&(H5I_mt_g.H5I__find_id__num_calls_to_realize_cb), 0ULL);
     atomic_store(&(H5I_mt_g.H5I__find_id__global_mutex_locks_for_realize_cb), 0ULL);
     atomic_store(&(H5I_mt_g.H5I__find_id__global_mutex_unlocks_for_realize_cb), 0ULL);
+    atomic_store(&(H5I_mt_g.H5I__find_id__num_calls_to_H5I__remove_common), 0ULL);
     atomic_store(&(H5I_mt_g.H5I__find_id__num_calls_to_discard_cb), 0ULL);
     atomic_store(&(H5I_mt_g.H5I__find_id__global_mutex_locks_for_discard_cb), 0ULL);
     atomic_store(&(H5I_mt_g.H5I__find_id__global_mutex_unlocks_for_discard_cb), 0ULL);
@@ -701,6 +750,8 @@ H5I_clear_stats(void)
     atomic_store(&(H5I_mt_g.H5I_register_using_existing_id__num_failures), 0ULL);
 
     atomic_store(&(H5I_mt_g.H5I_subst__num_calls), 0ULL);
+    atomic_store(&(H5I_mt_g.H5I_subst__num_calls__with_global_mutex), 0ULL);
+    atomic_store(&(H5I_mt_g.H5I_subst__num_calls__without_global_mutex), 0ULL);
     atomic_store(&(H5I_mt_g.H5I_subst__marked_on_entry), 0ULL);
     atomic_store(&(H5I_mt_g.H5I_subst__marked_during_call), 0ULL);
     atomic_store(&(H5I_mt_g.H5I_subst__retries), 0ULL);
@@ -759,6 +810,7 @@ H5I_clear_stats(void)
     atomic_store(&(H5I_mt_g.num_successful_do_not_disturb_sets), 0ULL);
     atomic_store(&(H5I_mt_g.num_failed_do_not_disturb_sets), 0ULL);
     atomic_store(&(H5I_mt_g.num_do_not_disturb_resets), 0ULL);
+    atomic_store(&(H5I_mt_g.num_do_not_disturb_bypasses), 0ULL);
 
     atomic_store(&(H5I_mt_g.num_H5I_entries_via_public_API), 0ULL);
     atomic_store(&(H5I_mt_g.num_H5I_entries_via_internal_API), 0ULL);
@@ -802,6 +854,10 @@ H5I_dump_stats(FILE * file_ptr)
     fprintf(file_ptr, "H5I_mt_g.type_registration_collisions                                  = %lld\n\n",
             (unsigned long long)(atomic_load(&(H5I_mt_g.type_registration_collisions))));
 
+    fprintf(file_ptr, "H5I_mt_g.id_info_fl_len                                                = %lld\n", 
+            (unsigned long long)(atomic_load(&(H5I_mt_g.id_info_fl_len))));
+    fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_entries_reallocable                            = %lld\n", 
+            (unsigned long long)(atomic_load(&(H5I_mt_g.num_id_info_fl_entries_reallocable))));
     fprintf(file_ptr, "H5I_mt_g.max_id_info_fl_len                                            = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.max_id_info_fl_len))));
     fprintf(file_ptr, "H5I_mt_g.num_id_info_structs_alloced_from_heap                         = %lld\n", 
@@ -822,15 +878,45 @@ H5I_dump_stats(FILE * file_ptr)
             (unsigned long long)(atomic_load(&(H5I_mt_g.num_id_info_structs_marked_reallocatable))));
     fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_empty                  = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_empty))));
-    fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_head_not_reallocable   = %lld\n", 
+    fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_no_reallocable_entries = %lld\n", 
             (unsigned long long)
-            (atomic_load(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_head_not_reallocable))));
+            (atomic_load(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_no_reallocable_entries))));
     fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_frees_skipped_due_to_empty                     = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_empty))));
-    fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_frees_skipped_due_to_head_not_reallocable      = %lld\n\n", 
-            (unsigned long long)
-            (atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_head_not_reallocable))));
+    fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_frees_skipped_due_to_fl_too_small              = %lld\n", 
+            (unsigned long long)(atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_fl_too_small))));
+    fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_frees_skipped_due_to_no_reallocable_entries    = %lld\n", 
+            (unsigned long long) 
+            (atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_no_reallocable_entries))));
+    fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_num_reallocable_update_aborts                  = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_aborts))));
+    fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_num_reallocable_update_noops                   = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_noops))));
+    fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_num_reallocable_update_collisions              = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_collisions))));
+    fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_num_reallocable_updates                        = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_updates))));
+    fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_num_reallocable_total                          = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_total))));
+    fprintf(file_ptr, "H5I_mt_g.H5I__discard_mt_id_info__num_calls                            = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__discard_mt_id_info__num_calls))));
+    fprintf(file_ptr, "H5I_mt_g.H5I__new_mt_id_info__num_calls                                = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__new_mt_id_info__num_calls))));
+    fprintf(file_ptr, "H5I_mt_g.H5I__clear_mt_id_info_free_list__num_calls                    = %lld\n\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__clear_mt_id_info_free_list__num_calls))));
 
+    fprintf(file_ptr, "H5I_mt_g.type_info_fl_len                                              = %lld\n", 
+            (unsigned long long)(atomic_load(&(H5I_mt_g.type_info_fl_len))));
+#if 1
+    fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_entries_reallocable                          = %lld\n", 
+            (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_entries_reallocable))));
+#else
+    H5I_suint64_t snum_type_info_fl_entries_reallocable;
+    snum_type_info_fl_entries_reallocable = atomic_load(&(H5I_mt_g.snum_type_info_fl_entries_reallocable));
+    fprintf(file_ptr, "H5I_mt_g.snum_type_info_fl_entries_reallocable                         = (%lld, %lld)\n", 
+            (unsigned long long)snum_type_info_fl_entries_reallocable.val,
+            (unsigned long long)snum_type_info_fl_entries_reallocable.sn);
+#endif
     fprintf(file_ptr, "H5I_mt_g.max_type_info_fl_len                                          = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.max_type_info_fl_len))));
     fprintf(file_ptr, "H5I_mt_g.num_type_info_structs_alloced_from_heap                       = %lld\n", 
@@ -851,14 +937,32 @@ H5I_dump_stats(FILE * file_ptr)
             (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_structs_marked_reallocatable))));
     fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_empty                = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_empty))));
-    fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_head_not_reallocable = %lld\n", 
+    fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_no_reallocable_entries = %lld\n", 
             (unsigned long long)
-            (atomic_load(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_head_not_reallocable))));
+            (atomic_load(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_no_reallocable_entries))));
     fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_frees_skipped_due_to_empty                   = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_empty))));
-    fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_frees_skipped_due_to_head_not_reallocable    = %lld\n\n", 
+    fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_frees_skipped_due_to_fl_too_small            = %lld\n", 
+            (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_fl_too_small))));
+    fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_frees_skipped_due_to_no_reallocable_entries  = %lld\n", 
             (unsigned long long)
-            (atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_head_not_reallocable))));
+            (atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_no_reallocable_entries))));
+    fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_num_reallocable_update_aborts                = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_aborts))));
+    fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_num_reallocable_update_noops                 = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_noops))));
+    fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions            = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions))));
+    fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_num_reallocable_updates                      = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_updates))));
+    fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_num_reallocable_total                        = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_total))));
+    fprintf(file_ptr, "H5I_mt_g.H5I__discard_type_id_info__num_calls                          = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__discard_mt_type_info__num_calls))));
+    fprintf(file_ptr, "H5I_mt_g.H5I__new_mt_type_info__num_calls                              = %lld\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__new_mt_type_info__num_calls))));
+    fprintf(file_ptr, "H5I_mt_g.H5I__clear_mt_type_info_free_list__num_calls                  = %lld\n\n", 
+            (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__clear_mt_type_info_free_list__num_calls))));
 
     fprintf(file_ptr, "H5I_mt_g.H5I__mark_node__num_calls                                     = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.H5I__mark_node__num_calls))));
@@ -926,6 +1030,8 @@ H5I_dump_stats(FILE * file_ptr)
             (unsigned long long)(atomic_load(&(H5I_mt_g.H5I__find_id__global_mutex_locks_for_realize_cb))));
     fprintf(file_ptr, "H5I_mt_g.H5I__find_id__global_mutex_unlocks_for_realize_cb             = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.H5I__find_id__global_mutex_unlocks_for_realize_cb))));
+    fprintf(file_ptr, "H5I_mt_g.H5I__find_id__num_calls_to_H5I__remove_common                 = %lld\n", 
+            (unsigned long long)(atomic_load(&(H5I_mt_g.H5I__find_id__num_calls_to_H5I__remove_common))));
     fprintf(file_ptr, "H5I_mt_g.H5I__find_id__num_calls_to_discard_cb                         = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.H5I__find_id__num_calls_to_discard_cb))));
     fprintf(file_ptr, "H5I_mt_g.H5I__find_id__global_mutex_locks_for_discard_cb               = %lld\n", 
@@ -963,6 +1069,10 @@ H5I_dump_stats(FILE * file_ptr)
 
     fprintf(file_ptr, "H5I_mt_g.H5I_subst__num_calls                                          = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.H5I_subst__num_calls))));
+    fprintf(file_ptr, "H5I_mt_g.H5I_subst__num_calls__with_global_mutex                       = %lld\n", 
+            (unsigned long long)(atomic_load(&(H5I_mt_g.H5I_subst__num_calls__with_global_mutex))));
+    fprintf(file_ptr, "H5I_mt_g.H5I_subst__num_calls__without_global_mutex                    = %lld\n", 
+            (unsigned long long)(atomic_load(&(H5I_mt_g.H5I_subst__num_calls__without_global_mutex))));
     fprintf(file_ptr, "H5I_mt_g.H5I_subst__marked_on_entry                                    = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.H5I_subst__marked_on_entry))));
     fprintf(file_ptr, "H5I_mt_g.H5I_subst__marked_during_call                                 = %lld\n", 
@@ -1074,8 +1184,10 @@ H5I_dump_stats(FILE * file_ptr)
             (unsigned long long)(atomic_load(&(H5I_mt_g.num_successful_do_not_disturb_sets))));
     fprintf(file_ptr, "H5I_mt_g.num_failed_do_not_disturb_sets                                = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.num_failed_do_not_disturb_sets))));
-    fprintf(file_ptr, "H5I_mt_g.num_do_not_disturb_resets                                     = %lld\n\n", 
+    fprintf(file_ptr, "H5I_mt_g.num_do_not_disturb_resets                                     = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.num_do_not_disturb_resets))));
+    fprintf(file_ptr, "H5I_mt_g.num_do_not_disturb_bypasses                                   = %lld\n\n", 
+            (unsigned long long)(atomic_load(&(H5I_mt_g.num_do_not_disturb_bypasses))));
 
     fprintf(file_ptr, "H5I_mt_g.num_H5I_entries_via_public_API                                = %lld\n", 
             (unsigned long long)(atomic_load(&(H5I_mt_g.num_H5I_entries_via_public_API))));
@@ -1175,21 +1287,65 @@ H5I_dump_nz_stats(FILE * file_ptr, const char * tag)
         fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_empty                  = %lld\n", 
                 (unsigned long long)(atomic_load(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_empty))));
 
-    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_head_not_reallocable)))
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_no_reallocable_entries)))
          > 0ULL )
-        fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_head_not_reallocable   = %lld\n", 
+        fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_no_reallocable_entries = %lld\n", 
                 (unsigned long long)
-                (atomic_load(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_head_not_reallocable))));
+                (atomic_load(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_no_reallocable_entries))));
 
     if ( (unsigned long long)(atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_empty))) > 0ULL )
         fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_frees_skipped_due_to_empty                     = %lld\n", 
                 (unsigned long long)(atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_empty))));
 
-    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_head_not_reallocable))) 
+    if ( (unsigned long long)(atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_fl_too_small))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_frees_skipped_due_to_fl_too_small              = %lld\n", 
+                (unsigned long long)(atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_fl_too_small))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_no_reallocable_entries))) 
          > 0ULL )
-        fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_frees_skipped_due_to_head_not_reallocable      = %lld\n", 
+        fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_frees_skipped_due_to_no_reallocable_entries    = %lld\n", 
                 (unsigned long long)
-                (atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_head_not_reallocable))));
+                (atomic_load(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_no_reallocable_entries))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_aborts))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_num_reallocable_update_aborts                  = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_aborts))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_noops))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_num_reallocable_update_noops                   = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_noops))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_collisions))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_num_reallocable_update_collisions              = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_collisions))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_updates))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_num_reallocable_updates                        = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_updates))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_total))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_id_info_fl_num_reallocable_total                          = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.num_id_info_fl_num_reallocable_total))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__discard_mt_id_info__num_calls))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.H5I__discard_mt_id_info__num_calls                            = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.H5I__discard_mt_id_info__num_calls))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__new_mt_id_info__num_calls))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.H5I__new_mt_id_info__num_calls                                = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.H5I__new_mt_id_info__num_calls))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__clear_mt_id_info_free_list__num_calls))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.H5I__clear_mt_id_info_free_list__num_calls                    = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.H5I__clear_mt_id_info_free_list__num_calls))));
 
 
     /* type info free list stats */
@@ -1234,21 +1390,66 @@ H5I_dump_nz_stats(FILE * file_ptr, const char * tag)
         fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_empty                = %lld\n", 
                 (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_empty))));
 
-    if ( (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_head_not_reallocable)))
-         > 0ULL )
-        fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_head_not_reallocable = %lld\n", 
+    if ( (unsigned long long)
+         (atomic_load(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_no_reallocable_entries))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_no_reallocable_entries = %lld\n", 
                 (unsigned long long)
-                (atomic_load(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_head_not_reallocable))));
+                (atomic_load(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_no_reallocable_entries))));
 
     if ( (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_empty))) > 0ULL )
         fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_frees_skipped_due_to_empty                   = %lld\n", 
                 (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_empty))));
 
-    if ( (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_head_not_reallocable)))
+    if ( (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_fl_too_small))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_frees_skipped_due_to_fl_too_small            = %lld\n", 
+                (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_fl_too_small))));
+
+    if ( (unsigned long long)(atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_no_reallocable_entries)))
          > 0ULL )
-        fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_frees_skipped_due_to_head_not_reallocable    = %lld\n", 
+        fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_frees_skipped_due_to_no_reallocable_entries    = %lld\n", 
                 (unsigned long long)
-                (atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_head_not_reallocable))));
+                (atomic_load(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_no_reallocable_entries))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_aborts))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_num_reallocable_update_aborts                = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_aborts))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_noops))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_num_reallocable_update_noops                 = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_noops))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions            = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_updates))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_num_reallocable_updates                      = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_updates))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_total))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_type_info_fl_num_reallocable_total                        = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.num_type_info_fl_num_reallocable_total))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__discard_mt_type_info__num_calls))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.H5I__discard_mt_type_info__num_calls                          = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.H5I__discard_mt_type_info__num_calls))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__new_mt_type_info__num_calls))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.H5I__new_mt_type_info__num_calls                              = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.H5I__new_mt_type_info__num_calls))));
+
+    if ( (unsigned long long) (atomic_load(&(H5I_mt_g.H5I__clear_mt_type_info_free_list__num_calls))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.H5I__clear_mt_type_info_free_list__num_calls                  = %lld\n", 
+                (unsigned long long)
+                (atomic_load(&(H5I_mt_g.H5I__clear_mt_type_info_free_list__num_calls))));
+
 
 
     /* H5I__mark_node() stats */
@@ -1385,6 +1586,10 @@ H5I_dump_nz_stats(FILE * file_ptr, const char * tag)
         fprintf(file_ptr, "H5I_mt_g.H5I__find_id__global_mutex_unlocks_for_realize_cb             = %lld\n", 
                 (unsigned long long)(atomic_load(&(H5I_mt_g.H5I__find_id__global_mutex_unlocks_for_realize_cb))));
 
+    if ( (unsigned long long)(atomic_load(&(H5I_mt_g.H5I__find_id__num_calls_to_H5I__remove_common))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.H5I__find_id__num_calls_to_H5I__remove_common                 = %lld\n", 
+                (unsigned long long)(atomic_load(&(H5I_mt_g.H5I__find_id__num_calls_to_H5I__remove_common))));
+
     if ( (unsigned long long)(atomic_load(&(H5I_mt_g.H5I__find_id__num_calls_to_discard_cb))) > 0ULL )
         fprintf(file_ptr, "H5I_mt_g.H5I__find_id__num_calls_to_discard_cb                         = %lld\n", 
                 (unsigned long long)(atomic_load(&(H5I_mt_g.H5I__find_id__num_calls_to_discard_cb))));
@@ -1459,6 +1664,14 @@ H5I_dump_nz_stats(FILE * file_ptr, const char * tag)
     if ( (unsigned long long)(atomic_load(&(H5I_mt_g.H5I_subst__num_calls))) > 0ULL )
         fprintf(file_ptr, "H5I_mt_g.H5I_subst__num_calls                                          = %lld\n", 
                 (unsigned long long)(atomic_load(&(H5I_mt_g.H5I_subst__num_calls))));
+
+    if ( (unsigned long long)(atomic_load(&(H5I_mt_g.H5I_subst__num_calls__with_global_mutex))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.H5I_subst__num_calls__with_global_mutex                       = %lld\n", 
+                (unsigned long long)(atomic_load(&(H5I_mt_g.H5I_subst__num_calls__with_global_mutex))));
+
+    if ( (unsigned long long)(atomic_load(&(H5I_mt_g.H5I_subst__num_calls__without_global_mutex))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.H5I_subst__num_calls__without_global_mutex                    = %lld\n", 
+                (unsigned long long)(atomic_load(&(H5I_mt_g.H5I_subst__num_calls__without_global_mutex))));
 
     if ( (unsigned long long)(atomic_load(&(H5I_mt_g.H5I_subst__marked_on_entry))) > 0ULL )
         fprintf(file_ptr, "H5I_mt_g.H5I_subst__marked_on_entry                                    = %lld\n", 
@@ -1690,6 +1903,10 @@ H5I_dump_nz_stats(FILE * file_ptr, const char * tag)
         fprintf(file_ptr, "H5I_mt_g.num_do_not_disturb_resets                                     = %lld\n", 
                 (unsigned long long)(atomic_load(&(H5I_mt_g.num_do_not_disturb_resets))));
 
+    if ( (unsigned long long)(atomic_load(&(H5I_mt_g.num_do_not_disturb_bypasses))) > 0ULL )
+        fprintf(file_ptr, "H5I_mt_g.num_do_not_disturb_bypasses                                   = %lld\n", 
+                (unsigned long long)(atomic_load(&(H5I_mt_g.num_do_not_disturb_bypasses))));
+
     FUNC_LEAVE_NOAPI_VOID;
 
 } /* H5I_dump_nz_stats() */
@@ -1711,10 +1928,41 @@ H5I_dump_nz_stats(FILE * file_ptr, const char * tag)
  *
  *                                            JRM -- 08/26/23
  *
+ *              To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_register_type() function to H5I_register_type_internal()
+ *              and created a new version of H5I_register_type() that 
+ *              simply calls H5I__enter(), H5I_register_type_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_register_type(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5I_register_type(const H5I_class_t *cls)
+{
+    herr_t              ret_value      = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_register_type_internal(cls);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_register_type() */
+
+herr_t
+H5I_register_type_internal(const H5I_class_t *cls)
 {
     H5I_mt_type_info_t *type_info_ptr  = NULL;    /* Pointer to the ID type*/
     H5I_mt_type_info_t *expected_ptr   = NULL;    /* Pointer to the ID type*/
@@ -1837,7 +2085,7 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 
-} /* end H5I_register_type() */
+} /* end H5I_register_type_internal() */
 
 #else /* H5_HAVE_MULTITHREAD */
 
@@ -1916,10 +2164,41 @@ done:
  * Programmer:  Robb Matzke
  *              Wednesday, March 24, 1999
  *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_nmemgers() function to H5I_nmembers_internal()
+ *              and created a new version of H5I_nmembers() that 
+ *              simply calls H5I__enter(), H5I_nmembers_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_nmembers(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
  *-------------------------------------------------------------------------
  */
 int64_t
 H5I_nmembers(H5I_type_t type)
+{
+    int64_t             ret_value = 0;    /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_nmembers_internal(type);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_nmembers() */
+
+int64_t
+H5I_nmembers_internal(H5I_type_t type)
 {
     H5I_mt_type_info_t *type_info = NULL; /* Pointer to the ID type */
     int64_t             ret_value = 0;    /* Return value */
@@ -1945,7 +2224,7 @@ H5I_nmembers(H5I_type_t type)
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5I_nmembers() */
+} /* end H5I_nmembers_internal() */
 
 #else /* H5_HAVE_MULTITHREAD */
 
@@ -2160,10 +2439,41 @@ H5I__unwrap(void *object, H5I_type_t type)
  * Programmer:  Robb Matzke
  *              Wednesday, March 24, 1999
  *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_clear_type() function to H5I_clear_type_internal()
+ *              and created a new version of H5I_clear_type() that 
+ *              simply calls H5I__enter(), H5I_clear_type_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_clear_type(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5I_clear_type(H5I_type_t type, hbool_t force, hbool_t app_ref)
+{
+    herr_t              ret_value      = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_clear_type_internal(type, force, app_ref);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_clear_type() */
+
+herr_t
+H5I_clear_type_internal(H5I_type_t type, hbool_t force, hbool_t app_ref)
 {
     H5I_mt_clear_type_ud_t     udata; /* udata struct for callback */
     H5I_mt_id_info_kernel_t    info_k;
@@ -2199,7 +2509,7 @@ H5I_clear_type(H5I_type_t type, hbool_t force, hbool_t app_ref)
      */
 
     /* Set marking flag */
-    atomic_fetch_add(&(H5I_mt_g.marking), 1);
+    atomic_fetch_add(&(H5I_mt_g.marking_array[type]), 1);
 
     /* Mark nodes for deletion */
     if ( lfht_get_first(&(udata.type_info->lfht), &id, &value) ) {
@@ -2225,8 +2535,8 @@ H5I_clear_type(H5I_type_t type, hbool_t force, hbool_t app_ref)
     }
 
     /* Unset marking flag */
-    atomic_fetch_sub(&(H5I_mt_g.marking), 1);
-    assert(atomic_load(&(H5I_mt_g.marking)) >= 0);
+    atomic_fetch_sub(&(H5I_mt_g.marking_array[type]), 1);
+    assert(atomic_load(&(H5I_mt_g.marking_array[type])) >= 0);
 
     /* Perform sweep */
     if ( lfht_get_first(&(udata.type_info->lfht), &id, &value) ) {
@@ -2236,13 +2546,13 @@ H5I_clear_type(H5I_type_t type, hbool_t force, hbool_t app_ref)
 
             info_k = atomic_load(&(id_info_ptr->k));
 
-            /* Only delete the id from the hash table if the marking flag is false and the id is marked
+            /* Only delete the id from the hash table if H5I_mt_g.marking_array[type] is zero ond the id is marked
              * for deletion.  Note that it is possible that another  thread will increment or decrement 
-             * H5I_mt_g.marking while this loop is running.  However, this should not matter since 
+             * H5I_mt_g.marking_array[type] while this loop is running.  However, this should not matter since 
              * marking an id for deletion is a one way process, and the operations will appear to have
              * been executed in some order.
              */
-            if ( ( ! atomic_load(&(H5I_mt_g.marking) ) && ( info_k.marked ) ) ) {
+            if ( ( 0 == atomic_load(&(H5I_mt_g.marking_array[type]) ) && ( info_k.marked ) ) ) {
 
                 /* this delete may fail, as it is possible that another thread will have beaten 
                  * us to the actual deletion of the entry from the lock free hash table.  Thus 
@@ -2261,7 +2571,7 @@ H5I_clear_type(H5I_type_t type, hbool_t force, hbool_t app_ref)
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5I_clear_type() */
+} /* end H5I_clear_type_internal() */
 
 #else /* H5_HAVE_MULTITHREAD */
 
@@ -2480,24 +2790,36 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
         }
 
         if ( info_k.do_not_disturb ) {
+#if 0 
+            if ( ( have_global_mutex ) && ( info_k.have_global_mutex ) ) {
 
-            /* Another thread is in the process of performing an operation on the info kernel
-             * that can't be rolled back -- either a future id realize_cb or discard_cb, or a 
-             * regular id free_func.  
-             *
-             * Thus we must wait until that thread is done and then re-start the operation -- which
-             * may be moot by that point.
-             */
+                bypass_do_not_disturb = TRUE;
 
-            /* update stats */
-            atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_yields), 1ULL);
+                atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_bypasses), 1ULL);
 
-            /* need to do better than this.  Want to call pthread_yield(),
-             * but that call doesn't seem to be supported anymore.
-             */
-            sleep(1);
+            } else {
+#endif
 
-            continue;
+                /* Another thread is in the process of performing an operation on the info kernel
+                 * that can't be rolled back -- either a future id realize_cb or discard_cb, or a 
+                 * regular id free_func.  
+                 *
+                 * Thus we must wait until that thread is done and then re-start the operation -- which
+                 * may be moot by that point.
+                 */
+
+                /* update stats */
+                atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_yields), 1ULL);
+
+                /* need to do better than this.  Want to call pthread_yield(),
+                 * but that call doesn't seem to be supported anymore.
+                 */
+                sleep(1);
+
+                continue;
+#if 0
+            }
+#endif
         }
 
         if ( ( udata->force ) || ( (info_k.count - ((!udata->app_ref) * info_k.app_count)) <= 1 ) ) {
@@ -2787,7 +3109,7 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
                 /* update stats */
                 atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_resets), 1ULL);
 
-                 done = TRUE;
+                done = TRUE;
 
 #if H5I_MT_DEBUG_DO_NOT_DISTURB
                 fprintf(stdout, "H5I__mark_node() reset do not disturb on id = 0x%llx.\n",
@@ -2974,7 +3296,7 @@ H5I__destroy_type(H5I_type_t type)
     /* Close/clear/destroy all IDs for this type */
     H5E_BEGIN_TRY
     {
-        H5I_clear_type(type, TRUE, FALSE);
+        H5I_clear_type_internal(type, TRUE, FALSE);
     }
     H5E_END_TRY /* don't care about errors */
 
@@ -2994,12 +3316,8 @@ H5I__destroy_type(H5I_type_t type)
     result = atomic_compare_exchange_strong(&(H5I_mt_g.type_info_allocation_table[type]), &expected, FALSE);
     assert(result);
 
-#if 1 /* JRM */
     H5I__discard_mt_type_info(type_info_ptr);
     type_info_ptr = NULL;
-#else /* JRM */
-    type_info_ptr = H5MM_xfree(type_info_ptr); /************************************* need a free list here */
-#endif /* JRM */
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -3240,6 +3558,65 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
+#ifdef H5_HAVE_MULTITHREAD
+
+/*-------------------------------------------------------------------------
+ * Function:    H5I_register
+ *
+ * Purpose:     Library-private wrapper for H5I__register.
+ *
+ *              No changes required for multi-thread.
+ *
+ * Return:      Success:    New object ID
+ *              Failure:    H5I_INVALID_HID
+ *
+ * Changes:     Added calls to H5I__enter() and H5I__exit() to track 
+ *              the number of threads in H5I.  If 
+ *              H5I_register() is ever called from within 
+ *              H5I, we will need to add a boolean prameter to control 
+ *              the H5I__enter/exit calls.
+ *
+ *                                          JRM -- 7/5/24
+ *
+ *-------------------------------------------------------------------------
+ */
+hid_t
+H5I_register(H5I_type_t type, const void *object, hbool_t app_ref)
+{
+    hid_t ret_value = H5I_INVALID_HID; /* Return value */
+
+    FUNC_ENTER_NOAPI(H5I_INVALID_HID)
+
+    H5I__enter(FALSE);
+
+#if H5I_MT_DEBUG
+    fprintf(stdout, "   H5I_register(type = %d, object = 0x%llx, app_ref = %d) called. \n", 
+              (int)type, (unsigned long long)object, (int)app_ref);
+#endif /* H5I_MT_DEBUG */
+
+    /* Sanity checks */
+    assert(type >= H5I_FILE && type < H5I_NTYPES);
+    assert(object);
+
+    /* Retrieve ID for object */
+    if (H5I_INVALID_HID == (ret_value = H5I__register(type, object, app_ref, NULL, NULL)))
+        HGOTO_ERROR(H5E_ID, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object");
+
+done:
+
+#if H5I_MT_DEBUG
+    fprintf(stdout, "   H5I_register(type = %d, object = 0x%llx, app_ref = %d) returns %llx. \n", 
+              (int)type, (unsigned long long)object, (int)app_ref, (unsigned long long)ret_value);
+#endif /* H5I_MT_DEBUG */
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_register() */
+
+#else /* H5_HAVE_MULTITHREAD */
+
 /*-------------------------------------------------------------------------
  * Function:    H5I_register
  *
@@ -3259,13 +3636,6 @@ H5I_register(H5I_type_t type, const void *object, hbool_t app_ref)
 
     FUNC_ENTER_NOAPI(H5I_INVALID_HID)
 
-#ifdef H5_HAVE_MULTITHREAD 
-#if H5I_MT_DEBUG
-    fprintf(stdout, "   H5I_register(type = %d, object = 0x%llx, app_ref = %d) called. \n", 
-              (int)type, (unsigned long long)object, (int)app_ref);
-#endif /* H5I_MT_DEBUG */
-#endif /* H5_HAVE_MULTITHREAD */
-
     /* Sanity checks */
     assert(type >= H5I_FILE && type < H5I_NTYPES);
     assert(object);
@@ -3276,16 +3646,11 @@ H5I_register(H5I_type_t type, const void *object, hbool_t app_ref)
 
 done:
 
-#ifdef H5_HAVE_MULTITHREAD 
-#if H5I_MT_DEBUG
-    fprintf(stdout, "   H5I_register(type = %d, object = 0x%llx, app_ref = %d) returns %llx. \n", 
-              (int)type, (unsigned long long)object, (int)app_ref, (unsigned long long)ret_value);
-#endif /* H5I_MT_DEBUG */
-#endif /* H5_HAVE_MULTITHREAD */
-
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* end H5I_register() */
+
+#endif /* H5_HAVE_MULTITHREAD */
 
 #ifdef H5_HAVE_MULTITHREAD
 
@@ -3307,6 +3672,14 @@ done:
  *
  * Return:      SUCCEED/FAIL
  *
+ * Changes:     Added calls to H5I__enter() and H5I__exit() to track 
+ *              the number of threads in H5I.  If 
+ *              H5I_register_using_exiting_id() is ever called from within 
+ *              H5I, we will need to add a boolean prameter to control 
+ *              the H5I__enter/exit calls.
+ *
+ *                                          JRM -- 7/5/24
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -3321,6 +3694,8 @@ H5I_register_using_existing_id(H5I_type_t type, void *object, hbool_t app_ref, h
 
     FUNC_ENTER_NOAPI(FAIL)
 
+    H5I__enter(FALSE);
+
 #if H5I_MT_DEBUG
     fprintf(stdout, "\n\n   H5I_register_using_existing_id() called. \n\n\n");
 #endif /* H5I_MT_DEBUG */
@@ -3330,14 +3705,19 @@ H5I_register_using_existing_id(H5I_type_t type, void *object, hbool_t app_ref, h
     /* Check arguments */
     assert(object);
 
+    /* Make sure type number is valid */
+    if ( ( type <= H5I_BADID ) || ( (int)type >= atomic_load(&(H5I_mt_g.next_type)) ) )
+
+        HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number");
+
     /* Make sure ID is not already in use.
      *
-     * Because of the H5I_mt_g.marking flag, it is possible that an entry with the specified ID
-     * will exist in the lock free hash table, but be marked as deleted.
+     * Because of the H5I_mt_g.marking_array[type] flag, it is possible that an entry with the 
+     * specified ID will exist in the lock free hash table, but be marked as deleted.
      *
      * This couldn't happen in the single thread version, but it becomes possible in multi-thread.
      *
-     * The correct solution is probably to get rid of the H5I_mt_g.marking flag -- however that
+     * The correct solution is probably to get rid of the H5I_mt_g.marking_array[] -- however that
      * doesn't seem prudent until the initial version is up and running, and I have a good 
      * understanding of why the mark and sweep approach was thought necessary.
      *
@@ -3358,11 +3738,6 @@ H5I_register_using_existing_id(H5I_type_t type, void *object, hbool_t app_ref, h
             HGOTO_ERROR(H5E_ID, H5E_BADRANGE, FAIL, "ID already in use");
         }
     }
-
-    /* Make sure type number is valid */
-    if ( ( type <= H5I_BADID ) || ( (int)type >= atomic_load(&(H5I_mt_g.next_type)) ) )
-
-        HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "invalid type number");
 
     /* Get type pointer from list of types */
     type_info_ptr = atomic_load(&(H5I_mt_g.type_info_array[type]));
@@ -3387,7 +3762,7 @@ H5I_register_using_existing_id(H5I_type_t type, void *object, hbool_t app_ref, h
 
         HGOTO_ERROR(H5E_ID, H5E_NOSPACE, FAIL, "memory allocation and init of new id info failed");
 
-    /* Now insert the ID into the index.  The H5I_mt_g.marking flag makes this more 
+    /* Now insert the ID into the index.  The H5I_mt_g.marking_array[type] flag makes this more 
      * painful than it should be as it is possible that the id info for the existing ID
      * has only been marked for deletion, but not actually deleted from the lock free hash
      * table.  To make things more interesting, in the multi-thread case, it is possible that
@@ -3434,6 +3809,8 @@ done:
 
         atomic_fetch_add(&(H5I_mt_g.H5I_register_using_existing_id__num_failures), 1ULL);
     }
+
+    H5I__exit();
 
     FUNC_LEAVE_NOAPI(ret_value)
 
@@ -3544,12 +3921,21 @@ done:
  * Programmer:  Quincey Koziol
  *              Saturday, February 27, 2010
  *
+ * Changes:     Added calls to H5I__enter() and H5I__exit() to track 
+ *              the number of threads in H5I.  If 
+ *              H5I_subst() is ever called from within 
+ *              H5I, we will need to add a boolean prameter to control 
+ *              the H5I__enter/exit calls.
+ *
+ *                                          JRM -- 7/5/24
+ *
  *-------------------------------------------------------------------------
  */
 void *
 H5I_subst(hid_t id, const void *new_object)
 {
     hbool_t                 done = FALSE;
+    hbool_t                 have_global_mutex = TRUE; /* trivially true in the single thread case */
     int                     pass = 0;
     H5I_mt_id_info_kernel_t info_k;
     H5I_mt_id_info_kernel_t mod_info_k;
@@ -3559,11 +3945,30 @@ H5I_subst(hid_t id, const void *new_object)
 
     FUNC_ENTER_NOAPI(NULL)
 
+    H5I__enter(FALSE);
+
 #if H5I_MT_DEBUG
     fprintf(stdout, "\n\n   H5I_subst() called. \n\n\n");
 #endif /* H5I_MT_DEBUG */
 
     atomic_fetch_add(&(H5I_mt_g.H5I_subst__num_calls), 1ULL);
+
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
+
+    if ( H5TS_have_mutex(&H5_g.init_lock, &have_global_mutex) < 0 )
+
+        HGOTO_ERROR(H5E_LIB, H5E_CANTGET, NULL, "Can't determine whether we have the global mutex");
+        
+#endif /* defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD) */
+
+    if ( have_global_mutex ) {
+
+        atomic_fetch_add(&(H5I_mt_g.H5I_subst__num_calls__with_global_mutex), 1ULL);
+
+    } else {
+        
+        atomic_fetch_add(&(H5I_mt_g.H5I_subst__num_calls__without_global_mutex), 1ULL);
+    }
 
     do {
 
@@ -3599,24 +4004,35 @@ H5I_subst(hid_t id, const void *new_object)
         }
 
         if ( info_k.do_not_disturb ) {
+#if 0
+            if ( ( have_global_mutex ) && ( info_k.have_global_mutex ) ) {
 
-            /* Another thread is in the process of performing an operation on the info kernel
-             * that can't be rolled back -- either a future id realize_cb or discard_cb, or a
-             * regular id free_func.
-             *
-             * Thus we must wait until that thread is done and then re-start the operation -- which
-             * may be moot by that point.
-             */
+                bypass_do_not_disturb = TRUE;
 
-            /* update stats */
-            atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_yields), 1ULL);
+                atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_bypasses), 1ULL);
 
-            /* need to do better than this.  Want to call pthread_yield(),
-             * but that call doesn't seem to be supported anymore.
-             */
-            sleep(1);
+            } else {
+#endif 
+                /* Another thread is in the process of performing an operation on the info kernel
+                 * that can't be rolled back -- either a future id realize_cb or discard_cb, or a
+                 * regular id free_func.
+                 *
+                 * Thus we must wait until that thread is done and then re-start the operation -- which
+                 * may be moot by that point.
+                 */
 
-            continue;
+                /* update stats */
+                atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_yields), 1ULL);
+
+                /* need to do better than this.  Want to call pthread_yield(),
+                 * but that call doesn't seem to be supported anymore.
+                 */
+                sleep(1);
+
+                continue;
+#if 0
+            }
+#endif
         }
 
         old_object = info_k.object;
@@ -3655,6 +4071,8 @@ H5I_subst(hid_t id, const void *new_object)
     } 
 
 done:
+
+    H5I__exit();
 
     FUNC_LEAVE_NOAPI(ret_value)
 
@@ -3716,10 +4134,41 @@ done:
  *
  *              Failure:    NULL
  *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_object() function to H5I_object_internal()
+ *              and created a new version of H5I_object() that 
+ *              simply calls H5I__enter(), H5I_object_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_object(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
  *-------------------------------------------------------------------------
  */
 void *
 H5I_object(hid_t id)
+{
+    void                   *ret_value = NULL; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_object_internal(id);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_object() */
+
+void *
+H5I_object_internal(hid_t id)
 {
     H5I_mt_id_info_kernel_t info_k;
     H5I_mt_id_info_t       *info_ptr      = NULL; /* Pointer to the ID info */
@@ -3804,10 +4253,41 @@ H5I_object(hid_t id)
  * Programmer:  Quincey Koziol
  *              Wednesday, July 31, 2002
  *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_object_verify() function to H5I_object_verify_internal()
+ *              and created a new version of H5I_object_verify() that 
+ *              simply calls H5I__enter(), H5I_object_verify_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_object_verify(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
  *-------------------------------------------------------------------------
  */
 void *
 H5I_object_verify(hid_t id, H5I_type_t type)
+{
+    void                   *ret_value = NULL; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_object_verify_internal(id, type);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_object_verify() */
+
+void *
+H5I_object_verify_internal(hid_t id, H5I_type_t type)
 {
     H5I_mt_id_info_kernel_t  info_k;
     H5I_mt_id_info_t        *info_ptr      = NULL; /* Pointer to the ID info */
@@ -3841,7 +4321,7 @@ H5I_object_verify(hid_t id, H5I_type_t type)
 
     FUNC_LEAVE_NOAPI(ret_value)
 
-} /* H5I_object_verify() */
+} /* H5I_object_verify_internal() */
 
 #else /* H5_HAVE_MULTITHREAD */
 
@@ -3883,6 +4363,78 @@ H5I_object_verify(hid_t id, H5I_type_t type)
 
 #endif /* H5_HAVE_MULTITHREAD */
 
+#ifdef H5_HAVE_MULTITHREAD
+
+/*-------------------------------------------------------------------------
+ * Function:    H5I_get_type
+ *
+ * Purpose:     Given an object ID return the type to which it
+ *              belongs.  The ID need not be the ID of an object which
+ *              currently exists because the type number is encoded
+ *              in the object ID.
+ *
+ * Return:      Success:    A positive integer (corresponding to an H5I_type_t
+ *                          enum value for library ID types, but not for user
+ *                          ID types).
+ *              Failure:    H5I_BADID
+ *
+ * Programmer:  Robb Matzke
+ *              Friday, February 19, 1999
+ *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_get_type() function to H5I_getr_type_internal()
+ *              and created a new version of H5I_get_type() that 
+ *              simply calls H5I__enter(), H5I_get_type_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_get_type(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
+ *-------------------------------------------------------------------------
+ */
+H5I_type_t
+H5I_get_type(hid_t id)
+{
+    H5I_type_t ret_value = H5I_BADID; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_get_type_internal(id);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_get_type() */
+
+H5I_type_t
+H5I_get_type_internal(hid_t id)
+{
+    H5I_type_t ret_value = H5I_BADID; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+#if H5I_MT_DEBUG
+    fprintf(stdout, "\n\n   H5I_get_type() called. \n\n\n");
+#endif /* H5I_MT_DEBUG */
+
+    if (id > 0)
+        ret_value = H5I_TYPE(id);
+
+    assert(ret_value >= H5I_BADID && (int)ret_value < H5I_mt_g.next_type);
+
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5I_get_type_internal() */
+
+#else /* H5_HAVE_MULTITHREAD */
+
 /*-------------------------------------------------------------------------
  * Function:    H5I_get_type
  *
@@ -3908,23 +4460,15 @@ H5I_get_type(hid_t id)
 
     FUNC_ENTER_NOAPI_NOERR
 
-#ifdef H5_HAVE_MULTITHREAD 
-#if H5I_MT_DEBUG
-    fprintf(stdout, "\n\n   H5I_get_type() called. \n\n\n");
-#endif /* H5I_MT_DEBUG */
-#endif /* H5_HAVE_MULTITHREAD */
-
     if (id > 0)
         ret_value = H5I_TYPE(id);
 
-#ifdef H5_HAVE_MULTITHREAD 
-    assert(ret_value >= H5I_BADID && (int)ret_value < H5I_mt_g.next_type);
-#else /* H5_HAVE_MULTITHREAD */
     assert(ret_value >= H5I_BADID && (int)ret_value < H5I_next_type_g);
-#endif /* H5_HAVE_MULTITHREAD */
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I_get_type() */
+
+#endif /* H5_HAVE_MULTITHREAD */
 
 #ifdef H5_HAVE_MULTITHREAD
 
@@ -3943,15 +4487,25 @@ H5I_get_type(hid_t id)
  * Return:      Success:    TRUE/FALSE
  *              Failure:    FAIL
  *
+ * Changes:     Added calls to H5I__enter() and H5I__exit() to track 
+ *              the number of threads in H5I.  If 
+ *              H5I_is_file_object() is ever called from within 
+ *              H5I, we will need to add a boolean prameter to control 
+ *              the H5I__enter/exit calls.
+ *
+ *                                          JRM -- 7/5/24
+ *
  *-------------------------------------------------------------------------
  */
 htri_t
 H5I_is_file_object(hid_t id)
 {
-    H5I_type_t          type      = H5I_get_type(id);
+    H5I_type_t          type      = H5I_get_type_internal(id);
     htri_t              ret_value = FAIL;
 
     FUNC_ENTER_NOAPI(FAIL)
+
+    H5I__enter(FALSE);
 
     atomic_fetch_add(&(H5I_mt_g.H5I_is_file_object__num_calls), 1ULL);
 
@@ -4007,11 +4561,11 @@ H5I_is_file_object(hid_t id)
          * being deleted out from under the H5T_id_named() call.
          */
 
-        if ( -1 == H5I_inc_ref(id, FALSE) )
+        if ( -1 == H5I_inc_ref_internal(id, FALSE) )
 
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "unable to increment id ref count");
 
-        if ( NULL == ( dt = (H5T_t *)H5I_object(id) ) ) 
+        if ( NULL == ( dt = (H5T_t *)H5I_object_internal(id) ) ) 
 
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "unable to get underlying datatype struct");
 
@@ -4033,7 +4587,7 @@ H5I_is_file_object(hid_t id)
             ret_value = H5T_is_named(dt); 
         }
 
-        if ( -1 == H5I_dec_ref(id) ) 
+        if ( -1 == H5I_dec_ref_internal(id) ) 
 
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "unable to decrement id ref count");
 
@@ -4043,6 +4597,8 @@ H5I_is_file_object(hid_t id)
     }
 
 done:
+
+    H5I__exit();
 
     FUNC_LEAVE_NOAPI(ret_value)
 
@@ -4132,8 +4688,13 @@ H5I__remove_verify(hid_t id, H5I_type_t type)
     /* Argument checking will be performed by H5I_remove() */
 
     /* Verify that the type of the ID is correct */
-    if (type == H5I_TYPE(id))
+    if (type == H5I_TYPE(id)) {
+#ifdef H5_HAVE_MULTITHREAD 
+        ret_value = H5I_remove_internal(id);
+#else /* H5_HAVE_MULTITHREAD */
         ret_value = H5I_remove(id);
+#endif /* H5_HAVE_MULTITHREAD */
+    }
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I__remove_verify() */
@@ -4162,6 +4723,7 @@ H5I__remove_common(H5I_type_info_t *type_info_ptr, hid_t id)
 {
     hbool_t                 done = FALSE;
     int                     pass = 0;
+    H5I_type_t              type;
     H5I_mt_id_info_t       *id_info_ptr  = NULL; /* Pointer to the current ID */
     H5I_mt_id_info_t       *dup_id_info_ptr;     /* Pointer to the current ID */
     H5I_mt_id_info_kernel_t info_k;
@@ -4176,6 +4738,9 @@ H5I__remove_common(H5I_type_info_t *type_info_ptr, hid_t id)
 
     /* Sanity check */
     assert(type_info_ptr);
+    assert(type_info_ptr->cls);
+    type = type_info_ptr->cls->type;
+    assert(type == H5I_TYPE(id));
     assert(atomic_load(&(type_info_ptr->init_count)) > 0);
 
     atomic_fetch_add(&(H5I_mt_g.H5I__remove_common__num_calls), 1ULL);
@@ -4301,7 +4866,7 @@ H5I__remove_common(H5I_type_info_t *type_info_ptr, hid_t id)
 
         atomic_fetch_sub(&(type_info_ptr->id_count), 1ULL);
 
-        if ( ! atomic_load(&(H5I_mt_g.marking)) ) {
+        if ( 0 == atomic_load(&(H5I_mt_g.marking_array[type])) ) {
             
             if ( ( ! lfht_delete(&(type_info_ptr->lfht), (unsigned long long int)id)) )
 
@@ -4393,10 +4958,41 @@ done:
  *                          calling H5I_object().
  *              Failure:    NULL
  *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_remove() function to H5I_remove_internal()
+ *              and created a new version of H5I_remove() that 
+ *              simply calls H5I__enter(), H5I_remove_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_remove(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
  *-------------------------------------------------------------------------
  */
 void *
 H5I_remove(hid_t id)
+{
+    void               *ret_value     = NULL;      /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_remove_internal(id);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_remove() */
+
+void *
+H5I_remove_internal(hid_t id)
 {
     H5I_mt_type_info_t *type_info_ptr = NULL;      /* Pointer to the ID type */
     H5I_type_t          type          = H5I_BADID; /* ID's type */
@@ -4427,7 +5023,7 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 
-} /* end H5I_remove() */
+} /* end H5I_remove_internal() */
 
 #else /* H5_HAVE_MULTITHREAD */
 
@@ -4530,6 +5126,10 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
 #if H5I_MT_DEBUG
     fprintf(stdout, "   H5I__dec_ref(0x%llx, reguest, app) called. \n", (unsigned long long)id);
 #endif /* H5I_MT_DEBUG */
+#if 0 /* JRM */
+    if (id == 0x1300000000000000 )
+        fprintf(stderr, "   H5I__dec_ref(0x%llx, reguest, app) entering. \n", (unsigned long long)id);
+#endif /* JRM */
 
     atomic_fetch_add(&(H5I_mt_g.H5I__dec_ref__num_calls), 1ULL);
 
@@ -4741,8 +5341,8 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
              *    3) Set the marked flag, reset the do_not_disturb flag, and set
              *       the return value to zero.
              * 
-             *    4) If H5I_mt_g.marking is FALSE, remove the ID from the lock
-             *       free hash table, and release the associated instance of 
+             *    4) If H5I_mt_g.marking_array[H5I_TYPE(id)] is zero, remove the ID from 
+             *       the lock free hash table, and release the associated instance of 
              *       H5I_mt_id_info_t to the free list.
              *
              * Note the failure to flag an error if the free function fails.
@@ -4906,7 +5506,7 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
 
         atomic_fetch_sub(&(type_info_ptr->id_count), 1ULL);
 
-        if ( ! atomic_load(&(H5I_mt_g.marking)) ) {
+        if ( 0 == atomic_load(&(H5I_mt_g.marking_array[H5I_TYPE(id)])) ) {
 
             /* attempt to remove the ID from the lock free hash table and release the 
              * instance of H5I_mt_id_info_t to the free list.
@@ -4930,6 +5530,11 @@ done:
 #if H5I_MT_DEBUG
     fprintf(stdout, "   H5I__dec_ref(0x%llx, reguest, app) returns %d. \n", (unsigned long long)id, ret_value);
 #endif /* H5I_MT_DEBUG */
+
+#if 0 /* JRM */
+    if ( ret_value < 0 ) 
+        fprintf(stderr, "   H5I__dec_ref(0x%llx, reguest, app) returns %d. \n", (unsigned long long)id, ret_value);
+#endif /* JRM */
 
     FUNC_LEAVE_NOAPI(ret_value)
 
@@ -5022,10 +5627,41 @@ done:
  * Return:      Success:    New reference count
  *              Failure:    -1
  *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_dec_ref() function to H5I_dec_ref_internal()
+ *              and created a new version of H5I_dec_ref() that 
+ *              simply calls H5I__enter(), H5I_dec_ref_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_dec_ref(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
  *-------------------------------------------------------------------------
  */
 int
 H5I_dec_ref(hid_t id)
+{
+    int                      ret_value = 0;      /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_dec_ref_internal(id);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_dec_ref() */
+
+int
+H5I_dec_ref_internal(hid_t id)
 {
     int ret_value = 0; /* Return value */
 
@@ -5050,7 +5686,7 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 
-} /* end H5I_dec_ref() */
+} /* end H5I_dec_ref_internal() */
 
 #else /* H5_HAVE_MULTITHREAD */
 
@@ -5180,6 +5816,78 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
+#ifdef H5_HAVE_MULTITHREAD
+
+/*-------------------------------------------------------------------------
+ * Function:    H5I_dec_app_ref
+ *
+ * Purpose:     Wrapper for case of modifying the application ref. count for
+ *              an ID as well as normal reference count.
+ *
+ * Return:      Success:    New app. reference count
+ *              Failure:    -1
+ *
+ * Programmer:  Quincey Koziol
+ *              Sept 16, 2010
+ *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_dec_app_ref() function to H5I_dec_app_ref_internal()
+ *              and created a new version of H5I_dec_all_ref() that 
+ *              simply calls H5I__enter(), H5I_dec_app_ref_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_dec_app_ref(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
+ *-------------------------------------------------------------------------
+ */
+int
+H5I_dec_app_ref(hid_t id)
+{
+    int                      ret_value = 0;      /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_dec_app_ref_internal(id);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_dec_app_ref() */
+
+int
+H5I_dec_app_ref_internal(hid_t id)
+{
+    int ret_value = 0; /* Return value */
+
+    FUNC_ENTER_NOAPI((-1))
+
+#if H5I_MT_DEBUG
+    fprintf(stdout, "\n\n   H5I_dec_app_ref() called. \n\n\n");
+#endif /* H5I_MT_DEBUG */
+
+    /* Sanity check */
+    assert(id >= 0);
+
+    /* Synchronously decrement refcount on ID */
+    if ((ret_value = H5I__dec_app_ref(id, H5_REQUEST_NULL)) < 0)
+        HGOTO_ERROR(H5E_ID, H5E_CANTDEC, (-1), "can't decrement ID ref count");
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5I_dec_app_ref_internal() */
+
+
+#else /* H5_HAVE_MULTITHREAD */
+
 /*-------------------------------------------------------------------------
  * Function:    H5I_dec_app_ref
  *
@@ -5201,12 +5909,6 @@ H5I_dec_app_ref(hid_t id)
 
     FUNC_ENTER_NOAPI((-1))
 
-#ifdef H5_HAVE_MULTITHREAD
-#if H5I_MT_DEBUG
-    fprintf(stdout, "\n\n   H5I_dec_app_ref() called. \n\n\n");
-#endif /* H5I_MT_DEBUG */
-#endif /* H5_HAVE_MULTITHREAD */
-
     /* Sanity check */
     assert(id >= 0);
 
@@ -5217,6 +5919,61 @@ H5I_dec_app_ref(hid_t id)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I_dec_app_ref() */
+
+#endif /* H5_HAVE_MULTITHREAD */
+
+#ifdef H5_HAVE_MULTITHREAD
+
+/*-------------------------------------------------------------------------
+ * Function:    H5I_dec_app_ref_async
+ *
+ * Purpose:     Asynchronous wrapper for case of modifying the application ref.
+ *              count for an ID as well as normal reference count.
+ *
+ * Note:        Allows for asynchronous 'close' operation on object, with
+ *              token != H5_REQUEST_NULL.
+ *
+ * Return:      Success:    New app. reference count
+ *              Failure:    -1
+ *
+ * Programmer:  Houjun Tang
+ *              Oct 21, 2019
+ *
+ * Changes:     Added calls to H5I__enter() and H5I__exit() to track 
+ *              the number of threads in H5I.  If H5I_dec_app_ref_async()
+ *              is ever called from within H5I, we will need to add a 
+ *              boolean prameter to control the H5I__enter/exit calls.
+ *
+ *                                          JRM -- 7/5/24
+ *
+ *-------------------------------------------------------------------------
+ */
+int
+H5I_dec_app_ref_async(hid_t id, void **token)
+{
+    int ret_value = 0; /* Return value */
+
+    FUNC_ENTER_NOAPI((-1))
+
+    H5I__enter(FALSE);
+
+    /* Sanity check */
+    assert(id >= 0);
+
+    /* [Possibly] aynchronously decrement refcount on ID */
+    if ((ret_value = H5I__dec_app_ref(id, token)) < 0)
+        HGOTO_ERROR(H5E_ID, H5E_CANTDEC, (-1), "can't asynchronously decrement ID ref count");
+
+done:
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_dec_app_ref_async() */
+
+
+#else /* H5_HAVE_MULTITHREAD */
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_dec_app_ref_async
@@ -5242,12 +5999,6 @@ H5I_dec_app_ref_async(hid_t id, void **token)
 
     FUNC_ENTER_NOAPI((-1))
 
-#ifdef H5_HAVE_MULTITHREAD
-#if H5I_MT_DEBUG
-    fprintf(stdout, "\n\n   H5I_dec_app_ref_async() called. \n\n\n");
-#endif /* H5I_MT_DEBUG */
-#endif /* H5_HAVE_MULTITHREAD */
-
     /* Sanity check */
     assert(id >= 0);
 
@@ -5259,6 +6010,7 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I_dec_app_ref_async() */
 
+#endif /* H5_HAVE_MULTITHREAD */
 
 /*-------------------------------------------------------------------------
  * Function:    H5I__dec_app_ref_always_close
@@ -5301,7 +6053,11 @@ H5I__dec_app_ref_always_close(hid_t id, void **request)
          * write when a dataset is closed and the chunk cache is flushed to the
          * file.  We have to close the dataset anyway. (SLU - 2010/9/7)
          */
+#ifdef H5_HAVE_MULTITHREAD
+        H5I_remove_internal(id);
+#else /* H5_HAVE_MULTITHREAD */
         H5I_remove(id);
+#endif /* H5_HAVE_MULTITHREAD */
 
         HGOTO_ERROR(H5E_ID, H5E_CANTDEC, (-1), "can't decrement ID ref count");
     } /* end if */
@@ -5310,6 +6066,56 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I__dec_app_ref_always_close() */
 
+#ifdef H5_HAVE_MULTITHREAD
+
+/*-------------------------------------------------------------------------
+ * Function:    H5I_dec_app_ref_always_close
+ *
+ * Purpose:     Wrapper for case of always closing the ID, even when the free
+ *              routine fails.
+ *
+ * Return:      Success:    New app. reference count
+ *              Failure:    -1
+ *
+ * Changes:     Added calls to H5I__enter() and H5I__exit() to track 
+ *              the number of threads in H5I.  If 
+ *              H5I_dec_app_always_close() is ever called from within 
+ *              H5I, we will need to add a boolean prameter to control 
+ *              the H5I__enter/exit calls.
+ *
+ *                                          JRM -- 7/5/24
+ *
+ *-------------------------------------------------------------------------
+ */
+int
+H5I_dec_app_ref_always_close(hid_t id)
+{
+    int ret_value = 0; /* Return value */
+
+    FUNC_ENTER_NOAPI((-1))
+
+    H5I__enter(FALSE);
+
+#if H5I_MT_DEBUG
+    fprintf(stdout, "\n\n   H5I_dec_app_ref_always_close() called. \n\n\n");
+#endif /* H5I_MT_DEBUG */
+
+    /* Sanity check */
+    assert(id >= 0);
+
+    /* Synchronously decrement refcount on ID */
+    if ((ret_value = H5I__dec_app_ref_always_close(id, H5_REQUEST_NULL)) < 0)
+        HGOTO_ERROR(H5E_ID, H5E_CANTDEC, (-1), "can't decrement ID ref count");
+
+done:
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_dec_app_ref_always_close() */
+
+#else /* H5_HAVE_MULTITHREAD */
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_dec_app_ref_always_close
@@ -5329,12 +6135,6 @@ H5I_dec_app_ref_always_close(hid_t id)
 
     FUNC_ENTER_NOAPI((-1))
 
-#ifdef H5_HAVE_MULTITHREAD
-#if H5I_MT_DEBUG
-    fprintf(stdout, "\n\n   H5I_dec_app_ref_always_close() called. \n\n\n");
-#endif /* H5I_MT_DEBUG */
-#endif /* H5_HAVE_MULTITHREAD */
-
     /* Sanity check */
     assert(id >= 0);
 
@@ -5345,6 +6145,63 @@ H5I_dec_app_ref_always_close(hid_t id)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I_dec_app_ref_always_close() */
+
+#endif /* H5_HAVE_MULTITHREAD */
+
+#ifdef H5_HAVE_MULTITHREAD
+
+/*-------------------------------------------------------------------------
+ * Function:    H5I_dec_app_ref_always_close_async
+ *
+ * Purpose:     Asynchronous wrapper for case of always closing the ID, even
+ *              when the free routine fails
+ *
+ * Note:        Allows for asynchronous 'close' operation on object, with
+ *              token != H5_REQUEST_NULL.
+ *
+ * Return:      Success:    New app. reference count
+ *              Failure:    -1
+ *
+ * Changes:     Added calls to H5I__enter() and H5I__exit() to track 
+ *              the number of threads in H5I.  If 
+ *              H5I_dec_app_always_close_async() is ever called from 
+ *              within  H5I, we will need to add a boolean prameter to 
+ *              control the H5I__enter/exit calls.
+ *
+ *                                          JRM -- 7/5/24
+ *
+ *-------------------------------------------------------------------------
+ */
+int
+H5I_dec_app_ref_always_close_async(hid_t id, void **token)
+{
+    int ret_value = 0; /* Return value */
+
+    FUNC_ENTER_NOAPI((-1))
+
+    H5I__enter(FALSE);
+
+#if H5I_MT_DEBUG
+    fprintf(stdout, "\n\n   H5I_dec_app_ref_always_close_async() called. \n\n\n");
+#endif /* H5I_MT_DEBUG */
+
+    /* Sanity check */
+    assert(id >= 0);
+
+    /* [Possibly] aynchronously decrement refcount on ID */
+    if ((ret_value = H5I__dec_app_ref_always_close(id, token)) < 0)
+        HGOTO_ERROR(H5E_ID, H5E_CANTDEC, (-1), "can't asynchronously decrement ID ref count");
+
+done:
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_dec_app_ref_always_close_async() */
+
+
+#else /* H5_HAVE_MULTITHREAD */
 
 /*-------------------------------------------------------------------------
  * Function:    H5I_dec_app_ref_always_close_async
@@ -5367,12 +6224,6 @@ H5I_dec_app_ref_always_close_async(hid_t id, void **token)
 
     FUNC_ENTER_NOAPI((-1))
 
-#ifdef H5_HAVE_MULTITHREAD
-#if H5I_MT_DEBUG
-    fprintf(stdout, "\n\n   H5I_dec_app_ref_always_close_async() called. \n\n\n");
-#endif /* H5I_MT_DEBUG */
-#endif /* H5_HAVE_MULTITHREAD */
-
     /* Sanity check */
     assert(id >= 0);
 
@@ -5383,6 +6234,8 @@ H5I_dec_app_ref_always_close_async(hid_t id, void **token)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5I_dec_app_ref_always_close_async() */
+
+#endif /* H5_HAVE_MULTITHREAD */
 
 #ifdef H5_HAVE_MULTITHREAD
 
@@ -5396,10 +6249,41 @@ done:
  * Return:      Success:    The new reference count
  *              Failure:    -1
  *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_inc_ref() function to H5I_inc_ref_internal()
+ *              and created a new version of H5I_inc_ref() that 
+ *              simply calls H5I__enter(), H5I_ind_ref_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_inc_ref(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
  *-------------------------------------------------------------------------
  */
 int
 H5I_inc_ref(hid_t id, hbool_t app_ref)
+{
+    int                      ret_value = 0;      /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_inc_ref_internal(id, app_ref);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_inc_ref() */
+
+int
+H5I_inc_ref_internal(hid_t id, hbool_t app_ref)
 {
     hbool_t                  done                = FALSE;
     int                      pass                = 0;
@@ -5538,7 +6422,7 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 
-} /* end H5I_inc_ref() */
+} /* end H5I_inc_ref_internal() */
 
 #else /* H5_HAVE_MULTITHREAD */
 
@@ -5593,10 +6477,41 @@ done:
  * Return:      Success:    The reference count
  *              Failure:    -1
  *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_get_ref() function to H5I_get_ref_internal()
+ *              and created a new version of H5I_get_ref() that 
+ *              simply calls H5I__enter(), H5I_get_ref_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_get_ref(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
  *-------------------------------------------------------------------------
  */
 int
 H5I_get_ref(hid_t id, hbool_t app_ref)
+{
+    herr_t                   ret_value     = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_get_ref_internal(id, app_ref);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_get_ref() */
+
+int
+H5I_get_ref_internal(hid_t id, hbool_t app_ref)
 {
     H5I_mt_id_info_t           *id_info_ptr      = NULL; /* Pointer to the ID */
     H5I_mt_id_info_kernel_t  info_k;
@@ -5624,7 +6539,7 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 
-} /* end H5I_get_ref() */
+} /* end H5I_get_ref_internal() */
 
 #else /* H5_HAVE_MULTITHREAD */
 
@@ -5763,10 +6678,41 @@ done:
  * Return:      Success:    Number of references to type
  *              Failure:    -1
  *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_dec_type_ref() function to H5I_dec_type_ref_internal()
+ *              and created a new version of H5I_dec_type_ref() that 
+ *              simply calls H5I__enter(), H5I_dec_type_ref_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_dec_type_ref(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
  *-------------------------------------------------------------------------
  */
 int
 H5I_dec_type_ref(H5I_type_t type)
+{
+    int                      ret_value = 0;      /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_dec_type_ref_internal(type);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_dec_type_ref() */
+
+int
+H5I_dec_type_ref_internal(H5I_type_t type)
 {
     H5I_mt_type_info_t *type_info_ptr = NULL; /* Pointer to the ID type */
     herr_t              ret_value = 0;    /* Return value */
@@ -5807,7 +6753,7 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 
-} /* end H5I_dec_type_ref() */
+} /* end H5I_dec_type_ref_internal() */
 
 #else /* H5_HAVE_MULTITHREAD */
 
@@ -6059,6 +7005,8 @@ H5I__iterate_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
                 if ( ( have_global_mutex ) && ( info_k.have_global_mutex ) ) {
 
                     bypass_do_not_disturb = TRUE;
+
+                    atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_bypasses), 1ULL);
 
                 } else {
 
@@ -6335,10 +7283,41 @@ H5I__iterate_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
  *
  * Return:      SUCCEED/FAIL
  *
+ * Changes:     To track threads entering and exiting H5I (needed for free 
+ *              list management), changed the name of the existing 
+ *              H5I_iterate() function to H5I_iterate_internal()
+ *              and created a new version of H5I_iterate() that 
+ *              simply calls H5I__enter(), H5I_iterate_internal(),
+ *              and then H5I__exit().
+ *
+ *              It would make more sense to just add another parameter to 
+ *              H5I_iterate(), but until we have a single version 
+ *              of the H5I code, this will be complicated.  Make this 
+ *              change when we get to the production version.
+ * 
+ *                                              JRM -- 07/04/24
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
 H5I_iterate(H5I_type_t type, H5I_search_func_t func, void *udata, hbool_t app_ref)
+{
+    herr_t                   ret_value     = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
+
+    ret_value = H5I_iterate_internal(type, func, udata, app_ref);
+
+    H5I__exit();
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* end H5I_iterate() */
+
+herr_t
+H5I_iterate_internal(H5I_type_t type, H5I_search_func_t func, void *udata, hbool_t app_ref)
 {
     hbool_t                  have_global_mutex = TRUE; /* trivially true in the single thread case */
     H5I_mt_type_info_t      *type_info_ptr = NULL;    /* Pointer to the type */
@@ -6410,7 +7389,7 @@ done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 
-} /* end H5I_iterate() */
+} /* end H5I_iterate_internal() */
 
 #else /* H5_HAVE_MULTITHREAD */
 
@@ -6506,10 +7485,17 @@ done:
  *
  *              Failure:    FAIL
  *
+ * Changes:     Added the called_from_H5I paramter, which must be set 
+ *              to TRUE if the function is called withing the H5I package,
+ *              and FALSE otherwise.  This is needed to allow  tracking
+ *              the number of threads inside H5I, which is in turn used
+ *              in free list management.
+ *                                              JRM -- 7/6/24
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
-H5I_get_first(H5I_type_t type, hid_t *id_ptr, void ** object_ptr)
+H5I_get_first(H5I_type_t type, hid_t *id_ptr, void ** object_ptr, hbool_t called_from_H5I)
 {
     H5I_mt_type_info_t      *type_info_ptr    = NULL;    /* Pointer to the type */
     unsigned long long int   id               = 0;
@@ -6521,6 +7507,15 @@ H5I_get_first(H5I_type_t type, hid_t *id_ptr, void ** object_ptr)
     herr_t                   ret_value        = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
+
+    if ( ! called_from_H5I ) {
+
+        /* if H5I_get_first() is not called from withing H5I, it must have been called
+         * from somewhere within the HDF5 library proper -- hence we set the public_api
+         * parameter of H5I__enter() to FALSE.
+         */
+        H5I__enter(FALSE);
+    }
 
     /* Check arguments */
     if (type <= H5I_BADID || (int)type >= atomic_load(&(H5I_mt_g.next_type)))
@@ -6586,6 +7581,11 @@ H5I_get_first(H5I_type_t type, hid_t *id_ptr, void ** object_ptr)
 
 done:
 
+    if ( ! called_from_H5I ) {
+
+        H5I__exit();
+    }
+
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* end H5I_get_first() */
@@ -6617,10 +7617,17 @@ done:
  *
  *              Failure:    FAIL
  *
+ * Changes:     Added the called_from_H5I paramter, which must be set 
+ *              to TRUE if the function is called withing the H5I package,
+ *              and FALSE otherwise.  This is needed to allow  tracking
+ *              the number of threads inside H5I, which is in turn used
+ *              in free list management.
+ *                                              JRM -- 7/6/24
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
-H5I_get_next(H5I_type_t type, hid_t last_id, hid_t *next_id_ptr, void ** next_object_ptr)
+H5I_get_next(H5I_type_t type, hid_t last_id, hid_t *next_id_ptr, void ** next_object_ptr, hbool_t called_from_H5I)
 {
     H5I_mt_type_info_t      *type_info_ptr = NULL;    /* Pointer to the type */
     unsigned long long int   id            = 0;
@@ -6632,6 +7639,15 @@ H5I_get_next(H5I_type_t type, hid_t last_id, hid_t *next_id_ptr, void ** next_ob
     herr_t                   ret_value     = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
+
+    if ( ! called_from_H5I ) {
+
+        /* if H5I_get_first() is not called from withing H5I, it must have been called
+         * from somewhere within the HDF5 library proper -- hence we set the public_api
+         * parameter of H5I__enter() to FALSE.
+         */
+        H5I__enter(FALSE);
+    }
 
     /* Check arguments */
     if (type <= H5I_BADID || (int)type >= atomic_load(&(H5I_mt_g.next_type)))
@@ -6704,6 +7720,11 @@ H5I_get_next(H5I_type_t type, hid_t last_id, hid_t *next_id_ptr, void ** next_ob
     }
 
 done:
+
+    if ( ! called_from_H5I ) {
+
+        H5I__exit();
+    }
 
     FUNC_LEAVE_NOAPI(ret_value)
 
@@ -6831,28 +7852,48 @@ H5I__find_id(hid_t id)
                 break;
             }
 
-            /* As long as we don't modify it, we can read an id whose do not disturb flag is set.
-             * Thus we only need to do a thread yield and continue if the is_future flag is set.
+            /* In principle, as long as we don't modify it, we can read an id whose do not disturb 
+             * flag is set.  This suggests that we only need to do a thread yield and continue if 
+             * the is_future flag is set.  However, this happens infrequently, and it triggers false
+             * negatives in the test bed.  Thus do the thread yield if info_k.do_not_disturb is TRUE,
+             * regardless of the value of info_k.is_future.
              */
-            if ( ( info_k.is_future ) && ( info_k.do_not_disturb ) ) {
+            if ( info_k.do_not_disturb ) {
 
-                /* Another thread is in the process of performing an operation on the info kernel
-                 * that can't be rolled back -- either a future id realize_cb or discard_cb, or a
-                 * regular id callback that must be serialized.
-                 *
-                 * Thus we must wait until that thread is done and then re-start the operation -- which
-                 * may be moot by that point.
+                /* It is possible that this call into H5I is recursive.  If so, it is possible to
+                 * deadlock on the do_not_discurb flag.  To avoid this, we check to see if the 
+                 * the global lock was helf when the have_global_mutex flag was set, and if it is 
+                 * is held by this thread -- if so, we can ignore the do_not_disturb flag, since 
+                 * we are the same thread.  
+                 * 
+                 * Note that this is a temporary hack that works with the existing library to pass
+                 * the regression tests.  A more general solution is needed for the production 
+                 * version.
                  */
+                if ( ( have_global_mutex ) && ( info_k.have_global_mutex ) ) {
 
-                /* update stats */
-                atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_yields), 1ULL);
+                    atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_bypasses), 1ULL);
 
-                /* need to do better than this.  Want to call pthread_yield(),
-                 * but that call doesn't seem to be supported anymore.
-                 */
-                sleep(1);
+                } else {
 
-                continue;
+                    /* Another thread is in the process of performing an operation on the info kernel
+                     * that can't be rolled back -- either a future id realize_cb or discard_cb, or a
+                     * regular id callback that must be serialized.
+                     *
+                     * Thus we must wait until that thread is done and then re-start the operation -- which
+                     * may be moot by that point.
+                     */
+
+                    /* update stats */
+                    atomic_fetch_add(&(H5I_mt_g.num_do_not_disturb_yields), 1ULL);
+
+                    /* need to do better than this.  Want to call pthread_yield(),
+                     * but that call doesn't seem to be supported anymore.
+                     */
+                    sleep(1);
+
+                    continue;
+                }
             }
 
             if ( info_k.is_future ) {
@@ -6883,6 +7924,17 @@ H5I__find_id(hid_t id)
                  *
                  * Instead, use the do_not_disturb flag in the kernel.
                  *
+                 *
+                 * NOTE THAT THE DO_NOT_DISTURB FLAG MAY ALREADY BE SET if 
+                 * this is a recursive call and this is the thread
+                 * which set the flag earlier in the call stack.  
+                 *
+                 * For now, assert that this is not the case.  This makes 
+                 * sense, as the future ID capability will have to be 
+                 * reworked, likely making any effort expended on this 
+                 * point moot.
+                 *
+                 *
                  * If this flag is set, no other thread will begin an attempt
                  * modify id_info_ptr->k until it is reset, and once it is set, 
                  * any attempt to modify the kernel by a thread that is already
@@ -6907,6 +7959,8 @@ H5I__find_id(hid_t id)
                  * calls are in the library, and thus any such misbehaviour 
                  * can be addressed directly.
                  */
+
+                assert( ! info_k.do_not_disturb ); /* temporary check until future IDs are reworked */
 
                 if ( pass == 1 ) {
 
@@ -6999,8 +8053,8 @@ H5I__find_id(hid_t id)
             if ( info_k.is_future ) {
 
                 hid_t actual_id;
-                const void * actual_object;
-                const void * future_object;
+                const void * actual_object = NULL;
+                const void * future_object = NULL;
 
                 atomic_fetch_add(&(H5I_mt_g.H5I__find_id__num_calls_to_realize_cb), 1ULL);
                     
@@ -7019,7 +8073,7 @@ H5I__find_id(hid_t id)
                     result = (id_info_ptr->realize_cb)((void *)info_k.object, &actual_id);
                     H5_GCC_CLANG_DIAG_ON("cast-qual")
                     H5_API_UNLOCK
-                    atomic_fetch_add(&(H5I_mt_g.H5I__find_id__global_mutex_locks_for_realize_cb), 1ULL);
+                    atomic_fetch_add(&(H5I_mt_g.H5I__find_id__global_mutex_unlocks_for_realize_cb), 1ULL);
 
                 } else {
 
@@ -7033,7 +8087,9 @@ H5I__find_id(hid_t id)
                     id_info_ptr = NULL;
                     done = TRUE;
 
-                } else if ( ( H5I_INVALID_HID == actual_id ) || ( H5I_TYPE(id) != H5I_TYPE(actual_id) ) ) {
+                } 
+
+                if ( ( ! done ) && ( ( H5I_INVALID_HID == actual_id ) || ( H5I_TYPE(id) != H5I_TYPE(actual_id) ) ) ) {
 
                     /* either we received an invalid ID from the realize_cb(), or that ID 
                      * is not of the same type as the id passed into this function.  In either 
@@ -7043,21 +8099,42 @@ H5I__find_id(hid_t id)
                     id_info_ptr = NULL;
                     done = TRUE;
 
-                } else {
+                } 
+
+                if ( ! done ) {
 
                     /* Swap the actual object in for the future object */
 
                     future_object = info_k.object;
 
                     /* The call to H5I__remove_common() simply marks the actual 
-                     * id as deleted, and if H5I_mt_g.marking is FALSE, deletes
-                     * it from the lock free hash table.
+                     * id as deleted, and if H5I_mt_g.marking_array[H5I_TYPE(id)] is zero, 
+                     * deletes it from the lock free hash table.
                      *
                      * Thus there shouldn't be any potential for dead lock here.
                      */
                     actual_object = H5I__remove_common(type_info_ptr, actual_id);
 
-                    assert(actual_object);
+                    atomic_fetch_add(&(H5I_mt_g.H5I__find_id__num_calls_to_H5I__remove_common), 1ULL);
+
+                    if ( NULL == actual_object ) {
+
+                        /* According to the documentation, this means that H5I__remove_common() has failed.
+                         * However, if one examines the code, it is also possible that no object is 
+                         * associated with the real ID.  
+                         *
+                         * The single thread code contains an assertion that actual_ovject is not NULL -- 
+                         * from which I infer that a NULL actual_object should be treated as an error.
+                         *
+                         * For now at least, rather than re-work H5I__find_id() to report an error in 
+                         * this case, we will simply cause the realization of the future ID to fail.
+                         */
+                        id_info_ptr = NULL;
+                        done = TRUE;
+                    } 
+                }
+
+                if ( ! done ) {
 
                     atomic_fetch_add(&(H5I_mt_g.H5I__find_id__num_calls_to_discard_cb), 1ULL);
 
@@ -7514,8 +8591,8 @@ done:
  *     shutdown.  
  *
  *     Note that this function assumes that no other threads are active 
- *     in H5I, and that it is therefore safe to ignore the re_allocable 
- *     field in the instances of H5I_mt_id_info_t in the free list.
+ *     in H5I, and that it is therefore safe to ignore 
+ *     H5I_mt_g.num_id_info_fl_entries_reallocable. 
  *
  *                                          JRM -- 10/24/23
  *
@@ -7532,6 +8609,8 @@ H5I__clear_mt_id_info_free_list(void)
     herr_t                ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
+
+    atomic_fetch_add(&(H5I_mt_g.H5I__clear_mt_id_info_free_list__num_calls), 1ULL);
 
     fl_head = atomic_load(&(H5I_mt_g.id_info_fl_shead));
     fl_head_ptr = fl_head.ptr;
@@ -7570,6 +8649,8 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* H5I__clear_mt_id_info_free_list() */
+
+#if 0 /* old version */
 
 /************************************************************************
  *
@@ -7723,6 +8804,311 @@ H5I__discard_mt_id_info(H5I_mt_id_info_t * id_info_ptr)
 
 } /* H5I__discard_mt_id_info() */
 
+#else /* new version */
+
+/************************************************************************
+ *
+ * H5I__discard_mt_id_info
+ *
+ *     Append the supplied instance of H5I_mt_id_info_t on the id info
+ *     free list and increment H5I_mt_t.id_info_fl_len.
+ *
+ *     If the free list length exceeds 
+ *     H5I_mt_t.max_desired_id_info_fl_len, attempt the remove the node 
+ *     at the head of the id info free list from the free list, and 
+ *     discard it and decrement lfht_ptr->fl_len if successful.
+ *     ---- skip for now ---
+ *
+ *                                          JRM -- 9/1/23
+ *
+ ************************************************************************/
+
+static herr_t 
+H5I__discard_mt_id_info(H5I_mt_id_info_t * id_info_ptr)
+{
+    hbool_t done = FALSE;
+    hbool_t on_fl = FALSE;
+    hbool_t try_to_free_an_entry = FALSE;
+    hbool_t reallocable_entry_available = FALSE;
+    hbool_t result;
+    uint64_t fl_len;
+    uint64_t max_fl_len;
+    uint64_t test_val;
+    H5I_mt_id_info_sptr_t snext = {NULL, 0ULL};
+    H5I_mt_id_info_sptr_t new_snext;
+    H5I_mt_id_info_sptr_t fl_shead;
+    H5I_mt_id_info_sptr_t fl_stail;
+    H5I_mt_id_info_sptr_t fl_snext;
+    H5I_mt_id_info_sptr_t new_fl_snext;
+    H5I_mt_id_info_sptr_t new_fl_shead;
+    H5I_mt_id_info_sptr_t new_fl_stail;
+    H5I_mt_id_info_sptr_t test_fl_shead;
+    H5I_mt_id_info_sptr_t test_fl_stail;
+    H5I_mt_id_info_kernel_t info_k;
+    herr_t ret_value = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    atomic_fetch_add(&(H5I_mt_g.H5I__discard_mt_id_info__num_calls), 1ULL);
+
+    assert(id_info_ptr);
+    assert(H5I__ID_INFO == id_info_ptr->tag);
+
+    info_k = atomic_load(&(id_info_ptr->k));
+
+    assert(0 == info_k.count);
+    assert(0 == info_k.app_count);
+    assert(NULL == info_k.object);
+    assert(TRUE == info_k.marked);
+    assert(FALSE == info_k.do_not_disturb);
+    assert(FALSE == info_k.is_future);
+    assert(FALSE == info_k.have_global_mutex);
+
+    assert(!atomic_load(&(id_info_ptr->on_fl)));
+
+    snext = atomic_load(&(id_info_ptr->fl_snext));
+    new_snext.ptr = NULL;
+    new_snext.sn = snext.sn + 1;
+
+    atomic_store(&(id_info_ptr->fl_snext), new_snext);
+
+    result = atomic_compare_exchange_strong(&(id_info_ptr->on_fl), &on_fl, TRUE);
+    assert( result );
+
+
+    while ( ! done ) {
+
+        fl_stail = atomic_load(&(H5I_mt_g.id_info_fl_stail));
+
+        assert(fl_stail.ptr);
+
+        /* it is possible that *fl_tail.ptr has passed through the free list
+         * and been re-allocated between the time we loaded it, and now.
+         * If so, fl_stail_ptr->on_fl will no longer be TRUE.
+         * This isn't a problem, but if so, the following if statement will fail.
+         */
+        // assert(atomic_load(&(fl_stail.ptr->on_fl)));
+
+        fl_snext = atomic_load(&(fl_stail.ptr->fl_snext));
+
+        test_fl_stail = atomic_load(&(H5I_mt_g.id_info_fl_stail));
+
+        if ( ( test_fl_stail.ptr == fl_stail.ptr ) && ( test_fl_stail.sn == fl_stail.sn ) ) {
+
+            if ( NULL == fl_snext.ptr ) {
+
+                /* attempt to append id_info_ptr by setting fl_tail->fl_snext.ptr to id_info_ptr.
+                 * If this succeeds, update stats and attempt to set H5I_mt_g.id_info_fl_stail.ptr
+                 * to id_info_ptr as well.  This may or may not succeed, but in either
+                 * case we are done.
+                 */
+                new_fl_snext.ptr = id_info_ptr;
+                new_fl_snext.sn  = fl_snext.sn + 1;
+                if ( atomic_compare_exchange_strong(&(fl_stail.ptr->fl_snext), &fl_snext, new_fl_snext) ) {
+
+                    atomic_fetch_add(&(H5I_mt_g.id_info_fl_len), 1);
+                    atomic_fetch_add(&(H5I_mt_g.num_id_info_structs_added_to_fl), 1);
+
+                    new_fl_stail.ptr = id_info_ptr;
+                    new_fl_stail.sn  = fl_stail.sn + 1;
+                    if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.id_info_fl_stail), 
+                                                          &fl_stail, new_fl_stail) ) {
+
+                        atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_head_update_cols), 1);
+                    }
+
+                    /* if appropriate, attempt to update H5I_mt_g.max_id_info_fl_len.  In the
+                     * event of a collision, just ignore it and go on, as I don't see any
+                     * reasonable way to recover.
+                     */
+                    if ( (fl_len = atomic_load(&(H5I_mt_g.id_info_fl_len))) >
+                         (max_fl_len = atomic_load(&(H5I_mt_g.max_id_info_fl_len))) ) {
+
+                        atomic_compare_exchange_strong(&(H5I_mt_g.max_id_info_fl_len), &max_fl_len, fl_len);
+                    }
+
+                    done = true;
+
+                } else {
+
+                    /* append failed -- update stats and try again */
+                    atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_append_cols), 1);
+
+                }
+            } else {
+
+                // assert(LFHT_FL_NODE_ON_FL == atomic_load(&(fl_next->tag)));
+
+                /* attempt to set lfht_ptr->fl_stail to fl_next.  It doesn't
+                 * matter whether we succeed or fail, as if we fail, it
+                 * just means that some other thread beat us to it.
+                 *
+                 * that said, it doesn't hurt to collect stats
+                 */
+                new_fl_stail.ptr = fl_snext.ptr;
+                new_fl_stail.sn  = fl_stail.sn + 1;
+                if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.id_info_fl_stail), &fl_stail, new_fl_stail) ) {
+
+                    atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_tail_update_cols), 1);
+                }
+            }
+        }
+    }
+
+    /* test to see if both H5I_mt_g.id_info_fl_len and H5I_mt_g.num_id_info_fl_entries_reallocable 
+     * are greater than H5I_mt_g.max_desired_id_info_fl_len.  Check both, as while we want to 
+     * keep the free list length around H5I_mt_g.max_desired_id_info_fl_len, we also want to 
+     * have an ample supply of reallocable free list entries on hand.
+     */
+    assert(atomic_load(&(H5I_mt_g.num_id_info_fl_entries_reallocable)) <= 
+           atomic_load(&(H5I_mt_g.id_info_fl_len)));
+
+    if ( ( atomic_load(&(H5I_mt_g.id_info_fl_len)) > atomic_load(&(H5I_mt_g.max_desired_id_info_fl_len)) ) &&
+         ( atomic_load(&(H5I_mt_g.num_id_info_fl_entries_reallocable)) > 
+           atomic_load(&(H5I_mt_g.max_desired_id_info_fl_len)) ) ) {
+
+        try_to_free_an_entry = TRUE;
+
+    } else {
+
+        atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_fl_too_small), 1ULL);
+    }
+
+    if ( try_to_free_an_entry ) {
+
+        uint64_t num_fl_entries_reallocable;
+
+        /* While a reallocable entry is almost certainly available, there
+         * is the possibility that other threads have snapped up all 
+         * the reallocable entries in the time since we determined that 
+         * we should try to free an entry.  Hence the following:
+         */
+        while ( ( ! reallocable_entry_available ) &&
+                ( 0 < (num_fl_entries_reallocable = atomic_load(&(H5I_mt_g.num_id_info_fl_entries_reallocable))) ) ) {
+
+            assert( 0 < num_fl_entries_reallocable );
+
+            if ( atomic_compare_exchange_strong(&(H5I_mt_g.num_id_info_fl_entries_reallocable),
+                                                &num_fl_entries_reallocable, (num_fl_entries_reallocable - 1)) ) {
+
+                reallocable_entry_available = TRUE;
+
+            } else {
+
+                /* update stats */
+                atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_collisions), 1ULL);
+            }
+        } /* end while */
+
+        if ( ! reallocable_entry_available ) {
+
+            /* No reallocable entries available -- just update stats and quit */
+
+            atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_no_reallocable_entries), 1ULL);
+
+        } else {
+
+            done = FALSE;
+
+            while ( ! done ) {
+
+                fl_shead = atomic_load(&(H5I_mt_g.id_info_fl_shead));
+                fl_stail = atomic_load(&(H5I_mt_g.id_info_fl_stail));
+
+                assert(fl_shead.ptr);
+                assert(fl_stail.ptr);
+
+                fl_snext = atomic_load(&(fl_shead.ptr->fl_snext));
+
+                test_fl_shead = atomic_load(&(H5I_mt_g.id_info_fl_shead));
+
+                if ( ( test_fl_shead.ptr == fl_shead.ptr ) && ( test_fl_shead.sn == fl_shead.sn ) ) {
+
+                    if ( fl_shead.ptr == fl_stail.ptr ) {
+
+                        if ( NULL == fl_snext.ptr ) {
+
+                            /* the free list is empty */
+                            atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_frees_skipped_due_to_empty), 1);
+                            done = TRUE;
+                            break;
+                        }
+
+                        /* attempt to set H5I_mt_g.id_info_fl_stail to fl_snext.  It doesn't
+                         * matter whether we succeed or fail, as if we fail, it
+                         * just means that some other thread beat us to it.
+                         *
+                         * that said, it doesn't hurt to collect stats
+                         */
+                        new_fl_stail.ptr = fl_snext.ptr;
+                        new_fl_stail.sn  = fl_stail.sn + 1;
+                        if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.id_info_fl_stail), &fl_stail, 
+                                                              new_fl_stail) ) {
+
+                            atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_tail_update_cols), 1ULL);
+                        }
+                    } else {
+
+                        /* set up new_fl_shead */
+                        assert(fl_snext.ptr);
+                        new_fl_shead.ptr = fl_snext.ptr;
+                        new_fl_shead.sn  = fl_shead.sn + 1;
+
+                        if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.id_info_fl_shead), 
+                                                              &fl_shead, new_fl_shead) ) {
+
+                            /* the attempt to remove the first item from the free list
+                             * failed.  Update stats and try again.
+                             */
+                            atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_head_update_cols), 1ULL);
+
+                        } else {
+
+                            H5I_mt_id_info_sptr_t null_snext = {NULL, 0ULL};
+
+                            /* first has been removed from the free list.  Set id_info_ptr to fl_shead.ptr,
+                             * discard *id_info_ptr, update stats, and exit the loop by setting done to true.
+                             */
+                            id_info_ptr = fl_shead.ptr;
+
+                            assert(H5I__ID_INFO == id_info_ptr->tag);
+                            assert(id_info_ptr->on_fl);
+
+                            info_k = atomic_load(&(id_info_ptr->k));
+
+                            assert(0 == info_k.count);
+                            assert(0 == info_k.app_count);
+                            assert(NULL == info_k.object);
+
+                            /* prepare *if_info_ptr for discard */
+                            id_info_ptr->tag = H5I__ID_INFO_INVALID;
+                            id_info_ptr->id  = (hid_t)0;
+                            atomic_store(&(id_info_ptr->fl_snext), null_snext);
+                            id_info_ptr->realize_cb = NULL;
+                            id_info_ptr->discard_cb = NULL;
+
+                            free(id_info_ptr);
+
+                            /* update stats */
+                            atomic_fetch_add(&(H5I_mt_g.num_id_info_structs_freed), 1ULL);
+                            test_val = atomic_fetch_sub(&(H5I_mt_g.id_info_fl_len), 1ULL);
+                            assert( test_val > 0ULL);
+
+                            done = true;
+                        }
+                    }
+                }
+            } /* while ( ! done ) */
+        }
+    } /* if ( try_to_free_entry ) */
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5I__discard_mt_id_info() */
+
+#endif /* new version */
+
+#if 0 /* old version */
 
 /************************************************************************
  *
@@ -7869,6 +9255,8 @@ H5I__new_mt_id_info(hid_t id, unsigned count, unsigned app_count, const void * o
                     atomic_fetch_add(&(H5I_mt_g.num_id_info_structs_alloced_from_fl), 1ULL);
 
                     fl_search_done = true;
+
+                    assert(id_info_ptr);
                 }
             }
         }
@@ -7900,12 +9288,230 @@ H5I__new_mt_id_info(hid_t id, unsigned count, unsigned app_count, const void * o
     /* Set return value */
     ret_value = id_info_ptr;
 
+    if ( ( atomic_load(
+
 done:
 
     FUNC_LEAVE_NOAPI(ret_value)
 
 } /* H5I__new_mt_id_info() */
 
+#else /* new version */
+
+/************************************************************************
+ *
+ * H5I__new_mt_id_info
+ *
+ *     Test to see if an instance of H5I_mt_id_info_t is available on the
+ *     id info free list.  If there is, remove it from the free list, 
+ *     re-initialize it, and return a pointer to it.
+ *
+ *     Otherwise, allocate and initialize an instance of struct
+ *     lfht_fl_node_t and return a pointer to the included instance of
+ *     lfht_node_t to the caller.
+ *
+ *     Return a pointer to the new instance on success, and NULL on
+ *     failure.
+ *
+ *                                          JRM -- 8/30/23
+ *
+ ************************************************************************/
+
+static H5I_mt_id_info_t * 
+H5I__new_mt_id_info(hid_t id, unsigned count, unsigned app_count, const void * object, hbool_t is_future, 
+                    H5I_future_realize_func_t realize_cb, H5I_future_discard_func_t discard_cb)
+{
+    hbool_t fl_search_done = FALSE;;
+    hbool_t result;
+    hbool_t reallocable_entry_available = FALSE;
+    uint64_t num_fl_entries_reallocable;
+    H5I_mt_id_info_t * id_info_ptr = NULL;
+    H5I_mt_id_info_sptr_t sfirst;
+    H5I_mt_id_info_sptr_t new_sfirst;
+    H5I_mt_id_info_sptr_t test_sfirst;
+    H5I_mt_id_info_sptr_t slast;
+    H5I_mt_id_info_sptr_t new_slast;
+    H5I_mt_id_info_sptr_t snext;
+    H5I_mt_id_info_sptr_t new_snext;
+    H5I_mt_id_info_kernel_t new_k = {count, app_count, object, FALSE, FALSE, is_future, FALSE};
+    H5I_mt_id_info_kernel_t old_k;
+    H5I_mt_id_info_t * ret_value = NULL; /* Return value */
+
+    FUNC_ENTER_NOAPI(NULL)
+
+    atomic_fetch_add(&(H5I_mt_g.H5I__new_mt_id_info__num_calls), 1ULL);
+
+    sfirst = atomic_load(&(H5I_mt_g.id_info_fl_shead));
+
+    /* test to see if the free list has been initialized */
+
+    if ( NULL == sfirst.ptr ) {
+
+        /* free list is not yet initialized */
+        fl_search_done = TRUE;
+    }
+
+    /* Test to see if there is a re-allocable entry on the free list.  Conceptually, we test to see
+     * if H5I_mt_g.num_id_info_fl_entries_reallocable  is positive, we decrement it and set entry_reallocable
+     * to TRUE.  Practically, it is a bit more complicated, as it is possible that 
+     * H5I_mt_g.num_id_info_fl_entries_reallocable between the time that we read it to see if it is 
+     * positive, and we decrement it.  To deal with this, we use an atomic compare exchange to set 
+     * the new value, and retry if there is a collision.
+     */
+    if ( ! fl_search_done ) {
+
+        while ( ( ! reallocable_entry_available ) && 
+                ( 0 < (num_fl_entries_reallocable = atomic_load(&(H5I_mt_g.num_id_info_fl_entries_reallocable))) ) ) {
+
+            assert( 0 < num_fl_entries_reallocable );
+
+            if ( atomic_compare_exchange_strong(&(H5I_mt_g.num_id_info_fl_entries_reallocable),
+                                                &num_fl_entries_reallocable, (num_fl_entries_reallocable - 1)) ) {
+
+                reallocable_entry_available = TRUE;
+            
+            } else { 
+
+                /* update stats */
+                atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_collisions), 1ULL);
+            }
+        } /* end while */
+
+        if ( ! reallocable_entry_available ) {
+
+            /* No reallocable entries available, so set fl_search_done = TRUE */
+
+            fl_search_done = TRUE;
+
+            /* update stats */
+            atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_no_reallocable_entries), 1ULL);
+
+        }
+    } /* end if ( ! fl_search_done ) */
+
+
+    while ( ! fl_search_done ) {
+
+        sfirst = atomic_load(&(H5I_mt_g.id_info_fl_shead));
+        slast = atomic_load(&(H5I_mt_g.id_info_fl_stail));
+
+        assert(sfirst.ptr);
+        assert(slast.ptr);
+
+        snext = atomic_load(&(sfirst.ptr->fl_snext));
+
+        test_sfirst = atomic_load(&(H5I_mt_g.id_info_fl_shead));
+
+        if ( ( test_sfirst.ptr == sfirst.ptr ) && ( test_sfirst.sn == sfirst.sn ) ) {
+
+            if ( sfirst.ptr == slast.ptr ) {
+
+                if ( NULL == snext.ptr ) {
+
+                    /* the free list is empty */
+                    atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_alloc_req_denied_due_to_empty), 1);
+                    fl_search_done = TRUE;
+                    break;
+                }
+
+                /* attempt to set H5I_mt_g.id_info_fl_stail to snext.  It doesn't
+                 * matter whether we succeed or fail, as if we fail, it
+                 * just means that some other thread beat us to it.
+                 *
+                 * that said, it doesn't hurt to collect stats
+                 */
+                new_slast.ptr = snext.ptr;
+                new_slast.sn  = slast.sn + 1;
+                if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.id_info_fl_stail), &slast, new_slast) ) {
+
+                    atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_tail_update_cols), 1ULL);
+                }
+            } else {
+
+                /* set up new_sfirst now in case we need it later.  */
+                assert(snext.ptr);
+                new_sfirst.ptr = snext.ptr;
+                new_sfirst.sn  = sfirst.sn + 1;
+
+                if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.id_info_fl_shead), &sfirst, new_sfirst) ) {
+
+                    /* the attempt to remove the first item from the free list
+                     * failed.  Update stats and try again.
+                     */
+                    atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_head_update_cols), 1ULL);
+
+                } else {
+
+                    /* first has been removed from the free list.  Set fl_node_ptr to first,
+                     * update stats, and exit the loop by setting fl_search_done to true.
+                     */
+                    id_info_ptr = sfirst.ptr;
+
+                    assert(H5I__ID_INFO == id_info_ptr->tag);
+
+                    id_info_ptr->id = id;
+
+                    assert(atomic_load(&(id_info_ptr->on_fl)));
+                    atomic_store(&(id_info_ptr->on_fl), FALSE);
+
+                    new_snext.ptr = NULL;
+                    new_snext.sn  = snext.sn + 1;
+
+                    result = atomic_compare_exchange_strong(&(id_info_ptr->fl_snext), &snext, new_snext);
+                    assert(result);
+
+                    old_k = atomic_load(&(id_info_ptr->k));
+
+                    assert(0 == old_k.count);
+                    assert(0 == old_k.app_count);
+                    assert(NULL == old_k.object);
+
+                    atomic_store(&(id_info_ptr->k), new_k);
+
+                    id_info_ptr->realize_cb = realize_cb;
+                    id_info_ptr->discard_cb = discard_cb;
+
+                    atomic_fetch_sub(&(H5I_mt_g.id_info_fl_len), 1ULL);
+                    atomic_fetch_add(&(H5I_mt_g.num_id_info_structs_alloced_from_fl), 1ULL);
+
+                    fl_search_done = true;
+                }
+            }
+        }
+    } /* while ( ! fl_search_done ) */
+
+    if ( NULL == id_info_ptr ) {
+
+        id_info_ptr = (H5I_mt_id_info_t *)malloc(sizeof(H5I_mt_id_info_t));
+
+        if ( NULL == id_info_ptr )
+            HGOTO_ERROR(H5E_ID, H5E_CANTALLOC, NULL, "ID info allocation failed");
+
+        atomic_fetch_add(&(H5I_mt_g.num_id_info_structs_alloced_from_heap), 1ULL);
+
+        id_info_ptr->tag = H5I__ID_INFO;
+        id_info_ptr->id = id;
+        atomic_init(&(id_info_ptr->k), new_k);
+        id_info_ptr->realize_cb = realize_cb;
+        id_info_ptr->discard_cb = discard_cb;
+        atomic_init(&(id_info_ptr->on_fl), FALSE);
+        snext.ptr = NULL;
+        snext.sn = 0ULL;
+        atomic_init(&(id_info_ptr->fl_snext), snext);
+    }
+
+    assert(id_info_ptr);
+
+    /* Set return value */
+    ret_value = id_info_ptr;
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5I__new_mt_id_info() */
+
+#endif /* new version */
 
 /************************************************************************
  *
@@ -7915,8 +9521,8 @@ done:
  *     shutdown.  
  *
  *     Note that this function assumes that no other threads are active 
- *     in H5I, and that it is therefore safe to ignore the re_allocable 
- *     field in the instances of H5I_mt_type_info_t in the free list.
+ *     in H5I, and that it is therefore safe to ignore the 
+ *     H5I_mt_g.num_type_info_fl_entries_reallocable.val.
  *
  *                                          JRM -- 10/24/23
  *
@@ -7975,6 +9581,8 @@ done:
 
 } /* H5I__clear_mt_type_info_free_list() */
 
+#if 0 /* old version */
+
 /************************************************************************
  *
  * H5I__discard_mt_type_info
@@ -8020,7 +9628,6 @@ H5I__discard_mt_type_info(H5I_mt_type_info_t * type_info_ptr)
     assert(atomic_load(&(type_info_ptr->lfht_cleared)));
 
     assert(!atomic_load(&(type_info_ptr->on_fl)));
-    assert(!atomic_load(&(type_info_ptr->re_allocable)));
 
     snext = atomic_load(&(type_info_ptr->fl_snext));
 
@@ -8032,11 +9639,6 @@ H5I__discard_mt_type_info(H5I_mt_type_info_t * type_info_ptr)
     result = atomic_compare_exchange_strong(&(type_info_ptr->on_fl), &on_fl, TRUE);
     assert(result);
 
-
-#if 1 /* JRM */
-    result = atomic_compare_exchange_strong(&(type_info_ptr->re_allocable), &on_fl, TRUE);
-    assert(result);
-#endif /* JRM */
 
     while ( ! done ) {
 
@@ -8123,6 +9725,345 @@ H5I__discard_mt_type_info(H5I_mt_type_info_t * type_info_ptr)
 
 } /* H5I__discard_mt_type_info() */
 
+#else /* new version */
+
+/************************************************************************
+ *
+ * H5I__discard_mt_type_info
+ *
+ *     Append the supplied instance of H5I_mt_type_info_t on the type info
+ *     free list and increment H5I_mt_t.type_info_fl_len.
+ *
+ *     If the free list length exceeds 
+ *     H5I_mt_t.max_desired_type_info_fl_len, attempt the remove the node 
+ *     at the head of the type info free list from the free list, and 
+ *     discard it and decrement lfht_ptr->fl_len if successful.
+ *
+ *                                          JRM -- 9/1/23
+ *
+ ************************************************************************/
+
+static herr_t 
+H5I__discard_mt_type_info(H5I_mt_type_info_t * type_info_ptr)
+{
+    hbool_t done = FALSE;
+    hbool_t on_fl = FALSE;
+    hbool_t result;
+    hbool_t try_to_free_an_entry = FALSE;
+    hbool_t reallocable_entry_available = FALSE;
+    uint64_t fl_len;
+    uint64_t max_fl_len;
+    uint64_t test_val;
+    H5I_mt_type_info_sptr_t snext = {NULL, 0ULL};
+    H5I_mt_type_info_sptr_t new_snext;
+    H5I_mt_type_info_sptr_t fl_shead;
+    H5I_mt_type_info_sptr_t fl_stail;
+    H5I_mt_type_info_sptr_t fl_snext;
+    H5I_mt_type_info_sptr_t new_fl_snext;
+    H5I_mt_type_info_sptr_t new_fl_shead;
+    H5I_mt_type_info_sptr_t new_fl_stail;
+    H5I_mt_type_info_sptr_t test_fl_shead;
+    H5I_mt_type_info_sptr_t test_fl_stail;
+    herr_t ret_value = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    atomic_fetch_add(&(H5I_mt_g.H5I__discard_mt_type_info__num_calls), 1ULL);
+
+    assert(type_info_ptr);
+    assert(H5I__TYPE_INFO == type_info_ptr->tag);
+
+    assert(0 == atomic_load(&(type_info_ptr->init_count)));
+    assert(0 == atomic_load(&(type_info_ptr->id_count)));
+
+    assert(atomic_load(&(type_info_ptr->lfht_cleared)));
+
+    assert(!atomic_load(&(type_info_ptr->on_fl)));
+
+    snext = atomic_load(&(type_info_ptr->fl_snext));
+
+    new_snext.ptr = NULL;
+    new_snext.sn = snext.sn + 1;
+
+    atomic_store(&(type_info_ptr->fl_snext), new_snext);
+
+    result = atomic_compare_exchange_strong(&(type_info_ptr->on_fl), &on_fl, TRUE);
+    assert(result);
+
+
+    while ( ! done ) {
+
+        fl_stail = atomic_load(&(H5I_mt_g.type_info_fl_stail));
+
+        assert(fl_stail.ptr);
+
+        /* it is possible that *fl_tail.ptr has passed through the free list
+         * and been re-allocated between the time we loaded it, and now.
+         * If so, fl_stail_ptr->on_fl will no longer be TRUE.
+         * This isn't a problem, but if so, the following if statement will fail.
+         */
+        // assert(atomic_load(&(fl_stail.ptr->on_fl)));
+
+        fl_snext = atomic_load(&(fl_stail.ptr->fl_snext));
+
+        test_fl_stail = atomic_load(&(H5I_mt_g.type_info_fl_stail));
+
+        if ( ( test_fl_stail.ptr == fl_stail.ptr ) && ( test_fl_stail.sn == fl_stail.sn ) ) {
+
+            if ( NULL == fl_snext.ptr ) {
+
+                /* attempt to append type_info_ptr by setting fl_tail->fl_snext.ptr to type_info_ptr.
+                 * If this succeeds, update stats and attempt to set H5I_mt_g.type_info_fl_stail.ptr
+                 * to type_info_ptr as well.  This may or may not succeed, but in either
+                 * case we are done.
+                 */
+                new_fl_snext.ptr = type_info_ptr;
+                new_fl_snext.sn  = fl_snext.sn + 1;
+                if ( atomic_compare_exchange_strong(&(fl_stail.ptr->fl_snext), &fl_snext, new_fl_snext) ) {
+
+                    atomic_fetch_add(&(H5I_mt_g.type_info_fl_len), 1);
+                    atomic_fetch_add(&(H5I_mt_g.num_type_info_structs_added_to_fl), 1);
+
+                    new_fl_stail.ptr = type_info_ptr;
+                    new_fl_stail.sn  = fl_stail.sn + 1;
+                    if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.type_info_fl_stail), 
+                                                          &fl_stail, new_fl_stail) ) {
+
+                        atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_head_update_cols), 1);
+                    }
+
+                    /* if appropriate, attempt to update H5I_mt_g.max_type_info_fl_len.  In the
+                     * event of a collision, just ignore it and go on, as I don't see any
+                     * reasonable way to recover.
+                     */
+                    if ( (fl_len = atomic_load(&(H5I_mt_g.type_info_fl_len))) >
+                         (max_fl_len = atomic_load(&(H5I_mt_g.max_type_info_fl_len))) ) {
+
+                        atomic_compare_exchange_strong(&(H5I_mt_g.max_type_info_fl_len), &max_fl_len, fl_len);
+                    }
+
+                    done = true;
+
+                } else {
+
+                    /* append failed -- update stats and try again */
+                    atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_append_cols), 1);
+
+                }
+            } else {
+
+                // assert(LFHT_FL_NODE_ON_FL == atomic_load(&(fl_next->tag)));
+
+                /* attempt to set lfht_ptr->fl_stail to fl_next.  It doesn't
+                 * matter whether we succeed or fail, as if we fail, it
+                 * just means that some other thread beat us to it.
+                 *
+                 * that satype, it doesn't hurt to collect stats
+                 */
+                new_fl_stail.ptr = fl_snext.ptr;
+                new_fl_stail.sn  = fl_stail.sn + 1;
+                if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.type_info_fl_stail), &fl_stail, new_fl_stail) ) {
+
+                    atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_tail_update_cols), 1);
+                }
+            }
+        }
+    }
+
+
+    /* test to see if both H5I_mt_g.type_info_fl_len and H5I_mt_g.num_type_info_fl_entries_reallocable 
+     * are greater than H5I_mt_g.max_desired_type_info_fl_len.  Check both, as while we want to 
+     * keep the free list length around H5I_mt_g.max_desired_type_info_fl_len, we also want to 
+     * have an ample supply of reallocable free list entries on hand.
+     */
+#if 1
+    assert(atomic_load(&(H5I_mt_g.num_type_info_fl_entries_reallocable)) <= 
+           atomic_load(&(H5I_mt_g.type_info_fl_len)));
+#else
+    assert(atomic_load(&(H5I_mt_g.snum_type_info_fl_entries_reallocable)).val <= 
+           atomic_load(&(H5I_mt_g.type_info_fl_len)));
+#endif
+
+#if 1
+    if ( ( atomic_load(&(H5I_mt_g.type_info_fl_len)) > atomic_load(&(H5I_mt_g.max_desired_type_info_fl_len)) ) &&
+         ( atomic_load(&(H5I_mt_g.num_type_info_fl_entries_reallocable)) > 
+           atomic_load(&(H5I_mt_g.max_desired_type_info_fl_len)) ) ) {
+#else
+    if ( ( atomic_load(&(H5I_mt_g.type_info_fl_len)) > atomic_load(&(H5I_mt_g.max_desired_type_info_fl_len)) ) &&
+         ( atomic_load(&(H5I_mt_g.snum_type_info_fl_entries_reallocable)).val > 
+           atomic_load(&(H5I_mt_g.max_desired_type_info_fl_len)) ) ) {
+#endif
+
+        try_to_free_an_entry = TRUE;
+
+    } else {
+
+        atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_fl_too_small), 1ULL);
+    }
+
+    if ( try_to_free_an_entry ) {
+
+#if 1
+        uint64_t num_fl_entries_reallocable;
+#else
+        H5I_suint64_t snum_fl_entries_reallocable;
+        H5I_suint64_t new_snum_fl_entries_reallocable;
+#endif
+
+        /* While a reallocable entry is almost certainly available, there
+         * is the possibility that other threads have snapped up all 
+         * the reallocable entries in the time since we determined that 
+         * we should try to free an entry.  Hence the following:
+         */
+#if 1
+        while ( ( ! reallocable_entry_available ) &&
+                ( 0 < (num_fl_entries_reallocable = 
+                       atomic_load(&(H5I_mt_g.num_type_info_fl_entries_reallocable))) ) ) {
+
+            assert( 0 < num_fl_entries_reallocable );
+
+            if ( atomic_compare_exchange_strong(&(H5I_mt_g.num_type_info_fl_entries_reallocable),
+                                                &num_fl_entries_reallocable, (num_fl_entries_reallocable - 1)) ) {
+
+                reallocable_entry_available = TRUE;
+
+            } else {
+
+                /* update stats */
+                atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions), 1ULL);
+            }
+        } /* end while */
+#else
+        while ( ( ! reallocable_entry_available ) &&
+                ( 0 < (snum_fl_entries_reallocable = 
+                       atomic_load(&(H5I_mt_g.snum_type_info_fl_entries_reallocable))).val ) ) {
+
+            assert( 0 < snum_fl_entries_reallocable.val );
+
+            new_snum_fl_entries_reallocable.val = snum_fl_entries_reallocable.val - 1;
+            new_snum_fl_entries_reallocable.sn  = snum_fl_entries_reallocable.sn + 1;
+
+            if ( atomic_compare_exchange_strong(&(H5I_mt_g.snum_type_info_fl_entries_reallocable),
+                                                &snum_fl_entries_reallocable, new_snum_fl_entries_reallocable) ) {
+
+                reallocable_entry_available = TRUE;
+
+                fprintf(stderr, 
+                        "\ndisc: old/new snum_type_info_fl_entries_reallocable = {%lld, %lld} / {%lld, %lld}\n",
+                        (long long)snum_fl_entries_reallocable.val, 
+                        (long long)snum_fl_entries_reallocable.sn,
+                        (long long)new_snum_fl_entries_reallocable.val, 
+                        (long long)new_snum_fl_entries_reallocable.sn);
+
+            } else {
+
+                /* update stats */
+                atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions), 1ULL);
+            }
+        } /* end while */
+#endif
+
+        if ( ! reallocable_entry_available ) {
+
+            /* No reallocable entries available -- just update stats and quit */
+
+            atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_no_reallocable_entries), 1ULL);
+
+        } else {
+
+            done = FALSE;
+
+            while ( ! done ) {
+
+                fl_shead = atomic_load(&(H5I_mt_g.type_info_fl_shead));
+                fl_stail = atomic_load(&(H5I_mt_g.type_info_fl_stail));
+
+                assert(fl_shead.ptr);
+                assert(fl_stail.ptr);
+
+                fl_snext = atomic_load(&(fl_shead.ptr->fl_snext));
+
+                test_fl_shead = atomic_load(&(H5I_mt_g.type_info_fl_shead));
+
+                if ( ( test_fl_shead.ptr == fl_shead.ptr ) && ( test_fl_shead.sn == fl_shead.sn ) ) {
+
+                    if ( fl_shead.ptr == fl_stail.ptr ) {
+
+                        if ( NULL == fl_snext.ptr ) {
+
+                            /* the free list is empty */
+                            atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_frees_skipped_due_to_empty), 1);
+                            done = TRUE;
+                            break;
+                        }
+
+                        /* attempt to set H5I_mt_g.type_info_fl_stail to fl_snext.  It doesn't
+                         * matter whether we succeed or fail, as if we fail, it
+                         * just means that some other thread beat us to it.
+                         *
+                         * that said, it doesn't hurt to collect stats
+                         */
+                        new_fl_stail.ptr = fl_snext.ptr;
+                        new_fl_stail.sn  = fl_stail.sn + 1;
+                        if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.type_info_fl_stail), &fl_stail, 
+                                                              new_fl_stail) ) {
+
+                            atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_tail_update_cols), 1ULL);
+                        }
+                    } else {
+
+                        /* set up new_fl_shead */
+                        assert(fl_snext.ptr);
+                        new_fl_shead.ptr = fl_snext.ptr;
+                        new_fl_shead.sn  = fl_shead.sn + 1;
+
+                        if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.type_info_fl_shead), 
+                                                              &fl_shead, new_fl_shead) ) {
+
+                            /* the attempt to remove the first item from the free list
+                             * failed.  Update stats and try again.
+                             */
+                            atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_head_update_cols), 1ULL);
+
+                        } else {
+
+                            H5I_mt_type_info_sptr_t null_snext = {NULL, 0ULL};
+
+                            /* first has been removed from the free list.  Set type_info_ptr to fl_shead.ptr,
+                             * discard *type_info_ptr, update stats, and exit the loop by setting done to true.
+                             */
+                            type_info_ptr = fl_shead.ptr;
+
+                            assert(H5I__TYPE_INFO == type_info_ptr->tag);
+                            assert(type_info_ptr->on_fl);
+
+                            /* prepare *type_info_ptr for discard */
+                            type_info_ptr->tag = H5I__TYPE_INFO_INVALID;
+                            atomic_store(&(type_info_ptr->fl_snext), null_snext);
+
+                            free(type_info_ptr);
+
+                            /* update stats */
+                            atomic_fetch_add(&(H5I_mt_g.num_type_info_structs_freed), 1ULL);
+                            test_val = atomic_fetch_sub(&(H5I_mt_g.type_info_fl_len), 1ULL);
+                            assert( test_val > 0ULL);
+
+                            done = true;
+                        }
+                    }
+                }
+            } /* while ( ! done ) */
+        }
+    } /* if ( try_to_free_entry ) */
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5I__discard_mt_type_info() */
+
+
+#endif /* new version */
+
+#if 0 /* old version */
 
 /************************************************************************
  *
@@ -8305,6 +10246,251 @@ done:
 
 } /* H5I__new_mt_type_info() */
 
+#else /* new version */
+
+/************************************************************************
+ *
+ * H5I__new_mt_type_info
+ *
+ *     Test to see if an instance of H5I_mt_type_info_t is available on 
+ *     the type info free list.  If there is, remove it from the free list, 
+ *     re-initialize it, and return a pointer to it.
+ *
+ *     Otherwise, allocate and initialize an instance of struct
+ *     H5I_mt_type_info_t, initialize it, and return a pointer to it.
+ *
+ *     Return a pointer to the new instance on success, and NULL on
+ *     failure.
+ *
+ *                                          JRM -- 8/30/23
+ *
+ ************************************************************************/
+
+static H5I_mt_type_info_t * 
+H5I__new_mt_type_info(const H5I_class_t *cls, unsigned reserved)
+{
+    hbool_t fl_search_done = FALSE;;
+    hbool_t result;
+    hbool_t reallocable_entry_available = FALSE;
+#if 1
+    uint64_t num_fl_entries_reallocable;
+#else
+    H5I_suint64_t snum_fl_entries_reallocable;
+    H5I_suint64_t new_snum_fl_entries_reallocable;
+#endif
+    H5I_mt_type_info_t * type_info_ptr = NULL;
+    H5I_mt_type_info_sptr_t sfirst;
+    H5I_mt_type_info_sptr_t new_sfirst;
+    H5I_mt_type_info_sptr_t test_sfirst;
+    H5I_mt_type_info_sptr_t slast;
+    H5I_mt_type_info_sptr_t new_slast;
+    H5I_mt_type_info_sptr_t snext;
+    H5I_mt_type_info_sptr_t new_snext;
+    H5I_mt_type_info_t * ret_value = NULL; /* Return value */
+
+    FUNC_ENTER_NOAPI(NULL)
+
+    atomic_fetch_add(&(H5I_mt_g.H5I__new_mt_type_info__num_calls), 1ULL);
+
+    sfirst = atomic_load(&(H5I_mt_g.type_info_fl_shead));
+
+    /* test to see if the free list has been initialized */
+
+    if ( NULL == sfirst.ptr ) {
+
+        /* free list is not yet initialized */
+        fl_search_done = TRUE;
+    }
+
+    /* Test to see if there is a re-allocable entry on the free list.  Conceptually, we test to see
+     * if H5I_mt_g.num_type_info_fl_entries_reallocable is positive, we decrement it and set entry_reallocable
+     * to TRUE.  Practically, it is a bit more complicated, as it is possible that 
+     * H5I_mt_g.num_type_info_fl_entries_reallocable between the time that we read it to see if it is 
+     * positive, and we decrement it.  To deal with this, we use an atomic compare exchange to set 
+     * the new value, and retry if there is a collision.
+     */
+    if ( ! fl_search_done ) {
+#if 1
+        while ( ( ! reallocable_entry_available ) && 
+                ( 0 < (num_fl_entries_reallocable = 
+                       atomic_load(&(H5I_mt_g.num_type_info_fl_entries_reallocable))) ) ) {
+
+            assert( 0 < num_fl_entries_reallocable );
+
+            if ( atomic_compare_exchange_strong(&(H5I_mt_g.num_type_info_fl_entries_reallocable),
+                                                &num_fl_entries_reallocable, (num_fl_entries_reallocable - 1)) ) {
+
+                reallocable_entry_available = TRUE;
+            
+            } else { 
+
+                /* update stats */
+                atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions), 1ULL);
+            }
+        } /* end while */
+#else
+        while ( ( ! reallocable_entry_available ) && 
+                ( 0 < (snum_fl_entries_reallocable = 
+                       atomic_load(&(H5I_mt_g.snum_type_info_fl_entries_reallocable))).val ) ) {
+
+            assert( 0 < snum_fl_entries_reallocable.val);
+
+            new_snum_fl_entries_reallocable.val = snum_fl_entries_reallocable.val - 1;
+            new_snum_fl_entries_reallocable.sn  = snum_fl_entries_reallocable.sn + 1;
+
+            if ( atomic_compare_exchange_strong(&(H5I_mt_g.snum_type_info_fl_entries_reallocable),
+                                                &snum_fl_entries_reallocable, new_snum_fl_entries_reallocable) ) {
+
+                reallocable_entry_available = TRUE;
+
+                fprintf(stderr, 
+                        "\nalloc: old/new snum_type_info_fl_entries_reallocable = {%lld, %lld} / {%lld, %lld}\n",
+                        (long long)snum_fl_entries_reallocable.val, 
+                        (long long)snum_fl_entries_reallocable.sn,
+                        (long long)new_snum_fl_entries_reallocable.val, 
+                        (long long)new_snum_fl_entries_reallocable.sn);
+            
+            } else { 
+
+                /* update stats */
+                atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions), 1ULL);
+            }
+        } /* end while */
+#endif
+        if ( ! reallocable_entry_available ) {
+
+            /* No reallocable entries available, so set fl_search_done = TRUE */
+
+            fl_search_done = TRUE;
+
+            /* update stats */
+            atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_no_reallocable_entries), 1ULL);
+
+        }
+    } /* end if ( ! fl_search_done ) */
+
+
+    while ( ! fl_search_done ) {
+
+        sfirst = atomic_load(&(H5I_mt_g.type_info_fl_shead));
+        slast = atomic_load(&(H5I_mt_g.type_info_fl_stail));
+
+        assert(sfirst.ptr);
+        assert(slast.ptr);
+
+        snext = atomic_load(&(sfirst.ptr->fl_snext));
+
+        test_sfirst = atomic_load(&(H5I_mt_g.type_info_fl_shead));
+
+        if ( ( test_sfirst.ptr == sfirst.ptr ) && ( test_sfirst.sn == sfirst.sn ) ) {
+
+            if ( sfirst.ptr == slast.ptr ) {
+
+                if ( NULL == snext.ptr ) {
+
+                    /* the free list is empty */
+                    atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_alloc_req_denied_due_to_empty), 1);
+                    fl_search_done = TRUE;
+                    break;
+                }
+
+                /* attempt to set H5I_mt_g.type_info_fl_stail to snext.  It doesn't
+                 * matter whether we succeed or fail, as if we fail, it
+                 * just means that some other thread beat us to it.
+                 *
+                 * that said, it doesn't hurt to collect stats
+                 */
+                new_slast.ptr = snext.ptr;
+                new_slast.sn  = slast.sn + 1;
+                if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.type_info_fl_stail), &slast, new_slast) ) {
+
+                    atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_tail_update_cols), 1ULL);
+                }
+            } else {
+
+                /* set up new_sfirst now in case we need it later.  */
+                assert(snext.ptr);
+                new_sfirst.ptr = snext.ptr;
+                new_sfirst.sn  = sfirst.sn + 1;
+
+                if ( ! atomic_compare_exchange_strong(&(H5I_mt_g.type_info_fl_shead), &sfirst, new_sfirst) ) {
+
+                    /* the attempt to remove the first item from the free list
+                     * failed.  Update stats and try again.
+                     */
+                    atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_head_update_cols), 1ULL);
+
+                } else {
+
+                    /* first has been removed from the free list.  Set fl_node_ptr to first,
+                     * update stats, and exit the loop by setting fl_search_done to true.
+                     */
+                    type_info_ptr = sfirst.ptr;
+
+                    assert(H5I__TYPE_INFO == type_info_ptr->tag);
+
+                    type_info_ptr->cls = cls;
+
+                    atomic_store(&(type_info_ptr->init_count), 0);
+                    atomic_store(&(type_info_ptr->id_count), reserved);
+                    atomic_store(&(type_info_ptr->last_id_info), NULL);
+                    atomic_store(&(type_info_ptr->lfht_cleared), FALSE);
+
+                    lfht_init(&(type_info_ptr->lfht));
+
+                    assert(atomic_load(&(type_info_ptr->on_fl)));
+                    atomic_store(&(type_info_ptr->on_fl), FALSE);
+
+                    new_snext.ptr = NULL;
+                    new_snext.sn  = snext.sn + 1;
+
+                    result = atomic_compare_exchange_strong(&(type_info_ptr->fl_snext), &snext, new_snext);
+                    assert(result);
+
+                    atomic_fetch_sub(&(H5I_mt_g.type_info_fl_len), 1ULL);
+                    atomic_fetch_add(&(H5I_mt_g.num_type_info_structs_alloced_from_fl), 1ULL);
+
+                    fl_search_done = true;
+                }
+            }
+        }
+    } /* while ( ! fl_search_done ) */
+
+    if ( NULL == type_info_ptr ) {
+
+        type_info_ptr = (H5I_mt_type_info_t *)malloc(sizeof(H5I_mt_type_info_t));
+
+        if ( NULL == type_info_ptr )
+            HGOTO_ERROR(H5E_ID, H5E_CANTALLOC, NULL, "ID info allocation failed");
+
+        atomic_fetch_add(&(H5I_mt_g.num_type_info_structs_alloced_from_heap), 1ULL);
+
+        type_info_ptr->tag = H5I__TYPE_INFO;
+        type_info_ptr->cls = cls;
+        atomic_init(&(type_info_ptr->init_count), 0);
+        atomic_init(&(type_info_ptr->id_count), 0ULL);
+        atomic_init(&(type_info_ptr->nextid), reserved);
+        atomic_init(&(type_info_ptr->last_id_info), NULL);
+        atomic_init(&(type_info_ptr->lfht_cleared), FALSE);
+        lfht_init(&(type_info_ptr->lfht));
+        atomic_init(&(type_info_ptr->on_fl), FALSE);
+        snext.ptr = NULL;
+        snext.sn = 0ULL;
+        atomic_init(&(type_info_ptr->fl_snext), snext);
+    }
+
+    assert(type_info_ptr);
+
+    /* Set return value */
+    ret_value = type_info_ptr;
+
+done:
+
+    FUNC_LEAVE_NOAPI(ret_value)
+
+} /* H5I__new_mt_id_info() */
+
+#endif /* new version */
 
 /************************************************************************
  *
@@ -8364,9 +10550,178 @@ void
 H5I__exit(void)
 {
 
+    uint64_t active_threads;
+    uint64_t pre_api_entries;
+    uint64_t post_api_entries;
+    uint64_t pre_internal_entries;
+    uint64_t post_internal_entries;
+    uint64_t num_id_info_fl_entries_reallocable;
+    uint64_t id_info_fl_len;
+#if 1
+    uint64_t num_type_info_fl_entries_reallocable;
+#else
+    H5I_suint64_t snum_type_info_fl_entries_reallocable;
+#endif
+    uint64_t type_info_fl_len;
+
     if ( 1ULL == atomic_fetch_sub(&(H5I_mt_g.active_threads), 1ULL) ) {
 
         atomic_fetch_add(&(H5I_mt_g.times_active_threads_is_zero), 1ULL);
+
+        /* This is the only entry in H5I -- since we are about to exit, the 
+         * the entire id free list must be reallocable.  Attempt to update 
+         * H5I_mt_g.num_id_info_fl_entries_reallocable accordingly.  Note 
+         * that we must verify that no thread becomes active during this 
+         * process, and abort if one does. 
+         */
+        pre_api_entries = atomic_load(&(H5I_mt_g.num_H5I_entries_via_public_API));
+        pre_internal_entries = atomic_load(&(H5I_mt_g.num_H5I_entries_via_internal_API));
+
+        active_threads = atomic_load(&(H5I_mt_g.active_threads));
+
+        num_id_info_fl_entries_reallocable = atomic_load(&(H5I_mt_g.num_id_info_fl_entries_reallocable));
+        id_info_fl_len = atomic_load(&(H5I_mt_g.id_info_fl_len));
+
+#if 1
+        num_type_info_fl_entries_reallocable = atomic_load(&(H5I_mt_g.num_type_info_fl_entries_reallocable));
+#else
+        snum_type_info_fl_entries_reallocable = atomic_load(&(H5I_mt_g.snum_type_info_fl_entries_reallocable));
+#endif
+        type_info_fl_len = atomic_load(&(H5I_mt_g.type_info_fl_len));
+
+        post_api_entries = atomic_load(&(H5I_mt_g.num_H5I_entries_via_public_API));
+        post_internal_entries = atomic_load(&(H5I_mt_g.num_H5I_entries_via_internal_API));
+
+        /* test to see if any threads have entered while we were collecting the 
+         * data on the free lists.  If any have, abort, as our data on the free lists
+         * may be inconsistent.
+         */
+        if ( ( active_threads != 0 ) || ( pre_api_entries != post_api_entries ) || 
+             ( pre_internal_entries != post_internal_entries ) ) {
+
+            /* one or more threads entered while we were collecting data.  Update
+             * stats and do nothing.
+             */
+            atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_aborts), 1ULL);
+
+        } else {
+
+            assert( 0 == active_threads );
+
+            if ( id_info_fl_len == num_id_info_fl_entries_reallocable ) {
+
+                /* All entries in the id info free list are already maked as reallocable --
+                 * Nothing to do here -- just update stats
+                 */
+                atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_noops), 1ULL);
+
+            } else {
+
+                uint64_t delta;
+                uint64_t new_num_id_info_fl_entries_reallocable;
+
+                assert( num_id_info_fl_entries_reallocable < id_info_fl_len );
+
+                delta = id_info_fl_len - num_id_info_fl_entries_reallocable;
+
+                /* It is possible that another thread is also trying to update 
+                 * H5I_mt_g.num_id_info_fl_entries_reallocable.  To avoid duplicate
+                 * increments, update H5I_mt_g.num_id_info_fl_entries_reallocable via
+                 * a call to atomic_compare_exchange_strong().  If this fails, just 
+                 * update stats and don't attempt a re-try.
+                 */
+                new_num_id_info_fl_entries_reallocable = num_id_info_fl_entries_reallocable + delta;
+
+                if ( atomic_compare_exchange_strong(&(H5I_mt_g.num_id_info_fl_entries_reallocable),
+                                                    &num_id_info_fl_entries_reallocable,
+                                                    new_num_id_info_fl_entries_reallocable) ) {
+
+                    /* success -- update stats accordingly */
+                    atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_num_reallocable_updates), 1ULL);
+                    atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_num_reallocable_total), delta);
+
+                } else {
+
+                    /* failure -- update stats accordingly */
+                    atomic_fetch_add(&(H5I_mt_g.num_id_info_fl_num_reallocable_update_collisions), 1ULL);
+
+                }
+            }
+
+#if 1
+            if ( type_info_fl_len == num_type_info_fl_entries_reallocable ) {
+#else
+            if ( type_info_fl_len == snum_type_info_fl_entries_reallocable.val ) {
+#endif
+
+                /* All entries in the type info free list are already maked as reallocable --
+                 * Nothing to do here -- just update stats
+                 */
+                atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_noops), 1ULL);
+
+            } else {
+
+                uint64_t delta;
+#if 1
+                uint64_t new_num_type_info_fl_entries_reallocable;
+#else
+                H5I_suint64_t new_snum_type_info_fl_entries_reallocable;
+#endif
+
+#if 1
+                assert( num_type_info_fl_entries_reallocable < type_info_fl_len );
+#else
+                assert( snum_type_info_fl_entries_reallocable.val < type_info_fl_len );
+#endif
+
+#if 1
+                delta = type_info_fl_len - num_type_info_fl_entries_reallocable;
+#else
+                delta = type_info_fl_len - snum_type_info_fl_entries_reallocable.val;
+#endif
+
+                /* It is possible that another thread is also trying to update 
+                 * H5I_mt_g.num_type_info_fl_entries_reallocable.  To avoid duplicate
+                 * increments, update H5I_mt_g.num_type_info_fl_entries_reallocable via
+                 * a call to atomic_compare_exchange_strong().  If this fails, just 
+                 * update stats and don't attempt a re-try.
+                 */
+#if 1
+                new_num_type_info_fl_entries_reallocable = num_type_info_fl_entries_reallocable + delta;
+#else
+                new_snum_type_info_fl_entries_reallocable.val = snum_type_info_fl_entries_reallocable.val + delta;
+                new_snum_type_info_fl_entries_reallocable.sn  = snum_type_info_fl_entries_reallocable.sn + 1;
+#endif
+
+#if 1
+                if ( atomic_compare_exchange_strong(&(H5I_mt_g.num_type_info_fl_entries_reallocable),
+                                                    &num_type_info_fl_entries_reallocable,
+                                                    new_num_type_info_fl_entries_reallocable) ) {
+#else
+                if ( atomic_compare_exchange_strong(&(H5I_mt_g.snum_type_info_fl_entries_reallocable),
+                                                    &snum_type_info_fl_entries_reallocable,
+                                                    new_snum_type_info_fl_entries_reallocable) ) {
+
+                    fprintf(stderr, 
+                            "\nexit: old/new snum_type_info_fl_entries_reallocable = {%lld, %lld} / {%lld, %lld}\n",
+                            (long long)snum_type_info_fl_entries_reallocable.val, 
+                            (long long)snum_type_info_fl_entries_reallocable.sn,
+                            (long long)new_snum_type_info_fl_entries_reallocable.val, 
+                            (long long)new_snum_type_info_fl_entries_reallocable.sn);
+#endif
+
+                    /* success -- update stats accordingly */
+                    atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_num_reallocable_updates), 1ULL);
+                    atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_num_reallocable_total), delta);
+
+                } else {
+
+                    /* failure -- update stats accordingly */
+                    atomic_fetch_add(&(H5I_mt_g.num_type_info_fl_num_reallocable_update_collisions), 1ULL);
+
+                }
+            }
+        }
     }
 
     return;

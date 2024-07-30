@@ -1170,7 +1170,17 @@ void lfht_discard_node(struct lfht_t * lfht_ptr, struct lfht_node_t * node_ptr, 
         }
     }
 
-#if 0 /* turn off node frees for now */
+#if 0 /* Turn off deletion of excess free list entries.
+       *
+       * Do this because when run with large numbers of threads, it triggers 
+       * an off by one error in lfht_ptr->fl_len that is detected by sanity 
+       * checks on lock free hash table shutdown.
+       *
+       * While this is obviously a race condition of some sort, the management
+       * of lfht_ptr->fl_len appears to be correct.  This issue must be resolved, 
+       * but since turning off code to discard excess free list entries doesn't 
+       * cause any functional problems, I  am bypassing the issue for now.
+       */
     /* Test to see if the free list is longer than the max_desired_fl_len. 
      * If so, attempt to remove an entry from the head of the free list
      * and discard it.  No worries if this fails, as the max_desired_fl_len

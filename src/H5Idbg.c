@@ -287,6 +287,14 @@ H5I__id_dump_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
  *
  * Return:      SUCCEED/FAIL
  *
+ * Changes:     Added calls to H5I__enter() and H5I__exit() to track
+ *              the number of threads in H5I.  If
+ *              H5I_dump_ids_for_type() is ever called from within
+ *              H5I, we will need to add a boolean prameter to control
+ *              the H5I__enter/exit calls.
+ *
+ *                                          JRM -- 7/5/24
+ *
  *-------------------------------------------------------------------------
  */
 herr_t
@@ -295,6 +303,8 @@ H5I_dump_ids_for_type(H5I_type_t type)
     H5I_mt_type_info_t *type_info_ptr = NULL;
 
     FUNC_ENTER_NOAPI_NOERR
+
+    H5I__enter(FALSE);
 
     fprintf(stderr, "Dumping ID type %d\n", (int)type);
     type_info_ptr = atomic_load(&(H5I_mt_g.type_info_array[type]));
@@ -339,6 +349,8 @@ H5I_dump_ids_for_type(H5I_type_t type)
 
         fprintf(stderr, "Global type info/tracking pointer for that type is NULL\n");
     }
+
+    H5I__exit();
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 

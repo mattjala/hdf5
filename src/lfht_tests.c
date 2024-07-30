@@ -66,11 +66,9 @@ void lfht_verify_list_lens(struct lfht_t * lfht_ptr)
     struct lfht_node_t * node_ptr;
     struct lfht_node_t * next;
     struct lfht_fl_node_t * fl_node_ptr;
-#if LFHT__USE_SPTR
     struct lfht_flsptr_t fl_shead;
     struct lfht_flsptr_t fl_stail;
     struct lfht_flsptr_t snext;
-#endif /* LFHT__USE_SPTR */
 
     assert(lfht_ptr);
     assert(LFHT_VALID == lfht_ptr->tag);
@@ -102,7 +100,6 @@ void lfht_verify_list_lens(struct lfht_t * lfht_ptr)
     assert(lfsll_log_len  == atomic_load(&(lfht_ptr->lfsll_log_len)));
     assert(lfsll_phys_len == atomic_load(&(lfht_ptr->lfsll_phys_len)));
 
-#if LFHT__USE_SPTR
     fl_shead = atomic_load(&(lfht_ptr->fl_shead));
     fl_stail = atomic_load(&(lfht_ptr->fl_stail));
     fl_node_ptr = fl_shead.ptr;
@@ -118,15 +115,6 @@ void lfht_verify_list_lens(struct lfht_t * lfht_ptr)
         snext = atomic_load(&(fl_node_ptr->snext));
         fl_node_ptr = snext.ptr;
     }
-#else /* LFHT__USE_SPTR */
-    fl_node_ptr = atomic_load(&(lfht_ptr->fl_head));
-
-    while( fl_node_ptr ) {
-
-        fl_len++;
-        fl_node_ptr = atomic_load(&(fl_node_ptr->next));
-    }
-#endif /* LFHT__USE_SPTR */
 
     assert(fl_len == atomic_load(&(lfht_ptr->fl_len)));
 

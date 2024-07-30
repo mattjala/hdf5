@@ -82,8 +82,10 @@ H5_DLL herr_t     H5I_find_id(const void *object, H5I_type_t type, hid_t *id /*o
 
 #ifdef H5_HAVE_MULTITHREAD
 /* External iterator for use in the multi-thread case */
-H5_DLL herr_t H5I_get_first(H5I_type_t type, hid_t *id_ptr, void ** object_ptr);
-H5_DLL herr_t H5I_get_next(H5I_type_t type, hid_t last_id, hid_t *next_id_ptr, void ** next_object_ptr);
+H5_DLL herr_t H5I_get_first(H5I_type_t type, hid_t *id_ptr, void ** object_ptr, 
+                            hbool_t called_from_H5I);
+H5_DLL herr_t H5I_get_next(H5I_type_t type, hid_t last_id, hid_t *next_id_ptr, 
+                           void ** next_object_ptr, hbool_t called_from_H5I);
 #endif /* H5_HAVE_MULTITHREAD */
 
 /* NOTE:    The object and ID functions below deal in non-VOL objects (i.e.;

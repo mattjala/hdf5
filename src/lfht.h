@@ -53,7 +53,7 @@
  *              Shavit, and Spear for further details.
  *
  *              Note that duplicate hash codes cannot appear in the LFSLL, and that 
- *              nodes in the LFSLL appear in strictly increasing order.
+ *              nodes in the LFSLL appear in strictly increasing hash order.
  *
  * sentinel:    Boolean flag that is true if the node is a sentinel node, and 
  *              false otherwise.
@@ -204,7 +204,7 @@ typedef struct lfht_fl_node_t {
  * node with a reference count (see declarations of lfht_node_t and lfht_fl_node_t 
  * above).  
  *
- * Ideally, on entry to the LFHT package, each thread must increment the
+ * Ideally, on entry to the LFHT package, each thread would increment the
  * reference count on the last node on the free list, and then decrement it
  * on exit. However, until I can find a way to make this operation atomic, this
  * is not workable, as the tail node may advance to the head of the free list
@@ -301,8 +301,8 @@ typedef struct lfht_fl_node_t {
  *              insertions and deletions, and the update of this field, this 
  *              count may be off for brief periods of time. 
  * 
- *              Further, since the free list must always contain at least one 
- *              entry.  When correct, fl_len will be one greater than the number 
+ *              Further, the free list must always contain at least one entry.
+ *              Thus, when correct, fl_len will be one greater than the number 
  *              of nodes available on the free list. 
  * 
  * max_desired_fl_len: Integer field containing the desired maximum free list 

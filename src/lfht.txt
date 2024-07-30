@@ -61,3 +61,13 @@ Finally, the code needs a cleanup.
 
 
 
+To Run lock free hash table tests:
+
+Build tests with:
+
+gcc -lpthread -latomic -g ./lfht_tests.c
+
+and then run 
+
+./a.out
+

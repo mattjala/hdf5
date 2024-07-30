@@ -100,7 +100,16 @@ H5Eget_major(H5E_major_t maj)
 
     /* Application will free this */
     size++;
+
+#ifdef H5_HAVE_MULTITHREAD
+
+    msg_str = (char *)malloc((size_t)size);
+
+#else /* H5_HAVE_MULTITHREAD */
+
     msg_str = (char *)H5MM_malloc((size_t)size);
+
+#endif /* H5_HAVE_MULTITHREAD */
 
     /* Get the text for the message */
     if (H5E__get_msg(msg, NULL, msg_str, (size_t)size) < 0)
@@ -109,8 +118,21 @@ H5Eget_major(H5E_major_t maj)
     ret_value = msg_str;
 
 done:
+
+#ifdef H5_HAVE_MULTITHREAD
+
+    if (!ret_value) {
+
+        free(msg_str);
+        msg_str = NULL;
+    }
+
+#else /* H5_HAVE_MULTITHREAD */
+
     if (!ret_value)
         msg_str = (char *)H5MM_xfree(msg_str);
+
+#endif /* H5_HAVE_MULTITHREAD */
 
     FUNC_LEAVE_API(ret_value)
 } /* end H5Eget_major() */
@@ -149,7 +171,16 @@ H5Eget_minor(H5E_minor_t min)
 
     /* Application will free this */
     size++;
+
+#ifdef H5_HAVE_MULTITHREAD
+
+    msg_str = (char *)malloc((size_t)size);
+
+#else /* H5_HAVE_MULTITHREAD */
+
     msg_str = (char *)H5MM_malloc((size_t)size);
+
+#endif /* H5_HAVE_MULTITHREAD */
 
     /* Get the text for the message */
     if (H5E__get_msg(msg, NULL, msg_str, (size_t)size) < 0)
@@ -158,8 +189,21 @@ H5Eget_minor(H5E_minor_t min)
     ret_value = msg_str;
 
 done:
+
+#ifdef H5_HAVE_MULTITHREAD
+
+    if (!ret_value) {
+
+        free(msg_str);
+        msg_str = NULL;
+    }
+
+#else /* H5_HAVE_MULTITHREAD */
+
     if (!ret_value)
         msg_str = (char *)H5MM_xfree(msg_str);
+
+#endif /* H5_HAVE_MULTITHREAD */
 
     FUNC_LEAVE_API(ret_value)
 } /* end H5Eget_minor() */
