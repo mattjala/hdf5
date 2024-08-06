@@ -7683,7 +7683,7 @@ void * mt_test_fcn_2(void * _params)
         /* load the target ID's assigned type index.  Note that this type is not guaranteed to 
          * have benn registered yet unless it is one of the types assigned to this thread.
          */
-        target_id_type_index = atomic_load(&(id_instance_array[target_id_index].type_index));
+        target_id_type_index = id_instance_array[target_id_index].type_index;
         assert( 0 <= target_id_type_index );
         assert( target_id_type_index < NUM_ID_TYPES );
 
