@@ -67,37 +67,47 @@ static void H5VL__release_dyn_op(H5VL_dyn_op_t *dyn_op);
 /*******************/
 
 /* The current optional operation values */
-static int H5VL_opt_vals_g[H5VL_SUBCLS_TOKEN + 1] = {
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_NONE */
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_INFO */
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_WRAP */
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_ATTR */
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_DATASET */
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_DATATYPE */
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_FILE */
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_GROUP */
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_LINK */
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_OBJECT */
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_REQUEST */
-    H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_BLOB */
-    H5VL_RESERVED_NATIVE_OPTIONAL  /* H5VL_SUBCLS_TOKEN */
+#ifdef H5_HAVE_MULTITHREAD
+static _Atomic(int) H5VL_opt_vals_g[H5VL_SUBCLS_TOKEN + 1] =
+#else
+static int     H5VL_opt_vals_g[H5VL_SUBCLS_TOKEN + 1] =
+#endif
+    {
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_NONE */
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_INFO */
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_WRAP */
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_ATTR */
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_DATASET */
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_DATATYPE */
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_FILE */
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_GROUP */
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_LINK */
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_OBJECT */
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_REQUEST */
+        H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_BLOB */
+        H5VL_RESERVED_NATIVE_OPTIONAL  /* H5VL_SUBCLS_TOKEN */
 };
 
 /* The current optional operations' info */
-static H5SL_t *H5VL_opt_ops_g[H5VL_SUBCLS_TOKEN + 1] = {
-    NULL, /* H5VL_SUBCLS_NONE */
-    NULL, /* H5VL_SUBCLS_INFO */
-    NULL, /* H5VL_SUBCLS_WRAP */
-    NULL, /* H5VL_SUBCLS_ATTR */
-    NULL, /* H5VL_SUBCLS_DATASET */
-    NULL, /* H5VL_SUBCLS_DATATYPE */
-    NULL, /* H5VL_SUBCLS_FILE */
-    NULL, /* H5VL_SUBCLS_GROUP */
-    NULL, /* H5VL_SUBCLS_LINK */
-    NULL, /* H5VL_SUBCLS_OBJECT */
-    NULL, /* H5VL_SUBCLS_REQUEST */
-    NULL, /* H5VL_SUBCLS_BLOB */
-    NULL  /* H5VL_SUBCLS_TOKEN */
+#ifdef H5_HAVE_MULTITHREAD
+static _Atomic(H5SL_t *) H5VL_opt_ops_g[H5VL_SUBCLS_TOKEN + 1] =
+#else
+static H5SL_t *H5VL_opt_ops_g[H5VL_SUBCLS_TOKEN + 1] =
+#endif
+    {
+        NULL, /* H5VL_SUBCLS_NONE */
+        NULL, /* H5VL_SUBCLS_INFO */
+        NULL, /* H5VL_SUBCLS_WRAP */
+        NULL, /* H5VL_SUBCLS_ATTR */
+        NULL, /* H5VL_SUBCLS_DATASET */
+        NULL, /* H5VL_SUBCLS_DATATYPE */
+        NULL, /* H5VL_SUBCLS_FILE */
+        NULL, /* H5VL_SUBCLS_GROUP */
+        NULL, /* H5VL_SUBCLS_LINK */
+        NULL, /* H5VL_SUBCLS_OBJECT */
+        NULL, /* H5VL_SUBCLS_REQUEST */
+        NULL, /* H5VL_SUBCLS_BLOB */
+        NULL  /* H5VL_SUBCLS_TOKEN */
 };
 
 /* Declare a free list to manage the H5VL_class_t struct */
@@ -189,8 +199,11 @@ H5VL__term_opt_operation(void)
 herr_t
 H5VL__register_opt_operation(H5VL_subclass_t subcls, const char *op_name, int *op_val)
 {
-    H5VL_dyn_op_t *new_op;              /* Info about new operation */
-    herr_t         ret_value = SUCCEED; /* Return value */
+    H5VL_dyn_op_t *new_op            = NULL;    /* Info about new operation */
+    herr_t         ret_value         = SUCCEED; /* Return value */
+    H5SL_t        *new_op_list       = NULL;    /* Newly created skip list, if any */
+    H5SL_t        *op_list           = NULL;    /* Existing skip list */
+    bool           new_list_inserted = false;   /* Whether a new skip list was inserted into global array */
 
     FUNC_ENTER_PACKAGE
 
@@ -199,14 +212,41 @@ H5VL__register_opt_operation(H5VL_subclass_t subcls, const char *op_name, int *o
     assert(op_name && *op_name);
 
     /* Check for duplicate operation */
-    if (H5VL_opt_ops_g[subcls]) {
+#ifdef H5_HAVE_MULTITHREAD
+    if ((op_list = atomic_load(&H5VL_opt_ops_g[subcls])) != NULL) {
+        if (NULL != H5SL_search(op_list, op_name))
+            HGOTO_ERROR(H5E_VOL, H5E_EXISTS, FAIL, "operation name already exists");
+    } /* end if */
+#else
+    if ((op_list = H5VL_opt_ops_g[subcls]) != NULL) {
         if (NULL != H5SL_search(H5VL_opt_ops_g[subcls], op_name))
             HGOTO_ERROR(H5E_VOL, H5E_EXISTS, FAIL, "operation name already exists");
     } /* end if */
+#endif
+
+    /* List does not exist: Create skip list for operations of this subclass */
     else {
-        /* Create skip list for operation of this subclass */
-        if (NULL == (H5VL_opt_ops_g[subcls] = H5SL_create(H5SL_TYPE_STR, NULL)))
+        if ((new_op_list = H5SL_create(H5SL_TYPE_STR, NULL)) == NULL)
             HGOTO_ERROR(H5E_VOL, H5E_CANTCREATE, FAIL, "can't create skip list for operations");
+
+#ifdef H5_HAVE_MULTITHREAD
+        H5SL_t *expected = NULL;
+
+        /* If another thread has concurrently set up this op list, abort and use that instead */
+        if ((new_list_inserted =
+                 atomic_compare_exchange_strong(&H5VL_opt_ops_g[subcls], &expected, new_op_list))) {
+            op_list = new_op_list;
+        }
+        else {
+            /* Another thread initialized the list */
+            if ((op_list = atomic_load(&H5VL_opt_ops_g[subcls])) == NULL)
+                HGOTO_ERROR(H5E_VOL, H5E_CANTGET, FAIL, "can't get skip list for operations");
+        }
+#else
+        H5VL_opt_ops_g[subcls] = new_op_list;
+        op_list                = new_op_list;
+        new_list_inserted      = true;
+#endif
     } /* end else */
 
     /* Register new operation */
@@ -214,16 +254,30 @@ H5VL__register_opt_operation(H5VL_subclass_t subcls, const char *op_name, int *o
         HGOTO_ERROR(H5E_VOL, H5E_CANTALLOC, FAIL, "can't allocate memory for dynamic operation info");
     if (NULL == (new_op->op_name = H5MM_strdup(op_name)))
         HGOTO_ERROR(H5E_VOL, H5E_CANTALLOC, FAIL, "can't allocate name for dynamic operation info");
+
+#ifdef H5_HAVE_MULTITHREAD
+    new_op->op_val = atomic_fetch_add(&H5VL_opt_vals_g[subcls], 1);
+#else
     new_op->op_val = H5VL_opt_vals_g[subcls]++;
+#endif
 
     /* Insert into subclass's skip list */
-    if (H5SL_insert(H5VL_opt_ops_g[subcls], new_op, new_op->op_name) < 0)
+    if (H5SL_insert(op_list, new_op, new_op->op_name) < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTINSERT, FAIL, "can't insert operation info into skip list");
 
     /* Return the next operation value to the caller */
     *op_val = new_op->op_val;
 
 done:
+    if (ret_value < 0 && new_op) {
+        if (new_op->op_name)
+            H5MM_xfree(new_op->op_name);
+        H5FL_FREE(H5VL_dyn_op_t, new_op);
+    }
+
+    if (new_op_list && !new_list_inserted)
+        H5SL_close(new_op_list);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5VL__register_opt_operation() */
 
