@@ -929,8 +929,8 @@ H5Gclose_async(const char *app_file, const char *app_func, unsigned app_line, hi
 
         /* Increase connector's refcount, so it doesn't get closed if closing
          * the group closes the file */
+        H5VL_conn_inc_rc(vol_obj->connector);
         connector = vol_obj->connector;
-        H5VL_conn_inc_rc(connector);
 
         /* Point at token for operation to set up */
         token_ptr = &token;

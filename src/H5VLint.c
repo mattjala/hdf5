@@ -429,13 +429,14 @@ H5VL__set_def_conn(void)
         H5VL_def_conn_s.connector_info = vol_info;
     } /* end if */
     else {
+        /* Increment the ref count on the default connector */
+        if (H5I_inc_ref(H5_DEFAULT_VOL, FALSE) < 0)
+            HGOTO_ERROR(H5E_VOL, H5E_CANTINC, FAIL, "can't increment VOL connector refcount");
+
         /* Set the default VOL connector */
         H5VL_def_conn_s.connector_id   = H5_DEFAULT_VOL;
         H5VL_def_conn_s.connector_info = NULL;
 
-        /* Increment the ref count on the default connector */
-        if (H5I_inc_ref(H5VL_def_conn_s.connector_id, FALSE) < 0)
-            HGOTO_ERROR(H5E_VOL, H5E_CANTINC, FAIL, "can't increment VOL connector refcount");
     } /* end else */
 
     /* Get default file access pclass */
@@ -541,6 +542,10 @@ H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *vol_connector, hbool_t 
         type != H5I_GROUP && type != H5I_MAP)
         HGOTO_ERROR(H5E_VOL, H5E_BADVALUE, NULL, "invalid type number");
 
+    /* Bump the reference count on the VOL connector */
+    H5VL_conn_inc_rc(vol_connector);
+    conn_rc_incr = TRUE;
+
     /* Create the new VOL object */
     if (NULL == (new_vol_obj = H5FL_CALLOC(H5VL_object_t)))
         HGOTO_ERROR(H5E_VOL, H5E_CANTALLOC, NULL, "can't allocate memory for VOL object");
@@ -552,10 +557,6 @@ H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *vol_connector, hbool_t 
     else
         new_vol_obj->data = object;
     new_vol_obj->rc = 1;
-
-    /* Bump the reference count on the VOL connector */
-    H5VL_conn_inc_rc(vol_connector);
-    conn_rc_incr = TRUE;
 
     /* If this is a datatype, we have to hide the VOL object under the H5T_t pointer */
     if (H5I_DATATYPE == type) {
@@ -764,6 +765,11 @@ H5VL_new_connector(hid_t connector_id)
 
     FUNC_ENTER_NOAPI(NULL)
 
+    if (H5I_inc_ref(connector_id, FALSE) < 0)
+        HGOTO_ERROR(H5E_VOL, H5E_CANTINC, NULL, "unable to increment ref count on VOL connector");
+
+    conn_id_incr = TRUE;
+
     /* Get the VOL class object from the connector's ID */
     if (NULL == (cls = (H5VL_class_t *)H5I_object_verify(connector_id, H5I_VOL)))
         HGOTO_ERROR(H5E_VOL, H5E_BADTYPE, NULL, "not a VOL connector ID");
@@ -773,9 +779,6 @@ H5VL_new_connector(hid_t connector_id)
         HGOTO_ERROR(H5E_VOL, H5E_CANTALLOC, NULL, "can't allocate VOL connector struct");
     connector->cls = cls;
     connector->id  = connector_id;
-    if (H5I_inc_ref(connector->id, FALSE) < 0)
-        HGOTO_ERROR(H5E_VOL, H5E_CANTINC, NULL, "unable to increment ref count on VOL connector");
-    conn_id_incr = TRUE;
 
     /* Set return value */
     ret_value = connector;
@@ -896,6 +899,11 @@ H5VL_create_object_using_vol_id(H5I_type_t type, void *obj, hid_t connector_id)
 
     FUNC_ENTER_NOAPI(NULL)
 
+    if (H5I_inc_ref(connector_id, FALSE) < 0)
+        HGOTO_ERROR(H5E_VOL, H5E_CANTINC, NULL, "unable to increment ref count on VOL connector");
+
+    conn_id_incr = TRUE;
+
     /* Get the VOL class object from the connector's ID */
     if (NULL == (cls = (H5VL_class_t *)H5I_object_verify(connector_id, H5I_VOL)))
         HGOTO_ERROR(H5E_VOL, H5E_BADTYPE, NULL, "not a VOL connector ID");
@@ -905,9 +913,6 @@ H5VL_create_object_using_vol_id(H5I_type_t type, void *obj, hid_t connector_id)
         HGOTO_ERROR(H5E_VOL, H5E_CANTALLOC, NULL, "can't allocate VOL info struct");
     connector->cls = cls;
     connector->id  = connector_id;
-    if (H5I_inc_ref(connector->id, FALSE) < 0)
-        HGOTO_ERROR(H5E_VOL, H5E_CANTINC, NULL, "unable to increment ref count on VOL connector");
-    conn_id_incr = TRUE;
 
     /* Set up VOL object for the passed-in data */
     /* (Wraps object, since it's a library object) */
@@ -949,9 +954,13 @@ H5VL_conn_inc_rc(H5VL_t *connector)
     assert(connector);
 
     /* Increment refcount for connector */
+#ifdef H5_HAVE_MULTITHREAD
+    atomic_fetch_add(&connector->nrefs, 1);
+    ret_value = atomic_load(&connector->nrefs);
+#else
     connector->nrefs++;
-
     ret_value = connector->nrefs;
+#endif
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5VL_conn_inc_rc() */
@@ -976,10 +985,25 @@ H5VL_conn_dec_rc(H5VL_t *connector)
     assert(connector);
 
     /* Decrement refcount for connector */
+#ifdef H5_HAVE_MULTITHREAD
+    /* It is in principle possible for another thread to increment the ref count after it drops to zero,
+     * which would result in another thread holding a pointer to invalid memory if the free operations here complete.
+     * However, any thread that can increment the ref count should hold a reference itself, so it should be impossible for
+     * the ref count to drop to zero under such circumstances. */
+    atomic_fetch_sub(&connector->nrefs, 1);
+#else    
     connector->nrefs--;
+#endif
+
 
     /* Check for last reference */
-    if (0 == connector->nrefs) {
+
+#ifdef H5_HAVE_MULTITHREAD
+    if (0 == atomic_load(&connector->nrefs))
+#else    
+    if (0 == connector->nrefs)
+#endif
+    {
         if (H5I_dec_ref(connector->id) < 0)
             HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "unable to decrement ref count on VOL connector");
         H5FL_FREE(H5VL_t, connector);
@@ -989,7 +1013,12 @@ H5VL_conn_dec_rc(H5VL_t *connector)
     } /* end if */
     else
         /* Set return value */
+
+#ifdef H5_HAVE_MULTITHREAD
+        ret_value = atomic_load(&connector->nrefs);
+#else
         ret_value = connector->nrefs;
+#endif
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
