@@ -297,10 +297,11 @@ H5F__set_vol_conn(H5F_t *file)
             HGOTO_ERROR(H5E_FILE, H5E_CANTCOPY, FAIL, "connector info copy failed");
 
     /* Cache the connector ID & info for the container */
+    if (H5I_inc_ref(connector_prop.connector_id, FALSE) < 0)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTINC, FAIL, "incrementing VOL connector ID failed");
+
     file->shared->vol_id   = connector_prop.connector_id;
     file->shared->vol_info = new_connector_info;
-    if (H5I_inc_ref(file->shared->vol_id, FALSE) < 0)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTINC, FAIL, "incrementing VOL connector ID failed");
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
