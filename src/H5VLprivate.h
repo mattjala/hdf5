@@ -46,7 +46,12 @@ typedef struct H5VL_t {
 typedef struct H5VL_object_t {
     void   *data;      /* Pointer to connector-managed data for this object    */
     H5VL_t *connector; /* Pointer to VOL connector struct                      */
+#ifdef H5_HAVE_MULTITHREAD
+    _Atomic size_t rc; /* Reference count                                      */
+#else
     size_t  rc;        /* Reference count                                      */
+#endif
+
 } H5VL_object_t;
 
 /* Internal structure to hold the connector ID & info for FAPLs */
