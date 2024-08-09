@@ -271,6 +271,7 @@ H5F__set_vol_conn(H5F_t *file)
     H5VL_connector_prop_t connector_prop;               /* Property for VOL connector ID & info */
     void                 *new_connector_info = NULL;    /* Copy of connector info */
     herr_t                ret_value          = SUCCEED; /* Return value */
+    hbool_t               conn_id_incr       = FALSE;   /* Whether the connector ID was incremented */
 
     FUNC_ENTER_PACKAGE
 
@@ -286,6 +287,12 @@ H5F__set_vol_conn(H5F_t *file)
     /* Sanity check */
     assert(0 != connector_prop.connector_id);
 
+    /* This shared file is now an owner of the connector class */
+    if (H5I_inc_ref(connector_prop.connector_id, FALSE) < 0)
+        HGOTO_ERROR(H5E_FILE, H5E_CANTINC, FAIL, "incrementing VOL connector ID failed");
+
+    conn_id_incr = TRUE;
+
     /* Retrieve the connector for the ID */
     if (NULL == (file->shared->vol_cls = (H5VL_class_t *)H5I_object(connector_prop.connector_id)))
         HGOTO_ERROR(H5E_FILE, H5E_BADTYPE, FAIL, "not a VOL connector ID");
@@ -297,13 +304,14 @@ H5F__set_vol_conn(H5F_t *file)
             HGOTO_ERROR(H5E_FILE, H5E_CANTCOPY, FAIL, "connector info copy failed");
 
     /* Cache the connector ID & info for the container */
-    if (H5I_inc_ref(connector_prop.connector_id, FALSE) < 0)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTINC, FAIL, "incrementing VOL connector ID failed");
-
     file->shared->vol_id   = connector_prop.connector_id;
     file->shared->vol_info = new_connector_info;
 
 done:
+    if (ret_value < 0 && conn_id_incr)
+        if (H5I_dec_ref(connector_prop.connector_id) < 0)
+            HDONE_ERROR(H5E_FILE, H5E_CANTDEC, FAIL, "can't decrement VOL connector ID");
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F__set_vol_conn() */
 
