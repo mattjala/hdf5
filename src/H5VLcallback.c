@@ -428,7 +428,7 @@ done:
  *---------------------------------------------------------------------------
  */
 herr_t
-H5VLcopy_connector_info(hid_t connector_id, void **dst_vol_info, void *src_vol_info)
+H5VLcopy_connector_info(hid_t connector_id, void **dst_vol_info, const void *src_vol_info)
 {
     H5VL_class_t *cls;                 /* VOL connector's class struct */
     herr_t        ret_value = SUCCEED; /* Return value */
@@ -591,7 +591,7 @@ done:
  *---------------------------------------------------------------------------
  */
 herr_t
-H5VLfree_connector_info(hid_t connector_id, void *info)
+H5VLfree_connector_info(hid_t connector_id, const void *info)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
@@ -2084,7 +2084,7 @@ H5VL_dataset_read_direct(size_t count, void *obj[], H5VL_t *connector, hid_t mem
 #ifdef H5_HAVE_MULTITHREAD
     atomic_init(&tmp_vol_obj.rc, 1);
 #else
-    tmp_vol_obj.rc        = 1;
+    tmp_vol_obj.rc = 1;
 #endif
 
     if (H5VL_set_vol_wrapper(&tmp_vol_obj) < 0)
@@ -2279,7 +2279,7 @@ H5VL_dataset_write_direct(size_t count, void *obj[], H5VL_t *connector, hid_t me
 #ifdef H5_HAVE_MULTITHREAD
     atomic_init(&tmp_vol_obj.rc, 1);
 #else
-    tmp_vol_obj.rc        = 1;
+    tmp_vol_obj.rc = 1;
 #endif
 
     if (H5VL_set_vol_wrapper(&tmp_vol_obj) < 0)
