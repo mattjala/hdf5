@@ -556,7 +556,12 @@ H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *vol_connector, hbool_t 
     } /* end if */
     else
         new_vol_obj->data = object;
+
+#ifdef H5_HAVE_MULTITHREAD
+    atomic_init(&new_vol_obj->rc, 1);
+#else
     new_vol_obj->rc = 1;
+#endif
 
     /* If this is a datatype, we have to hide the VOL object under the H5T_t pointer */
     if (H5I_DATATYPE == type) {
@@ -874,7 +879,11 @@ H5VL_create_object(void *object, H5VL_t *vol_connector)
         HGOTO_ERROR(H5E_VOL, H5E_CANTALLOC, NULL, "can't allocate memory for VOL object");
     ret_value->connector = vol_connector;
     ret_value->data      = object;
+#ifdef H5_HAVE_MULTITHREAD
+    atomic_init(&ret_value->rc, 1);
+#else
     ret_value->rc        = 1;
+#endif
 
     /* Bump the reference count on the VOL connector */
     H5VL_conn_inc_rc(vol_connector);
@@ -998,10 +1007,10 @@ H5VL_conn_dec_rc(H5VL_t *connector)
 
     /* Decrement refcount for connector */
 #ifdef H5_HAVE_MULTITHREAD
-    /* It is in principle possible for another thread to increment the ref count after it drops to zero,
-     * which would result in another thread holding a pointer to invalid memory if the free operations here
-     * complete. However, any thread that can increment the ref count should hold a reference itself, so it
-     * should be impossible for the ref count to drop to zero under such circumstances. */
+    /* It is in principle possible for another thread to increment the ref count after it drops to zero here,
+     * which would result in another thread holding a pointer to invalid memory after these free operations. 
+     * However, any thread that can decrement the ref count should hold a reference itself, so it
+     * should be impossible for that to happen. */
     atomic_fetch_sub(&connector->nrefs, 1);
 #else
     connector->nrefs--;
@@ -1017,6 +1026,14 @@ H5VL_conn_dec_rc(H5VL_t *connector)
     {
         if (H5I_dec_ref(connector->id) < 0)
             HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "unable to decrement ref count on VOL connector");
+
+        /* Sanity check */
+#ifdef H5_HAVE_MULTITHREAD
+        assert(atomic_load(&connector->nrefs) == 0);
+#else
+        assert(connector->nrefs == 0);
+#endif
+
         H5FL_FREE(H5VL_t, connector);
 
         /* Set return value */
@@ -1047,13 +1064,22 @@ done:
 hsize_t
 H5VL_object_inc_rc(H5VL_object_t *vol_obj)
 {
+    size_t new_rc = 0;
+
     FUNC_ENTER_NOAPI_NOERR
 
     /* Check arguments */
     assert(vol_obj);
 
     /* Increment refcount for object and return */
-    FUNC_LEAVE_NOAPI(++vol_obj->rc)
+#ifdef H5_HAVE_MULTITHREAD
+    new_rc = atomic_fetch_add(&vol_obj->rc, 1) + 1;
+#else
+    new_rc = ++vol_obj->rc;
+#endif
+
+    FUNC_LEAVE_NOAPI(new_rc)
+
 } /* end H5VL_object_inc_rc() */
 
 /*-------------------------------------------------------------------------
@@ -1076,10 +1102,27 @@ H5VL_free_object(H5VL_object_t *vol_obj)
     /* Check arguments */
     assert(vol_obj);
 
-    if (--vol_obj->rc == 0) {
+#ifdef H5_HAVE_MULTITHREAD
+    /* It is in principle possible for another thread to increment the ref count after it drops to zero here,
+     * which would result in another thread holding a pointer to invalid memory after these free operations. 
+     * However, any thread that can decrement the ref count should hold a reference itself, so it
+     * should be impossible for that to happen. */
+    atomic_fetch_sub(&vol_obj->rc, 1);
+#else
+    --vol_obj->rc;
+#endif    
+
+    if (vol_obj->rc == 0) {
         /* Decrement refcount on connector */
         if (H5VL_conn_dec_rc(vol_obj->connector) < 0)
             HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "unable to decrement ref count on VOL connector");
+
+        /* Sanity Check */
+#ifdef H5_HAVE_MULTITHREAD
+        assert(atomic_load(&vol_obj->rc) == 0);
+#else
+        assert(vol_obj->rc == 0);
+#endif
 
         vol_obj = H5FL_FREE(H5VL_object_t, vol_obj);
     } /* end if */
