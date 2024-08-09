@@ -780,6 +780,12 @@ H5VL_new_connector(hid_t connector_id)
     connector->cls = cls;
     connector->id  = connector_id;
 
+#ifdef H5_HAVE_MULTITHREAD
+    /* TODO: See hdf5#4635 for a discussion on how the RC should be handled during initialization.
+     * For now, keep behavior the same. */
+    atomic_init(&connector->nrefs, 0);
+#endif
+
     /* Set return value */
     ret_value = connector;
 
@@ -914,6 +920,12 @@ H5VL_create_object_using_vol_id(H5I_type_t type, void *obj, hid_t connector_id)
     connector->cls = cls;
     connector->id  = connector_id;
 
+#ifdef H5_HAVE_MULTITHREAD
+    /* TODO: See hdf5#4635 for a discussion on how the RC should be handled during initialization.
+     * For now, keep behavior the same. */
+    atomic_init(&connector->nrefs, 0);
+#endif
+
     /* Set up VOL object for the passed-in data */
     /* (Wraps object, since it's a library object) */
     if (NULL == (ret_value = H5VL__new_vol_obj(type, obj, connector, TRUE)))
@@ -987,20 +999,19 @@ H5VL_conn_dec_rc(H5VL_t *connector)
     /* Decrement refcount for connector */
 #ifdef H5_HAVE_MULTITHREAD
     /* It is in principle possible for another thread to increment the ref count after it drops to zero,
-     * which would result in another thread holding a pointer to invalid memory if the free operations here complete.
-     * However, any thread that can increment the ref count should hold a reference itself, so it should be impossible for
-     * the ref count to drop to zero under such circumstances. */
+     * which would result in another thread holding a pointer to invalid memory if the free operations here
+     * complete. However, any thread that can increment the ref count should hold a reference itself, so it
+     * should be impossible for the ref count to drop to zero under such circumstances. */
     atomic_fetch_sub(&connector->nrefs, 1);
-#else    
+#else
     connector->nrefs--;
 #endif
-
 
     /* Check for last reference */
 
 #ifdef H5_HAVE_MULTITHREAD
     if (0 == atomic_load(&connector->nrefs))
-#else    
+#else
     if (0 == connector->nrefs)
 #endif
     {
@@ -1012,7 +1023,7 @@ H5VL_conn_dec_rc(H5VL_t *connector)
         ret_value = 0;
     } /* end if */
     else
-        /* Set return value */
+    /* Set return value */
 
 #ifdef H5_HAVE_MULTITHREAD
         ret_value = atomic_load(&connector->nrefs);
