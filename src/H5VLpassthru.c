@@ -35,6 +35,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* TODO: H5_HAVE_MULTITHREAD seems not to be exposed to this module, always import */
+#include <stdatomic.h>
+
 /* Public HDF5 file */
 #include "hdf5.h"
 
@@ -365,7 +368,11 @@ static const H5VL_class_t H5VL_pass_through_g = {
 };
 
 /* The connector identification number, initialized at runtime */
-static hid_t H5VL_PASSTHRU_g = H5I_INVALID_HID;
+#ifdef H5_HAVE_MULTITHREAD
+static _Atomic(hid_t) H5VL_PASSTHRU_ID_g = H5I_INVALID_HID;
+#else
+static hid_t H5VL_PASSTHRU_ID_g = H5I_INVALID_HID;
+#endif
 
 /*-------------------------------------------------------------------------
  * Function:    H5VL__pass_through_new_obj
@@ -434,11 +441,32 @@ H5VL_pass_through_free_obj(H5VL_pass_through_t *obj)
 hid_t
 H5VL_pass_through_register(void)
 {
-    /* Singleton register the pass-through VOL connector ID */
-    if (H5VL_PASSTHRU_g < 0)
-        H5VL_PASSTHRU_g = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT);
+    hid_t ret_value;
 
-    return H5VL_PASSTHRU_g;
+#ifdef H5_HAVE_MULTITHREAD
+    hid_t invalid_id = H5I_INVALID_HID;
+
+    if (atomic_load(&H5VL_PASSTHRU_ID_g) < 0) {
+        ret_value = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT);
+
+        /* If another thread already set the passthrough ID, do nothing. */
+        atomic_compare_exchange_strong(&H5VL_PASSTHRU_ID_g, &invalid_id, ret_value);
+    }
+#else
+    /* Singleton register the pass-through VOL connector ID */
+    if (H5VL_PASSTHRU_ID_g < 0)
+        H5VL_PASSTHRU_ID_g = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT);
+
+#endif
+
+#ifdef H5_HAVE_MULTITHREAD
+    ret_value = atomic_load(&H5VL_PASSTHRU_ID_g);
+#else
+    ret_value          = H5VL_PASSTHRU_ID_g;
+#endif
+
+    return ret_value;
+
 } /* end H5VL_pass_through_register() */
 
 /*-------------------------------------------------------------------------
@@ -487,7 +515,11 @@ H5VL_pass_through_term(void)
 #endif
 
     /* Reset VOL ID */
-    H5VL_PASSTHRU_g = H5I_INVALID_HID;
+#ifdef H5_HAVE_MULTITHREAD
+    atomic_store(&H5VL_PASSTHRU_ID_g, H5I_INVALID_HID);
+#else
+    H5VL_PASSTHRU_ID_g = H5I_INVALID_HID;
+#endif
 
     return 0;
 } /* end H5VL_pass_through_term() */
