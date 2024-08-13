@@ -40,7 +40,12 @@
 #include "H5VLnative_private.h" /* Native VOL connector                     */
 
 /* The VOL connector identification number */
+
+#ifdef H5_HAVE_MULTITHREAD
+static _Atomic(hid_t) H5VL_NATIVE_ID_g = H5I_INVALID_HID;
+#else
 static hid_t H5VL_NATIVE_ID_g = H5I_INVALID_HID;
+#endif
 
 /* Prototypes */
 static herr_t H5VL__native_term(void);
@@ -199,13 +204,28 @@ H5VL_native_register(void)
     FUNC_ENTER_NOAPI(H5I_INVALID_HID)
 
     /* Register the native VOL connector, if it isn't already */
+#ifdef H5_HAVE_MULTITHREAD
+    hid_t invalid_id = H5I_INVALID_HID;
+
+    if (H5I_INVALID_HID == atomic_load(&H5VL_NATIVE_ID_g))
+        if ((ret_value = H5VL__register_connector(&H5VL_native_cls_g, TRUE, H5P_VOL_INITIALIZE_DEFAULT)) < 0)
+            HGOTO_ERROR(H5E_VOL, H5E_CANTINSERT, H5I_INVALID_HID, "can't create ID for native VOL connector");
+
+    /* If another thread already set the native ID, do nothing.
+     * At present, initialization is single-threaded and this is redundant. */
+    atomic_compare_exchange_strong(&H5VL_NATIVE_ID_g, &invalid_id, ret_value);
+#else
     if (H5I_INVALID_HID == H5VL_NATIVE_ID_g)
         if ((H5VL_NATIVE_ID_g =
                  H5VL__register_connector(&H5VL_native_cls_g, TRUE, H5P_VOL_INITIALIZE_DEFAULT)) < 0)
             HGOTO_ERROR(H5E_VOL, H5E_CANTINSERT, H5I_INVALID_HID, "can't create ID for native VOL connector");
+#endif
 
-    /* Set return value */
-    ret_value = H5VL_NATIVE_ID_g;
+#ifdef H5_HAVE_MULTITHREAD
+    ret_value = atomic_load(&H5VL_NATIVE_ID_g);
+#else
+    ret_value        = H5VL_NATIVE_ID_g;
+#endif
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -226,7 +246,11 @@ H5VL__native_term(void)
     FUNC_ENTER_PACKAGE_NOERR
 
     /* Reset VOL ID */
+#ifdef H5_HAVE_MULTITHREAD
+    atomic_store(&H5VL_NATIVE_ID_g, H5I_INVALID_HID);
+#else
     H5VL_NATIVE_ID_g = H5I_INVALID_HID;
+#endif
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5VL__native_term() */
