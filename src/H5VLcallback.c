@@ -51,7 +51,6 @@
  */
 typedef struct H5VL_file_open_find_connector_t {
     const char            *filename;
-    const H5VL_class_t    *cls;
     H5VL_connector_prop_t *connector_prop;
     hid_t                  fapl_id;
 } H5VL_file_open_find_connector_t;
@@ -3731,8 +3730,6 @@ H5VL__file_open_find_connector_cb(H5PL_type_t plugin_type, const void *plugin_in
     /* Silence compiler */
     (void)plugin_type;
 
-    udata->cls = cls;
-
     /* Attempt to register plugin as a VOL connector */
     if ((connector_id = H5VL__register_connector_by_class(cls, TRUE, H5P_VOL_INITIALIZE_DEFAULT)) < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTREGISTER, H5_ITER_ERROR, "unable to register VOL connector");
@@ -3846,7 +3843,6 @@ H5VL_file_open(H5VL_connector_prop_t *connector_prop, const char *name, unsigned
 
             find_connector_ud.connector_prop = connector_prop;
             find_connector_ud.filename       = name;
-            find_connector_ud.cls            = NULL;
             find_connector_ud.fapl_id        = fapl_id;
 
             iter_ret = H5PL_iterate(H5PL_ITER_TYPE_VOL, H5VL__file_open_find_connector_cb,
@@ -3863,11 +3859,12 @@ H5VL_file_open(H5VL_connector_prop_t *connector_prop, const char *name, unsigned
                  */
                 H5E_clear_stack(NULL);
 
-                if (NULL == (ret_value = H5VL__file_open(find_connector_ud.cls, name, flags,
-                                                         find_connector_ud.fapl_id, dxpl_id, req)))
+                cls = (H5VL_class_t *)H5I_object_verify(connector_prop->connector_id, H5I_VOL);
+
+                if (NULL ==
+                    (ret_value = H5VL__file_open(cls, name, flags, find_connector_ud.fapl_id, dxpl_id, req)))
                     HGOTO_ERROR(H5E_VOL, H5E_CANTOPENOBJ, NULL,
-                                "can't open file '%s' with VOL connector '%s'", name,
-                                find_connector_ud.cls->name);
+                                "can't open file '%s' with VOL connector '%s'", name, cls->name);
             }
             else
                 HGOTO_ERROR(H5E_VOL, H5E_CANTOPENOBJ, NULL, "open failed");
