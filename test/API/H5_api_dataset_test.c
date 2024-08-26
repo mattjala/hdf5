@@ -9234,8 +9234,6 @@ test_write_multi_chunk_dataset_same_shape_read(void)
     for (i = 0; i < data_size / chunk_size; i++) {
         size_t j, k;
 
-        printf("\r Reading chunk %zu", i);
-
         for (j = 0; j < DATASET_MULTI_CHUNK_WRITE_SAME_SPACE_READ_TEST_DSET_SPACE_RANK; j++) {
             if (dims[j] == chunk_dims[j])
                 start[j] = 0;
@@ -9569,8 +9567,6 @@ test_write_multi_chunk_dataset_diff_shape_read(void)
     for (i = 0; i < data_size / chunk_size; i++) {
         size_t j;
 
-        printf("\r Reading chunk %zu", i);
-
         for (j = 0; j < DATASET_MULTI_CHUNK_WRITE_DIFF_SPACE_READ_TEST_DSET_SPACE_RANK; j++) {
             if (dims[j] == chunk_dims[j])
                 start[j] = 0;
@@ -9900,7 +9896,6 @@ test_overwrite_multi_chunk_dataset_same_shape_read(void)
         for (i = 0; i < data_size / chunk_size; i++) {
             size_t j, k;
 
-            printf("\r Reading chunk %zu", i);
 
             for (j = 0; j < DATASET_MULTI_CHUNK_OVERWRITE_SAME_SPACE_READ_TEST_DSET_SPACE_RANK; j++) {
                 if (dims[j] == chunk_dims[j])
@@ -10243,8 +10238,6 @@ test_overwrite_multi_chunk_dataset_diff_shape_read(void)
          */
         for (i = 0; i < data_size / chunk_size; i++) {
             size_t j;
-
-            printf("\r Reading chunk %zu", i);
 
             for (j = 0; j < DATASET_MULTI_CHUNK_OVERWRITE_DIFF_SPACE_READ_TEST_DSET_SPACE_RANK; j++) {
                 if (dims[j] == chunk_dims[j])
@@ -10752,8 +10745,6 @@ test_read_partial_chunk_hyperslab_selection(void)
             printf("    failed to select hyperslab\n");
             goto error;
         }
-
-        printf("\r Reading chunk %zu", i);
 
         if (H5Dread(dset_id, DATASET_PARTIAL_CHUNK_READ_HYPER_SEL_TEST_DSET_DTYPE, mspace_id, fspace_id,
                     H5P_DEFAULT, read_buf) < 0) {

@@ -125,11 +125,14 @@ H5_api_test_run(void)
 }
 
 
+/* Run the API tests from a single thread. 
+ * Returns: Pointer to the input thread_info_t structure.
+ *         A result summary of the tests run can be found in threat_info_t->result
+ */
 void *
 run_h5_API_tests_thread(void *thread_info)
 {
     const char    *vol_connector_string;
-    const char    *vol_connector_name;
     unsigned       seed;
     hid_t          fapl_id                   = H5I_INVALID_HID;
     hid_t          default_con_id            = H5I_INVALID_HID;
@@ -156,11 +159,6 @@ run_h5_API_tests_thread(void *thread_info)
 #endif
 
     printf("%zu: Running API tests\n", tinfo->thread_idx);
-
-    n_tests_run_g     = 0;
-    n_tests_passed_g  = 0;
-    n_tests_failed_g  = 0;
-    n_tests_skipped_g = 0;
 
     seed = (unsigned)HDtime(NULL);
     srand(seed);
@@ -192,7 +190,7 @@ run_h5_API_tests_thread(void *thread_info)
 
     if (NULL == (vol_connector_string = HDgetenv(HDF5_VOL_CONNECTOR))) {
         printf("No VOL connector selected; using native VOL connector\n");
-        vol_connector_name = "native";
+        tinfo->vol_connector_name = "native";
         vol_connector_info = NULL;
     }
     else {
@@ -210,14 +208,21 @@ run_h5_API_tests_thread(void *thread_info)
             goto done;
         }
 
-        vol_connector_name = token;
+        tinfo->vol_connector_name = token;
 
         if (NULL != (token = HDstrtok(NULL, " "))) {
             vol_connector_info = token;
         }
     }
 
-    printf("Running API tests with VOL connector '%s' and info string '%s'\n\n", vol_connector_name,
+#ifndef H5_HAVE_MULTITHREAD
+    n_tests_run_g = 0;
+    n_tests_passed_g = 0;
+    n_tests_failed_g = 0;
+    n_tests_skipped_g = 0;
+#endif
+
+    printf("Running API tests with VOL connector '%s' and info string '%s'\n\n", tinfo->vol_connector_name,
            vol_connector_info ? vol_connector_info : "");
     printf("Test parameters:\n");
     printf("  - Test file name: '%s'\n", H5_API_TEST_FILENAME);
@@ -238,10 +243,10 @@ run_h5_API_tests_thread(void *thread_info)
      * Otherwise, HDF5 will default to running the tests
      * with the native connector, which could be misleading.
      */
-    if (0 != HDstrcmp(vol_connector_name, "native")) {
+    if (0 != HDstrcmp(tinfo->vol_connector_name, "native")) {
         htri_t is_registered;
 
-        if ((is_registered = H5VLis_connector_registered_by_name(vol_connector_name)) < 0) {
+        if ((is_registered = H5VLis_connector_registered_by_name(tinfo->vol_connector_name)) < 0) {
             fprintf(stderr, "Unable to determine if VOL connector is registered\n");
             tinfo->result = API_TEST_ERROR;
             goto done;
@@ -249,7 +254,7 @@ run_h5_API_tests_thread(void *thread_info)
 
         if (!is_registered) {
             fprintf(stderr, "Specified VOL connector '%s' wasn't correctly registered!\n",
-                    vol_connector_name);
+                    tinfo->vol_connector_name);
             tinfo->result = API_TEST_ERROR;
             goto done;
         }
@@ -265,7 +270,7 @@ run_h5_API_tests_thread(void *thread_info)
                 goto done;
             }
 
-            if ((registered_con_id = H5VLget_connector_id_by_name(vol_connector_name)) < 0) {
+            if ((registered_con_id = H5VLget_connector_id_by_name(tinfo->vol_connector_name)) < 0) {
                 fprintf(stderr, "Couldn't retrieve ID of registered VOL connector\n");
                 tinfo->result = API_TEST_ERROR;
                 goto done;
@@ -306,17 +311,14 @@ run_h5_API_tests_thread(void *thread_info)
 
     H5Fdelete(H5_API_TEST_FILENAME, fapl_id);
 
-    if (n_tests_run_g > 0) {
-        printf("%zu/%zu (%.2f%%) API tests passed with VOL connector '%s'\n", n_tests_passed_g, n_tests_run_g,
-               ((double)n_tests_passed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
-        printf("%zu/%zu (%.2f%%) API tests did not pass with VOL connector '%s'\n", n_tests_failed_g,
-               n_tests_run_g, ((double)n_tests_failed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
-        printf("%zu/%zu (%.2f%%) API tests were skipped with VOL connector '%s'\n", n_tests_skipped_g,
-               n_tests_run_g, ((double)n_tests_skipped_g / (double)n_tests_run_g * 100.0),
-               vol_connector_name);
-    }
+#ifndef H5_HAVE_MULTITHREAD
+    tinfo->n_tests_run_g = n_tests_run_g;
+    tinfo->n_tests_passed_g = n_tests_passed_g;
+    tinfo->n_tests_failed_g = n_tests_failed_g;
+    tinfo->n_tests_skipped_g = n_tests_skipped_g;
+#endif
 
-    if (n_tests_failed_g > 0) {
+    if (tinfo->n_tests_failed_g > 0) {
         tinfo->result = API_TEST_FAIL;
     }
 done:
@@ -349,6 +351,7 @@ main(int argc, char **argv)
 {
     void* retval = NULL;
     int   ret_value = EXIT_SUCCESS;
+
 #ifdef H5_HAVE_MULTITHREAD
 #define MAX_THREADS 3
     pthread_t threads[MAX_THREADS];
@@ -362,6 +365,8 @@ active_thread_ct = 1;
 #endif
 
     thread_info_t tinfo[MAX_THREADS];
+
+    memset(tinfo, 0, sizeof(tinfo));
 
     /* Simple argument checking, TODO can improve that later */
     if (argc > 1) {
@@ -399,7 +404,6 @@ active_thread_ct = 1;
 
         /* Execute API tests in each thread */
         active_thread_ct = nthreads;
-
         printf("== Running API tests with %zu thread(s) ==\n", nthreads);
         for (size_t thread_idx = 0; thread_idx < nthreads; thread_idx++) {
 
@@ -424,12 +428,11 @@ active_thread_ct = 1;
 
             if (!retval) {
                 fprintf(stderr, "No return from an API tests thread\n");
-                err_occurred = true;
+                exit(EXIT_FAILURE);
             }
 
             if (((thread_info_t *)(retval))->result == API_TEST_ERROR) {
                 fprintf(stderr, "An internal error occurred during API tests in thread %zu\n", ((thread_info_t*)(retval))->thread_idx);
-                err_occurred = true;
             }
                             
             if (((thread_info_t *)(retval))->result == API_TEST_FAIL) {
@@ -456,7 +459,20 @@ active_thread_ct = 1;
                 tinfo[i].vol_connector_name);
         }
 
-        // TODO summarize results
+        printf("[All threads] %zu/%zu (%.2f%%) API tests passed\n", n_tests_passed_g, n_tests_run_g,
+               ((double)n_tests_passed_g / (double)n_tests_run_g * 100.0));
+        printf("[All threads] %zu/%zu (%.2f%%) API tests did not pass\n", n_tests_failed_g,
+               n_tests_run_g, ((double)n_tests_failed_g / (double)n_tests_run_g * 100.0));
+        printf("[All threads] %zu/%zu (%.2f%%) API tests were skipped\n",  n_tests_skipped_g,
+               n_tests_run_g, ((double)n_tests_skipped_g / (double)n_tests_run_g * 100.0));
+
+        /* Reset stats */
+        n_tests_run_g = 0;
+        n_tests_passed_g = 0;
+        n_tests_failed_g = 0;
+        n_tests_skipped_g = 0;
+
+        memset(tinfo, 0, sizeof(tinfo));
     }
 
 #else
@@ -467,6 +483,17 @@ active_thread_ct = 1;
         fprintf(stderr, "Error running API tests\n");
         ret_value = FAIL;
         goto done;
+    }
+
+    if (n_tests_run_g > 0) {
+        printf("%zu/%zu (%.2f%%) API tests passed with VOL connector '%s'\n", n_tests_passed_g, n_tests_run_g,
+               ((double)n_tests_passed_g / (double)n_tests_run_g * 100.0), tinfo[0].vol_connector_name);
+        printf("%zu/%zu (%.2f%%) API tests did not pass with VOL connector '%s'\n", n_tests_failed_g,
+               n_tests_run_g, ((double)n_tests_failed_g / (double)n_tests_run_g * 100.0), tinfo[0].vol_connector_name);
+        printf("%zu/%zu (%.2f%%) API tests were skipped with VOL connector '%s'\n", n_tests_skipped_g,
+               n_tests_run_g, ((double)n_tests_skipped_g / (double)n_tests_run_g * 100.0), tinfo[0].vol_connector_name);
+    } else {
+        printf("No API tests were run\n");
     }
 
 #endif
