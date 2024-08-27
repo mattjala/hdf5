@@ -68,10 +68,10 @@ static void H5VL__release_dyn_op(H5VL_dyn_op_t *dyn_op);
 
 /* The current optional operation values */
 #ifdef H5_HAVE_MULTITHREAD
-static _Atomic(int) H5VL_opt_vals_g[H5VL_SUBCLS_TOKEN + 1] =
+/* Initialize in H5VL_init_opt_operation_table() */
+static _Atomic(int) H5VL_opt_vals_g[H5VL_SUBCLS_TOKEN + 1];
 #else
 static int     H5VL_opt_vals_g[H5VL_SUBCLS_TOKEN + 1] =
-#endif
     {
         H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_NONE */
         H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_INFO */
@@ -87,6 +87,7 @@ static int     H5VL_opt_vals_g[H5VL_SUBCLS_TOKEN + 1] =
         H5VL_RESERVED_NATIVE_OPTIONAL, /* H5VL_SUBCLS_BLOB */
         H5VL_RESERVED_NATIVE_OPTIONAL  /* H5VL_SUBCLS_TOKEN */
 };
+#endif
 
 /* The current optional operations' info */
 #ifdef H5_HAVE_MULTITHREAD
@@ -108,7 +109,7 @@ static H5SL_t *H5VL_opt_ops_g[H5VL_SUBCLS_TOKEN + 1] =
         NULL, /* H5VL_SUBCLS_REQUEST */
         NULL, /* H5VL_SUBCLS_BLOB */
         NULL  /* H5VL_SUBCLS_TOKEN */
-};
+    };
 
 /* Declare a free list to manage the H5VL_class_t struct */
 H5FL_DEFINE_STATIC(H5VL_dyn_op_t);
@@ -186,6 +187,27 @@ H5VL__term_opt_operation(void)
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5VL__term_opt_operation() */
 
+#ifdef H5_HAVE_MULTITHREAD
+/*---------------------------------------------------------------------------
+ * Function:    H5VL__init_opt_operation_table
+ *
+ * Purpose:     Initialize the atomic optional operation table for VOL objects.
+ *
+ *---------------------------------------------------------------------------
+ */
+void
+H5VL__init_opt_operation_table(void) {
+    size_t subcls = 0; /* Index over the elements of operation array */
+
+    FUNC_ENTER_PACKAGE_NOERR
+
+    /* Iterate over the VOL subclasses */
+    for (subcls = 0; subcls < NELMTS(H5VL_opt_vals_g); subcls++)
+        atomic_init(&H5VL_opt_vals_g[subcls], H5VL_RESERVED_NATIVE_OPTIONAL);
+
+    FUNC_LEAVE_NOAPI_VOID
+} /* H5VL__init_opt_operation_table() */
+#endif
 /*---------------------------------------------------------------------------
  * Function:    H5VL__register_opt_operation
  *

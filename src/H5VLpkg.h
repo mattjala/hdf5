@@ -63,6 +63,7 @@ H5_DLL size_t  H5VL__num_opt_operation(void);
 H5_DLL herr_t  H5VL__find_opt_operation(H5VL_subclass_t subcls, const char *op_name, int *op_val);
 H5_DLL herr_t  H5VL__unregister_opt_operation(H5VL_subclass_t subcls, const char *op_name);
 H5_DLL herr_t  H5VL__term_opt_operation(void);
+H5_DLL void H5VL__init_opt_operation_table(void);
 
 /* Testing functions */
 #ifdef H5VL_TESTING
