@@ -29,6 +29,7 @@ static int test_get_file_intent(void);
 static int test_get_file_obj_count(void);
 static int test_file_mounts(void);
 static int test_get_file_name(void);
+herr_t check_open_obj_count(ssize_t obj_count, int expected);
 
 /*
  * The array of file tests to be performed.
@@ -360,9 +361,9 @@ test_open_file(void)
         {
             TESTING_2("H5Fopen in read-only mode");
 
-            if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) {
+            if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) {
                 H5_FAILED();
-                printf("    unable to open file '%s' in read-only mode\n", H5_api_test_filename);
+                printf("    unable to open file '%s' in read-only mode\n", H5_API_TEST_FILENAME);
                 PART_ERROR(H5Fopen_rdonly);
             }
 
@@ -383,9 +384,9 @@ test_open_file(void)
         {
             TESTING_2("H5Fopen in read-write mode");
 
-            if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+            if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
                 H5_FAILED();
-                printf("    unable to open file '%s' in read-write mode\n", H5_api_test_filename);
+                printf("    unable to open file '%s' in read-write mode\n", H5_API_TEST_FILENAME);
                 PART_ERROR(H5Fopen_rdwrite);
             }
 
@@ -480,7 +481,7 @@ test_open_file_invalid_params(void)
 
             H5E_BEGIN_TRY
             {
-                file_id = H5Fopen(H5_api_test_filename, H5F_ACC_TRUNC, H5P_DEFAULT);
+                file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_TRUNC, H5P_DEFAULT);
             }
             H5E_END_TRY
 
@@ -493,7 +494,7 @@ test_open_file_invalid_params(void)
 
             H5E_BEGIN_TRY
             {
-                file_id = H5Fopen(H5_api_test_filename, H5F_ACC_EXCL, H5P_DEFAULT);
+                file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_EXCL, H5P_DEFAULT);
             }
             H5E_END_TRY
 
@@ -833,7 +834,7 @@ test_reopen_file(void)
         return 0;
     }
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
         printf("    couldn't open file\n");
         goto error;
@@ -1054,16 +1055,16 @@ test_file_is_accessible(void)
         {
             TESTING_2("H5Fis_accessible on existing file");
 
-            if ((is_accessible = H5Fis_accessible(H5_api_test_filename, H5P_DEFAULT)) < 0) {
+            if ((is_accessible = H5Fis_accessible(H5_API_TEST_FILENAME, H5P_DEFAULT)) < 0) {
                 H5_FAILED();
                 printf("    couldn't determine if file '%s' is accessible with default FAPL\n",
-                       H5_api_test_filename);
+                       H5_API_TEST_FILENAME);
                 PART_ERROR(H5Fis_accessible_valid_file);
             }
 
             if (!is_accessible) {
                 H5_FAILED();
-                printf("    file '%s' is not accessible with default FAPL\n", H5_api_test_filename);
+                printf("    file '%s' is not accessible with default FAPL\n", H5_API_TEST_FILENAME);
                 PART_ERROR(H5Fis_accessible_valid_file);
             }
 
@@ -1485,9 +1486,9 @@ test_get_file_intent(void)
             TESTING_2("H5Fget_intent for file opened read-only");
 
             /* Test that file intent retrieval works correctly for file open */
-            if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) {
+            if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) {
                 H5_FAILED();
-                printf("    couldn't open file '%s'\n", H5_api_test_filename);
+                printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
                 PART_ERROR(H5Fget_intent_rdonly_file_open);
             }
 
@@ -1520,9 +1521,9 @@ test_get_file_intent(void)
         {
             TESTING_2("H5Fget_intent for file opened read-write");
 
-            if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+            if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
                 H5_FAILED();
-                printf("    couldn't open file '%s'\n", H5_api_test_filename);
+                printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
                 PART_ERROR(H5Fget_intent_rdwrite_file_open);
             }
 
@@ -1601,6 +1602,11 @@ test_get_file_obj_count(void)
             "    API functions for basic or more file,  basic dataset, group, stored datatypes, or attribute "
             "aren't supported with this connector\n");
         return 0;
+    }
+
+    if (active_thread_ct == 0) {
+        printf("    Active thread count is invalid\n");
+        TEST_ERROR;
     }
 
     TESTING_2("test setup");
@@ -1688,9 +1694,10 @@ test_get_file_obj_count(void)
                 PART_ERROR(H5Fget_obj_count_files);
             }
 
-            if (obj_count != 2) {
+            if (check_open_obj_count(obj_count, 2) < 0) {
                 H5_FAILED();
-                printf("    number of open files (%ld) did not match expected number (2)\n", obj_count);
+                printf("    number of open files (%ld) did not match %s expected number (2)\n", obj_count,
+                       active_thread_ct > 1 ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_files);
             }
 
@@ -1730,9 +1737,10 @@ test_get_file_obj_count(void)
                 PART_ERROR(H5Fget_obj_count_grps);
             }
 
-            if (obj_count != 1) {
+            if (check_open_obj_count(obj_count, 1) < 0) {
                 H5_FAILED();
-                printf("    number of open groups (%ld) did not match expected number (1)\n", obj_count);
+                printf("    number of open groups (%ld) did not match %s expected number (1)\n", obj_count,
+                       active_thread_ct > 1 ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_grps);
             }
 
@@ -1751,10 +1759,10 @@ test_get_file_obj_count(void)
                 PART_ERROR(H5Fget_obj_count_types);
             }
 
-            if (obj_count != 1) {
+            if (check_open_obj_count(obj_count, 1) < 0) {
                 H5_FAILED();
-                printf("    number of open named datatypes (%ld) did not match expected number (1)\n",
-                       obj_count);
+                printf("    number of open named datatypes (%ld) did not match %s expected number (1)\n", obj_count,
+                       active_thread_ct > 1 ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_types);
             }
 
@@ -1773,9 +1781,10 @@ test_get_file_obj_count(void)
                 PART_ERROR(H5Fget_obj_count_attrs);
             }
 
-            if (obj_count != 1) {
+            if (check_open_obj_count(obj_count, 1) < 0) {
                 H5_FAILED();
-                printf("    number of open attributes (%ld) did not match expected number (1)\n", obj_count);
+                printf("    number of open attributes (%ld) did not match %s expected number (1)\n", obj_count,
+                       active_thread_ct > 1 ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_attrs);
             }
 
@@ -1794,9 +1803,10 @@ test_get_file_obj_count(void)
                 PART_ERROR(H5Fget_obj_count_dsets);
             }
 
-            if (obj_count != 1) {
+            if (check_open_obj_count(obj_count, 1) < 0) {
                 H5_FAILED();
-                printf("    number of open datasets (%ld) did not match expected number (1)\n", obj_count);
+                printf("    number of open datasets (%ld) did not match %s expected number (1)\n", obj_count,
+                       active_thread_ct > 1 ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_dsets);
             }
 
@@ -1837,9 +1847,10 @@ test_get_file_obj_count(void)
                 PART_ERROR(H5Fget_obj_count_all);
             }
 
-            if (obj_count != 6) {
+            if (check_open_obj_count(obj_count, 6) < 0) {
                 H5_FAILED();
-                printf("    number of open objects (%ld) did not match expected number (6)\n", obj_count);
+                printf("    number of open objects (%ld) did not match %s expected number (6)\n", obj_count,
+                       active_thread_ct > 1 ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_all);
             }
 
@@ -2095,9 +2106,9 @@ test_file_mounts(void)
         goto error;
     }
 
-    if ((child_fid = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((child_fid = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -2490,6 +2501,29 @@ error:
     return 1;
 }
 
+/* 
+ * Helper to check that the number of recorded open objects in the entire library is as expected.
+ * This is only necessary when H5Fget_obj_count()'s first argument is H5F_OBJ_ALL.
+ *
+ * If the API tests are being run in a single thread, this is a wrapper around a direct comparison.
+ * 
+ * If the API tests are being run in multiple threads concurrently, then the 
+ * number of open objects could be any value at least as large as the number of objects opened by this thread 
+ * - the best we can do is verify it's not definitely wrong. 
+ */
+herr_t 
+check_open_obj_count(ssize_t obj_count, int expected) {
+    herr_t ret_value = SUCCEED;
+    /* If multiple threads are concurrently executing tests, then more objects than expected may be open in the library */
+    if (active_thread_ct > 1 && obj_count < expected) {
+        ret_value = FAIL;
+    } else if (active_thread_ct == 1 && obj_count != expected) { /* Single thread, expect exact count */
+        ret_value = FAIL;
+    }
+
+    return ret_value;
+}
+
 /*
  * Cleanup temporary test files
  */
@@ -2537,3 +2571,4 @@ H5_api_file_test(void)
 
     return nerrors;
 }
+
