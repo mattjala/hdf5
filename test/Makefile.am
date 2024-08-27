@@ -248,4 +248,9 @@ if MIRROR_VFD_CONDITIONAL
   DISTCLEANFILES+= test_mirror.sh
 endif
 
+if BUILD_API_TESTS
+  SUBDIRS= . API
+endif
+
 include $(top_srcdir)/config/conclude.am
+
