@@ -19255,7 +19255,7 @@ test_get_link_name(void)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-
+    free(ext_link_filename);
     PASSED();
 
     return 0;
@@ -19269,6 +19269,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
+        free(ext_link_filename);
     }
     H5E_END_TRY
 
