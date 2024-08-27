@@ -2719,6 +2719,9 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
 
     FUNC_ENTER_NOAPI(FAIL)
 
+    memset(&info_k, 0, sizeof(H5I_mt_id_info_kernel_t));
+    memset(&mod_info_k, 0, sizeof(H5I_mt_id_info_kernel_t));
+
 #if H5I_MT_DEBUG
     fprintf(stdout, "\n\n   H5I__mark_node() called. \n\n\n");
 #endif /* H5I_MT_DEBUG */
@@ -5123,6 +5126,9 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
 
     FUNC_ENTER_PACKAGE
 
+    memset(&info_k, 0, sizeof(H5I_mt_id_info_kernel_t));
+    memset(&mod_info_k, 0, sizeof(H5I_mt_id_info_kernel_t));
+
 #if H5I_MT_DEBUG
     fprintf(stdout, "   H5I__dec_ref(0x%llx, reguest, app) called. \n", (unsigned long long)id);
 #endif /* H5I_MT_DEBUG */
@@ -6294,6 +6300,9 @@ H5I_inc_ref_internal(hid_t id, hbool_t app_ref)
 
     FUNC_ENTER_NOAPI((-1))
 
+    memset(&info_k, 0, sizeof(H5I_mt_id_info_kernel_t));
+    memset(&mod_info_k, 0, sizeof(H5I_mt_id_info_kernel_t));
+
 #if H5I_MT_DEBUG
     fprintf(stdout, "   H5I_inc_ref((id = 0x%llx, app_ref = %d) called. \n", 
               (unsigned long long)id, (int)app_ref);
@@ -6929,6 +6938,8 @@ H5I__iterate_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
 
     FUNC_ENTER_PACKAGE_NOERR
 
+    memset(&info_k, 0, sizeof(H5I_mt_id_info_kernel_t));
+
 #if H5I_MT_DEBUG
     fprintf(stdout, "\n\n   H5I__iterate_cb() called. \n\n\n");
 #endif /* H5I_MT_DEBUG */
@@ -6978,6 +6989,8 @@ H5I__iterate_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
         H5I_mt_id_info_kernel_t  mod_info_k;
         void                    *object;
         herr_t                   cb_ret_val;
+
+        memset(&mod_info_k, 0, sizeof(H5I_mt_id_info_kernel_t));
 
         do {
             bypass_do_not_disturb = FALSE;
@@ -9333,11 +9346,22 @@ H5I__new_mt_id_info(hid_t id, unsigned count, unsigned app_count, const void * o
     H5I_mt_id_info_sptr_t new_slast;
     H5I_mt_id_info_sptr_t snext;
     H5I_mt_id_info_sptr_t new_snext;
-    H5I_mt_id_info_kernel_t new_k = {count, app_count, object, FALSE, FALSE, is_future, FALSE};
+    H5I_mt_id_info_kernel_t new_k;
     H5I_mt_id_info_kernel_t old_k;
     H5I_mt_id_info_t * ret_value = NULL; /* Return value */
 
     FUNC_ENTER_NOAPI(NULL)
+
+    memset(&new_k, 0, sizeof(H5I_mt_id_info_kernel_t));
+    new_k.count = count;
+    new_k.app_count = app_count;
+    new_k.object = object;
+    new_k.marked = FALSE;
+    new_k.do_not_disturb = FALSE;
+    new_k.is_future = is_future;
+    new_k.have_global_mutex = FALSE;
+
+
 
     atomic_fetch_add(&(H5I_mt_g.H5I__new_mt_id_info__num_calls), 1ULL);
 
