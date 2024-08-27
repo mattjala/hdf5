@@ -131,9 +131,9 @@ test_open_object(void)
         return 0;
     }
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -441,9 +441,9 @@ test_open_object_invalid_params(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -817,9 +817,9 @@ test_object_exists(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -1076,9 +1076,9 @@ test_object_exists_invalid_params(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -1268,9 +1268,9 @@ test_link_object(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -1422,9 +1422,9 @@ test_link_object_invalid_params(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -1626,9 +1626,9 @@ test_incr_decr_object_refcount(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -2003,9 +2003,9 @@ test_object_copy_basic(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -2571,9 +2571,9 @@ test_object_copy_already_existing(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -2766,9 +2766,9 @@ test_object_copy_shallow_group_copy(void)
         return 0;
     }
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -3005,9 +3005,9 @@ test_object_copy_no_attributes(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -3513,9 +3513,9 @@ test_object_copy_by_soft_link(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -3843,9 +3843,9 @@ test_object_copy_group_with_soft_links(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -4218,13 +4218,13 @@ test_object_copy_between_files(void)
     if ((file_id2 = H5Fcreate(OBJECT_COPY_BETWEEN_FILES_TEST_FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                               H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't create file '%s'\n", H5_api_test_filename);
+        printf("    couldn't create file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -4800,9 +4800,9 @@ test_object_copy_invalid_params(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -5073,9 +5073,9 @@ test_object_visit(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -5597,9 +5597,9 @@ test_object_visit_soft_link(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -6078,9 +6078,9 @@ test_object_visit_invalid_params(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -6401,9 +6401,9 @@ test_close_object(void)
 
     TESTING_2("test setup");
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -6590,9 +6590,9 @@ test_close_object_invalid_params(void)
         return 0;
     }
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
@@ -6656,9 +6656,9 @@ test_close_invalid_objects(void)
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
         TEST_ERROR;
 
-    if ((file_id = H5Fopen(H5_api_test_filename, H5F_ACC_RDWR, fapl_id)) < 0) {
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, fapl_id)) < 0) {
         H5_FAILED();
-        printf("    couldn't open file '%s'\n", H5_api_test_filename);
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 

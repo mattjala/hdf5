@@ -718,7 +718,7 @@ error:
 }
 
 /*
- * Add a prefix to the given filename. The caller
+ * Add a thread-specific prefix to the given filename. The caller
  * is responsible for freeing the returned filename
  * pointer with free().
  */
@@ -727,6 +727,10 @@ prefix_filename(const char *prefix, const char *filename, char **filename_out)
 {
     char  *out_buf   = NULL;
     herr_t ret_value = SUCCEED;
+    int chars_written = 0;
+#ifdef H5_HAVE_MULTITHREAD
+    thread_info_t *tinfo = NULL;
+#endif
 
     if (!prefix) {
         printf("    invalid file prefix\n");
@@ -750,11 +754,38 @@ prefix_filename(const char *prefix, const char *filename, char **filename_out)
         goto done;
     }
 
-    HDsnprintf(out_buf, H5_API_TEST_FILENAME_MAX_LENGTH, "%s%s", prefix, filename);
+#ifdef H5_HAVE_MULTITHREAD
+    if ((tinfo = (thread_info_t*) pthread_getspecific(thread_info_key_g)) == NULL) {
+        printf("    failed to retrieve thread-specific info\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if ((chars_written = HDsnprintf(out_buf, H5_API_TEST_FILENAME_MAX_LENGTH, "%zu%s%s", tinfo->thread_idx, prefix, filename)) < 0) {
+        printf("    couldn't prefix filename\n");
+        ret_value = FAIL;
+        goto done;
+    }
+#else
+    if ((chars_written = HDsnprintf(out_buf, H5_API_TEST_FILENAME_MAX_LENGTH, "%s%s", prefix, filename)) < 0) {
+        printf("    couldn't prefix filename\n");
+        ret_value = FAIL;
+        goto done;
+    }
+#endif
+
+    if ((size_t)chars_written >= H5_API_TEST_FILENAME_MAX_LENGTH) {
+        printf("    filename buffer too small\n");
+        ret_value = FAIL;
+        goto done;
+    }
 
     *filename_out = out_buf;
 
 done:
+    if (ret_value < 0)
+        free(out_buf);
+
     return ret_value;
 }
 

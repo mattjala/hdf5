@@ -82,6 +82,27 @@ H5TEST_DLLVAR char *paraprefix;
 H5TEST_DLLVAR MPI_Info h5_io_info_g; /* MPI INFO object for IO */
 #endif
 
+#define H5_API_TEST_FILENAME_MAX_LENGTH 1024
+
+#define API_TEST_PASS 1
+#define API_TEST_FAIL 0
+#define API_TEST_ERROR -1
+/* Information for an individual thread running the API tests */
+typedef struct thread_info_t {
+    size_t thread_idx; /* Test-assigned thread index */
+    htri_t result; /* Whether the tests passed, failed, or experienced an error */
+    char H5_api_test_filename[H5_API_TEST_FILENAME_MAX_LENGTH]; /* The name of the test container file */
+    size_t   n_tests_run_g;
+    size_t   n_tests_passed_g;
+    size_t   n_tests_failed_g;
+    size_t   n_tests_skipped_g;
+    const char *vol_connector_name;
+} thread_info_t;
+
+#ifdef H5_HAVE_MULTITHREAD
+extern pthread_key_t thread_info_key_g;
+#endif
+
 /*
  * Print the current location on the standard output stream.
  */
