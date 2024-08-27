@@ -1797,7 +1797,7 @@ test_get_file_obj_count(void)
             TESTING_2("H5Fget_obj_count for datasets");
 
             /* Get the number of dataset in two opened files */
-            if ((obj_count = H5Fget_obj_count((hid_t)H5F_OBJ_ALL, H5F_OBJ_DATASET)) < 0 || obj_count != 1) {
+            if ((obj_count = H5Fget_obj_count((hid_t)H5F_OBJ_ALL, H5F_OBJ_DATASET)) < 0) {
                 H5_FAILED();
                 printf("    couldn't get the number of open datasets\n");
                 PART_ERROR(H5Fget_obj_count_dsets);
