@@ -3,7 +3,7 @@
 #define H5I_FRIEND    /*suppress error about including H5Ipkg      */
 #include "H5Ipkg.h"
 
-#ifdef H5_HAVE_MULTITHREAD
+#ifdef H5_NOT_DEFINED
 #include <stdatomic.h>
 
 /*********************************************************************************

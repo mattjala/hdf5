@@ -1,0 +1,46 @@
+name: Build and Test HDF5 Library
+
+on:
+    push:
+        branches:
+            - '*'
+
+jobs:
+    build-and-test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                api_tests: ["--enable-api-tests", "--disable-api-tests"]
+            fail-fast: false
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up autotools
+              run: |
+                  sudo apt install automake autoconf libtool libtool-bin
+                  sudo apt install libaec0 libaec-dev valgrind
+
+            - name: Configure HDF5
+              working-directory: ${{github.workspace}}
+              run: |
+                    autoreconf -if
+                    ./configure --enable-shared --enable-tests ${{ matrix.api_tests }}
+
+            - name: Build HDF5
+              working-directory: ${{github.workspace}}
+              run: |
+                    make -j
+                    make install
+
+            - name: API Tests
+              if: matrix.api_tests == '--enable-api-tests'
+              working-directory: ${{github.workspace}}
+              run: |
+                valgrind ./test/API/api_tests
+
+            - name: Test HDF5
+              working-directory: ${{github.workspace}}
+              run: |
+                    make check
