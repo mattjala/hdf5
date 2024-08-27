@@ -369,7 +369,7 @@ static const H5VL_class_t H5VL_pass_through_g = {
 
 /* The connector identification number, initialized at runtime */
 #ifdef H5_HAVE_MULTITHREAD
-static _Atomic(hid_t) H5VL_PASSTHRU_ID_g = H5I_INVALID_HID;
+static _Atomic(hid_t) H5VL_PASSTHRU_ID_g = ATOMIC_VAR_INIT(H5I_INVALID_HID);
 #else
 static hid_t H5VL_PASSTHRU_ID_g = H5I_INVALID_HID;
 #endif

@@ -40,7 +40,6 @@
 #include "H5VLnative_private.h" /* Native VOL connector                     */
 
 /* The VOL connector identification number */
-
 static hid_t H5VL_NATIVE_ID_g = H5I_INVALID_HID;
 
 /* Prototypes */
