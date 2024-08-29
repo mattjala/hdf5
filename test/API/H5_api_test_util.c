@@ -76,15 +76,15 @@
 #define COMPACT_SPACE_MAX_DIM_SIZE 4
 #define COMPACT_SPACE_MAX_DIMS     3
 
-typedef hid_t (*generate_datatype_func)(H5T_class_t parent_class, hbool_t is_compact);
-
-static hid_t generate_random_datatype_integer(H5T_class_t parent_class, hbool_t is_compact);
-static hid_t generate_random_datatype_float(H5T_class_t parent_class, hbool_t is_compact);
-static hid_t generate_random_datatype_string(H5T_class_t parent_class, hbool_t is_compact);
-static hid_t generate_random_datatype_compound(H5T_class_t parent_class, hbool_t is_compact);
-static hid_t generate_random_datatype_reference(H5T_class_t parent_class, hbool_t is_compact);
-static hid_t generate_random_datatype_enum(H5T_class_t parent_class, hbool_t is_compact);
-static hid_t generate_random_datatype_array(H5T_class_t parent_class, hbool_t is_compact);
+typedef hid_t (*generate_datatype_func)(H5T_class_t parent_class, hbool_t is_compact, size_t depth);
+static hid_t generate_random_datatype_internal(H5T_class_t parent_class, hbool_t is_compact, size_t depth);
+static hid_t generate_random_datatype_integer(H5T_class_t parent_class, hbool_t is_compact, size_t depth);
+static hid_t generate_random_datatype_float(H5T_class_t parent_class, hbool_t is_compact, size_t depth);
+static hid_t generate_random_datatype_string(H5T_class_t parent_class, hbool_t is_compact, size_t depth);
+static hid_t generate_random_datatype_compound(H5T_class_t parent_class, hbool_t is_compact, size_t depth);
+static hid_t generate_random_datatype_reference(H5T_class_t parent_class, hbool_t is_compact, size_t depth);
+static hid_t generate_random_datatype_enum(H5T_class_t parent_class, hbool_t is_compact, size_t depth);
+static hid_t generate_random_datatype_array(H5T_class_t parent_class, hbool_t is_compact, size_t depth);
 
 /*
  * Helper function to generate a random HDF5 datatype in order to thoroughly
@@ -95,8 +95,14 @@ static hid_t generate_random_datatype_array(H5T_class_t parent_class, hbool_t is
 hid_t
 generate_random_datatype(H5T_class_t parent_class, hbool_t is_compact)
 {
+    return generate_random_datatype_internal(parent_class, is_compact, 0);
+}
+
+// TODO
+static hid_t
+generate_random_datatype_internal(H5T_class_t parent_class, hbool_t is_compact, size_t depth)
+{
     generate_datatype_func gen_func;
-    static int             depth = 0;
     size_t                 type_size;
     hid_t                  datatype  = H5I_INVALID_HID;
     hid_t                  ret_value = H5I_INVALID_HID;
@@ -172,7 +178,7 @@ roll_datatype:
             break;
     }
 
-    if ((datatype = (gen_func)(parent_class, is_compact)) < 0) {
+    if ((datatype = (gen_func)(parent_class, is_compact, depth)) < 0) {
         printf("    couldn't generate datatype\n");
         goto done;
     }
@@ -183,35 +189,33 @@ roll_datatype:
      * the maximum compact datatype size if a compact datatype
      * was requested.
      */
-    if (depth == 1) {
-        if (0 == (type_size = H5Tget_size(datatype))) {
-            printf("    failed to retrieve datatype's size\n");
-            H5Tclose(datatype);
-            datatype = H5I_INVALID_HID;
-            goto done;
-        }
+    if (0 == (type_size = H5Tget_size(datatype))) {
+        printf("    failed to retrieve datatype's size\n");
+        H5Tclose(datatype);
+        datatype = H5I_INVALID_HID;
+        goto done;
+    }
 
-        if ((type_size > GENERATED_DATATYPE_MAX_SIZE) ||
-            (is_compact && (type_size > COMPACT_DATATYPE_MAX_SIZE))) {
-            /*
-             * Generate a new datatype.
-             */
-            H5Tclose(datatype);
-            datatype = H5I_INVALID_HID;
-            goto roll_datatype;
-        }
+    if ((type_size > GENERATED_DATATYPE_MAX_SIZE) ||
+        (is_compact && (type_size > COMPACT_DATATYPE_MAX_SIZE))) {
+        /*
+         * Generate a new datatype.
+         */
+        H5Tclose(datatype);
+        datatype = H5I_INVALID_HID;
+        goto roll_datatype;
     }
 
     ret_value = datatype;
 
 done:
     depth--;
-
-    return ret_value;
+    return (ret_value);
 }
 
 static hid_t
-generate_random_datatype_integer(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t H5_ATTR_UNUSED is_compact)
+generate_random_datatype_integer(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t H5_ATTR_UNUSED is_compact,
+                                 H5_ATTR_UNUSED size_t depth)
 {
     hid_t type_to_copy = H5I_INVALID_HID;
     hid_t datatype     = H5I_INVALID_HID;
@@ -288,7 +292,8 @@ done:
 }
 
 static hid_t
-generate_random_datatype_float(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t H5_ATTR_UNUSED is_compact)
+generate_random_datatype_float(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t H5_ATTR_UNUSED is_compact,
+                               H5_ATTR_UNUSED size_t depth)
 {
     hid_t type_to_copy = H5I_INVALID_HID;
     hid_t datatype     = H5I_INVALID_HID;
@@ -330,7 +335,8 @@ done:
 }
 
 static hid_t
-generate_random_datatype_string(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t H5_ATTR_UNUSED is_compact)
+generate_random_datatype_string(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t H5_ATTR_UNUSED is_compact,
+                                H5_ATTR_UNUSED size_t depth)
 {
     hid_t datatype  = H5I_INVALID_HID;
     hid_t ret_value = H5I_INVALID_HID;
@@ -387,7 +393,7 @@ done:
 }
 
 static hid_t
-generate_random_datatype_compound(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t is_compact)
+generate_random_datatype_compound(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t is_compact, size_t depth)
 {
     size_t num_members   = 0;
     size_t next_offset   = 0;
@@ -412,7 +418,7 @@ generate_random_datatype_compound(H5T_class_t H5_ATTR_UNUSED parent_class, hbool
 
         HDsnprintf(member_name, 256, "compound_member%zu", i);
 
-        if ((compound_members[i] = generate_random_datatype(H5T_COMPOUND, is_compact)) < 0) {
+        if ((compound_members[i] = generate_random_datatype_internal(H5T_COMPOUND, is_compact, depth)) < 0) {
             printf("    couldn't create compound datatype member %zu\n", i);
             goto done;
         }
@@ -455,7 +461,8 @@ done:
 }
 
 static hid_t
-generate_random_datatype_reference(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t H5_ATTR_UNUSED is_compact)
+generate_random_datatype_reference(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t H5_ATTR_UNUSED is_compact,
+                                   H5_ATTR_UNUSED size_t depth)
 {
     hid_t datatype  = H5I_INVALID_HID;
     hid_t ret_value = H5I_INVALID_HID;
@@ -490,7 +497,8 @@ done:
 }
 
 static hid_t
-generate_random_datatype_enum(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t H5_ATTR_UNUSED is_compact)
+generate_random_datatype_enum(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t H5_ATTR_UNUSED is_compact,
+                              H5_ATTR_UNUSED size_t depth)
 {
     size_t num_members      = 0;
     hid_t  datatype         = H5I_INVALID_HID;
@@ -548,7 +556,7 @@ done:
 }
 
 static hid_t
-generate_random_datatype_array(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t is_compact)
+generate_random_datatype_array(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t is_compact, size_t depth)
 {
     unsigned ndims         = 0;
     hsize_t *array_dims    = NULL;
@@ -566,7 +574,7 @@ generate_random_datatype_array(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t 
     for (size_t i = 0; i < ndims; i++)
         array_dims[i] = (hsize_t)(rand() % MAX_DIM_SIZE + 1);
 
-    if ((base_datatype = generate_random_datatype(H5T_ARRAY, is_compact)) < 0) {
+    if ((base_datatype = generate_random_datatype_internal(H5T_ARRAY, is_compact, depth)) < 0) {
         printf("    couldn't create array base datatype\n");
         goto done;
     }
@@ -725,9 +733,9 @@ error:
 herr_t
 prefix_filename(const char *prefix, const char *filename, char **filename_out)
 {
-    char  *out_buf   = NULL;
-    herr_t ret_value = SUCCEED;
-    int chars_written = 0;
+    char  *out_buf       = NULL;
+    herr_t ret_value     = SUCCEED;
+    int    chars_written = 0;
 #ifdef H5_HAVE_MULTITHREAD
     thread_info_t *tinfo = NULL;
 #endif
@@ -755,19 +763,21 @@ prefix_filename(const char *prefix, const char *filename, char **filename_out)
     }
 
 #ifdef H5_HAVE_MULTITHREAD
-    if ((tinfo = (thread_info_t*) pthread_getspecific(thread_info_key_g)) == NULL) {
+    if ((tinfo = (thread_info_t *)pthread_getspecific(thread_info_key_g)) == NULL) {
         printf("    failed to retrieve thread-specific info\n");
         ret_value = FAIL;
         goto done;
     }
 
-    if ((chars_written = HDsnprintf(out_buf, H5_API_TEST_FILENAME_MAX_LENGTH, "%zu%s%s", tinfo->thread_idx, prefix, filename)) < 0) {
+    if ((chars_written = HDsnprintf(out_buf, H5_API_TEST_FILENAME_MAX_LENGTH, "%zu%s%s", tinfo->thread_idx,
+                                    prefix, filename)) < 0) {
         printf("    couldn't prefix filename\n");
         ret_value = FAIL;
         goto done;
     }
 #else
-    if ((chars_written = HDsnprintf(out_buf, H5_API_TEST_FILENAME_MAX_LENGTH, "%s%s", prefix, filename)) < 0) {
+    if ((chars_written = HDsnprintf(out_buf, H5_API_TEST_FILENAME_MAX_LENGTH, "%s%s", prefix, filename)) <
+        0) {
         printf("    couldn't prefix filename\n");
         ret_value = FAIL;
         goto done;
