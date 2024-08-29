@@ -91,7 +91,7 @@ H5TEST_DLLVAR MPI_Info h5_io_info_g; /* MPI INFO object for IO */
 typedef struct thread_info_t {
     size_t thread_idx; /* Test-assigned thread index */
     htri_t result; /* Whether the tests passed, failed, or experienced an error */
-    char H5_api_test_filename[H5_API_TEST_FILENAME_MAX_LENGTH]; /* The name of the test container file */
+    char* H5_api_test_filename; /* The name of the test container file */
     size_t   n_tests_run_g;
     size_t   n_tests_passed_g;
     size_t   n_tests_failed_g;
