@@ -42,13 +42,14 @@
 
 #ifdef H5_HAVE_MULTITHREAD
 #include <pthread.h>
-pthread_key_t thread_info_key_g;
+#else
+char H5_api_test_filename[H5_API_TEST_FILENAME_MAX_LENGTH];
 #endif
 
 /* Run the API tests within a single thread */
 static void *run_h5_API_tests_thread(void *thread_info);
 
-char H5_api_test_filename[H5_API_TEST_FILENAME_MAX_LENGTH];
+
 
 const char *test_path_prefix;
 
@@ -167,6 +168,18 @@ run_h5_API_tests_thread(void *thread_info)
         test_path_prefix = (const char *)"";
 
 #ifdef H5_HAVE_MULTITHREAD
+    if (MAX_THREAD_ID_LEN + strlen(test_path_prefix) + strlen(TEST_FILE_NAME) >= H5_API_TEST_FILENAME_MAX_LENGTH) {
+        fprintf(stderr, "Test file name exceeded expected size\n");
+        tinfo->result = API_TEST_ERROR;
+        goto done;
+    }
+
+    if (NULL == (tinfo->H5_api_test_filename = (char *)calloc(1, H5_API_TEST_FILENAME_MAX_LENGTH))) {
+        fprintf(stderr, "Unable to allocate memory for test file name\n");
+        tinfo->result = API_TEST_ERROR;
+        goto done;
+    }
+
     if ((chars_written = HDsnprintf(tinfo->H5_api_test_filename, H5_API_TEST_FILENAME_MAX_LENGTH, "%zu%s%s", tinfo->thread_idx, test_path_prefix,
                TEST_FILE_NAME)) < 0) {
         fprintf(stderr, "Error while creating test file name\n");
@@ -323,6 +336,8 @@ run_h5_API_tests_thread(void *thread_info)
     }
 done:
     free(vol_connector_string_copy);
+    if (tinfo && tinfo->H5_api_test_filename)
+        free(tinfo->H5_api_test_filename);
 
     if (default_con_id >= 0 && H5VLclose(default_con_id) < 0) {
         fprintf(stderr, "Unable to close VOL connector ID\n");
@@ -353,7 +368,7 @@ main(int argc, char **argv)
     int   ret_value = EXIT_SUCCESS;
 
 #ifdef H5_HAVE_MULTITHREAD
-#define MAX_THREADS 3
+#define MAX_THREADS 10
     pthread_t threads[MAX_THREADS];
     n_tests_run_g = 0;
     n_tests_passed_g = 0;
