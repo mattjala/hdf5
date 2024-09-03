@@ -363,13 +363,13 @@ generate_random_datatype_string(H5T_class_t H5_ATTR_UNUSED parent_class, hbool_t
     else {
 
             if ((datatype = H5Tcreate(H5T_STRING, H5T_VARIABLE)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't create variable-length string datatype\n");
                 goto done;
             }
 
             if (H5Tset_strpad(datatype, H5T_STR_NULLTERM) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't set H5T_STR_NULLTERM for variable-length string type\n");
                 goto done;
             }
@@ -478,7 +478,7 @@ generate_random_datatype_reference(H5T_class_t H5_ATTR_UNUSED parent_class, hboo
     }
     else {
         if ((datatype = H5Tcopy(H5T_STD_REF_DSETREG)) < 0) {
-            H5_FAILED();
+            H5_FAILED_API();
             printf("    couldn't copy region reference datatype\n");
             goto done;
         }

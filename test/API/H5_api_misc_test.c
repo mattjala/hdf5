@@ -38,24 +38,24 @@ test_open_link_without_leading_slash(void)
     hid_t dset_dtype      = H5I_INVALID_HID;
     hid_t space_id        = H5I_INVALID_HID;
 
-    TESTING("opening a link without a leading slash");
+    TESTING_API("opening a link without a leading slash");
 
     /* Make sure the connector supports the API functions being tested */
     if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
-        SKIPPED();
+        SKIPPED_API();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
         return 0;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open file\n");
         goto error;
     }
 
     if ((container_group = H5Gopen2(file_id, MISCELLANEOUS_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open container group\n");
         goto error;
     }
@@ -69,7 +69,7 @@ test_open_link_without_leading_slash(void)
 
     if ((dset_id = H5Dcreate2(container_group, OPEN_LINK_WITHOUT_SLASH_DSET_NAME, dset_dtype, space_id,
                               H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't create dataset\n");
         goto error;
     }
@@ -84,20 +84,20 @@ test_open_link_without_leading_slash(void)
         TEST_ERROR;
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open file\n");
         goto error;
     }
 
     if ((group_id = H5Gopen2(file_id, "/", H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open root group\n");
         goto error;
     }
 
     if ((dset_id = H5Dopen2(group_id, MISCELLANEOUS_TEST_GROUP_NAME "/" OPEN_LINK_WITHOUT_SLASH_DSET_NAME,
                             H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open dataset\n");
         goto error;
     }
@@ -111,7 +111,7 @@ test_open_link_without_leading_slash(void)
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
 
-    PASSED();
+    PASSED_API();
 
     return 0;
 
@@ -147,22 +147,22 @@ test_object_creation_by_absolute_path(void)
     if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_LINK_BASIC) ||
         !(vol_cap_flags_g & H5VL_CAP_FLAG_STORED_DATATYPES)) {
-        SKIPPED();
+        SKIPPED_API();
         printf("    API functions for basic file, group, dataset, link, or stored datatype aren't "
                "supported with this connector\n");
         return 0;
     }
 
-    TESTING_2("test setup");
+    TESTING_2_API("test setup");
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open file\n");
         goto error;
     }
 
     if ((container_group = H5Gopen2(file_id, MISCELLANEOUS_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open container group\n");
         goto error;
     }
@@ -170,7 +170,7 @@ test_object_creation_by_absolute_path(void)
     /* Start by creating a group to hold all the objects for this test */
     if ((group_id = H5Gcreate2(container_group, OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_CONTAINER_GROUP_NAME,
                                H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't create container group\n");
         goto error;
     }
@@ -179,24 +179,24 @@ test_object_creation_by_absolute_path(void)
                                  "/" MISCELLANEOUS_TEST_GROUP_NAME
                                  "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_CONTAINER_GROUP_NAME,
                                  H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't determine if link exists\n");
         goto error;
     }
 
     if (!link_exists) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    container group didn't exist at the correct location\n");
         goto error;
     }
 
-    PASSED();
+    PASSED_API();
 
     BEGIN_MULTIPART
     {
         PART_BEGIN(H5Gcreate_using_absolute_path)
         {
-            TESTING_2("creation of group using absolute pathname");
+            TESTING_2_API("creation of group using absolute pathname");
 
             /* Try to create a group under the container group by using an absolute pathname */
             if ((sub_group_id = H5Gcreate2(file_id,
@@ -204,9 +204,9 @@ test_object_creation_by_absolute_path(void)
                                            "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_CONTAINER_GROUP_NAME
                                            "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_SUBGROUP_NAME,
                                            H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't create subgroup by absolute pathname\n");
-                PART_ERROR(H5Gcreate_using_absolute_path);
+                PART_ERROR_API(H5Gcreate_using_absolute_path);
             }
 
             if ((link_exists = H5Lexists(file_id,
@@ -214,37 +214,37 @@ test_object_creation_by_absolute_path(void)
                                          "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_CONTAINER_GROUP_NAME
                                          "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_SUBGROUP_NAME,
                                          H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't determine if link exists\n");
-                PART_ERROR(H5Gcreate_using_absolute_path);
+                PART_ERROR_API(H5Gcreate_using_absolute_path);
             }
 
             if (!link_exists) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    subgroup didn't exist at the correct location\n");
-                PART_ERROR(H5Gcreate_using_absolute_path);
+                PART_ERROR_API(H5Gcreate_using_absolute_path);
             }
 
-            PASSED();
+            PASSED_API();
         }
         PART_END(H5Gcreate_using_absolute_path);
 
         PART_BEGIN(H5Dcreate_using_absolute_path)
         {
-            TESTING_2("creation of dataset using absolute pathname");
+            TESTING_2_API("creation of dataset using absolute pathname");
 
             /* Try to create a dataset nested at the end of this group chain by using an absolute pathname */
             if ((fspace_id = generate_random_dataspace(OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_DSET_SPACE_RANK,
                                                        NULL, NULL, FALSE)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    failed to generate dataspace\n");
-                PART_ERROR(H5Dcreate_using_absolute_path);
+                PART_ERROR_API(H5Dcreate_using_absolute_path);
             }
 
             if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    failed to generate datatype\n");
-                PART_ERROR(H5Dcreate_using_absolute_path);
+                PART_ERROR_API(H5Dcreate_using_absolute_path);
             }
 
             if ((dset_id = H5Dcreate2(file_id,
@@ -253,9 +253,9 @@ test_object_creation_by_absolute_path(void)
                                       "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_SUBGROUP_NAME
                                       "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_DSET_NAME,
                                       dset_dtype, fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't create dataset\n");
-                PART_ERROR(H5Dcreate_using_absolute_path);
+                PART_ERROR_API(H5Dcreate_using_absolute_path);
             }
 
             if ((link_exists = H5Lexists(file_id,
@@ -264,30 +264,30 @@ test_object_creation_by_absolute_path(void)
                                          "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_SUBGROUP_NAME
                                          "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_DSET_NAME,
                                          H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't determine if link exists\n");
-                PART_ERROR(H5Dcreate_using_absolute_path);
+                PART_ERROR_API(H5Dcreate_using_absolute_path);
             }
 
             if (!link_exists) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    dataset didn't exist at the correct location\n");
-                PART_ERROR(H5Dcreate_using_absolute_path);
+                PART_ERROR_API(H5Dcreate_using_absolute_path);
             }
 
-            PASSED();
+            PASSED_API();
         }
         PART_END(H5Dcreate_using_absolute_path);
 
         PART_BEGIN(H5Tcommit_using_absolute_path)
         {
-            TESTING_2("creation of committed datatype using absolute pathname");
+            TESTING_2_API("creation of committed datatype using absolute pathname");
 
             /* Try to create a committed datatype in the same fashion as the preceding dataset */
             if ((dtype_id = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't create datatype\n");
-                PART_ERROR(H5Tcommit_using_absolute_path);
+                PART_ERROR_API(H5Tcommit_using_absolute_path);
             }
 
             if (H5Tcommit2(file_id,
@@ -296,9 +296,9 @@ test_object_creation_by_absolute_path(void)
                            "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_SUBGROUP_NAME
                            "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_DTYPE_NAME,
                            dtype_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't commit datatype\n");
-                PART_ERROR(H5Tcommit_using_absolute_path);
+                PART_ERROR_API(H5Tcommit_using_absolute_path);
             }
 
             if ((link_exists = H5Lexists(file_id,
@@ -307,24 +307,24 @@ test_object_creation_by_absolute_path(void)
                                          "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_SUBGROUP_NAME
                                          "/" OBJECT_CREATE_BY_ABSOLUTE_PATH_TEST_DTYPE_NAME,
                                          H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't determine if link exists\n");
-                PART_ERROR(H5Tcommit_using_absolute_path);
+                PART_ERROR_API(H5Tcommit_using_absolute_path);
             }
 
             if (!link_exists) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    datatype didn't exist at the correct location\n");
-                PART_ERROR(H5Tcommit_using_absolute_path);
+                PART_ERROR_API(H5Tcommit_using_absolute_path);
             }
 
-            PASSED();
+            PASSED_API();
         }
         PART_END(H5Tcommit_using_absolute_path);
     }
     END_MULTIPART;
 
-    TESTING_2("test cleanup");
+    TESTING_2_API("test cleanup");
 
     if (H5Sclose(fspace_id) < 0)
         TEST_ERROR;
@@ -343,7 +343,7 @@ test_object_creation_by_absolute_path(void)
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
 
-    PASSED();
+    PASSED_API();
 
     return 0;
 
@@ -382,22 +382,22 @@ test_absolute_vs_relative_path(void)
     /* Make sure the connector supports the API functions being tested */
     if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_LINK_BASIC)) {
-        SKIPPED();
+        SKIPPED_API();
         printf("    API functions for basic file, group, dataset, or link aren't supported with this "
                "connector\n");
         return 0;
     }
 
-    TESTING_2("test setup");
+    TESTING_2_API("test setup");
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open file\n");
         goto error;
     }
 
     if ((container_group = H5Gopen2(file_id, MISCELLANEOUS_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open container group\n");
         goto error;
     }
@@ -405,7 +405,7 @@ test_absolute_vs_relative_path(void)
     /* Start by creating a group to be used during some of the dataset creation operations */
     if ((group_id = H5Gcreate2(container_group, ABSOLUTE_VS_RELATIVE_PATH_TEST_CONTAINER_GROUP_NAME,
                                H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't create container group\n");
         goto error;
     }
@@ -427,13 +427,13 @@ test_absolute_vs_relative_path(void)
     if ((dset_dtype6 = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
         TEST_ERROR;
 
-    PASSED();
+    PASSED_API();
 
     BEGIN_MULTIPART
     {
         PART_BEGIN(H5Dcreate_absolute_from_root)
         {
-            TESTING_2("dataset creation by absolute path from root group");
+            TESTING_2_API("dataset creation by absolute path from root group");
 
             /* Create a dataset by absolute path in the form "/group/dataset" starting from the root group */
             if ((dset_id1 = H5Dcreate2(file_id,
@@ -441,9 +441,9 @@ test_absolute_vs_relative_path(void)
                                        "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_CONTAINER_GROUP_NAME
                                        "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET1_NAME,
                                        dset_dtype1, fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't create dataset by absolute path from root\n");
-                PART_ERROR(H5Dcreate_absolute_from_root);
+                PART_ERROR_API(H5Dcreate_absolute_from_root);
             }
 
             if ((link_exists = H5Lexists(file_id,
@@ -451,24 +451,24 @@ test_absolute_vs_relative_path(void)
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_CONTAINER_GROUP_NAME
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET1_NAME,
                                          H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't determine if link exists\n");
-                PART_ERROR(H5Dcreate_absolute_from_root);
+                PART_ERROR_API(H5Dcreate_absolute_from_root);
             }
 
             if (!link_exists) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    didn't exist at the correct location\n");
-                PART_ERROR(H5Dcreate_absolute_from_root);
+                PART_ERROR_API(H5Dcreate_absolute_from_root);
             }
 
-            PASSED();
+            PASSED_API();
         }
         PART_END(H5Dcreate_absolute_from_root);
 
         PART_BEGIN(H5Dcreate_absolute_from_nonroot)
         {
-            TESTING_2("dataset creation by absolute path from non-root group");
+            TESTING_2_API("dataset creation by absolute path from non-root group");
 
             /* Create a dataset by absolute path in the form "/group/dataset" starting from the container
              * group */
@@ -477,9 +477,9 @@ test_absolute_vs_relative_path(void)
                                        "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_CONTAINER_GROUP_NAME
                                        "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET4_NAME,
                                        dset_dtype4, fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't create dataset by absolute path from container group\n");
-                PART_ERROR(H5Dcreate_absolute_from_nonroot);
+                PART_ERROR_API(H5Dcreate_absolute_from_nonroot);
             }
 
             if ((link_exists = H5Lexists(file_id,
@@ -487,43 +487,43 @@ test_absolute_vs_relative_path(void)
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_CONTAINER_GROUP_NAME
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET4_NAME,
                                          H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't determine if link exists\n");
-                PART_ERROR(H5Dcreate_absolute_from_nonroot);
+                PART_ERROR_API(H5Dcreate_absolute_from_nonroot);
             }
 
             if (!link_exists) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    didn't exist at the correct location\n");
-                PART_ERROR(H5Dcreate_absolute_from_nonroot);
+                PART_ERROR_API(H5Dcreate_absolute_from_nonroot);
             }
 
-            PASSED();
+            PASSED_API();
         }
         PART_END(H5Dcreate_absolute_from_nonroot);
 
         PART_BEGIN(H5Dcreate_relative_from_root)
         {
-            TESTING_2("dataset creation by relative path from root group");
+            TESTING_2_API("dataset creation by relative path from root group");
 
             /* TODO: */
 
-            SKIPPED();
+            SKIPPED_API();
             PART_EMPTY(H5Dcreate_relative_from_root);
         }
         PART_END(H5Dcreate_relative_from_root);
 
         PART_BEGIN(H5Dcreate_relative_from_nonroot)
         {
-            TESTING_2("dataset creation by relative path from non-root group");
+            TESTING_2_API("dataset creation by relative path from non-root group");
 
             /* Create a dataset by relative path in the form "dataset" starting from the test container group
              */
             if ((dset_id5 = H5Dcreate2(group_id, ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET5_NAME, dset_dtype5,
                                        fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't create dataset by relative path from container group\n");
-                PART_ERROR(H5Dcreate_relative_from_nonroot);
+                PART_ERROR_API(H5Dcreate_relative_from_nonroot);
             }
 
             /* Create a dataset by relative path in the form "group/dataset" starting from the top-level
@@ -532,9 +532,9 @@ test_absolute_vs_relative_path(void)
                                        ABSOLUTE_VS_RELATIVE_PATH_TEST_CONTAINER_GROUP_NAME
                                        "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET2_NAME,
                                        dset_dtype2, fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't create dataset by relative path from container group\n");
-                PART_ERROR(H5Dcreate_relative_from_nonroot);
+                PART_ERROR_API(H5Dcreate_relative_from_nonroot);
             }
 
             if ((link_exists = H5Lexists(file_id,
@@ -542,15 +542,15 @@ test_absolute_vs_relative_path(void)
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_CONTAINER_GROUP_NAME
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET2_NAME,
                                          H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't determine if link exists\n");
-                PART_ERROR(H5Dcreate_relative_from_nonroot);
+                PART_ERROR_API(H5Dcreate_relative_from_nonroot);
             }
 
             if (!link_exists) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    didn't exist at the correct location\n");
-                PART_ERROR(H5Dcreate_relative_from_nonroot);
+                PART_ERROR_API(H5Dcreate_relative_from_nonroot);
             }
 
             if ((link_exists = H5Lexists(file_id,
@@ -558,24 +558,24 @@ test_absolute_vs_relative_path(void)
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_CONTAINER_GROUP_NAME
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET5_NAME,
                                          H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't determine if link exists\n");
-                PART_ERROR(H5Dcreate_relative_from_nonroot);
+                PART_ERROR_API(H5Dcreate_relative_from_nonroot);
             }
 
             if (!link_exists) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    didn't exist at the correct location\n");
-                PART_ERROR(H5Dcreate_relative_from_nonroot);
+                PART_ERROR_API(H5Dcreate_relative_from_nonroot);
             }
 
-            PASSED();
+            PASSED_API();
         }
         PART_END(H5Dcreate_relative_from_nonroot);
 
         PART_BEGIN(H5Dcreate_relative_leading_dot_root)
         {
-            TESTING_2("dataset creation by path with leading '.' from root group");
+            TESTING_2_API("dataset creation by path with leading '.' from root group");
 
             /* Create a dataset by relative path in the form "./group/dataset" starting from the root group */
             if ((dset_id3 = H5Dcreate2(file_id,
@@ -583,9 +583,9 @@ test_absolute_vs_relative_path(void)
                                        "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_CONTAINER_GROUP_NAME
                                        "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET3_NAME,
                                        dset_dtype3, fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't create dataset by relative path from root with leading '.'\n");
-                PART_ERROR(H5Dcreate_relative_leading_dot_root);
+                PART_ERROR_API(H5Dcreate_relative_leading_dot_root);
             }
 
             if ((link_exists = H5Lexists(file_id,
@@ -593,32 +593,32 @@ test_absolute_vs_relative_path(void)
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_CONTAINER_GROUP_NAME
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET3_NAME,
                                          H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't determine if link exists\n");
-                PART_ERROR(H5Dcreate_relative_leading_dot_root);
+                PART_ERROR_API(H5Dcreate_relative_leading_dot_root);
             }
 
             if (!link_exists) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    didn't exist at the correct location\n");
-                PART_ERROR(H5Dcreate_relative_leading_dot_root);
+                PART_ERROR_API(H5Dcreate_relative_leading_dot_root);
             }
 
-            PASSED();
+            PASSED_API();
         }
         PART_END(H5Dcreate_relative_leading_dot_root);
 
         PART_BEGIN(H5Dcreate_relative_leading_dot_nonroot)
         {
-            TESTING_2("dataset creation by path with leading '.' from non-root group");
+            TESTING_2_API("dataset creation by path with leading '.' from non-root group");
 
             /* Create a dataset by relative path in the form "./dataset" starting from the container group */
             if ((dset_id6 = H5Dcreate2(group_id, "./" ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET6_NAME, dset_dtype6,
                                        fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf(
                     "    couldn't create dataset by relative path from container group with leading '.'\n");
-                PART_ERROR(H5Dcreate_relative_leading_dot_nonroot);
+                PART_ERROR_API(H5Dcreate_relative_leading_dot_nonroot);
             }
 
             if ((link_exists = H5Lexists(file_id,
@@ -626,24 +626,24 @@ test_absolute_vs_relative_path(void)
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_CONTAINER_GROUP_NAME
                                          "/" ABSOLUTE_VS_RELATIVE_PATH_TEST_DSET6_NAME,
                                          H5P_DEFAULT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't determine if link exists\n");
-                PART_ERROR(H5Dcreate_relative_leading_dot_nonroot);
+                PART_ERROR_API(H5Dcreate_relative_leading_dot_nonroot);
             }
 
             if (!link_exists) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    didn't exist at the correct location\n");
-                PART_ERROR(H5Dcreate_relative_leading_dot_nonroot);
+                PART_ERROR_API(H5Dcreate_relative_leading_dot_nonroot);
             }
 
-            PASSED();
+            PASSED_API();
         }
         PART_END(H5Dcreate_relative_leading_dot_nonroot);
     }
     END_MULTIPART;
 
-    TESTING_2("test cleanup");
+    TESTING_2_API("test cleanup");
 
     if (H5Sclose(fspace_id) < 0)
         TEST_ERROR;
@@ -678,7 +678,7 @@ test_absolute_vs_relative_path(void)
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
 
-    PASSED();
+    PASSED_API();
 
     return 0;
 
@@ -727,46 +727,46 @@ test_dot_for_object_name(void)
     if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) ||
         !(vol_cap_flags_g & H5VL_CAP_FLAG_STORED_DATATYPES)) {
-        SKIPPED();
+        SKIPPED_API();
         printf("    API functions for basic file, group, dataset, or stored datatype aren't supported with "
                "this connector\n");
         return 0;
     }
 
-    TESTING_2("test setup");
+    TESTING_2_API("test setup");
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
     }
 
     if ((container_group = H5Gopen2(file_id, MISCELLANEOUS_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open container group '%s'\n", MISCELLANEOUS_TEST_GROUP_NAME);
         goto error;
     }
 
     if ((subgroup_id = H5Gcreate2(container_group, DOT_AS_OBJECT_NAME_TEST_SUBGROUP_NAME, H5P_DEFAULT,
                                   H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't create container subgroup '%s'\n", DOT_AS_OBJECT_NAME_TEST_SUBGROUP_NAME);
         goto error;
     }
 
     if ((dspace_id = H5Screate(H5S_SCALAR)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't create data space\n");
         goto error;
     }
 
-    PASSED();
+    PASSED_API();
 
     BEGIN_MULTIPART
     {
         PART_BEGIN(H5Gcreate_dot_as_name)
         {
-            TESTING_2("invalid creation of group with '.' as name");
+            TESTING_2_API("invalid creation of group with '.' as name");
 
             /* Create a group with the "." as the name.  It should fail. */
             H5E_BEGIN_TRY
@@ -776,18 +776,18 @@ test_dot_for_object_name(void)
             H5E_END_TRY
 
             if (group_id >= 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    a group was created with '.' as the name!\n");
-                PART_ERROR(H5Gcreate_dot_as_name);
+                PART_ERROR_API(H5Gcreate_dot_as_name);
             }
 
-            PASSED();
+            PASSED_API();
         }
         PART_END(H5Gcreate_dot_as_name);
 
         PART_BEGIN(H5Dcreate_dot_as_name)
         {
-            TESTING_2("invalid creation of dataset with '.' as name");
+            TESTING_2_API("invalid creation of dataset with '.' as name");
 
             /* Create a dataset with the "." as the name.  It should fail. */
             H5E_BEGIN_TRY
@@ -798,23 +798,23 @@ test_dot_for_object_name(void)
             H5E_END_TRY
 
             if (dset_id >= 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    a dataset was created with '.' as the name!\n");
-                PART_ERROR(H5Dcreate_dot_as_name);
+                PART_ERROR_API(H5Dcreate_dot_as_name);
             }
 
-            PASSED();
+            PASSED_API();
         }
         PART_END(H5Dcreate_dot_as_name);
 
         PART_BEGIN(H5Tcommit_dot_as_name)
         {
-            TESTING_2("invalid creation of committed datatype with '.' as name");
+            TESTING_2_API("invalid creation of committed datatype with '.' as name");
 
             if ((dtype_id = H5Tcopy(H5T_NATIVE_INT)) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    couldn't copy a native datatype\n");
-                PART_ERROR(H5Tcommit_dot_as_name);
+                PART_ERROR_API(H5Tcommit_dot_as_name);
             }
 
             /* Commit a datatype with "." as the name. It should fail. */
@@ -825,24 +825,24 @@ test_dot_for_object_name(void)
             H5E_END_TRY
 
             if (ret >= 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    a named datatype was committed with '.' as the name!\n");
-                PART_ERROR(H5Tcommit_dot_as_name);
+                PART_ERROR_API(H5Tcommit_dot_as_name);
             }
 
             if (H5Tclose(dtype_id) < 0) {
-                H5_FAILED();
+                H5_FAILED_API();
                 printf("    failed to close datatype\n");
-                PART_ERROR(H5Tcommit_dot_as_name);
+                PART_ERROR_API(H5Tcommit_dot_as_name);
             }
 
-            PASSED();
+            PASSED_API();
         }
         PART_END(H5Tcommit_dot_as_name);
     }
     END_MULTIPART;
 
-    TESTING_2("test cleanup");
+    TESTING_2_API("test cleanup");
 
     if (H5Sclose(dspace_id) < 0)
         TEST_ERROR;
@@ -853,7 +853,7 @@ test_dot_for_object_name(void)
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
 
-    PASSED();
+    PASSED_API();
 
     return 0;
 
@@ -885,9 +885,9 @@ error:
 static int
 test_double_init_term(void)
 {
-    TESTING("double init/term correctness");
+    TESTING_API("double init/term correctness");
 
-    SKIPPED();
+    SKIPPED_API();
 
     return 0;
 
@@ -911,12 +911,12 @@ test_symbols_in_compound_field_name(void)
     hid_t  type_pool[COMPOUND_WITH_SYMBOLS_IN_MEMBER_NAMES_TEST_NUM_SUBTYPES];
     char   member_names[COMPOUND_WITH_SYMBOLS_IN_MEMBER_NAMES_TEST_NUM_SUBTYPES][256];
 
-    TESTING("usage of '{', '}' and '\\\"' symbols in compound field name");
+    TESTING_API("usage of '{', '}' and '\\\"' symbols in compound field name");
 
     /* Make sure the connector supports the API functions being tested */
     if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
-        SKIPPED();
+        SKIPPED_API();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
         return 0;
     }
@@ -925,20 +925,20 @@ test_symbols_in_compound_field_name(void)
         type_pool[i] = H5I_INVALID_HID;
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open file\n");
         goto error;
     }
 
     if ((container_group = H5Gopen2(file_id, MISCELLANEOUS_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't open container group\n");
         goto error;
     }
 
     if ((group_id = H5Gcreate2(container_group, COMPOUND_WITH_SYMBOLS_IN_MEMBER_NAMES_TEST_SUBGROUP_NAME,
                                H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't create container sub-group\n");
         goto error;
     }
@@ -959,14 +959,14 @@ test_symbols_in_compound_field_name(void)
     HDsnprintf(member_names[8], 256, "{{ member8\\\\");
 
     if ((compound_type = H5Tcreate(H5T_COMPOUND, total_type_size)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't create compound datatype\n");
         goto error;
     }
 
     for (i = 0, next_offset = 0; i < COMPOUND_WITH_SYMBOLS_IN_MEMBER_NAMES_TEST_NUM_SUBTYPES; i++) {
         if (H5Tinsert(compound_type, member_names[i], next_offset, type_pool[i]) < 0) {
-            H5_FAILED();
+            H5_FAILED_API();
             printf("    couldn't insert compound member %zu\n", i);
             goto error;
         }
@@ -983,7 +983,7 @@ test_symbols_in_compound_field_name(void)
 
     if ((dset_id = H5Dcreate2(group_id, COMPOUND_WITH_SYMBOLS_IN_MEMBER_NAMES_TEST_DSET_NAME, compound_type,
                               fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    couldn't create dataset\n");
         goto error;
     }
@@ -993,7 +993,7 @@ test_symbols_in_compound_field_name(void)
 
     if ((dset_id = H5Dopen2(group_id, COMPOUND_WITH_SYMBOLS_IN_MEMBER_NAMES_TEST_DSET_NAME, H5P_DEFAULT)) <
         0) {
-        H5_FAILED();
+        H5_FAILED_API();
         printf("    failed to open dataset\n");
         goto error;
     }
@@ -1015,7 +1015,7 @@ test_symbols_in_compound_field_name(void)
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
 
-    PASSED();
+    PASSED_API();
 
     return 0;
 
