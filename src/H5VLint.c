@@ -539,7 +539,10 @@ H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *vol_connector, hbool_t 
 
     /* If this is a datatype, we have to hide the VOL object under the H5T_t pointer */
     if (H5I_DATATYPE == type) {
-        if (NULL == (ret_value = (H5VL_object_t *)H5T_construct_datatype(new_vol_obj)))
+        H5_API_LOCK
+        ret_value = (H5VL_object_t *)H5T_construct_datatype(new_vol_obj);
+        H5_API_UNLOCK
+        if (ret_value == NULL)
             HGOTO_ERROR(H5E_VOL, H5E_CANTINIT, NULL, "can't construct datatype object");
     } /* end if */
     else
@@ -2053,9 +2056,13 @@ H5VL_vol_object(hid_t id)
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "invalid identifier");
 
         /* If this is a datatype, get the VOL object attached to the H5T_t struct */
-        if (H5I_DATATYPE == obj_type)
-            if (NULL == (obj = H5T_get_named_type((H5T_t *)obj)))
+        if (H5I_DATATYPE == obj_type) {
+            H5_API_LOCK
+            obj = H5T_get_named_type((H5T_t *)obj);
+            H5_API_UNLOCK
+            if (NULL == obj)
                 HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a named datatype");
+        }
     } /* end if */
     else
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "invalid identifier type to function");
@@ -2157,7 +2164,10 @@ H5VL__object(hid_t id, H5I_type_t obj_type)
                 HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "invalid identifier");
 
             /* Get the actual datatype object that should be the vol_obj */
-            if (NULL == (vol_obj = H5T_get_named_type(dt)))
+            H5_API_LOCK
+            vol_obj = H5T_get_named_type(dt);
+            H5_API_UNLOCK
+            if (NULL == vol_obj)
                 HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a named datatype");
             break;
         }
@@ -2712,6 +2722,7 @@ H5VL_wrap_register(H5I_type_t type, void *obj, hbool_t app_ref)
     H5VL_wrap_ctx_t *vol_wrap_ctx = NULL;         /* Object wrapping context */
     void            *new_obj;                     /* Newly wrapped object */
     hid_t            ret_value = H5I_INVALID_HID; /* Return value */
+    bool dtype_already_managed = false; /* Whether target dtype (if any) is already VOL-managed */
 
     FUNC_ENTER_NOAPI(H5I_INVALID_HID)
 
@@ -2729,9 +2740,13 @@ H5VL_wrap_register(H5I_type_t type, void *obj, hbool_t app_ref)
      * field will get clobbered later, so disallow this.
      */
     if (type == H5I_DATATYPE)
-        if (vol_wrap_ctx->connector->id == H5VL_NATIVE)
-            if (TRUE == H5T_already_vol_managed((const H5T_t *)obj))
-                HGOTO_ERROR(H5E_VOL, H5E_BADTYPE, H5I_INVALID_HID, "can't wrap an uncommitted datatype");
+        if (vol_wrap_ctx->connector->id == H5VL_NATIVE) {
+            H5_API_LOCK
+            dtype_already_managed = H5T_already_vol_managed((const H5T_t *)obj);
+            H5_API_UNLOCK
+            if (dtype_already_managed)
+                HGOTO_ERROR(H5E_VOL, H5E_BADTYPE, H5I_INVALID_HID, "can't wrap an already VOL-managed datatype");
+        }
 
     /* Wrap the object with VOL connector info */
     if (NULL == (new_obj = H5VL__wrap_obj(obj, type)))
