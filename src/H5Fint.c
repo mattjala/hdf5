@@ -1420,7 +1420,9 @@ H5F__dest(H5F_t *f, bool flush, bool free_on_failure)
          *
          * Verify this.
          */
-        assert(H5AC_cache_is_clean(f, H5AC_RING_MDFSM));
+        if (!H5AC_cache_is_clean(f, H5AC_RING_MDFSM))
+            /* Push error, but keep going */
+            HDONE_ERROR(H5E_FILE, H5E_CANTFLUSH, FAIL, "metadata cache not clean at file close");
 
         /* Release the external file cache */
         if (f->shared->efc) {

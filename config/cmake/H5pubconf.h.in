@@ -20,6 +20,9 @@
 /* Define if using MinGW */
 #cmakedefine H5_HAVE_MINGW @H5_HAVE_MINGW@
 
+/* Define if using Cygwin */
+#cmakedefine H5_HAVE_CYGWIN @CYGWIN@
+
 /* Define if on the Windows platform and using the Win32 API */
 #cmakedefine H5_HAVE_WIN32_API @H5_HAVE_WIN32_API@
 

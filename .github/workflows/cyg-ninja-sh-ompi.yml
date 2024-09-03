@@ -27,5 +27,5 @@ jobs:
            -D BUILD_SHARED_LIBS:BOOL=OFF \
            -D CTEST_DROP_SITE_INIT:STRING="my.cdash.org" \
            ..
-          ctest -D Experimental
+          ctest -D Experimental --output-on-failure -VV
         shell: C:\cygwin\bin\bash.exe -eo pipefail -o igncr '{0}'
