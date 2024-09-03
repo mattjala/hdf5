@@ -113,21 +113,6 @@ extern pthread_key_t thread_info_key_g;
 
 
 /*
- * Increment the global test stat (in a threadsafe manner) and, if defined, 
- * the thread-specific test stat.
- */
-#ifdef H5_HAVE_MULTITHREAD
-#define INCR_TEST_STAT(field_name) \
-    do { \
-        if (pthread_getspecific(thread_info_key_g) != NULL) \
-            ((thread_info_t*)pthread_getspecific(thread_info_key_g))->field_name++;\
-        atomic_fetch_add(&field_name, 1);\
-    } while (0)
-#else /* H5_HAVE_MULTITHREAD */
-#define INCR_TEST_STAT(field_name) field_name++;
-#endif
-
-/*
  * The name of the test is printed by saying TESTING("something") which will
  * result in the string `Testing something' being flushed to standard output.
  * If a test passes, fails, or is skipped then the PASSED(), H5_FAILED(), or
@@ -140,25 +125,31 @@ extern pthread_key_t thread_info_key_g;
     do {                                                                                                     \
         printf("Testing %-62s", WHAT);                                                                       \
         fflush(stdout);                                                                                      \
-        INCR_TEST_STAT(n_tests_run_g); \
+        n_tests_run_g++; \
     } while (0)
 #define TESTING_2(WHAT)                                                                                      \
     do {                                                                                                     \
         printf("  Testing %-60s", WHAT);                                                                     \
         fflush(stdout);                                                                                      \
-        INCR_TEST_STAT(n_tests_run_g);                                                                                    \
+        n_tests_run_g++;                                                                                   \
     } while (0)
 #define PASSED()                                                                                             \
     do {                                                                                                     \
         HDputs(" PASSED");                                                                                   \
         fflush(stdout);                                                                                      \
-        INCR_TEST_STAT(n_tests_passed_g);                                                                                 \
+        n_tests_passed_g++;                                                                                 \
     } while (0)
 #define H5_FAILED()                                                                                          \
     do {                                                                                                     \
         HDputs("*FAILED*");                                                                                  \
         fflush(stdout);                                                                                      \
-        INCR_TEST_STAT(n_tests_failed_g);                                                                                  \
+        n_tests_failed_g++;                                                                                  \
+    } while (0)
+#define H5_FAILED_API()                                                                                      \
+    do {                                                                                                     \
+        HDputs("*FAILED*");                                                                              \
+        fflush(stdout);                                                                                      \
+        INCR_TEST_STAT(n_tests_failed_g);                                                           \
     } while (0)
 #define H5_WARNING()                                                                                         \
     do {                                                                                                     \
@@ -169,7 +160,7 @@ extern pthread_key_t thread_info_key_g;
     do {                                                                                                     \
         HDputs(" -SKIP-");                                                                                   \
         fflush(stdout);                                                                                      \
-        INCR_TEST_STAT(n_tests_skipped_g);                                                                                 \
+        n_tests_skipped_g++;                                                                                 \
     } while (0)
 #define PUTS_ERROR(s)                                                                                        \
     do {                                                                                                     \
@@ -202,7 +193,6 @@ extern pthread_key_t thread_info_key_g;
         HDputs(s);                                                                                           \
         goto error;                                                                                          \
     } while (0)
-
 /*
  * Testing macros used for multi-part tests.
  */
@@ -241,7 +231,7 @@ extern pthread_key_t thread_info_key_g;
     part_##part_name##_end:
 #define PART_ERROR(part_name)                                                                                \
     do {                                                                                                     \
-        INCR_TEST_STAT(n_tests_failed_g);                                                                                  \
+        n_tests_failed_g++;                                                                                  \
         part_nerrors++;                                                                                      \
         goto part_##part_name##_end;                                                                         \
     } while (0)
@@ -252,7 +242,6 @@ extern pthread_key_t thread_info_key_g;
         part_nerrors++;                                                                                      \
         goto part_##part_name##_end;                                                                         \
     } while (0)
-
 /*
  * Simply skips to the goto label for this test part and moves on to the
  * next test part. Useful for when a test part needs to be skipped for
@@ -262,6 +251,71 @@ extern pthread_key_t thread_info_key_g;
     do {                                                                                                     \
         goto part_##part_name##_end;                                                                         \
     } while (0)
+
+/*
+ * Muli-thread-compatible testing macros for use in API tests
+ */
+#ifdef H5_HAVE_MULTITHREAD
+#define INCR_TEST_STAT(field_name) \
+    do { \
+        if (pthread_getspecific(thread_info_key_g) != NULL) \
+            ((thread_info_t*)pthread_getspecific(thread_info_key_g))->field_name++;\
+    } while (0)
+#else
+#define INCR_TEST_STAT(field_name) field_name++
+#endif
+
+#define TESTING_API(WHAT)                                                                                    \
+do {                                                                                                     \
+    printf("Testing %-62s", WHAT);                                                                   \
+    fflush(stdout);                                                                                      \
+    INCR_TEST_STAT(n_tests_run_g); \
+} while (0)
+#define TESTING_2_API(WHAT)                                                                                  \
+    do {                                                                                                     \
+        printf("  Testing %-60s", WHAT);                                                                 \
+        fflush(stdout);                                                                                      \
+        INCR_TEST_STAT(n_tests_run_g);                                                               \
+    } while (0)
+#define PASSED_API()                                                                                         \
+    do {                                                                                                     \
+        HDputs(" PASSED");                                                                               \
+        fflush(stdout);                                                                                      \
+        INCR_TEST_STAT(n_tests_passed_g);                                                           \
+    } while (0)
+#define SKIPPED_API()                                                                                        \
+    do {                                                                                                     \
+        HDputs(" -SKIP-");                                                                               \
+        fflush(stdout);                                                                                      \
+        INCR_TEST_STAT(n_tests_skipped_g);                                                         \
+    } while (0)
+#define TEST_ERROR_API                                                                                       \
+    do {                                                                                                     \
+        H5_FAILED_API();                                                                                         \
+        AT();                                                                                                \
+        goto error;                                                                                          \
+    } while (0)
+#define FAIL_PUTS_ERROR_API(s)                                                                               \
+    do {                                                                                                     \
+        H5_FAILED_API();                                                                                         \
+        AT();                                                                                                \
+        HDputs(s);                                                                                           \
+        goto error;                                                                                          \
+    } while (0)
+#define PART_ERROR_API(part_name)                                                                            \
+    do {                                                                                                     \
+        INCR_TEST_STAT(n_tests_failed_g);                                                                                  \
+        part_nerrors++;                                                                                      \
+        goto part_##part_name##_end;                                                                         \
+    } while (0)
+#define PART_TEST_ERROR_API(part_name)                                                                       \
+    do {                                                                                                     \
+        H5_FAILED_API();                                                                                         \
+        AT();                                                                                                \
+        part_nerrors++;                                                                                      \
+        goto part_##part_name##_end;                                                                         \
+    } while (0)
+
 
 /* Number of seconds to wait before killing a test (requires alarm(2)) */
 #define H5_ALARM_SEC 1200 /* default is 20 minutes */
@@ -386,17 +440,10 @@ H5TEST_DLL char *getenv_all(MPI_Comm comm, int root, const char *name);
 /* Extern global variables */
 H5TEST_DLLVAR int      TestVerbosity;
 /* Global variables for testing */
-#ifdef H5_HAVE_MULTITHREAD
-H5TEST_DLLVAR _Atomic size_t n_tests_run_g;
-H5TEST_DLLVAR _Atomic size_t n_tests_passed_g;
-H5TEST_DLLVAR _Atomic size_t n_tests_failed_g;
-H5TEST_DLLVAR _Atomic size_t n_tests_skipped_g;
-#else
 H5TEST_DLLVAR size_t   n_tests_run_g;
 H5TEST_DLLVAR size_t   n_tests_passed_g;
 H5TEST_DLLVAR size_t   n_tests_failed_g;
 H5TEST_DLLVAR size_t   n_tests_skipped_g;
-#endif
 H5TEST_DLLVAR uint64_t vol_cap_flags_g;
 
 H5TEST_DLL void   h5_send_message(const char *file, const char *arg1, const char *arg2);
