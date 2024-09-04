@@ -1410,9 +1410,11 @@ H5F__dest(H5F_t *f, bool flush, bool free_on_failure)
          * the caller requested a flush.
          */
         if ((H5F_ACC_RDWR & H5F_INTENT(f)) && flush)
-            if (H5F__flush_phase2(f, true) < 0)
+            if (H5F__flush_phase2(f, true) < 0) {
                 /* Push error, but keep going */
+                fprintf(stderr, "Flush phase 2 did not complete properly");
                 HDONE_ERROR(H5E_FILE, H5E_CANTFLUSH, FAIL, "unable to flush cached data (phase 2)");
+            }
 
         /* With the shutdown modifications, the contents of the metadata cache
          * should be clean at this point, with the possible exception of the
@@ -1420,9 +1422,12 @@ H5F__dest(H5F_t *f, bool flush, bool free_on_failure)
          *
          * Verify this.
          */
-        if (!H5AC_cache_is_clean(f, H5AC_RING_MDFSM))
+        if (!H5AC_cache_is_clean(f, H5AC_RING_MDFSM)) {
             /* Push error, but keep going */
+            fprintf(stderr, "metadata cache not clean at file close (1)\n");
             HDONE_ERROR(H5E_FILE, H5E_CANTFLUSH, FAIL, "metadata cache not clean at file close");
+        }            
+        assert(H5AC_cache_is_clean(f, H5AC_RING_MDFSM));
 
         /* Release the external file cache */
         if (f->shared->efc) {
@@ -1438,6 +1443,11 @@ H5F__dest(H5F_t *f, bool flush, bool free_on_failure)
          *
          * Verify this.
          */
+        if (!H5AC_cache_is_clean(f, H5AC_RING_MDFSM)) {
+            /* Push error, but keep going */
+            fprintf(stderr, "metadata cache not clean at file close (2)\n");
+            HDONE_ERROR(H5E_FILE, H5E_CANTFLUSH, FAIL, "metadata cache not clean at file close");
+        }            
         assert(H5AC_cache_is_clean(f, H5AC_RING_MDFSM));
 
         /* Release objects that depend on the superblock being initialized */
@@ -2308,15 +2318,17 @@ H5F__flush_phase2(H5F_t *f, bool closing)
     assert(f);
 
     /* Inform the metadata cache that we are about to flush */
-    if (H5AC_prep_for_file_flush(f) < 0)
+    if (H5AC_prep_for_file_flush(f) < 0) {
         /* Push error, but keep going*/
+        fprintf(stderr, "H5F__flush_phase2: H5AC_prep_for_file_flush() failed.\n");
         HDONE_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "prep for MDC flush failed");
-
+    }
     /* Flush the entire metadata cache */
-    if (H5AC_flush(f) < 0)
+    if (H5AC_flush(f) < 0) {
         /* Push error, but keep going*/
+        fprintf(stderr, "H5F__flush_phase2: H5AC_flush() failed.\n");
         HDONE_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "unable to flush metadata cache");
-
+    }
 #ifdef H5_HAVE_PARALLEL
     if (H5F_HAS_FEATURE(f, H5FD_FEAT_HAS_MPI)) {
         /* Since we just returned from a call to H5AC_flush(), we just
@@ -2329,15 +2341,17 @@ H5F__flush_phase2(H5F_t *f, bool closing)
 #endif /* H5_HAVE_PARALLEL */
 
     /* Truncate the file to the current allocated size */
-    if (H5FD_truncate(f->shared->lf, closing) < 0)
+    if (H5FD_truncate(f->shared->lf, closing) < 0) {
         /* Push error, but keep going*/
+        fprintf(stderr, "H5F__flush_phase2: H5FD_truncate() failed.\n");
         HDONE_ERROR(H5E_FILE, H5E_WRITEERROR, FAIL, "low level truncate failed");
-
+    }
     /* Flush the entire metadata cache again since the EOA could have changed in the truncate call. */
-    if (H5AC_flush(f) < 0)
+    if (H5AC_flush(f) < 0) {
         /* Push error, but keep going*/
+        fprintf(stderr, "H5F__flush_phase2: H5AC_flush() failed.\n");
         HDONE_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "unable to flush metadata cache");
-
+    }
 #ifdef H5_HAVE_PARALLEL
     if (H5F_HAS_FEATURE(f, H5FD_FEAT_HAS_MPI))
         /* Reset the "flushing the file" flag */
@@ -2345,25 +2359,38 @@ H5F__flush_phase2(H5F_t *f, bool closing)
 #endif /* H5_HAVE_PARALLEL */
 
     /* Inform the metadata cache that we are done with the flush */
-    if (H5AC_secure_from_file_flush(f) < 0)
+    if (H5AC_secure_from_file_flush(f) < 0) {
         /* Push error, but keep going*/
+        fprintf(stderr, "H5F__flush_phase2: H5AC_secure_from_file_flush() failed.\n");
         HDONE_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "secure from MDC flush failed");
+    }
 
     /* Flush out the metadata accumulator */
-    if (H5F__accum_flush(f->shared) < 0)
+    if (H5F__accum_flush(f->shared) < 0) {
         /* Push error, but keep going*/
+        fprintf(stderr, "H5F__flush_phase2: H5F__accum_flush() failed.\n");
         HDONE_ERROR(H5E_IO, H5E_CANTFLUSH, FAIL, "unable to flush metadata accumulator");
+    }
 
     /* Flush the page buffer */
-    if (H5PB_flush(f->shared) < 0)
+    if (H5PB_flush(f->shared) < 0) {
         /* Push error, but keep going*/
+        fprintf(stderr, "H5F__flush_phase2: H5PB_flush() failed.\n");
         HDONE_ERROR(H5E_IO, H5E_CANTFLUSH, FAIL, "page buffer flush failed");
-
+    }
     /* Flush file buffers to disk. */
-    if (H5FD_flush(f->shared->lf, closing) < 0)
+    if (H5FD_flush(f->shared->lf, closing) < 0) {
         /* Push error, but keep going*/
+        fprintf(stderr, "H5F__flush_phase2: H5FD_flush() failed.\n");
         HDONE_ERROR(H5E_IO, H5E_CANTFLUSH, FAIL, "low level flush failed");
+    
+    }
+    if (!H5AC_cache_is_clean(f, H5AC_RING_MDFSM)) {
+        fprintf(stderr, "metadata cache dirty at end of flush phase 2\n");
+        HDONE_ERROR(H5E_CACHE, H5E_CANTFLUSH, FAIL, "metadata cache dirty at end of flush phase 2");
+    }
 
+    fflush(stderr);
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5F__flush_phase2() */
 

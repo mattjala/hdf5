@@ -22,10 +22,11 @@ jobs:
           mkdir build
           cd build
           cmake -G Ninja \
-           -D SITE:STRING=cwin \
            -DBUILDNAME:STRING="ninja" \
            -D BUILD_SHARED_LIBS:BOOL=OFF \
-           -D CTEST_DROP_SITE_INIT:STRING="my.cdash.org" \
+           -DHDF5_ENABLE_DEBUG_H5C_SANITY_CHECKS=ON \
+           -DCMAKE_BUILD_TYPE=Debug \
            ..
-          ctest -D Experimental --output-on-failure -VV
+          cmake --build . --config Debug -j
+          ctest . -C Debug --output-on-failure -VV
         shell: C:\cygwin\bin\bash.exe -eo pipefail -o igncr '{0}'
