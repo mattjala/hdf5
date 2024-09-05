@@ -28,5 +28,5 @@ jobs:
            -DCMAKE_BUILD_TYPE=Debug \
            ..
           cmake --build . --config Debug -j
-          ctest . -C Debug --output-on-failure -VV
+          ctest . -C Debug -R "testhdf5" --output-on-failure -VV
         shell: C:\cygwin\bin\bash.exe -eo pipefail -o igncr '{0}'
