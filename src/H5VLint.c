@@ -93,11 +93,21 @@ static herr_t         H5VL__free_vol_wrapper(H5VL_wrap_ctx_t *vol_wrap_ctx);
 #ifdef H5_HAVE_MULTITHREAD
 static herr_t H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
 #else
-static int            H5VL__get_connector_cb(void *obj, hid_t id, void *_op_data);
+static int    H5VL__get_connector_cb(void *obj, hid_t id, void *_op_data);
 static herr_t H5VL__get_registered_connector_st(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
 #endif
 
 static herr_t H5VL__get_registered_connector(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
+
+#define H5I_DEC_REF(id, app_ref)                                                                             \
+    if (app_ref) {                                                                                           \
+        if (H5I_dec_app_ref(id) < 0)                                                                         \
+            HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "can't decrement ID ref count");                         \
+    }                                                                                                        \
+    else {                                                                                                   \
+        if (H5I_dec_ref(id) < 0)                                                                             \
+            HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "can't decrement ID ref count");                         \
+    }
 /*********************/
 /* Package Variables */
 /*********************/
@@ -1273,8 +1283,6 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5VL__register_connector() */
 
-
-
 #ifdef H5_HAVE_MULTITHREAD
 /*-------------------------------------------------------------------------
  * Function:    H5VL__get_registered_connector_mt
@@ -1349,11 +1357,10 @@ H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref
             ((op_data->key.kind == H5VL_GET_CONNECTOR_BY_VALUE) &&
              (vol_class_1->value == op_data->key.u.value))) {
 
-            if (!inc_ref)
+            if (!inc_ref) {
                 /* Don't restart search on failure here, since this should not be possible */
-                if (H5I_dec_ref(vol_id_1) < 0)
-                    HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, H5I_INVALID_HID,
-                                "can't decrement reference count for found VOL ID");
+                H5I_DEC_REF(vol_id_1, app_ref);
+            }
             op_data->found_id = vol_id_1;
             HGOTO_DONE(SUCCEED);
         }
@@ -1362,17 +1369,13 @@ H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref
         while (true) {
             /* Get next ID and release current ID */
             if (H5I_get_next(H5I_VOL, vol_id_1, &vol_id_2, (void **)&vol_class_2, false) < 0) {
-                if (H5I_dec_ref(vol_id_1) < 0)
-                    HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, H5I_INVALID_HID,
-                                "can't decrement reference count for VOL ID");
+                H5I_DEC_REF(vol_id_1, app_ref);
                 HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID,
                             "can't retrieve next VOL ID for iteration");
             }
 
             /* Don't restart search on failure here, since this should not be possible */
-            if (H5I_dec_ref(vol_id_1) < 0)
-                HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, H5I_INVALID_HID,
-                            "can't decrement reference count for VOL ID");
+            H5I_DEC_REF(vol_id_1, app_ref);
 
             /* Check if we've reached the end of the list */
             if (vol_class_2 == NULL || vol_id_2 == 0) {
@@ -1391,11 +1394,10 @@ H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref
                 (op_data->key.kind == H5VL_GET_CONNECTOR_BY_VALUE &&
                  vol_class_2->value == op_data->key.u.value)) {
 
-                if (!inc_ref)
+                if (!inc_ref) {
                     /* Don't restart search on failure here, since this should not be possible */
-                    if (H5I_dec_ref(vol_id_2) < 0)
-                        HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, H5I_INVALID_HID,
-                                    "can't decrement reference count for VOL ID");
+                    H5I_DEC_REF(vol_id_2, app_ref);
+                }
                 op_data->found_id = vol_id_2;
                 HGOTO_DONE(SUCCEED);
             }
@@ -2719,10 +2721,10 @@ done:
 hid_t
 H5VL_wrap_register(H5I_type_t type, void *obj, hbool_t app_ref)
 {
-    H5VL_wrap_ctx_t *vol_wrap_ctx = NULL;         /* Object wrapping context */
-    void            *new_obj;                     /* Newly wrapped object */
-    hid_t            ret_value = H5I_INVALID_HID; /* Return value */
-    bool dtype_already_managed = false; /* Whether target dtype (if any) is already VOL-managed */
+    H5VL_wrap_ctx_t *vol_wrap_ctx = NULL;                     /* Object wrapping context */
+    void            *new_obj;                                 /* Newly wrapped object */
+    hid_t            ret_value             = H5I_INVALID_HID; /* Return value */
+    bool             dtype_already_managed = false; /* Whether target dtype (if any) is already VOL-managed */
 
     FUNC_ENTER_NOAPI(H5I_INVALID_HID)
 
@@ -2745,7 +2747,8 @@ H5VL_wrap_register(H5I_type_t type, void *obj, hbool_t app_ref)
             dtype_already_managed = H5T_already_vol_managed((const H5T_t *)obj);
             H5_API_UNLOCK
             if (dtype_already_managed)
-                HGOTO_ERROR(H5E_VOL, H5E_BADTYPE, H5I_INVALID_HID, "can't wrap an already VOL-managed datatype");
+                HGOTO_ERROR(H5E_VOL, H5E_BADTYPE, H5I_INVALID_HID,
+                            "can't wrap an already VOL-managed datatype");
         }
 
     /* Wrap the object with VOL connector info */
