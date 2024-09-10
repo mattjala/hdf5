@@ -175,6 +175,7 @@ H5VL__term_opt_operation(void)
     size_t subcls; /* Index over the elements of operation array */
 
     FUNC_ENTER_PACKAGE_NOERR
+    H5_API_LOCK
 
     /* Iterate over the VOL subclasses */
     for (subcls = 0; subcls < NELMTS(H5VL_opt_vals_g); subcls++) {
@@ -184,6 +185,7 @@ H5VL__term_opt_operation(void)
         }
     }
 
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* H5VL__term_opt_operation() */
 
@@ -228,6 +230,7 @@ H5VL__register_opt_operation(H5VL_subclass_t subcls, const char *op_name, int *o
     bool           new_list_inserted = false;   /* Whether a new skip list was inserted into global array */
 
     FUNC_ENTER_PACKAGE
+    H5_API_LOCK
 
     /* Sanity checks */
     assert(op_val);
@@ -299,7 +302,8 @@ done:
 
     if (new_op_list && !new_list_inserted)
         H5SL_close(new_op_list);
-
+    
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5VL__register_opt_operation() */
 
@@ -319,12 +323,14 @@ H5VL__num_opt_operation(void)
     size_t ret_value = 0; /* Return value */
 
     FUNC_ENTER_PACKAGE_NOERR
+    H5_API_LOCK
 
     /* Iterate over the VOL subclasses */
     for (subcls = 0; subcls < NELMTS(H5VL_opt_vals_g); subcls++)
         if (H5VL_opt_ops_g[subcls])
             ret_value += H5SL_count(H5VL_opt_ops_g[subcls]);
 
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5VL__num_opt_operation() */
 
@@ -344,6 +350,7 @@ H5VL__find_opt_operation(H5VL_subclass_t subcls, const char *op_name, int *op_va
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_PACKAGE
+    H5_API_LOCK
 
     /* Sanity checks */
     assert(op_val);
@@ -364,6 +371,7 @@ H5VL__find_opt_operation(H5VL_subclass_t subcls, const char *op_name, int *op_va
         HGOTO_ERROR(H5E_VOL, H5E_NOTFOUND, FAIL, "operation name isn't registered");
 
 done:
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5VL__find_opt_operation() */
 
@@ -383,6 +391,7 @@ H5VL__unregister_opt_operation(H5VL_subclass_t subcls, const char *op_name)
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_PACKAGE
+    H5_API_LOCK
 
     /* Sanity checks */
     assert(op_name && *op_name);
@@ -409,5 +418,6 @@ H5VL__unregister_opt_operation(H5VL_subclass_t subcls, const char *op_name)
         HGOTO_ERROR(H5E_VOL, H5E_NOTFOUND, FAIL, "operation name isn't registered");
 
 done:
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5VL__unregister_opt_operation() */
