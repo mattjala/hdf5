@@ -2,19 +2,27 @@
 #include "H5VLpassthru.h"
 #include "H5VLpassthru.c"
 #include <pthread.h>
-#define MAX_THREADS   32
-#define NUM_ITERS 100
-#define TEST_MSG_SIZE 256
+#define MAX_THREADS        32
+#define NUM_ITERS          100
+#define REGISTRATION_COUNT 1
+#define TEST_MSG_SIZE      256
+#define MT_DUMMY_FILE_NAME "mt_dummy_file.h5"
 
 typedef void *(*mt_vl_test_cb)(void *arg);
 
+herr_t setup_tests(void);
+herr_t cleanup_tests(void);
+
 void *test_concurrent_registration(void *arg);
+void *test_concurrent_registration_operation(void *arg);
 void *test_concurrent_dyn_op_registration(void *arg);
 
 H5VL_subclass_t select_valid_vol_subclass(size_t index);
 
-mt_vl_test_cb tests[2] = {
-    test_concurrent_registration, test_concurrent_dyn_op_registration,
+mt_vl_test_cb tests[3] = {
+    test_concurrent_registration, test_concurrent_dyn_op_registration, test_concurrent_registration_operation,
+    // passthru reg/unreg
+    // FAPL test?
     // test_file_open_failure_registration(); // Requires VOL to be loaded as plugin
     // test_threadsafe_vol(); // Requires MT VOL that acquires mutex
 };
@@ -30,6 +38,11 @@ main(void)
     SKIPPED();
     return 0;
 #endif
+
+    if (setup_tests() < 0) {
+        printf("Failed to set up multi-thread VL tests\n");
+        return -1;
+    }
 
     for (num_threads = 1; num_threads < MAX_THREADS; num_threads++) {
         printf("Testing with %zu threads\n", num_threads);
@@ -49,6 +62,11 @@ main(void)
         }
     }
 
+    if (cleanup_tests() < 0) {
+        printf("Failed to clean up multi-thread VL tests\n");
+        return -1;
+    }
+
     printf("%zu/%zu tests passed (%.2f%%)\n", n_tests_passed_g, n_tests_run_g,
            (double)n_tests_passed_g / (double)n_tests_run_g * 100.0);
     printf("%zu/%zu tests failed (%.2f%%)\n", n_tests_failed_g, n_tests_run_g,
@@ -59,62 +77,73 @@ main(void)
     return 0;
 }
 
+herr_t
+setup_tests(void)
+{
+    herr_t ret_value = SUCCEED;
+
+    if (H5Fcreate(MT_DUMMY_FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT) < 0) {
+        printf("Failed to create dummy file\n");
+        TEST_ERROR;
+    }
+
+error:
+    return ret_value;
+}
+
+herr_t
+cleanup_tests(void)
+{
+    herr_t ret_value = SUCCEED;
+
+    if (H5Fdelete(MT_DUMMY_FILE_NAME, H5P_DEFAULT) < 0) {
+        printf("Failed to remove dummy file\n");
+        TEST_ERROR;
+    }
+
+error:
+    return (ret_value);
+}
 /* Concurrently register and unregister the same VOL connector from multiple threads. */
 void *
 test_concurrent_registration(void H5_ATTR_UNUSED *arg)
 {
-    hid_t vol_id  = H5I_INVALID_HID;
-    hid_t file_id = H5I_INVALID_HID;
-    hid_t fapl_id = H5I_INVALID_HID;
+    hid_t vol_ids[REGISTRATION_COUNT];
 
-    const H5VL_class_t *vol_class     = NULL;
+    const H5VL_class_t *vol_class = NULL;
 
     TESTING("concurrent VOL conn registration/unregistration");
 
+    memset(vol_ids, 0, sizeof(vol_ids));
+
     vol_class = &reg_opt_vol_g;
 
-    if ((vol_id = H5VLregister_connector(vol_class, H5P_DEFAULT)) < 0) {
-        printf("Failed to register native VOL connector\n");
-        TEST_ERROR;
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if ((vol_ids[i] = H5VLregister_connector(vol_class, H5P_DEFAULT)) < 0) {
+            printf("Failed to register fake VOL connector\n");
+            TEST_ERROR;
+        }
     }
 
-    /* Set VOL on FAPL */
-    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
-        printf("Failed to create FAPL\n");
-        TEST_ERROR;
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if (H5VLunregister_connector(vol_ids[i]) < 0) {
+            printf("Failed to unregister fake VOL connector\n");
+            TEST_ERROR;
+        }
     }
-
-    if (H5Pset_vol(fapl_id, vol_id, NULL) < 0) {
-        printf("Failed to set VOL connector on FAPL\n");
-        TEST_ERROR;
-    }
-
-    /* Perform an operation via the FAPL */
-    if ((file_id = H5Fcreate("test_concurrent_registration.h5", H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id)) < 0) {
-        printf("Failed to create file with FAPL\n");
-        TEST_ERROR;
-    }
-
-    if (H5VLunregister_connector(vol_id) < 0) {
-        printf("Failed to unregister native VOL connector\n");
-        TEST_ERROR;
-    }
-
-    vol_id = H5I_INVALID_HID;
 
     /* Close last existing reference to VOL connector in FAPL */
-    if (H5Pclose(fapl_id) < 0)
-        TEST_ERROR;
-    if (H5Fclose(file_id) < 0)
-        TEST_ERROR;
     PASSED();
 
     return NULL;
 
 error:
-    H5Pclose(fapl_id);
-    H5Fclose(file_id);
-    H5VLunregister_connector(vol_id);
+    /* Attempt to unregister each ID one time */
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if (vol_ids[i] > 0)
+            H5VLunregister_connector(vol_ids[i]);
+    }
+
     return (void *)-1;
 }
 
@@ -152,8 +181,9 @@ select_valid_vol_subclass(size_t index)
 void *
 test_concurrent_dyn_op_registration(void H5_ATTR_UNUSED *arg)
 {
-    hid_t           vol_id = H5I_INVALID_HID;
-    H5VL_subclass_t subcls = H5VL_SUBCLS_NONE;
+    herr_t          registration_result = FAIL;
+    hid_t           vol_id              = H5I_INVALID_HID;
+    H5VL_subclass_t subcls              = H5VL_SUBCLS_NONE;
     char            subcls_name[100];
     int             op_val_reg    = -1;
     int             op_val_find   = -1;
@@ -178,46 +208,42 @@ test_concurrent_dyn_op_registration(void H5_ATTR_UNUSED *arg)
             TEST_ERROR;
         }
 
-        if (H5VLregister_opt_operation(subcls, subcls_name, &op_val_reg) < 0) {
-            printf("Failed to register operation %s\n", subcls_name);
-            TEST_ERROR;
+        /* Registration may fail due to already being registered from another thread */
+        /* TODO: When merged, replace with PAUSE_ERROR */
+        H5E_BEGIN_TRY
+        {
+            registration_result = H5VLregister_opt_operation(subcls, subcls_name, &op_val_reg);
         }
+        H5E_END_TRY;
 
-        if (op_val_reg <= 0) {
-            printf("Invalid operation value %d\n", op_val_reg);
-            TEST_ERROR;
-        }
+        if (registration_result == SUCCEED) {
+            if (op_val_reg <= 0) {
+                printf("Invalid operation value %d\n", op_val_reg);
+                TEST_ERROR;
+            }
 
-        if (H5VLfind_opt_operation(subcls, subcls_name, &op_val_find) < 0) {
-            printf("Failed to find operation %s\n", subcls_name);
-            TEST_ERROR;
-        }
+            /* Find the operation - if this thread registered the operation, then no other thread should
+             * unregister it before this. */
+            if (H5VLfind_opt_operation(subcls, subcls_name, &op_val_find) < 0) {
+                printf("Failed to find operation %s\n", subcls_name);
+                TEST_ERROR;
+            }
 
-        if (op_val_find <= 0) {
-            printf("Invalid operation value %d\n", op_val_find);
-            TEST_ERROR;
-        }
+            if (op_val_find <= 0) {
+                printf("Invalid operation value %d\n", op_val_find);
+                TEST_ERROR;
+            }
 
-        if (op_val_find != op_val_reg) {
-            printf("Retrieved optional op value does not match expected: %d != %d\n", op_val_find,
-                   op_val_reg);
-            TEST_ERROR;
-        }
-    }
+            if (op_val_find != op_val_reg) {
+                printf("Retrieved optional op value does not match expected: %d != %d\n", op_val_find,
+                       op_val_reg);
+                TEST_ERROR;
+            }
 
-    for (size_t i = 0; i < NUM_VALID_SUBCLASSES * OPERATIONS_PER_SUBCLASS; i++) {
-        /* Re-generate subclass name */
-        subcls = select_valid_vol_subclass(i);
-
-        if ((chars_written = snprintf(subcls_name, SUBCLS_NAME_SIZE, "%d_%zu", subcls, i) < 0) ||
-            (size_t)chars_written >= sizeof(subcls_name)) {
-            printf("Failed to generate subclass name\n");
-            TEST_ERROR;
-        }
-
-        if (H5VLunregister_opt_operation(subcls, subcls_name) < 0) {
-            printf("Failed to unregister operation %s\n", subcls_name);
-            TEST_ERROR;
+            if (H5VLunregister_opt_operation(subcls, subcls_name) < 0) {
+                printf("Failed to unregister operation %s\n", subcls_name);
+                TEST_ERROR;
+            }
         }
     }
 
@@ -236,5 +262,75 @@ error:
     if (vol_id > 0)
         H5VLunregister_connector(vol_id);
 
+    return (void *)-1;
+}
+
+void *
+test_concurrent_registration_operation(void H5_ATTR_UNUSED *arg)
+{
+    hid_t                    vol_ids[REGISTRATION_COUNT];
+    hid_t                    fapl_id = H5I_INVALID_HID;
+    H5VL_pass_through_info_t passthru_info;
+
+    TESTING("concurrent VOL registration and operation");
+
+    memset(vol_ids, 0, sizeof(vol_ids));
+    passthru_info.under_vol_id   = H5VL_NATIVE;
+    passthru_info.under_vol_info = NULL;
+
+    // avoid using H5VL_PASSTHRU since that avoids double registration, which we want to test
+
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if ((vol_ids[i] = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT)) < 0) {
+            printf("Failed to register passthrough VOL connector\n");
+            TEST_ERROR;
+        }
+    }
+
+    // vol_ids[0] = H5VL_PASSTHRU;
+
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
+            printf("Failed to create FAPL\n");
+            TEST_ERROR;
+        }
+
+        if (H5Pset_vol(fapl_id, vol_ids[i], &passthru_info) < 0) {
+            printf("Failed to set VOL connector\n");
+            TEST_ERROR;
+        }
+
+        /* Simple routine that passes through VOL layer */
+        if (H5Fis_accessible(MT_DUMMY_FILE_NAME, fapl_id) < 0) {
+            printf("Failed to check file accessibility\n");
+            TEST_ERROR;
+        }
+
+        if (H5Pclose(fapl_id) < 0) {
+            printf("Failed to close FAPL\n");
+            TEST_ERROR;
+        }
+
+        fapl_id = H5I_INVALID_HID;
+    }
+
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if (H5VLunregister_connector(vol_ids[i]) < 0) {
+            printf("Failed to unregister fake VOL connector\n");
+            TEST_ERROR;
+        }
+
+        vol_ids[i] = H5I_INVALID_HID;
+    }
+
+    PASSED();
+
+error:
+    if (fapl_id > 0)
+        H5Pclose(fapl_id);
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if (vol_ids[i] > 0)
+            H5VLunregister_connector(vol_ids[i]);
+    }
     return (void *)-1;
 }
