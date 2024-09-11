@@ -1,12 +1,18 @@
 #include "h5test.h"
 #include "H5VLpassthru.h"
 #include "H5VLpassthru.c"
+#include "null_vol_connector.h"
 #include <pthread.h>
+
 #define MAX_THREADS        32
 #define NUM_ITERS          100
 #define REGISTRATION_COUNT 1
 #define TEST_MSG_SIZE      256
 #define MT_DUMMY_FILE_NAME "mt_dummy_file.h5"
+
+#define SUBCLS_NAME_SIZE        100
+#define NUM_VALID_SUBCLASSES    8
+#define OPERATIONS_PER_SUBCLASS 5
 
 typedef void *(*mt_vl_test_cb)(void *arg);
 
@@ -14,15 +20,17 @@ herr_t setup_tests(void);
 herr_t cleanup_tests(void);
 
 void *test_concurrent_registration(void *arg);
+void *test_concurrent_registration_by_name(void *arg);
+void *test_concurrent_registration_by_value(void *args);
 void *test_concurrent_registration_operation(void *arg);
 void *test_concurrent_dyn_op_registration(void *arg);
 
 H5VL_subclass_t select_valid_vol_subclass(size_t index);
 
-mt_vl_test_cb tests[3] = {
-    test_concurrent_registration, test_concurrent_dyn_op_registration, test_concurrent_registration_operation,
-    // passthru reg/unreg
-    // FAPL test?
+mt_vl_test_cb tests[5] = {
+    test_concurrent_registration,          test_concurrent_registration_by_name,
+    test_concurrent_dyn_op_registration,   test_concurrent_registration_operation,
+    test_concurrent_registration_by_value,
     // test_file_open_failure_registration(); // Requires VOL to be loaded as plugin
     // test_threadsafe_vol(); // Requires MT VOL that acquires mutex
 };
@@ -147,9 +155,91 @@ error:
     return (void *)-1;
 }
 
-#define SUBCLS_NAME_SIZE        100
-#define NUM_VALID_SUBCLASSES    8
-#define OPERATIONS_PER_SUBCLASS 5
+void *
+test_concurrent_registration_by_name(void H5_ATTR_UNUSED *arg)
+{
+    hid_t vol_ids[REGISTRATION_COUNT];
+
+    TESTING("concurrent registration by name");
+
+    memset(vol_ids, 0, sizeof(vol_ids));
+
+    // TODO - Replace with absolute path to prevent failure when running from different directories
+    if (H5PLprepend("./test/.libs/") < 0) {
+        printf("Failed to prepend path\n");
+        TEST_ERROR;
+    }
+
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if ((vol_ids[i] = H5VLregister_connector_by_name(NULL_VOL_CONNECTOR_NAME, H5P_DEFAULT)) < 0) {
+            printf("Failed to register NULL VOL connector by name\n");
+            TEST_ERROR;
+        }
+    }
+
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if (H5VLunregister_connector(vol_ids[i]) < 0) {
+            printf("Failed to unregister VOL connector\n");
+            TEST_ERROR;
+        }
+
+        vol_ids[i] = H5I_INVALID_HID;
+    }
+
+    PASSED();
+    return 0;
+error:
+    /* Try to unregister remaining connectors */
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if (vol_ids[i] > 0)
+            H5VLunregister_connector(vol_ids[i]);
+    }
+
+    return (void *)-1;
+}
+
+void *
+test_concurrent_registration_by_value(void H5_ATTR_UNUSED *arg)
+{
+    hid_t vol_ids[REGISTRATION_COUNT];
+
+    TESTING("concurrent registration by value");
+
+    memset(vol_ids, 0, sizeof(vol_ids));
+
+    // TODO - Replace with absolute path to prevent failure when running from different directories
+    if (H5PLprepend("./test/.libs/") < 0) {
+        printf("Failed to prepend path\n");
+        TEST_ERROR;
+    }
+
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if ((vol_ids[i] = H5VLregister_connector_by_value(NULL_VOL_CONNECTOR_VALUE, H5P_DEFAULT)) < 0) {
+            printf("Failed to register NULL VOL connector by value\n");
+            TEST_ERROR;
+        }
+    }
+
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if (H5VLunregister_connector(vol_ids[i]) < 0) {
+            printf("Failed to unregister NULL VOL connector\n");
+            TEST_ERROR;
+        }
+
+        vol_ids[i] = H5I_INVALID_HID;
+    }
+
+    PASSED();
+    return 0;
+error:
+    /* Try to unregister remaining connectors */
+    for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
+        if (vol_ids[i] > 0)
+            H5VLunregister_connector(vol_ids[i]);
+    }
+
+    return (void *)-1;
+}
 
 /* Helper to generate the appropriate VOL subclass for a given iteration */
 H5VL_subclass_t
@@ -278,7 +368,7 @@ test_concurrent_registration_operation(void H5_ATTR_UNUSED *arg)
     passthru_info.under_vol_id   = H5VL_NATIVE;
     passthru_info.under_vol_info = NULL;
 
-    // avoid using H5VL_PASSTHRU since that avoids double registration, which we want to test
+    /* Don't use H5VL_PASSTHRU since that avoids double registration, which we want to test */
 
     for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
         if ((vol_ids[i] = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT)) < 0) {
@@ -286,8 +376,6 @@ test_concurrent_registration_operation(void H5_ATTR_UNUSED *arg)
             TEST_ERROR;
         }
     }
-
-    // vol_ids[0] = H5VL_PASSTHRU;
 
     for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
         if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
