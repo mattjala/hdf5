@@ -41,6 +41,12 @@ jobs:
               run: |
                 valgrind ./test/API/api_tests
 
+            - name: Multithread H5VL Tests
+              if: ${{ matrix.multi_thread == '--enable-multithread --disable-hl' }}
+              working-directory: ${{github.workspace}}/hdf5
+              run: |
+                valgrind ./test/threads/unit/mt_vl_test
+
             - name: Test HDF5
               working-directory: ${{github.workspace}}
               run: |
