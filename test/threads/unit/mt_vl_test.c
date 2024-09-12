@@ -2,17 +2,21 @@
 #include "H5VLpassthru.h"
 #include "H5VLpassthru.c"
 #include "null_vol_connector.h"
+#include "fake_open_vol_connector.h"
 #include <pthread.h>
 
-#define MAX_THREADS        32
-#define NUM_ITERS          100
-#define REGISTRATION_COUNT 1
-#define TEST_MSG_SIZE      256
-#define MT_DUMMY_FILE_NAME "mt_dummy_file.h5"
+#define MAX_THREADS          32
+#define NUM_ITERS            100
+#define REGISTRATION_COUNT   1
+#define TEST_MSG_SIZE        256
+#define MT_DUMMY_FILE_NAME   "mt_dummy_file.h5"
+#define NONEXISTENT_FILENAME "nonexistent.h5"
 
 #define SUBCLS_NAME_SIZE        100
 #define NUM_VALID_SUBCLASSES    8
 #define OPERATIONS_PER_SUBCLASS 5
+
+#define TEMP_RELATIVE_VOL_PATH "../../.libs/"
 
 typedef void *(*mt_vl_test_cb)(void *arg);
 
@@ -24,14 +28,14 @@ void *test_concurrent_registration_by_name(void *arg);
 void *test_concurrent_registration_by_value(void *args);
 void *test_concurrent_registration_operation(void *arg);
 void *test_concurrent_dyn_op_registration(void *arg);
+void *test_file_open_failure_registration(void *arg);
 
 H5VL_subclass_t select_valid_vol_subclass(size_t index);
 
-mt_vl_test_cb tests[5] = {
+mt_vl_test_cb tests[] = {
     test_concurrent_registration,          test_concurrent_registration_by_name,
     test_concurrent_dyn_op_registration,   test_concurrent_registration_operation,
-    test_concurrent_registration_by_value,
-    // test_file_open_failure_registration(); // Requires VOL to be loaded as plugin
+    test_concurrent_registration_by_value, test_file_open_failure_registration,
     // test_threadsafe_vol(); // Requires MT VOL that acquires mutex
 };
 
@@ -165,7 +169,7 @@ test_concurrent_registration_by_name(void H5_ATTR_UNUSED *arg)
     memset(vol_ids, 0, sizeof(vol_ids));
 
     // TODO - Replace with absolute path to prevent failure when running from different directories
-    if (H5PLprepend("./test/.libs/") < 0) {
+    if (H5PLprepend(TEMP_RELATIVE_VOL_PATH) < 0) {
         printf("Failed to prepend path\n");
         TEST_ERROR;
     }
@@ -208,7 +212,7 @@ test_concurrent_registration_by_value(void H5_ATTR_UNUSED *arg)
     memset(vol_ids, 0, sizeof(vol_ids));
 
     // TODO - Replace with absolute path to prevent failure when running from different directories
-    if (H5PLprepend("./test/.libs/") < 0) {
+    if (H5PLprepend(TEMP_RELATIVE_VOL_PATH) < 0) {
         printf("Failed to prepend path\n");
         TEST_ERROR;
     }
@@ -369,7 +373,6 @@ test_concurrent_registration_operation(void H5_ATTR_UNUSED *arg)
     passthru_info.under_vol_info = NULL;
 
     /* Don't use H5VL_PASSTHRU since that avoids double registration, which we want to test */
-
     for (size_t i = 0; i < REGISTRATION_COUNT; i++) {
         if ((vol_ids[i] = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT)) < 0) {
             printf("Failed to register passthrough VOL connector\n");
@@ -420,5 +423,43 @@ error:
         if (vol_ids[i] > 0)
             H5VLunregister_connector(vol_ids[i]);
     }
+    return (void *)-1;
+}
+
+/* Test that upon file open failure, loading an available VOL connector from H5PL works in a multi-threaded
+ * environment */
+void *
+test_file_open_failure_registration(void H5_ATTR_UNUSED *arg)
+{
+    hid_t file_id = H5I_INVALID_HID;
+
+    TESTING("VOL registration on file open failure");
+    /* Make the NULL VOL connector available via H5PL */
+    // TODO - Replace with absolute path to prevent failures when running tests from an unexpected directory
+    if (H5PLprepend(TEMP_RELATIVE_VOL_PATH) < 0) {
+        printf("Failed to prepend path for fake open VOL connector\n");
+        TEST_ERROR;
+    }
+
+    /* Attempt to open an unopenable file with Native VOL, triggering use of the fake open VOL, which
+     * "succeeds" */
+    H5E_BEGIN_TRY
+    { /* Don't display error from the Native failed open */
+        if ((file_id = H5Fopen(NONEXISTENT_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+            printf("Failed to fake open nonexistent file\n");
+            TEST_ERROR;
+        }
+    }
+    H5E_END_TRY;
+
+    /* Clean up library-internal state for fake file */
+    if (H5Fclose(file_id) < 0) {
+        printf("Failed to close fake file\n");
+        TEST_ERROR;
+    }
+
+    PASSED();
+    return NULL;
+error:
     return (void *)-1;
 }
