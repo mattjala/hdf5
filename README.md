@@ -1,3 +1,5 @@
+HDF5 version 1.14.2 released on 2023-08-11
+
 This repo contains the modified source code of HDF5 r1.14.2, which is in the 1_14_2_multithread branch. The code will be used to prototype changes for multi-threaded support 
 before creating PRs to the HDF5 develop branch. This is for Lifeboat's internal use only but anyone is welcome to watch our progress.
 
@@ -11,9 +13,6 @@ The following command is an example to enable the multithread support:
 The only test program to check the correctness of multithread support is hdf5/test/mt_id_test.c.  During the build of the library and the test program, there are multiple warnings related to the atomic issues that we're investigating and fixing.
 
 ---
-
-This repo contains the source code of HDF5 r1.14.2 as the main branch.
-HDF5 version 1.14.2 released on 2023-08-11
 
 ![HDF5 Logo](doxygen/img/HDF5.png)
 
