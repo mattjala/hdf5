@@ -11,7 +11,7 @@ jobs:
         strategy:
             matrix:
                 api_tests: ["--enable-api-tests", "--disable-api-tests"]
-                multi_thread: ["--enable-multithread --disable-hl", "--disable-multithread"]
+                multi_thread: ["--enable-multithread --disable-hl", "--disable-multithread --enable-threadsafe --disable-hl", "--disable-multithread --disable-threadsafe"]
             fail-fast: false
 
         steps:
@@ -33,8 +33,12 @@ jobs:
               working-directory: ${{github.workspace}}
               run: |
                     make -j
-                    make install
 
+            - name: Find mt vl tests
+              working-directory: ${{github.workspace}}
+              run: |
+                find . -name "*mt_vl_test*"
+        
             - name: API Tests
               if: matrix.api_tests == '--enable-api-tests'
               working-directory: ${{github.workspace}}
@@ -42,8 +46,7 @@ jobs:
                 valgrind ./test/API/api_tests
 
             - name: Multithread H5VL Tests
-              if: ${{ matrix.multi_thread == '--enable-multithread --disable-hl' }}
-              working-directory: ${{github.workspace}}/hdf5
+              working-directory: ${{github.workspace}}
               run: |
                 valgrind ./test/threads/unit/mt_vl_test
 

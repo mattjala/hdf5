@@ -1,5 +1,6 @@
 #include "H5VLpassthru.c"
 #include "H5VLpassthru.h"
+#include "fake_open_vol_connector.c"
 #include "fake_open_vol_connector.h"
 #include "h5test.h"
 #include "null_vol_connector.h"
@@ -10,6 +11,7 @@
 #define REGISTRATION_COUNT 1
 #define TEST_MSG_SIZE 256
 #define MT_DUMMY_FILE_NAME "mt_dummy_file.h5"
+#define MT_DUMMY_GROUP_NAME "mt_dummy_group"
 #define NONEXISTENT_FILENAME "nonexistent.h5"
 
 #define SUBCLS_NAME_SIZE 100
@@ -33,19 +35,18 @@ void *test_concurrent_registration_operation(void *arg);
 void *test_concurrent_dyn_op_registration(void *arg);
 void *test_file_open_failure_registration(void *arg);
 void *test_vol_property_copy(void *arg);
+void *test_threadsafe_vol_op(void *arg);
 
 H5VL_subclass_t select_valid_vol_subclass(size_t index);
 
-mt_vl_test_cb tests[] = {
-    test_concurrent_registration,
-    test_concurrent_registration_by_name,
-    test_concurrent_dyn_op_registration,
-    test_concurrent_registration_operation,
-    test_concurrent_registration_by_value,
-    test_file_open_failure_registration,
-    test_vol_property_copy,
-    // test_threadsafe_vol(); // Requires MT VOL that acquires mutex
-};
+mt_vl_test_cb tests[] = {test_concurrent_registration,
+                         test_concurrent_registration_by_name,
+                         test_concurrent_dyn_op_registration,
+                         test_concurrent_registration_operation,
+                         test_concurrent_registration_by_value,
+                         test_file_open_failure_registration,
+                         test_vol_property_copy,
+                         test_threadsafe_vol_op};
 
 int main(void) {
   size_t num_threads;
@@ -56,6 +57,7 @@ int main(void) {
 
   void *test_args = NULL;
   void *thread_return = NULL;
+
 #ifndef H5_HAVE_MULTITHREAD
   SKIPPED();
   return 0;
@@ -575,5 +577,40 @@ error:
   if (fapl_id3 > 0)
     H5Pclose(fapl_id3);
 
+  return (void *)-1;
+}
+
+/* Test that a VOL Connector with the H5VL_CAP_FLAG_THREADSAFE can succesfully
+ * release and re-acquire the library's mutex in its callbacks */
+void *test_threadsafe_vol_op(void H5_ATTR_UNUSED *arg) {
+  H5VL_loc_params_t loc_params;
+  hid_t vol_id = H5I_INVALID_HID;
+  TESTING("threadsafe VOL operation");
+
+  loc_params.type = H5VL_OBJECT_BY_NAME;
+  loc_params.obj_type = H5I_GROUP;
+  loc_params.loc_data.loc_by_name.name = MT_DUMMY_GROUP_NAME;
+
+  if ((vol_id = H5VLregister_connector(&fake_open_vol_g, H5P_DEFAULT)) < 0) {
+    printf("Failed to register fake open VOL connector\n");
+    TEST_ERROR;
+  }
+
+  if (H5VLgroup_create((void *)1, &loc_params, vol_id, MT_DUMMY_GROUP_NAME,
+                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT,
+                       NULL) == NULL) {
+    printf("Create group callback failed!\n");
+    TEST_ERROR;
+  }
+
+  if (H5VLunregister_connector(vol_id) < 0) {
+    printf("Failed to unregister fake open VOL connector\n");
+    TEST_ERROR;
+  }
+
+  PASSED();
+  return NULL;
+
+error:
   return (void *)-1;
 }
