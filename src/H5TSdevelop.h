@@ -42,7 +42,8 @@ extern "C" {
 H5_DLL herr_t H5TSmutex_acquire(unsigned int lock_count, bool *acquired);
 H5_DLL herr_t H5TSmutex_release(unsigned int *lock_count);
 H5_DLL herr_t H5TSmutex_get_attempt_count(unsigned int *count);
-
+H5_DLL herr_t H5TSmutex_lock(void);
+H5_DLL herr_t H5TSmutex_unlock(void);
 #ifdef __cplusplus
 }
 #endif
