@@ -34,6 +34,7 @@ void tts_error(void);
 void tts_cancel(void);
 void tts_acreate(void);
 void tts_attr_vlen(void);
+void tts_errstk(void);
 
 /* Prototypes for the cleanup routines */
 void cleanup_dcreate(void);

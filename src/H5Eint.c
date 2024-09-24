@@ -813,8 +813,10 @@ H5E__clear_entries(H5E_t *estack, size_t nentries)
         /* (In reverse order that they were incremented, so that reference counts work well) */
         if (H5I_dec_ref(error->min_num) < 0)
             HGOTO_ERROR(H5E_ERROR, H5E_CANTDEC, FAIL, "unable to decrement ref count on error message");
+        
         if (H5I_dec_ref(error->maj_num) < 0)
             HGOTO_ERROR(H5E_ERROR, H5E_CANTDEC, FAIL, "unable to decrement ref count on error message");
+
         if (H5I_dec_ref(error->cls_id) < 0)
             HGOTO_ERROR(H5E_ERROR, H5E_CANTDEC, FAIL, "unable to decrement ref count on error class");
 
@@ -863,7 +865,6 @@ herr_t
 H5E_clear_stack(H5E_t *estack)
 {
     herr_t ret_value = SUCCEED; /* Return value */
-
     FUNC_ENTER_NOAPI(FAIL)
 
 #ifdef H5_HAVE_MULTITHREAD
@@ -886,10 +887,9 @@ H5E_clear_stack(H5E_t *estack)
             HGOTO_ERROR(H5E_ERROR, H5E_CANTGET, FAIL, "can't get current error stack");
 
     } else {
-
         bool have_global_mutex;
         
-        /* Verify that the have the global lock.  */
+        /* Verify that we have the global lock. */
         if ( H5TS_have_mutex(&H5_g.init_lock, &have_global_mutex) < 0 )
 
             HGOTO_ERROR(H5E_LIB, H5E_CANTGET, FAIL, "Can't determine whether we have the global mutex");

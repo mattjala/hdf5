@@ -388,13 +388,14 @@ H5E__set_default_auto(H5E_t *stk)
 H5E_t *
 H5E__get_stack(void)
 {
+    H5TS_tl_value_t *tl_value = NULL;
     H5E_t *estack = NULL;
 
     FUNC_ENTER_PACKAGE_NOERR
 
-    estack = (H5E_t *)H5TS_get_thread_local_value(H5TS_errstk_key_g);
+    tl_value = (H5TS_tl_value_t *)H5TS_get_thread_local_value(H5TS_errstk_key_g);
 
-    if (!estack) {
+    if (!tl_value) {
         /* No associated value with current thread - create one */
 #ifdef H5_HAVE_WIN_THREADS
         /* Win32 has to use LocalAlloc to match the LocalFree in DllMain */
@@ -411,12 +412,21 @@ H5E__get_stack(void)
         estack->nused = 0;
         H5E__set_default_auto(estack);
 
+        /* Set up threadlocal wrapper */
+        tl_value = (H5TS_tl_value_t *)malloc(sizeof(H5TS_tl_value_t));
+        assert(tl_value);
+
+        tl_value->type  = H5TS_ERRSTK;
+        tl_value->value = (void *)estack;
         /* (It's not necessary to release this in this API, it is
          *      released by the "key destructor" set up in the H5TS
          *      routines.  See calls to pthread_key_create() in H5TS.c -QAK)
          */
-        H5TS_set_thread_local_value(H5TS_errstk_key_g, (void *)estack);
-    } /* end if */
+        H5TS_set_thread_local_value(H5TS_errstk_key_g, (void *) tl_value);
+    } else {
+        estack = (H5E_t *)tl_value->value;
+        assert(estack);
+    }
 
     /* Set return value */
     FUNC_LEAVE_NOAPI(estack)

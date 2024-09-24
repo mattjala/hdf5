@@ -76,12 +76,13 @@ H5CS_t H5CS_stack_g[1];
 static H5CS_t *
 H5CS__get_stack(void)
 {
+    H5TS_tl_value_t *tl_value = NULL;
     H5CS_t *fstack;
 
     FUNC_ENTER_PACKAGE_NOERR_NOFS
 
-    fstack = H5TS_get_thread_local_value(H5TS_funcstk_key_g);
-    if (!fstack) {
+    tl_value = H5TS_get_thread_local_value(H5TS_funcstk_key_g);
+    if (!tl_value) {
         /* No associated value with current thread - create one */
 #ifdef H5_HAVE_WIN_THREADS
         fstack = (H5CS_t *)LocalAlloc(
@@ -97,12 +98,20 @@ H5CS__get_stack(void)
         fstack->nalloc = 0;
         fstack->rec    = NULL;
 
+        /* Set up threadlocal value wrapper */
+        tl_value = (H5TS_tl_value_t *)malloc(sizeof(H5TS_tl_value_t));
+        assert(tl_value);
+        tl_value->type  = H5TS_FUNCSTK;
+        tl_value->value = (void *)fstack;
         /* (It's not necessary to release this in this API, it is
          *      released by the "key destructor" set up in the H5TS
          *      routines.  See calls to pthread_key_create() in H5TS.c -QAK)
          */
-        H5TS_set_thread_local_value(H5TS_funcstk_key_g, (void *)fstack);
-    } /* end if */
+        H5TS_set_thread_local_value(H5TS_funcstk_key_g, (void *)tl_value);
+    } else {
+        fstack = (H5CS_t *)tl_value->value;
+        assert(fstack);
+    }
 
     FUNC_LEAVE_NOAPI_NOFS(fstack)
 } /* end H5CS__get_stack() */
