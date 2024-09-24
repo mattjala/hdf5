@@ -716,13 +716,14 @@ H5CX_term_package(void)
 static H5CX_node_t **
 H5CX__get_context(void)
 {
+    H5TS_tl_value_t *tl_value = NULL;
     H5CX_node_t **ctx = NULL;
 
     FUNC_ENTER_PACKAGE_NOERR
 
-    ctx = (H5CX_node_t **)H5TS_get_thread_local_value(H5TS_apictx_key_g);
+    tl_value = (H5TS_tl_value_t*)H5TS_get_thread_local_value(H5TS_apictx_key_g);
 
-    if (!ctx) {
+    if (!tl_value) {
         /* No associated value with current thread - create one */
 #ifdef H5_HAVE_WIN_THREADS
         /* Win32 has to use LocalAlloc to match the LocalFree in DllMain */
@@ -738,12 +739,21 @@ H5CX__get_context(void)
         /* Reset the thread-specific info */
         *ctx = NULL;
 
+        /* Set up threadlocal wrapper */
+        tl_value = malloc(sizeof(H5TS_tl_value_t));
+        assert(tl_value);
+
+        tl_value->type = H5TS_CTX;
+        tl_value->value = ctx;
         /* (It's not necessary to release this in this API, it is
          *      released by the "key destructor" set up in the H5TS
          *      routines.  See calls to pthread_key_create() in H5TS.c -QAK)
          */
-        H5TS_set_thread_local_value(H5TS_apictx_key_g, (void *)ctx);
-    } /* end if */
+        H5TS_set_thread_local_value(H5TS_apictx_key_g, (void *) tl_value);
+    } else {
+        ctx = (H5CX_node_t **)tl_value->value;
+        assert(ctx);
+    }
 
     /* Set return value */
     FUNC_LEAVE_NOAPI(ctx)

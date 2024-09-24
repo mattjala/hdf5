@@ -58,6 +58,7 @@ static void   H5TS__key_destructor(void *key_val);
 static herr_t H5TS__mutex_acquire(H5TS_mutex_t *mutex, unsigned int lock_count, bool *acquired);
 static herr_t H5TS__mutex_unlock(H5TS_mutex_t *mutex, unsigned int *lock_count);
 
+static void H5TS_tid_destructor(void *_v);
 /*********************/
 /* Package Variables */
 /*********************/
@@ -151,13 +152,46 @@ static H5TS_key_t H5TS_tid_key;
  *--------------------------------------------------------------------------
  */
 static void
-H5TS__key_destructor(void *key_val)
+H5TS__key_destructor(void *_key_val)
 {
     FUNC_ENTER_PACKAGE_NAMECHECK_ONLY
+    H5TS_tl_value_t *key_val = (H5TS_tl_value_t *)_key_val;
 
     /* Use free() here instead of H5MM_xfree(), to avoid calling the H5CS routines */
-    if (key_val != NULL)
+    if (key_val != NULL) {
+        assert(key_val->type != H5TS_INVALID);
+
+        switch(key_val->type) {
+            case H5TS_ERRSTK: {
+                H5E_t *estack = (H5E_t *)key_val->value;
+
+                /* Clear this thread's local error stack if it exists */
+                if (estack) {
+                    /* Temporarily re-publish threadlocal key for use by H5E_clear_stack */
+                    H5TS_set_thread_local_value(H5TS_errstk_key_g, (void*)key_val);
+                    H5E_clear_stack(NULL);
+                    H5TS_set_thread_local_value(H5TS_errstk_key_g, NULL);
+                }
+
+                free(estack);
+                break;
+            }
+
+            case H5TS_THREAD_ID: {
+                H5TS_tid_destructor(key_val->value);
+                break;
+            }
+
+            default: {
+                /* Free generic threadlocal value pointer */
+                free(key_val->value);
+                break;
+            }
+        }
+        
+        /* Free the value struct itself */
         free(key_val);
+    }
 
     FUNC_LEAVE_NOAPI_VOID_NAMECHECK_ONLY
 } /* end H5TS__key_destructor() */
@@ -211,7 +245,7 @@ static void
 H5TS_tid_init(void)
 {
     pthread_mutex_init(&H5TS_tid_mtx, NULL);
-    pthread_key_create(&H5TS_tid_key, H5TS_tid_destructor);
+    pthread_key_create(&H5TS_tid_key, H5TS__key_destructor);
 }
 
 /*--------------------------------------------------------------------------
@@ -241,12 +275,18 @@ H5TS_tid_init(void)
 uint64_t
 H5TS_thread_id(void)
 {
-    H5TS_tid_t *tid = pthread_getspecific(H5TS_tid_key);
+    H5TS_tl_value_t *tl_value = NULL;
+    H5TS_tid_t *tid = NULL; 
     H5TS_tid_t  proto_tid;
 
-    /* An ID is already assigned. */
-    if (tid != NULL)
+    /* If value exists, an ID is already assigned */
+    tl_value = pthread_getspecific(H5TS_tid_key);
+
+    if (tl_value != NULL) {
+        tid = (H5TS_tid_t *)tl_value->value;
+        assert(tid);
         return tid->id;
+    }
 
     /* An ID is *not* already assigned: reuse an ID that's on the
      * free list, or else generate a new ID.
@@ -276,7 +316,16 @@ H5TS_thread_id(void)
      * to it.
      */
     tid->next = NULL;
-    if (pthread_setspecific(H5TS_tid_key, tid) != 0) {
+
+    if ((tl_value = malloc(sizeof(*tl_value))) == NULL) {
+        H5TS_tid_destructor(tid);
+        return 0;
+    }
+
+    tl_value->type  = H5TS_THREAD_ID;
+    tl_value->value = (void*) tid;
+
+    if (pthread_setspecific(H5TS_tid_key, (void*) tl_value) != 0) {
         H5TS_tid_destructor(tid);
         return 0;
     }
@@ -745,6 +794,7 @@ herr_t
 H5TS_cancel_count_inc(void)
 {
 #ifndef H5_HAVE_WIN_THREADS
+    H5TS_tl_value_t *tl_value = NULL;
     H5TS_cancel_t *cancel_counter;
 #endif /* H5_HAVE_WIN_THREADS */
     herr_t ret_value = SUCCEED;
@@ -755,10 +805,10 @@ H5TS_cancel_count_inc(void)
     /* unsupported */
 #else  /* H5_HAVE_WIN_THREADS */
     /* Acquire the thread's cancellation counter */
-    cancel_counter = (H5TS_cancel_t *)H5TS_get_thread_local_value(H5TS_cancel_key_s);
+    tl_value = (H5TS_tl_value_t *)H5TS_get_thread_local_value(H5TS_cancel_key_s);
 
     /* Check if it's created yet */
-    if (!cancel_counter) {
+    if (!tl_value) {
         /*
          * First time thread calls library - create new counter and associate
          * with key.
@@ -770,12 +820,25 @@ H5TS_cancel_count_inc(void)
         if (NULL == cancel_counter)
             HGOTO_DONE(FAIL);
 
+        /* Set up threadlocal wrapper around cancel counter */
+        if (NULL == (tl_value = (H5TS_tl_value_t *)malloc(sizeof(H5TS_tl_value_t)))) {
+            free(cancel_counter);
+            HGOTO_DONE(FAIL);
+        }
+
+        tl_value->type  = H5TS_CANCEL;
+        tl_value->value = (void *)cancel_counter;
+
         /* Set the thread's cancellation counter with the new object */
-        ret_value = pthread_setspecific(H5TS_cancel_key_s, (void *)cancel_counter);
+        ret_value = pthread_setspecific(H5TS_cancel_key_s, (void*) tl_value);
         if (ret_value) {
             free(cancel_counter);
             HGOTO_DONE(FAIL);
         }
+    } else {
+        cancel_counter = (H5TS_cancel_t *)tl_value->value;
+        if (!cancel_counter)
+            HGOTO_DONE(FAIL);
     }
 
     /* Check if thread entering library */
@@ -819,6 +882,7 @@ herr_t
 H5TS_cancel_count_dec(void)
 {
 #ifndef H5_HAVE_WIN_THREADS
+    H5TS_tl_value_t *tl_value = NULL;
     H5TS_cancel_t *cancel_counter;
 #endif /* H5_HAVE_WIN_THREADS */
     herr_t ret_value = SUCCEED;
@@ -829,7 +893,11 @@ H5TS_cancel_count_dec(void)
     /* unsupported */
 #else  /* H5_HAVE_WIN_THREADS */
     /* Acquire the thread's cancellation counter */
-    cancel_counter = (H5TS_cancel_t *)H5TS_get_thread_local_value(H5TS_cancel_key_s);
+    tl_value = (H5TS_tl_value_t *)H5TS_get_thread_local_value(H5TS_cancel_key_s);
+    assert(tl_value);
+
+    cancel_counter = (H5TS_cancel_t *)tl_value->value;
+    assert(cancel_counter);
 
     /* Check for leaving last API routine */
     if (cancel_counter->cancel_count == 1)

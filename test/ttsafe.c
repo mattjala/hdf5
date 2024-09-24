@@ -105,6 +105,8 @@ main(int argc, char *argv[])
     AddTest("dcreate", tts_dcreate, cleanup_dcreate, "multi-dataset creation", NULL);
     AddTest("error", tts_error, cleanup_error, "per-thread error stacks", NULL);
 #ifdef H5_HAVE_PTHREAD_H
+    /* TBD - Later library versions add H5TS wrapper routines for compatibility with windows threads too */
+    AddTest("tts_errstk", tts_errstk, NULL, "per-thread error stack cleanup", NULL);
     /* Thread cancellability only supported with pthreads ... */
     AddTest("cancel", tts_cancel, cleanup_cancel, "thread cancellation safety test", NULL);
 #endif /* H5_HAVE_PTHREAD_H */
