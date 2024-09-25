@@ -8,8 +8,8 @@
 
 #define MAX_THREADS 32
 #define NUM_ITERS 100
-#define REGISTRATION_COUNT 1
-#define TEST_MSG_SIZE 256
+#define REGISTRATION_COUNT 50
+
 #define MT_DUMMY_FILE_NAME "mt_dummy_file.h5"
 #define MT_DUMMY_GROUP_NAME "mt_dummy_group"
 #define NONEXISTENT_FILENAME "nonexistent.h5"
@@ -28,6 +28,7 @@ typedef void *(*mt_vl_test_cb)(void *arg);
 herr_t setup_test_files(void);
 herr_t cleanup_test_files(void);
 
+/* Test cases that are directly run in parallel */
 void *test_concurrent_registration(void *arg);
 void *test_concurrent_registration_by_name(void *arg);
 void *test_concurrent_registration_by_value(void *args);
@@ -36,7 +37,14 @@ void *test_concurrent_dyn_op_registration(void *arg);
 void *test_file_open_failure_registration(void *arg);
 void *test_vol_property_copy(void *arg);
 
+/* Test cases that do their own threading */
+void *test_concurrent_register_and_search(void *arg);
+
+/* Helper routines used by the tests */
 H5VL_subclass_t select_valid_vol_subclass(size_t index);
+void *register_helper(void *arg);
+void *search_by_name_helper(void *arg);
+void *search_by_value_helper(void *arg);
 
 mt_vl_test_cb tests[] = {test_concurrent_registration,
                          test_concurrent_registration_by_name,
@@ -90,6 +98,7 @@ int main(void) {
     TEST_ERROR;
   }
 
+  /* Run tests that run directly in parallel with themselves */
   for (num_threads = 1; num_threads < MAX_THREADS; num_threads++) {
     printf("Testing with %zu threads\n", num_threads);
 
@@ -114,6 +123,9 @@ int main(void) {
       memset(threads, 0, sizeof(threads));
     }
   }
+
+  /* Run tests that do their own thread handling */
+  test_concurrent_register_and_search(NULL);
 
   if (cleanup_test_files() < 0) {
     printf("Failed to clean up multi-thread VL tests\n");
@@ -575,5 +587,141 @@ error:
   if (fapl_id3 > 0)
     H5Pclose(fapl_id3);
 
+  return (void *)-1;
+}
+
+void *register_helper(void *arg) {
+  hid_t vol_id = H5I_INVALID_HID;
+  const H5VL_class_t *vol_class = (const H5VL_class_t*) arg;
+  size_t i;
+
+  for (i = 0; i < NUM_ITERS; i++) {
+    if ((vol_id = H5VLregister_connector(vol_class, H5P_DEFAULT)) < 0)
+      return (void *)-1;
+
+    if (H5VLunregister_connector(vol_id) < 0)
+      return (void *)-1;
+
+    vol_id = H5I_INVALID_HID;
+  }
+
+  return NULL;
+}
+
+void *search_by_name_helper(void *arg) {
+  char *vol_name = (char *)arg;
+  hid_t vol_id = H5I_INVALID_HID;
+  size_t i;
+
+  for (i = 0; i < NUM_ITERS; i++) {
+    /* Either failure or success is acceptable as long as no consistency/memory errors occur */
+    H5E_BEGIN_TRY {
+      vol_id = H5VLget_connector_id_by_name(vol_name);
+    } H5E_END_TRY;
+
+    /* If request succeeded, close the handle we opened */
+    if (vol_id != H5I_INVALID_HID) {
+      if (H5VLclose(vol_id) < 0)
+        return (void *)-1;
+
+      vol_id = H5I_INVALID_HID;
+    }
+  }
+
+  return NULL;
+}
+
+void *search_by_value_helper(void *arg) {
+  H5VL_class_value_t vol_value = *((H5VL_class_value_t *)arg);
+  hid_t vol_id = H5I_INVALID_HID;
+  size_t i;
+
+  for (i = 0; i < NUM_ITERS; i++) {
+    /* Either failure or success is acceptable as long as no consistency/memory errors occur */
+    H5E_BEGIN_TRY {
+      vol_id = H5VLget_connector_id_by_value(vol_value);
+    } H5E_END_TRY;
+
+    /* If request succeeded, close the handle we opened */
+    if (vol_id != H5I_INVALID_HID) {
+      if (H5VLclose(vol_id) < 0)
+        return (void *)-1;
+
+      vol_id = H5I_INVALID_HID;
+    }
+  }
+
+  return NULL;
+}
+
+/* Spawn and run 3 groups of threads:
+ * - Threads registering and unregistering a connector
+ * - Threads searching for that connector by name
+ * - Threads searching for that connector by value 
+ */
+void *test_concurrent_register_and_search(void H5_ATTR_UNUSED *arg) {
+  size_t threads_per_group = MAX_THREADS / 3;
+  size_t i;
+
+  pthread_t threads_register[threads_per_group];
+  pthread_t threads_search_name[threads_per_group];
+  pthread_t threads_search_value[threads_per_group];
+
+  void *thread_return = NULL;
+
+  char *vol_name = NULL;
+  H5VL_class_value_t vol_value = -1;
+  H5VL_class_t vol_class;
+
+  TESTING("Concurrent registration/unregistration and search");
+
+  /* Set up arguments to avoid warnings about cast from const */
+  if ((vol_name = (char *)malloc(strlen(H5VL_PASSTHRU_NAME) + 1)) == NULL) {
+    printf("Failed to allocate memory for VOL name\n");
+    TEST_ERROR;
+  }
+
+  memcpy(&vol_class, (const void *) &H5VL_pass_through_g, sizeof(H5VL_class_t));
+
+  vol_value = H5VL_PASSTHRU_VALUE;
+
+  /* Spawn threads */
+  for (i = 0; i < threads_per_group; i++) {
+    pthread_create(&threads_register[i], NULL, register_helper, (void*) &vol_class);
+    pthread_create(&threads_search_name[i], NULL, search_by_name_helper, (void*)vol_name);
+    pthread_create(&threads_search_value[i], NULL, search_by_value_helper, (void*) &vol_value);
+  }
+
+  for (i = 0; i < threads_per_group; i++) {
+    pthread_join(threads_register[i], &thread_return);
+
+    if (thread_return != NULL) {
+      printf("Failed to register/unregister VOL connector\n");
+      TEST_ERROR;
+    }
+
+    pthread_join(threads_search_name[i], &thread_return);
+
+    if (thread_return != NULL) {
+      printf("Failed to search for VOL connector by name\n");
+      TEST_ERROR;
+    }
+
+    pthread_join(threads_search_value[i], &thread_return);
+
+    if (thread_return != NULL) {
+      printf("Failed to search for VOL connector by value\n");
+      TEST_ERROR;
+    }
+  
+  }
+
+  PASSED();
+
+  free(vol_name);
+  return NULL;
+
+error:
+  free(vol_name);
   return (void *)-1;
 }
