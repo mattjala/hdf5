@@ -57,7 +57,11 @@
 
 /* Object wrapping context info */
 typedef struct H5VL_wrap_ctx_t {
+#ifdef H5_HAVE_MULTITHREAD
+    _Atomic unsigned rc;
+#else
     unsigned rc;           /* Ref. count for the # of times the context was set / reset */
+#endif
     H5VL_t  *connector;    /* VOL connector for "outermost" class to start wrap */
     void    *obj_wrap_ctx; /* "wrap context" for outermost connector */
 } H5VL_wrap_ctx_t;
@@ -2504,9 +2508,14 @@ H5VL__free_vol_wrapper(H5VL_wrap_ctx_t *vol_wrap_ctx)
 
     /* Sanity check */
     assert(vol_wrap_ctx);
-    assert(0 == vol_wrap_ctx->rc);
     assert(vol_wrap_ctx->connector);
     assert(vol_wrap_ctx->connector->cls);
+
+#ifdef H5_HAVE_MULTITHREAD
+    assert(0 == atomic_load(&vol_wrap_ctx->rc));
+#else
+    assert(0 == vol_wrap_ctx->rc);
+#endif
 
     /* If there is a VOL connector object wrapping context, release it */
     if (vol_wrap_ctx->obj_wrap_ctx)
@@ -2576,14 +2585,21 @@ H5VL_set_vol_wrapper(const H5VL_object_t *vol_obj)
         H5VL_conn_inc_rc(vol_obj->connector);
 
         /* Set up VOL object wrapper context */
-        vol_wrap_ctx->rc           = 1;
         vol_wrap_ctx->connector    = vol_obj->connector;
         vol_wrap_ctx->obj_wrap_ctx = obj_wrap_ctx;
+#ifdef H5_HAVE_MULTITHREAD
+        atomic_init(&vol_wrap_ctx->rc, 1);
+#else
+        vol_wrap_ctx->rc           = 1;
+#endif
     } /* end if */
     else
-        /* Incremeent ref count on existing wrapper context */
+        /* Increment ref count on existing wrapper context */
+#ifdef H5_HAVE_MULTITHREAD
+        atomic_fetch_add(&vol_wrap_ctx->rc, 1);
+#else
         vol_wrap_ctx->rc++;
-
+#endif
     /* Save the wrapper context */
     if (H5CX_set_vol_wrap_ctx(vol_wrap_ctx) < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't set VOL object wrap context");
@@ -2616,11 +2632,20 @@ H5VL_inc_vol_wrapper(void *_vol_wrap_ctx)
     /* Check for valid, active VOL object wrap context */
     if (NULL == vol_wrap_ctx)
         HGOTO_ERROR(H5E_VOL, H5E_BADVALUE, FAIL, "no VOL object wrap context?");
+
+#ifdef H5_HAVE_MULTITHREAD
+    if (0 == atomic_load(&vol_wrap_ctx->rc))
+        HGOTO_ERROR(H5E_VOL, H5E_BADVALUE, FAIL, "bad VOL object wrap context refcount?");
+
+    /* Increment ref count on wrapping context */
+    atomic_fetch_add(&vol_wrap_ctx->rc, 1);
+#else
     if (0 == vol_wrap_ctx->rc)
         HGOTO_ERROR(H5E_VOL, H5E_BADVALUE, FAIL, "bad VOL object wrap context refcount?");
 
     /* Increment ref count on wrapping context */
     vol_wrap_ctx->rc++;
+#endif
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -2647,6 +2672,19 @@ H5VL_dec_vol_wrapper(void *_vol_wrap_ctx)
     /* Check for valid, active VOL object wrap context */
     if (NULL == vol_wrap_ctx)
         HGOTO_ERROR(H5E_VOL, H5E_BADVALUE, FAIL, "no VOL object wrap context?");
+
+#ifdef H5_HAVE_MULTITHREAD
+    if (0 == atomic_load(&vol_wrap_ctx->rc))
+        HGOTO_ERROR(H5E_VOL, H5E_BADVALUE, FAIL, "bad VOL object wrap context refcount?");
+
+    /* Decrement ref count on wrapping context */
+    atomic_fetch_sub(&vol_wrap_ctx->rc, 1);
+
+    /* Release context if the ref count drops to zero */
+    if (0 == atomic_load(&vol_wrap_ctx->rc))
+        if (H5VL__free_vol_wrapper(vol_wrap_ctx) < 0)
+            HGOTO_ERROR(H5E_VOL, H5E_CANTRELEASE, FAIL, "unable to release VOL object wrapping context");
+#else
     if (0 == vol_wrap_ctx->rc)
         HGOTO_ERROR(H5E_VOL, H5E_BADVALUE, FAIL, "bad VOL object wrap context refcount?");
 
@@ -2657,6 +2695,7 @@ H5VL_dec_vol_wrapper(void *_vol_wrap_ctx)
     if (0 == vol_wrap_ctx->rc)
         if (H5VL__free_vol_wrapper(vol_wrap_ctx) < 0)
             HGOTO_ERROR(H5E_VOL, H5E_CANTRELEASE, FAIL, "unable to release VOL object wrapping context");
+#endif
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -2687,11 +2726,20 @@ H5VL_reset_vol_wrapper(void)
     if (NULL == vol_wrap_ctx)
         HGOTO_ERROR(H5E_VOL, H5E_BADVALUE, FAIL, "no VOL object wrap context?");
 
+#ifdef H5_HAVE_MULTITHREAD
+    /* Decrement ref count on wrapping context */
+    atomic_fetch_sub(&vol_wrap_ctx->rc, 1);
+
+    /* Release context if the ref count drops to zero */
+    if (0 == atomic_load(&vol_wrap_ctx->rc))
+#else
     /* Decrement ref count on wrapping context */
     vol_wrap_ctx->rc--;
 
     /* Release context if the ref count drops to zero */
-    if (0 == vol_wrap_ctx->rc) {
+    if (0 == vol_wrap_ctx->rc)
+#endif
+    {
         /* Release object wrapping context */
         if (H5VL__free_vol_wrapper(vol_wrap_ctx) < 0)
             HGOTO_ERROR(H5E_VOL, H5E_CANTRELEASE, FAIL, "unable to release VOL object wrapping context");
