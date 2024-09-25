@@ -70,7 +70,7 @@ H5_DLL herr_t        H5TS_win32_thread_exit(void);
 
 /* Library level data structures */
 
-/* Structures for threads to handle threadlocal values.
+/* The types of threadlocal keys *
  * TBD: May be replaced upon integration of multi-threading with main library */
 typedef enum H5TS_tl_type_t {
 	H5TS_INVALID,
@@ -81,6 +81,9 @@ typedef enum H5TS_tl_type_t {
 	H5TS_CANCEL
 } H5TS_tl_type_t;
 
+/* Common structure for the values of thread-local keys.
+ * Necessary to handle cleanup of specific types at thread exit.
+ * TBD: May be replaced upon integration of multi-threading with main library */
 typedef struct H5TS_tl_value_t {
 	H5TS_tl_type_t type;
 	void *value;
