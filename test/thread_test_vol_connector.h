@@ -20,7 +20,7 @@
 #ifndef H5VL_fake_open_H
 #define H5VL_fake_open_H
 
-#define FAKE_OPEN_VOL_CONNECTOR_VALUE ((H5VL_class_value_t)161)
-#define FAKE_OPEN_VOL_CONNECTOR_NAME "fake_open_vol_connector"
+#define THREAD_TEST_VOL_CONNECTOR_VALUE ((H5VL_class_value_t)161)
+#define THREAD_TEST_VOL_CONNECTOR_NAME "thread_test_vol_connector"
 
 #endif /* H5VL_fake_open_H */
