@@ -19,7 +19,7 @@
 #include "H5PLextern.h"
 
 /* This connector's header */
-#include "fake_open_vol_connector.h"
+#include "thread_test_vol_connector.h"
 
 void *fake_open_file_open(const char *name, unsigned flags, hid_t fapl_id,
                           hid_t dxpl_id, void **req);
@@ -37,10 +37,10 @@ herr_t fake_open_introspect_opt_query(void *obj, H5VL_subclass_t subcls,
                                       int opt_type, uint64_t *flags);
 
 /* The VOL class struct */
-static const H5VL_class_t fake_open_vol_g = {
+static const H5VL_class_t thread_test_vol_g = {
     H5VL_VERSION,                  /* VOL class struct version */
-    FAKE_OPEN_VOL_CONNECTOR_VALUE, /* value            */
-    FAKE_OPEN_VOL_CONNECTOR_NAME,  /* name             */
+    THREAD_TEST_VOL_CONNECTOR_VALUE, /* value            */
+    THREAD_TEST_VOL_CONNECTOR_NAME,  /* name             */
     0,                             /* connector version */
     H5VL_CAP_FLAG_FILE_BASIC | H5VL_CAP_FLAG_THREADSAFE, /* capability flags */
     NULL,                                                /* initialize       */
@@ -277,4 +277,4 @@ herr_t fake_open_introspect_opt_query(void *obj, H5VL_subclass_t subcls,
  */
 
 H5PL_type_t H5PLget_plugin_type(void) { return H5PL_TYPE_VOL; }
-const void *H5PLget_plugin_info(void) { return &fake_open_vol_g; }
+const void *H5PLget_plugin_info(void) { return &thread_test_vol_g; }

@@ -1,7 +1,7 @@
 #include "H5VLpassthru.c"
 #include "H5VLpassthru.h"
-#include "fake_open_vol_connector.c"
-#include "fake_open_vol_connector.h"
+#include "thread_test_vol_connector.c"
+#include "thread_test_vol_connector.h"
 #include "h5test.h"
 #include "null_vol_connector.h"
 #include <pthread.h>
