@@ -64,6 +64,7 @@ int main(void) {
   void *test_args = NULL;
   void *thread_return = NULL;
 
+  H5VL_pass_through_info_t passthru_info = {H5VL_NATIVE, NULL};
 #ifndef H5_HAVE_MULTITHREAD
   SKIPPED();
   return 0;
@@ -80,8 +81,6 @@ int main(void) {
   }
 
   /* Set up PASSTHRU VOL on plist */
-  H5VL_pass_through_info_t passthru_info = {H5VL_NATIVE, NULL};
-
   if ((vol_id = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT)) <
       0) {
     printf("Failed to register passthrough VOL connector\n");
