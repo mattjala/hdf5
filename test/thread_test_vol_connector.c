@@ -29,10 +29,6 @@ herr_t fake_open_file_close(void *file, hid_t dxpl_id, void **req);
 herr_t fake_open_file_specific(void *obj, H5VL_file_specific_args_t *args,
                                hid_t dxpl_id, void **req);
 
-void *fake_open_group_create(void *obj, const H5VL_loc_params_t *loc_params,
-                             const char *name, hid_t lcpl_id, hid_t gcpl_id,
-                             hid_t gapl_id, hid_t dxpl_id, void **req);
-
 herr_t fake_open_introspect_opt_query(void *obj, H5VL_subclass_t subcls,
                                       int opt_type, uint64_t *flags);
 
@@ -104,7 +100,7 @@ static const H5VL_class_t thread_test_vol_g = {
     },
     {
         /* group_cls */
-        fake_open_group_create, /* create           */
+        NULL, /* create           */
         NULL,                   /* open             */
         NULL,                   /* get              */
         NULL,                   /* specific         */
@@ -219,45 +215,6 @@ herr_t fake_open_file_specific(void *obj, H5VL_file_specific_args_t *args,
 
   return ret_value;
 } /* end fake_open_file_specific() */
-
-void *fake_open_group_create(void *obj, const H5VL_loc_params_t *loc_params,
-                             const char *name, hid_t lcpl_id, hid_t gcpl_id,
-                             hid_t gapl_id, hid_t dxpl_id, void **req) {
-  bool lock_acquired = false;
-  unsigned int lock_count = 0;
-
-  /* Silence warnings */
-  (void)obj;
-  (void)loc_params;
-  (void)name;
-  (void)lcpl_id;
-  (void)gcpl_id;
-  (void)gapl_id;
-  (void)dxpl_id;
-  (void)req;
-
-#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
-  /* Release the global mutex from the library */
-  if (H5TSmutex_release(&lock_count) < 0) {
-    printf("Failed to release mutex!\n");
-    return NULL;
-  }
-
-  /* Re-acquire mutex before re-entering library */
-  while (!lock_acquired) {
-    if (H5TSmutex_acquire(lock_count, &lock_acquired) < 0) {
-      printf("Failed to re-acquire mutex!\n");
-      return NULL;
-    }
-  }
-#else
-  /* Silence warnings */
-  (void)lock_acquired;
-  (void)lock_count;
-#endif
-
-  return (void *)1;
-} /* end fake_open_group_create() */
 
 herr_t fake_open_introspect_opt_query(void *obj, H5VL_subclass_t subcls,
                                       int opt_type, uint64_t *flags) {
