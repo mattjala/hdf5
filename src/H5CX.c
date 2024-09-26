@@ -943,46 +943,38 @@ H5CX_retrieve_state(H5CX_state_t **api_state)
 
     /* Keep a copy of the VOL connector property, if there is one */
     if ((*head)->ctx.vol_connector_prop_valid && (*head)->ctx.vol_connector_prop.connector_id > 0) {
-        /* Get the connector property */
-        H5MM_memcpy(&(*api_state)->vol_connector_prop, &(*head)->ctx.vol_connector_prop,
-                    sizeof(H5VL_connector_prop_t));
+        /* Get a pointer to this context's connector property */
+        H5VL_connector_prop_t *ctx_conn_prop = &(*head)->ctx.vol_connector_prop;
 
-        /* Check for actual VOL connector property */
-        if ((*api_state)->vol_connector_prop.connector_id) {
-            /* Copy connector info, if it exists */
-            if ((*api_state)->vol_connector_prop.connector_info) {
-                H5VL_class_t *connector;                 /* Pointer to connector */
-                void         *new_connector_info = NULL; /* Copy of connector info */
+        /* Increment the refcount on the connector ID before duplication */
+        if (H5I_inc_ref(ctx_conn_prop->connector_id, FALSE) < 0)
+            HGOTO_ERROR(H5E_CONTEXT, H5E_CANTINC, FAIL, "incrementing VOL connector ID failed");
 
-                /* Increment the refcount on the connector ID before duplication */
-                if (H5I_inc_ref((*api_state)->vol_connector_prop.connector_id, FALSE) < 0)
-                    HGOTO_ERROR(H5E_CONTEXT, H5E_CANTINC, FAIL, "incrementing VOL connector ID failed");
+        (*api_state)->vol_connector_prop.connector_id = ctx_conn_prop->connector_id;
+    
+        /* Copy connector info, if it exists */
+        if (ctx_conn_prop->connector_info) {
+            H5VL_class_t *connector;                 /* Pointer to connector */
+            void         *new_connector_info = NULL; /* Copy of connector info */
 
-                /* Retrieve the connector for the ID */
-                if (NULL ==
-                    (connector = (H5VL_class_t *)H5I_object((*api_state)->vol_connector_prop.connector_id))) {
-                    /* If failure occurs between incrementing ref count and attaching it to API state,
-                     * directly decrement ref count */
-                    if (H5I_dec_ref((*api_state)->vol_connector_prop.connector_id) < 0)
-                        HGOTO_ERROR(H5E_CONTEXT, H5E_CANTDEC, FAIL,
-                                    "can't decrement refcount on VOL connector ID");
-                    HGOTO_ERROR(H5E_CONTEXT, H5E_BADTYPE, FAIL, "not a VOL connector ID");
-                }
+            /* Retrieve the connector for the ID */
+            connector = (H5VL_class_t *)H5I_object(ctx_conn_prop->connector_id);
 
-                /* Allocate and copy connector info */
-                if (H5VL_copy_connector_info(connector, &new_connector_info,
-                                             (*api_state)->vol_connector_prop.connector_info) < 0) {
+            if (connector == NULL)
+                HGOTO_ERROR(H5E_CONTEXT, H5E_BADTYPE, FAIL, "not a VOL connector ID");
 
-                    if (H5I_dec_ref((*api_state)->vol_connector_prop.connector_id) < 0)
-                        HGOTO_ERROR(H5E_CONTEXT, H5E_CANTDEC, FAIL,
-                                    "can't decrement refcount on VOL connector ID");
-                }
+            /* Allocate and copy connector info */
+            if (H5VL_copy_connector_info(connector, 
+                                         &new_connector_info,
+                                         ctx_conn_prop->connector_info) < 0)
                 HGOTO_ERROR(H5E_CONTEXT, H5E_CANTCOPY, FAIL, "connector info copy failed");
+            
+            
 
-                (*api_state)->vol_connector_prop.connector_info = new_connector_info;
-            } /* end if */
-
+            /* Copy succeeded, safely publish connector info to the state object */
+            (*api_state)->vol_connector_prop.connector_info = new_connector_info;
         } /* end if */
+
     }     /* end if */
 
 #ifdef H5_HAVE_PARALLEL

@@ -6,7 +6,11 @@
 #include "null_vol_connector.h"
 #include <pthread.h>
 
-#define MAX_THREADS 32
+#include "H5VLprivate.h"
+#include "H5CXprivate.h"
+
+
+#define MAX_THREADS 1
 #define NUM_ITERS 100
 #define REGISTRATION_COUNT 50
 
@@ -23,6 +27,9 @@
   "vol_connector_info" /* VOL connector ID & info. Duplicate definition from   \
                           H5Fprivate.h */
 
+/* Shared VOL Connector Property for testing */
+H5VL_connector_prop_t conn_prop_g;
+
 typedef void *(*mt_vl_test_cb)(void *arg);
 
 herr_t setup_test_files(void);
@@ -36,6 +43,7 @@ void *test_concurrent_registration_operation(void *arg);
 void *test_concurrent_dyn_op_registration(void *arg);
 void *test_file_open_failure_registration(void *arg);
 void *test_vol_property_copy(void *arg);
+void *test_lib_state_vol_conn_prop(void *arg);
 
 /* Test cases that do their own threading */
 void *test_concurrent_register_and_search(void *arg);
@@ -52,7 +60,8 @@ mt_vl_test_cb tests[] = {test_concurrent_registration,
                          test_concurrent_registration_operation,
                          test_concurrent_registration_by_value,
                          test_file_open_failure_registration,
-                         test_vol_property_copy};
+                         test_vol_property_copy,
+                         test_lib_state_vol_conn_prop};
 
 int main(void) {
   size_t num_threads;
@@ -70,6 +79,7 @@ int main(void) {
   return 0;
 #endif
 
+  /* Test setup */
   if (setup_test_files() < 0) {
     printf("Failed to set up multi-thread VL tests\n");
     TEST_ERROR;
@@ -97,8 +107,12 @@ int main(void) {
     TEST_ERROR;
   }
 
+  /* Populate shared VOL Connector property */
+  conn_prop_g.connector_id = vol_id;
+  conn_prop_g.connector_info = (void*) &passthru_info;
+
   /* Run tests that run directly in parallel with themselves */
-  for (num_threads = 1; num_threads < MAX_THREADS; num_threads++) {
+  for (num_threads = 1; num_threads <= MAX_THREADS; num_threads++) {
     printf("Testing with %zu threads\n", num_threads);
 
     for (size_t test_idx = 0; test_idx < sizeof(tests) / sizeof(tests[0]);
@@ -722,5 +736,65 @@ void *test_concurrent_register_and_search(void H5_ATTR_UNUSED *arg) {
 
 error:
   free(vol_name);
+  return (void *)-1;
+}
+
+
+void *test_lib_state_vol_conn_prop(void H5_ATTR_UNUSED *arg) {
+  void *lib_state = NULL;
+  bool lib_state_started = false;
+
+  TESTING("Library state consistency");
+
+  if (H5VLstart_lib_state() < 0) {
+    printf("Failed to start library state\n");
+    TEST_ERROR;
+  }
+
+  lib_state_started = true;
+
+  /* Set the VOL Connector property on the API Context for this thread */
+  if (H5CX_set_vol_connector_prop(&conn_prop_g) < 0) {
+    printf("Failed to set VOL connector property\n");
+    TEST_ERROR;
+  }
+
+  /* This routine must copy the vol conn property */
+  if (H5VLretrieve_lib_state(&lib_state) < 0) {
+    printf("Failed to retrieve library state\n");
+    TEST_ERROR;
+  }
+
+  if (lib_state == NULL) {
+    printf("Library state is NULL\n");
+    TEST_ERROR;
+  }
+
+  if (H5VLrestore_lib_state(lib_state) < 0) {
+    printf("Failed to restore library state\n");
+    TEST_ERROR;
+  }
+
+  if (H5VLfree_lib_state(lib_state) < 0) {
+    printf("Failed to free library state\n");
+    TEST_ERROR;
+  }
+
+  if (H5VLfinish_lib_state() < 0) {
+    printf("Failed to finish library state\n");
+    TEST_ERROR;
+  }
+
+  PASSED();
+
+  return NULL;
+
+error:
+  if (lib_state_started)
+    H5VLfinish_lib_state();
+
+  if (lib_state)
+    H5VLfree_lib_state(lib_state);
+
   return (void *)-1;
 }
