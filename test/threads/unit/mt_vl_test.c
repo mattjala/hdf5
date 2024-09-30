@@ -47,6 +47,7 @@ void *test_file_open_failure_registration(void *arg);
 void *test_vol_property_copy(void *arg);
 void *test_lib_state_vol_conn_prop(void *arg);
 void *test_vol_wrap_ctx(void *arg);
+void *test_vol_info(void *arg);
 
 /* Test cases that do their own threading */
 void *test_concurrent_register_and_search(void *arg);
@@ -65,7 +66,8 @@ mt_vl_test_cb tests[] = {test_concurrent_registration,
                          test_file_open_failure_registration,
                          test_vol_property_copy,
                          test_lib_state_vol_conn_prop,
-                         test_vol_wrap_ctx};
+                         test_vol_wrap_ctx,
+                         test_vol_info};
 
 int main(void) {
   size_t num_threads;
@@ -808,7 +810,7 @@ error:
 
 /* Retrieve and free the VOL wrap context in multiple threads executing in parallel.
  *
- * TBD: This largely depends on the get_wrap_ctx()/free_wrap_ctx() callbacks of the specific connector(s), and
+ * TBD: This largely depends on the get_wrap_ctx()/free_wrap_ctx() callbacks of the active connector(s), and
  * so should probably have a counterpart placed in the API tests for use with various VOL connectors. */
 void *test_vol_wrap_ctx(void H5_ATTR_UNUSED *arg) {
   void *wrap_ctx = NULL;
@@ -900,4 +902,103 @@ error:
   H5Pclose(fapl_id);
 
   return (void *)-1;
+}
+
+/* Retrieve and free the VOL information in multiple threads executing in parallel.
+ *
+ * TBD: This largely depends on the connector callbacks of the active connector(s), and
+ * so should probably have a counterpart placed in the API tests for use with various VOL connectors. */
+void *test_vol_info(void H5_ATTR_UNUSED *arg) {
+  H5VL_pass_through_info_t vol_info = {H5VL_NATIVE, NULL};
+  void *vol_info2 = NULL;
+  hid_t vol_id = H5I_INVALID_HID;
+  hid_t fapl_id = H5I_INVALID_HID;
+  hid_t fapl_id2 = H5I_INVALID_HID;
+  hid_t fapl_id3 = H5I_INVALID_HID;
+
+  TESTING("VOL connector information");
+
+  /* Use Passthrough connector, since it has a non-NULL information field */
+  if ((vol_id = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT)) < 0) {
+    printf("Failed to register passthrough VOL connector\n");
+    TEST_ERROR;
+  }
+
+  if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
+    printf("Failed to create FAPL\n");
+    TEST_ERROR;
+  }
+
+  /* Directly copy information */
+  if (H5VLcopy_connector_info(vol_id, &vol_info2, &vol_info) < 0) {
+    printf("Failed to copy VOL connector info\n");
+    TEST_ERROR;
+  }
+
+  /* Copy information into property list */
+  if (H5Pset_vol(fapl_id, vol_id, &vol_info) < 0) {
+    printf("Failed to set VOL connector\n");
+    TEST_ERROR;
+  }
+
+  /* Copy info via copying entire property list */
+  if ((fapl_id2 = H5Pcopy(fapl_id)) < 0) {
+    printf("Failed to copy FAPL\n");
+    TEST_ERROR;
+  }
+
+  /* Copy info via copying single property between lists */
+  if ((fapl_id3 = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
+    printf("Failed to create FAPL\n");
+    TEST_ERROR;
+  }
+
+  if (H5Pcopy_prop(fapl_id3, fapl_id, H5F_ACS_VOL_CONN_NAME) < 0) {
+    printf("Failed to copy VOL connector property\n");
+    TEST_ERROR;
+  }
+
+  /* Free information on each property list */
+  if (H5Pclose(fapl_id) < 0) {
+    printf("Failed to close FAPL\n");
+    TEST_ERROR;
+  }
+
+  if (H5Pclose(fapl_id2) < 0) {
+    printf("Failed to close copied FAPL\n");
+    TEST_ERROR;
+  }
+
+  if (H5Pclose(fapl_id3) < 0) {
+    printf("Failed to close copied FAPL\n");
+    TEST_ERROR;
+  }
+
+  /* Free directly copied information */
+  if (H5VLfree_connector_info(vol_id, vol_info2) < 0) {
+    printf("Failed to free VOL connector info\n");
+    TEST_ERROR;
+  }
+
+  if (H5VLunregister_connector(vol_id) < 0) {
+    printf("Failed to unregister passthrough VOL connector\n");
+    TEST_ERROR;
+  }
+
+  PASSED();
+
+  return NULL;
+error:
+
+  H5Pclose(fapl_id);
+  H5Pclose(fapl_id2);
+  H5Pclose(fapl_id3);
+
+  if (vol_id > 0)
+    H5VLunregister_connector(vol_id);
+
+  if (vol_info2)
+    H5VLfree_connector_info(vol_id, vol_info2);
+  
+  return (void*)-1;
 }
