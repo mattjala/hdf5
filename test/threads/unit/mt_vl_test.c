@@ -8,9 +8,11 @@
 
 #include "H5VLprivate.h"
 #include "H5CXprivate.h"
+#include "H5Iprivate.h"
+#define H5F_FRIEND
+#include "H5Fpkg.h"
 
-
-#define MAX_THREADS 1
+#define MAX_THREADS 32
 #define NUM_ITERS 100
 #define REGISTRATION_COUNT 50
 
@@ -44,6 +46,7 @@ void *test_concurrent_dyn_op_registration(void *arg);
 void *test_file_open_failure_registration(void *arg);
 void *test_vol_property_copy(void *arg);
 void *test_lib_state_vol_conn_prop(void *arg);
+void *test_vol_wrap_ctx(void *arg);
 
 /* Test cases that do their own threading */
 void *test_concurrent_register_and_search(void *arg);
@@ -61,7 +64,8 @@ mt_vl_test_cb tests[] = {test_concurrent_registration,
                          test_concurrent_registration_by_value,
                          test_file_open_failure_registration,
                          test_vol_property_copy,
-                         test_lib_state_vol_conn_prop};
+                         test_lib_state_vol_conn_prop,
+                         test_vol_wrap_ctx};
 
 int main(void) {
   size_t num_threads;
@@ -544,6 +548,8 @@ void *test_file_open_failure_registration(void H5_ATTR_UNUSED *arg) {
   PASSED();
   return NULL;
 error:
+
+  H5Fclose(file_id);
   return (void *)-1;
 }
 
@@ -594,6 +600,7 @@ void *test_vol_property_copy(void *arg) {
   return NULL;
 
 error:
+  /* First FAPL came from main, do not free that one */
   if (fapl_id2 > 0)
     H5Pclose(fapl_id2);
 
@@ -795,6 +802,102 @@ error:
 
   if (lib_state)
     H5VLfree_lib_state(lib_state);
+
+  return (void *)-1;
+}
+
+/* Retrieve and free the VOL wrap context in multiple threads executing in parallel.
+ *
+ * TBD: This largely depends on the get_wrap_ctx()/free_wrap_ctx() callbacks of the specific connector(s), and
+ * so should probably have a counterpart placed in the API tests for use with various VOL connectors. */
+void *test_vol_wrap_ctx(void H5_ATTR_UNUSED *arg) {
+  void *wrap_ctx = NULL;
+  H5VL_object_t *vol_object = NULL;
+
+  H5VL_pass_through_info_t passthru_info = {H5VL_NATIVE, NULL};
+  hid_t passthru_id = H5I_INVALID_HID;
+  hid_t fapl_id = H5I_INVALID_HID;
+  hid_t file_id = H5I_INVALID_HID;
+
+  TESTING("VOL wrap context");
+
+  /* Register the passthrough connector */
+  if ((passthru_id = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT)) < 0) {
+    printf("Failed to register passthrough VOL connector\n");
+    TEST_ERROR;
+  }
+
+  if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
+    printf("Failed to create FAPL\n");
+    TEST_ERROR;
+  }
+
+  if (H5Pset_vol(fapl_id, passthru_id, (const void*) &passthru_info) < 0) {
+    printf("Failed to set VOL connector\n");
+    TEST_ERROR;
+  }
+
+  /* Open a VOL object to retrieve the context from */
+  if ((file_id = H5Fopen(MT_DUMMY_FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) {
+    printf("Failed to open file\n");
+    TEST_ERROR;
+  }
+
+  if ((vol_object = (H5VL_object_t*) H5I_object_verify(file_id, H5I_FILE)) == NULL) {
+    printf("Failed to verify file ID\n");
+    TEST_ERROR;
+  }
+
+  if (!vol_object->data) {
+    printf("Passthrough connector object is NULL\n");
+    TEST_ERROR;
+  }
+
+  /* Retrieve & subsequently free VOL wrap context */
+  if (H5VLget_wrap_ctx((void*) (vol_object->data), passthru_id, &wrap_ctx) < 0) {
+    printf("Failed to retrieve VOL wrap context\n");
+    TEST_ERROR;
+  }
+
+  if (!wrap_ctx) {
+    printf("Retrieved wrap context is NULL\n");
+    TEST_ERROR;
+  }
+
+  if (H5VLfree_wrap_ctx(wrap_ctx, passthru_id) < 0) {
+    printf("Failed to free VOL wrap context\n");
+    TEST_ERROR;
+  }
+
+  /* Clean up */
+  if (H5Fclose(file_id) < 0) {
+    printf("Failed to close file\n");
+    TEST_ERROR;
+  }
+
+  if (H5Pclose(fapl_id) < 0) {
+    printf("Failed to close FAPL\n");
+    TEST_ERROR;
+  }
+
+  if (H5VLunregister_connector(passthru_id) < 0) {
+    printf("Failed to unregister passthrough VOL connector\n");
+    TEST_ERROR;
+  }
+
+  PASSED();
+
+  return NULL;
+error:
+
+  if (wrap_ctx && (passthru_id > 0))
+    H5VLfree_wrap_ctx(wrap_ctx, passthru_id);
+
+  if (passthru_id > 0)
+    H5VLunregister_connector(passthru_id);
+
+  H5Fclose(file_id);
+  H5Pclose(fapl_id);
 
   return (void *)-1;
 }
