@@ -782,7 +782,7 @@ H5VL_pass_through_get_wrap_ctx(const void *obj, void **wrap_ctx)
 {
     const H5VL_pass_through_t    *o = (const H5VL_pass_through_t *)obj;
     H5VL_pass_through_wrap_ctx_t *new_wrap_ctx;
-
+    
 #ifdef ENABLE_PASSTHRU_LOGGING
     printf("------- PASS THROUGH VOL WRAP CTX Get\n");
 #endif
@@ -793,9 +793,12 @@ H5VL_pass_through_get_wrap_ctx(const void *obj, void **wrap_ctx)
     /* Increment reference count on underlying VOL ID, and copy the VOL info */
     new_wrap_ctx->under_vol_id = o->under_vol_id;
 
-    H5Iinc_ref(new_wrap_ctx->under_vol_id);
+    if (new_wrap_ctx->under_vol_id != H5I_INVALID_HID)
+        if (H5Iinc_ref(new_wrap_ctx->under_vol_id) < 0)
+            return -1;
 
-    H5VLget_wrap_ctx(o->under_object, o->under_vol_id, &new_wrap_ctx->under_wrap_ctx);
+    if (H5VLget_wrap_ctx(o->under_object, o->under_vol_id, &new_wrap_ctx->under_wrap_ctx) < 0)
+        return -1;
 
     /* Set wrap context to return */
     *wrap_ctx = new_wrap_ctx;
