@@ -280,7 +280,7 @@ H5Pget_fapl_onion(hid_t fapl_id, H5FD_onion_fapl_info_t *fa_out)
     H5P_genplist_t               *plist     = NULL;
     herr_t                        ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*!", fapl_id, fa_out);
 
     if (NULL == fa_out)
@@ -298,7 +298,7 @@ H5Pget_fapl_onion(hid_t fapl_id, H5FD_onion_fapl_info_t *fa_out)
     memcpy(fa_out, info_ptr, sizeof(H5FD_onion_fapl_info_t));
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 
 } /* end H5Pget_fapl_onion() */
 
@@ -322,7 +322,7 @@ H5Pset_fapl_onion(hid_t fapl_id, const H5FD_onion_fapl_info_t *fa)
     hid_t           backing_vfd_id = H5I_INVALID_HID;
     herr_t          ret_value      = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*!", fapl_id, fa);
 
     if (NULL == (fapl = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
@@ -355,7 +355,7 @@ H5Pset_fapl_onion(hid_t fapl_id, const H5FD_onion_fapl_info_t *fa)
         HGOTO_ERROR(H5E_VFL, H5E_CANTSET, FAIL, "Can't set the onion VFD");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_fapl_onion() */
 
 /*-------------------------------------------------------------------------
@@ -1666,7 +1666,7 @@ H5FDonion_get_revision_count(const char *filename, hid_t fapl_id, uint64_t *revi
     H5FD_t         *file      = NULL;
     herr_t          ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "*six", filename, fapl_id, revision_count);
 
     /* Check args */
@@ -1694,7 +1694,7 @@ done:
     if (file && H5FD_close(file) < 0)
         HGOTO_ERROR(H5E_VFL, H5E_CANTCLOSEFILE, FAIL, "unable to close file");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------

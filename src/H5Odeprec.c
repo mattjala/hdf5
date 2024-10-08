@@ -344,7 +344,7 @@ H5Oopen_by_addr(hid_t loc_id, haddr_t addr)
     hbool_t           is_native_vol_obj;
     hid_t             ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE2("i", "ia", loc_id, addr);
 
     /* Get the location object */
@@ -383,7 +383,7 @@ H5Oopen_by_addr(hid_t loc_id, haddr_t addr)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object handle");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Oopen_by_addr() */
 
 /*-------------------------------------------------------------------------
@@ -403,7 +403,7 @@ H5Oget_info1(hid_t loc_id, H5O_info1_t *oinfo /*out*/)
     H5VL_loc_params_t loc_params;
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", loc_id, oinfo);
 
     /* Check args */
@@ -423,7 +423,7 @@ H5Oget_info1(hid_t loc_id, H5O_info1_t *oinfo /*out*/)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "can't get deprecated info for object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Oget_info1() */
 
 /*-------------------------------------------------------------------------
@@ -443,7 +443,7 @@ H5Oget_info_by_name1(hid_t loc_id, const char *name, H5O_info1_t *oinfo /*out*/,
     H5VL_loc_params_t loc_params;
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*sxi", loc_id, name, oinfo, lapl_id);
 
     /* Check args */
@@ -473,7 +473,7 @@ H5Oget_info_by_name1(hid_t loc_id, const char *name, H5O_info1_t *oinfo /*out*/,
         HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "can't get deprecated info for object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Oget_info_by_name1() */
 
 /*-------------------------------------------------------------------------
@@ -495,7 +495,7 @@ H5Oget_info_by_idx1(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
     H5VL_loc_params_t loc_params;
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "i*sIiIohxi", loc_id, group_name, idx_type, order, n, oinfo, lapl_id);
 
     /* Check args */
@@ -529,7 +529,7 @@ H5Oget_info_by_idx1(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
         HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "can't get deprecated info for object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Oget_info_by_idx1() */
 
 /*-------------------------------------------------------------------------
@@ -551,7 +551,7 @@ H5Oget_info2(hid_t loc_id, H5O_info1_t *oinfo /*out*/, unsigned fields)
     hbool_t           is_native_vol_obj;
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixIu", loc_id, oinfo, fields);
 
     /* Check args */
@@ -581,7 +581,7 @@ H5Oget_info2(hid_t loc_id, H5O_info1_t *oinfo /*out*/, unsigned fields)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "can't get deprecated info for object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Oget_info2() */
 
 /*-------------------------------------------------------------------------
@@ -604,7 +604,7 @@ H5Oget_info_by_name2(hid_t loc_id, const char *name, H5O_info1_t *oinfo /*out*/,
     hbool_t           is_native_vol_obj;
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "i*sxIui", loc_id, name, oinfo, fields, lapl_id);
 
     /* Check args */
@@ -644,7 +644,7 @@ H5Oget_info_by_name2(hid_t loc_id, const char *name, H5O_info1_t *oinfo /*out*/,
         HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "can't get deprecated info for object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Oget_info_by_name2() */
 
 /*-------------------------------------------------------------------------
@@ -669,7 +669,7 @@ H5Oget_info_by_idx2(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
     hbool_t           is_native_vol_obj;
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE8("e", "i*sIiIohxIui", loc_id, group_name, idx_type, order, n, oinfo, fields, lapl_id);
 
     /* Check args */
@@ -713,7 +713,7 @@ H5Oget_info_by_idx2(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
         HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "can't get deprecated info for object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Oget_info_by_idx2() */
 
 /*-------------------------------------------------------------------------
@@ -754,7 +754,7 @@ H5Ovisit1(hid_t obj_id, H5_index_t idx_type, H5_iter_order_t order, H5O_iterate1
     H5O_visit1_adapter_t        shim_data;      /* Adapter for passing app callback & user data */
     herr_t                      ret_value;      /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "iIiIoOi*x", obj_id, idx_type, order, op, op_data);
 
     /* Check args */
@@ -792,7 +792,7 @@ H5Ovisit1(hid_t obj_id, H5_index_t idx_type, H5_iter_order_t order, H5O_iterate1
         HGOTO_ERROR(H5E_OHDR, H5E_BADITER, FAIL, "object visitation failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Ovisit1() */
 
 /*-------------------------------------------------------------------------
@@ -834,7 +834,7 @@ H5Ovisit_by_name1(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_it
     H5O_visit1_adapter_t        shim_data;      /* Adapter for passing app callback & user data */
     herr_t                      ret_value;      /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "i*sIiIoOi*xi", loc_id, obj_name, idx_type, order, op, op_data, lapl_id);
 
     /* Check args */
@@ -882,7 +882,7 @@ H5Ovisit_by_name1(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_it
         HGOTO_ERROR(H5E_OHDR, H5E_BADITER, FAIL, "object visitation failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Ovisit_by_name1() */
 
 /*-------------------------------------------------------------------------
@@ -928,7 +928,7 @@ H5Ovisit2(hid_t obj_id, H5_index_t idx_type, H5_iter_order_t order, H5O_iterate1
     hbool_t                     is_native_vol_obj;
     herr_t                      ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "iIiIoOi*xIu", obj_id, idx_type, order, op, op_data, fields);
 
     /* Check args */
@@ -976,7 +976,7 @@ H5Ovisit2(hid_t obj_id, H5_index_t idx_type, H5_iter_order_t order, H5O_iterate1
         HGOTO_ERROR(H5E_OHDR, H5E_BADITER, FAIL, "object iteration failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Ovisit2() */
 
 /*-------------------------------------------------------------------------
@@ -1022,7 +1022,7 @@ H5Ovisit_by_name2(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_it
     hbool_t                     is_native_vol_obj;
     herr_t                      ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE8("e", "i*sIiIoOi*xIui", loc_id, obj_name, idx_type, order, op, op_data, fields, lapl_id);
 
     /* Check args */
@@ -1080,7 +1080,7 @@ H5Ovisit_by_name2(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_it
         HGOTO_ERROR(H5E_OHDR, H5E_BADITER, FAIL, "object iteration failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Ovisit_by_name2() */
 
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

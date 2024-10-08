@@ -1748,7 +1748,7 @@ H5Tcreate(H5T_class_t type, size_t size)
     H5T_t *dt = NULL; /* New datatype constructed */
     hid_t  ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("i", "Ttz", type, size);
 
     /* check args. We support string (fixed-size or variable-length) now. */
@@ -1764,7 +1764,7 @@ H5Tcreate(H5T_class_t type, size_t size)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTREGISTER, FAIL, "unable to register datatype ID");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tcreate() */
 
 /*-------------------------------------------------------------------------
@@ -1793,7 +1793,7 @@ H5Tcopy(hid_t obj_id)
     hid_t  dset_tid  = H5I_INVALID_HID; /* Datatype ID from dataset */
     hid_t  ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", obj_id);
 
     switch (H5I_get_type(obj_id)) {
@@ -1870,7 +1870,7 @@ done:
         if (new_dt && H5T_close_real(new_dt) < 0)
             HDONE_ERROR(H5E_DATATYPE, H5E_CANTRELEASE, H5I_INVALID_HID, "unable to release datatype info");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tcopy() */
 
 /*-------------------------------------------------------------------------
@@ -1888,7 +1888,7 @@ H5Tclose(hid_t type_id)
     H5T_t *dt;                  /* Pointer to datatype to close */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", type_id);
 
     /* Check args */
@@ -1902,7 +1902,7 @@ H5Tclose(hid_t type_id)
         HGOTO_ERROR(H5E_ID, H5E_BADID, FAIL, "problem freeing id");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tclose() */
 
 /*-------------------------------------------------------------------------
@@ -1924,7 +1924,7 @@ H5Tclose_async(const char *app_file, const char *app_func, unsigned app_line, hi
     H5VL_t        *connector = NULL;            /* VOL connector */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "*s*sIuii", app_file, app_func, app_line, type_id, es_id);
 
     /* Check args */
@@ -1962,7 +1962,7 @@ done:
     if (connector && H5VL_conn_dec_rc(connector) < 0)
         HDONE_ERROR(H5E_DATATYPE, H5E_CANTDEC, FAIL, "can't decrement ref count on connector");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tclose_async() */
 
 /*-------------------------------------------------------------------------
@@ -1983,7 +1983,7 @@ H5Tequal(hid_t type1_id, hid_t type2_id)
     const H5T_t *dt2;       /* Pointer to second datatype */
     htri_t       ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("t", "ii", type1_id, type2_id);
 
     /* check args */
@@ -1995,7 +1995,7 @@ H5Tequal(hid_t type1_id, hid_t type2_id)
     ret_value = (0 == H5T_cmp(dt1, dt2, FALSE)) ? TRUE : FALSE;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tequal() */
 
 /*-------------------------------------------------------------------------
@@ -2019,7 +2019,7 @@ H5Tlock(hid_t type_id)
     H5T_t *dt;                  /* Datatype to operate on */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", type_id);
 
     /* Check args */
@@ -2032,7 +2032,7 @@ H5Tlock(hid_t type_id)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to lock transient datatype");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tlock() */
 
 /*-------------------------------------------------------------------------
@@ -2052,7 +2052,7 @@ H5Tget_class(hid_t type_id)
     H5T_t      *dt;        /* Pointer to datatype */
     H5T_class_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(H5T_NO_CLASS)
+    FUNC_ENTER_API(H5T_NO_CLASS, H5I_INVALID_HID)
     H5TRACE1("Tt", "i", type_id);
 
     /* Check args */
@@ -2063,7 +2063,7 @@ H5Tget_class(hid_t type_id)
     ret_value = H5T_get_class(dt, FALSE);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_class() */
 
 /*-------------------------------------------------------------------------
@@ -2116,7 +2116,7 @@ H5Tdetect_class(hid_t type, H5T_class_t cls)
     H5T_t *dt;        /* Datatype to query */
     htri_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("t", "iTt", type, cls);
 
     /* Check args */
@@ -2130,7 +2130,7 @@ H5Tdetect_class(hid_t type, H5T_class_t cls)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTGET, H5T_NO_CLASS, "can't get datatype class");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tdetect_class() */
 
 /*-------------------------------------------------------------------------
@@ -2221,7 +2221,7 @@ H5Tis_variable_str(hid_t dtype_id)
     H5T_t *dt;        /* Datatype to query */
     htri_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("t", "i", dtype_id);
 
     /* Check args */
@@ -2233,7 +2233,7 @@ H5Tis_variable_str(hid_t dtype_id)
         HGOTO_ERROR(H5E_DATATYPE, H5E_UNSUPPORTED, FAIL, "can't determine if datatype is VL-string");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tis_variable_str() */
 
 /*-------------------------------------------------------------------------
@@ -2272,7 +2272,7 @@ H5Tget_size(hid_t type_id)
     H5T_t *dt;        /* Datatype to query */
     size_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(0)
+    FUNC_ENTER_API(0, H5I_INVALID_HID)
     H5TRACE1("z", "i", type_id);
 
     /* Check args */
@@ -2283,7 +2283,7 @@ H5Tget_size(hid_t type_id)
     ret_value = H5T_GET_SIZE(dt);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_size() */
 
 /*-------------------------------------------------------------------------
@@ -2313,7 +2313,7 @@ H5Tset_size(hid_t type_id, size_t size)
     H5T_t *dt;                  /* Datatype to modify */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iz", type_id, size);
 
     /* Check args */
@@ -2335,7 +2335,7 @@ H5Tset_size(hid_t type_id, size_t size)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to set size for datatype");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tset_size() */
 
 /*-------------------------------------------------------------------------
@@ -2357,7 +2357,7 @@ H5Tget_super(hid_t type)
     H5T_t *super     = NULL;            /* Supertype */
     hid_t  ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", type);
 
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type, H5I_DATATYPE)))
@@ -2373,7 +2373,7 @@ done:
             HDONE_ERROR(H5E_DATATYPE, H5E_CANTRELEASE, H5I_INVALID_HID,
                         "unable to release super datatype info")
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_super() */
 
 /*-------------------------------------------------------------------------
@@ -2651,7 +2651,7 @@ H5Tregister(H5T_pers_t pers, const char *name, hid_t src_id, hid_t dst_id, H5T_c
     H5T_conv_func_t conv_func;           /* Conversion function wrapper */
     herr_t          ret_value = SUCCEED; /*return value                   */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "Te*siiTC", pers, name, src_id, dst_id, func);
 
     /* Check args */
@@ -2675,7 +2675,7 @@ H5Tregister(H5T_pers_t pers, const char *name, hid_t src_id, hid_t dst_id, H5T_c
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "can't register conversion function");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tregister() */
 
 /*-------------------------------------------------------------------------
@@ -2797,7 +2797,7 @@ H5Tunregister(H5T_pers_t pers, const char *name, hid_t src_id, hid_t dst_id, H5T
     H5T_t *src = NULL, *dst = NULL; /* Datatype descriptors */
     herr_t ret_value = SUCCEED;     /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "Te*siiTC", pers, name, src_id, dst_id, func);
 
     /* Check arguments */
@@ -2810,7 +2810,7 @@ H5Tunregister(H5T_pers_t pers, const char *name, hid_t src_id, hid_t dst_id, H5T
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTDELETE, FAIL, "internal unregister function failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tunregister() */
 
 /*-------------------------------------------------------------------------
@@ -2835,7 +2835,7 @@ H5Tfind(hid_t src_id, hid_t dst_id, H5T_cdata_t **pcdata /*out*/)
     H5T_path_t *path;
     H5T_conv_t  ret_value; /* Return value */
 
-    FUNC_ENTER_API(NULL)
+    FUNC_ENTER_API(NULL, H5I_INVALID_HID)
     H5TRACE3("TC", "iix", src_id, dst_id, pcdata);
 
     /* Check args */
@@ -2856,7 +2856,7 @@ H5Tfind(hid_t src_id, hid_t dst_id, H5T_cdata_t **pcdata /*out*/)
     ret_value = path->conv.u.app_func;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tfind() */
 
 /*-------------------------------------------------------------------------
@@ -2879,7 +2879,7 @@ H5Tcompiler_conv(hid_t src_id, hid_t dst_id)
     H5T_t *src, *dst;
     htri_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("t", "ii", src_id, dst_id);
 
     /* Check args */
@@ -2892,7 +2892,7 @@ H5Tcompiler_conv(hid_t src_id, hid_t dst_id)
         HGOTO_ERROR(H5E_DATATYPE, H5E_NOTFOUND, FAIL, "conversion function not found");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tcompiler_conv() */
 
 /*-------------------------------------------------------------------------
@@ -2922,7 +2922,7 @@ H5Tconvert(hid_t src_id, hid_t dst_id, size_t nelmts, void *buf, void *backgroun
     H5T_t      *src, *dst;           /* unregistered types      */
     herr_t      ret_value = SUCCEED; /* Return value            */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "iiz*x*xi", src_id, dst_id, nelmts, buf, background, dxpl_id);
 
     /* Check args */
@@ -2945,7 +2945,7 @@ H5Tconvert(hid_t src_id, hid_t dst_id, size_t nelmts, void *buf, void *backgroun
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "data type conversion failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tconvert() */
 
 /*-------------------------------------------------------------------------
@@ -2966,7 +2966,7 @@ H5Treclaim(hid_t type_id, hid_t space_id, hid_t dxpl_id, void *buf)
     H5S_t *space;     /* Dataspace for iteration */
     herr_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "iii*x", type_id, space_id, dxpl_id, buf);
 
     /* Check args */
@@ -2990,7 +2990,7 @@ H5Treclaim(hid_t type_id, hid_t space_id, hid_t dxpl_id, void *buf)
     ret_value = H5T_reclaim(type_id, space, buf);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Treclaim() */
 
 /*-------------------------------------------------------------------------
@@ -3011,7 +3011,7 @@ H5Tencode(hid_t obj_id, void *buf, size_t *nalloc)
     H5T_t *dtype;
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*x*z", obj_id, buf, nalloc);
 
     /* Check argument and retrieve object */
@@ -3025,7 +3025,7 @@ H5Tencode(hid_t obj_id, void *buf, size_t *nalloc)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTENCODE, FAIL, "can't encode datatype");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tencode() */
 
 /*-------------------------------------------------------------------------
@@ -3046,7 +3046,7 @@ H5Tdecode(const void *buf)
     H5T_t *dt;
     hid_t  ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("i", "*x", buf);
 
     /* Check args */
@@ -3067,7 +3067,7 @@ H5Tdecode(const void *buf)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTREGISTER, FAIL, "unable to register data type");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tdecode() */
 
 /*-------------------------------------------------------------------------

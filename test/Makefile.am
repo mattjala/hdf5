@@ -59,6 +59,7 @@ check_SCRIPTS = $(TEST_SCRIPT)
 # executed, generally most specific tests to least specific tests.
 # As an exception, long-running tests should occur earlier in the list.
 # This gives them more time to run when tests are executing in parallel.
+# TODO: Build MT tests under CMake as well
 TEST_PROG= testhdf5 \
            cache cache_api cache_image cache_tagging lheap ohdr \
            stab gheap evict_on_close farray earray btree2 fheap \

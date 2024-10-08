@@ -21,6 +21,7 @@
 /***********/
 #include "H5private.h"  /* Generic Functions            */
 #include "H5Eprivate.h" /* Error handling               */
+#include "H5Iprivate.h" /* IDs                          */
 #include "H5PLpkg.h"    /* Plugin                       */
 
 /****************/
@@ -76,7 +77,7 @@ H5PLset_loading_state(unsigned int plugin_control_mask)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "Iu", plugin_control_mask);
 
     /* Set the plugin control mask */
@@ -84,7 +85,7 @@ H5PLset_loading_state(unsigned int plugin_control_mask)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTSET, FAIL, "error setting plugin control mask");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5PLset_loading_state() */
 
 /*-------------------------------------------------------------------------
@@ -108,7 +109,7 @@ H5PLget_loading_state(unsigned *plugin_control_mask /*out*/)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "x", plugin_control_mask);
 
     if (NULL == plugin_control_mask)
@@ -119,7 +120,7 @@ H5PLget_loading_state(unsigned *plugin_control_mask /*out*/)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTGET, FAIL, "error getting plugin control mask");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5PLget_loading_state() */
 
 /*-------------------------------------------------------------------------
@@ -137,7 +138,7 @@ H5PLappend(const char *search_path)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "*s", search_path);
 
     /* Check args */
@@ -151,7 +152,7 @@ H5PLappend(const char *search_path)
         HGOTO_ERROR(H5E_PLUGIN, H5E_CANTAPPEND, FAIL, "unable to append search path");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5PLappend() */
 
 /*-------------------------------------------------------------------------
@@ -169,7 +170,7 @@ H5PLprepend(const char *search_path)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "*s", search_path);
 
     /* Check args */
@@ -183,7 +184,7 @@ H5PLprepend(const char *search_path)
         HGOTO_ERROR(H5E_PLUGIN, H5E_CANTINSERT, FAIL, "unable to prepend search path");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5PLprepend() */
 
 /*-------------------------------------------------------------------------
@@ -202,7 +203,7 @@ H5PLreplace(const char *search_path, unsigned int idx)
     unsigned num_paths;           /* Current number of stored paths */
     herr_t   ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "*sIu", search_path, idx);
 
     /* Check args */
@@ -224,7 +225,7 @@ H5PLreplace(const char *search_path, unsigned int idx)
         HGOTO_ERROR(H5E_PLUGIN, H5E_CANTINSERT, FAIL, "unable to replace search path");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5PLreplace() */
 
 /*-------------------------------------------------------------------------
@@ -244,7 +245,7 @@ H5PLinsert(const char *search_path, unsigned int idx)
     unsigned num_paths;           /* Current number of stored paths */
     herr_t   ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "*sIu", search_path, idx);
 
     /* Check args */
@@ -264,7 +265,7 @@ H5PLinsert(const char *search_path, unsigned int idx)
         HGOTO_ERROR(H5E_PLUGIN, H5E_CANTINSERT, FAIL, "unable to insert search path");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5PLinsert() */
 
 /*-------------------------------------------------------------------------
@@ -286,7 +287,7 @@ H5PLremove(unsigned int idx)
     unsigned num_paths;           /* Current number of stored paths */
     herr_t   ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "Iu", idx);
 
     /* Check index */
@@ -302,7 +303,7 @@ H5PLremove(unsigned int idx)
         HGOTO_ERROR(H5E_PLUGIN, H5E_CANTDELETE, FAIL, "unable to remove search path");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5PLremove() */
 
 /*-------------------------------------------------------------------------
@@ -337,7 +338,7 @@ H5PLget(unsigned int idx, char *path_buf, size_t buf_size)
     size_t      path_len  = 0;    /* Length of path */
     ssize_t     ret_value = 0;    /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("Zs", "Iu*sz", idx, path_buf, buf_size);
 
     /* Check index */
@@ -368,7 +369,7 @@ H5PLget(unsigned int idx, char *path_buf, size_t buf_size)
     ret_value = (ssize_t)path_len;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5PLget() */
 
 /*-------------------------------------------------------------------------
@@ -386,7 +387,7 @@ H5PLsize(unsigned int *num_paths)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "*Iu", num_paths);
 
     /* Check arguments */
@@ -397,5 +398,5 @@ H5PLsize(unsigned int *num_paths)
     *num_paths = H5PL__get_num_paths();
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5PLsize() */

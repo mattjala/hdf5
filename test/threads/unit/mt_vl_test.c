@@ -214,7 +214,7 @@ void *test_concurrent_registration(void H5_ATTR_UNUSED *arg) {
 
   const H5VL_class_t *vol_class = NULL;
 
-  TESTING("concurrent VOL conn registration/unregistration");
+  TESTING("concurrent VOL connector registration/unregistration");
 
   memset(vol_ids, 0, sizeof(vol_ids));
 

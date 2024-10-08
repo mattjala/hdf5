@@ -258,7 +258,7 @@ H5Pset_fapl_sec2(hid_t fapl_id)
     H5P_genplist_t *plist; /* Property list pointer */
     herr_t          ret_value;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", fapl_id);
 
     if (NULL == (plist = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
@@ -267,7 +267,7 @@ H5Pset_fapl_sec2(hid_t fapl_id)
     ret_value = H5P_set_driver(plist, H5FD_SEC2, NULL, NULL);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_fapl_sec2() */
 
 /*-------------------------------------------------------------------------

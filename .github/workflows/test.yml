@@ -27,28 +27,18 @@ jobs:
               working-directory: ${{github.workspace}}
               run: |
                     sh ./autogen.sh
-                    ./configure --enable-shared --enable-tests ${{ matrix.multi_thread }} ${{ matrix.api_tests }}
+                    ./configure --enable-shared --enable-tests ${{ matrix.multi_thread }} ${{ matrix.api_tests }} --enable-build-mode=debug
 
             - name: Build HDF5
               working-directory: ${{github.workspace}}
               run: |
                     make -j
-
-            - name: Find mt vl tests
-              working-directory: ${{github.workspace}}
-              run: |
-                find . -name "*mt_vl_test*"
         
             - name: API Tests
               if: matrix.api_tests == '--enable-api-tests'
               working-directory: ${{github.workspace}}
               run: |
                 valgrind ./test/API/api_tests
-
-            - name: Multithread H5VL Tests
-              working-directory: ${{github.workspace}}
-              run: |
-                valgrind ./test/threads/unit/mt_vl_test
 
             - name: Test HDF5
               working-directory: ${{github.workspace}}

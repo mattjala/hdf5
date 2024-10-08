@@ -42,7 +42,7 @@ H5Tget_strpad(hid_t type_id)
     H5T_t    *dt = NULL;
     H5T_str_t ret_value;
 
-    FUNC_ENTER_API(H5T_STR_ERROR)
+    FUNC_ENTER_API(H5T_STR_ERROR, H5I_INVALID_HID)
     H5TRACE1("Tz", "i", type_id);
 
     /* Check args */
@@ -60,7 +60,7 @@ H5Tget_strpad(hid_t type_id)
         ret_value = dt->shared->u.vlen.pad;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -91,7 +91,7 @@ H5Tset_strpad(hid_t type_id, H5T_str_t strpad)
     H5T_t *dt        = NULL;
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iTz", type_id, strpad);
 
     /* Check args */
@@ -113,5 +113,5 @@ H5Tset_strpad(hid_t type_id, H5T_str_t strpad)
         dt->shared->u.vlen.pad = strpad;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }

@@ -1494,6 +1494,52 @@ extern hbool_t H5_libterm_g; /* Is the library being shutdown? */
 
 #endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
+#if H5_HAVE_VIRTUAL_LOCK
+#define FUNC_ENTER_VIRTUAL_LOCK(...)                  \
+    {\
+    /* Add invalid ID to pad list in the event __VA_ARGS__ is empty */\
+    const hid_t _vars[] = {H5I_INVALID_HID, __VA_ARGS__}; \
+    bool success = true;\
+    for (size_t _i = 1; _i < sizeof(_vars) / sizeof(hid_t); _i++) {\
+        if (H5I_vlock_enter(_vars[_i]) < 0) {\
+            success = false;\
+        }\
+    }\
+    assert(success);\
+    /* HGOTO_ERROR(H5E_FUNC, H5E_CANTINIT, FAIL, "unable to lock object");*/\
+    }
+
+#define FUNC_LEAVE_VIRTUAL_LOCK(...)   \
+    /* Add invalid ID to pad list in the event __VA_ARGS__ is empty */\
+    {\
+    const hid_t _vars[] = {H5I_INVALID_HID, __VA_ARGS__}; \
+    bool success_exit = true;\
+    for (size_t _i = 1; _i < sizeof(_vars) / sizeof(hid_t); _i++) {\
+        if (H5I_vlock_exit(_vars[_i]) < 0) {\
+            success_exit = false;\
+        }\
+    }\
+    assert(success_exit);\
+    /*HGOTO_ERROR(H5E_FUNC, H5E_CANTINIT, FAIL, "unable to unlock object"); */\
+    }
+
+#else /* H5_HAVE_VIRTUAL_LOCK */
+/* Silence warnings about unused variable/empty VA_ARGS */
+#define FUNC_ENTER_VIRTUAL_LOCK(...)\
+    /* Add invalid ID to pad list in the event __VA_ARGS__ is empty */\
+    {\
+    const hid_t _vars[] = {H5I_INVALID_HID, __VA_ARGS__}; \
+    (void) _vars;\
+    }
+#define FUNC_LEAVE_VIRTUAL_LOCK(...)\
+    /* Add invalid ID to pad list in the event __VA_ARGS__ is empty */\
+    {\
+    const hid_t _vars[] = {H5I_INVALID_HID, __VA_ARGS__}; \
+    (void) _vars;\
+    }
+
+#endif /* H5_HAVE_VIRTUAL_LOCK */
+
 #ifdef H5_HAVE_CODESTACK
 
 /* Include required function stack header */
@@ -1538,10 +1584,12 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
 #define FUNC_ENTER_COMMON_NOERR(asrt) FUNC_ENTER_CHECK_NAME(asrt);
 
 /* Threadsafety initialization code for API routines */
-#define FUNC_ENTER_API_THREADSAFE                                                                            \
+#define FUNC_ENTER_API_THREADSAFE(...)                                                                       \
     /* Initialize the thread-safe code */                                                                    \
     H5_FIRST_THREAD_INIT                                                                                     \
                                                                                                              \
+    /* Perform the virtual lock checks */                                                                    \
+    FUNC_ENTER_VIRTUAL_LOCK(__VA_ARGS__)                                                                     \
     /* Grab the mutex for the library */                                                                     \
     H5_API_UNSET_CANCEL                                                                                      \
     H5_API_LOCK
@@ -1552,10 +1600,12 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
  * Note that while we don't acquire the mutext, we still do initialization and 
  * block thread cancelations while in the HDF5 library.
  */
-#define FUNC_ENTER_API_THREADSAFE_NO_MUTEX                                                                   \
+#define FUNC_ENTER_API_THREADSAFE_NO_MUTEX(...)                                                              \
     /* Initialize the thread-safe code */                                                                    \
     H5_FIRST_THREAD_INIT                                                                                     \
                                                                                                              \
+    /* Perform the virtual lock checks */                                                                    \
+    FUNC_ENTER_VIRTUAL_LOCK(__VA_ARGS__)                                                                     \
     /* Block thread cancelations */                                                                          \
     H5_API_UNSET_CANCEL
 
@@ -1611,13 +1661,13 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
             H5E_clear_stack(NULL);                                                                           \
             {
 #else /* new version */
-#define FUNC_ENTER_API(err)                                                                                  \
+#define FUNC_ENTER_API(err, ...)                                                                                  \
     {                                                                                                        \
         {                                                                                                    \
             hbool_t api_ctx_pushed = FALSE;                                                                  \
                                                                                                              \
             FUNC_ENTER_API_COMMON                                                                            \
-            FUNC_ENTER_API_THREADSAFE;                                                                       \
+            FUNC_ENTER_API_THREADSAFE(__VA_ARGS__);                                                          \
             FUNC_ENTER_API_INIT(err);                                                                        \
             FUNC_ENTER_API_PUSH(err);                                                                        \
             /* Clear thread error stack entering public functions */                                         \
@@ -1641,13 +1691,13 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
  */
 #if defined(H5_HAVE_MULTITHREAD)
 
-#define FUNC_ENTER_API_NO_MUTEX(err)                                                                         \
+#define FUNC_ENTER_API_NO_MUTEX(err, ...)                                                                    \
     {                                                                                                        \
         {                                                                                                    \
             hbool_t api_ctx_pushed = FALSE;                                                                  \
                                                                                                              \
             FUNC_ENTER_API_COMMON                                                                            \
-            FUNC_ENTER_API_THREADSAFE_NO_MUTEX;                                                              \
+            FUNC_ENTER_API_THREADSAFE_NO_MUTEX(__VA_ARGS__);                                                 \
             H5_API_LOCK                                                                                      \
             FUNC_ENTER_API_INIT(err);                                                                        \
             FUNC_ENTER_API_PUSH(err);                                                                        \
@@ -1679,13 +1729,13 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
             FUNC_ENTER_API_PUSH(err);                                                                        \
             {
 #else /* modified version */
-#define FUNC_ENTER_API_NOCLEAR(err)                                                                          \
+#define FUNC_ENTER_API_NOCLEAR(err, ...)                                                                     \
     {                                                                                                        \
         {                                                                                                    \
             hbool_t api_ctx_pushed = FALSE;                                                                  \
                                                                                                              \
             FUNC_ENTER_API_COMMON                                                                            \
-            FUNC_ENTER_API_THREADSAFE;                                                                       \
+            FUNC_ENTER_API_THREADSAFE(__VA_ARGS__);                                                          \
             FUNC_ENTER_API_INIT(err);                                                                        \
             FUNC_ENTER_API_PUSH(err);                                                                        \
             {
@@ -1707,12 +1757,12 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
                 H5_PUSH_FUNC                                                                                 \
                 {
 #else /* modified version */
-#define FUNC_ENTER_API_NOINIT                                                                                \
+#define FUNC_ENTER_API_NOINIT(...)                                                                           \
     {                                                                                                        \
         {                                                                                                    \
             {                                                                                                \
                 FUNC_ENTER_API_COMMON                                                                        \
-                FUNC_ENTER_API_THREADSAFE;                                                                   \
+                FUNC_ENTER_API_THREADSAFE(__VA_ARGS__);                                                      \
                 H5_PUSH_FUNC                                                                                 \
                 {
 #endif /* modified version */
@@ -1724,14 +1774,14 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
  *      are: H5close, H5check_version, etc.
  *
  */
-#define FUNC_ENTER_API_NOINIT_NOERR_NOFS                                                                     \
+#define FUNC_ENTER_API_NOINIT_NOERR_NOFS(...)                                                                \
     {                                                                                                        \
         {                                                                                                    \
             {                                                                                                \
                 {                                                                                            \
                     FUNC_ENTER_API_VARS                                                                      \
                     FUNC_ENTER_COMMON_NOERR(H5_IS_API(__func__));                                            \
-                    FUNC_ENTER_API_THREADSAFE;                                                               \
+                    FUNC_ENTER_API_THREADSAFE(__VA_ARGS__);                                                  \
                     {
 
 /*
@@ -1740,14 +1790,14 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
  *      function name, etc.) examples are: H5open.
  *
  */
-#define FUNC_ENTER_API_NOPUSH(err)                                                                           \
+#define FUNC_ENTER_API_NOPUSH(err, ...)                                                                      \
     {                                                                                                        \
         {                                                                                                    \
             {                                                                                                \
                 {                                                                                            \
                     {                                                                                        \
                         FUNC_ENTER_COMMON(H5_IS_API(__func__));                                              \
-                        FUNC_ENTER_API_THREADSAFE;                                                           \
+                        FUNC_ENTER_API_THREADSAFE(__VA_ARGS__);                                              \
                         FUNC_ENTER_API_INIT(err);                                                            \
                         {
 
@@ -1918,7 +1968,8 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
  *-------------------------------------------------------------------------
  */
 /* Threadsafety termination code for API routines */
-#define FUNC_LEAVE_API_THREADSAFE                                                                            \
+#define FUNC_LEAVE_API_THREADSAFE(...)                                                                       \
+    FUNC_LEAVE_VIRTUAL_LOCK(__VA_ARGS__);                                                                    \
     H5_API_UNLOCK                                                                                            \
     H5_API_SET_CANCEL
 
@@ -1930,7 +1981,8 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
  * Note that while we don't drop the mutex, we still unblock thread cancelations
  * as we exit the HDF5 library.
  */
-#define FUNC_LEAVE_API_THREADSAFE_NO_MUTEX                                                                   \
+#define FUNC_LEAVE_API_THREADSAFE_NO_MUTEX(...)\
+    FUNC_LEAVE_VIRTUAL_LOCK(__VA_ARGS__);                   \
     H5_API_SET_CANCEL
 
 #else /* defined(H5_HAVE_MULTITHREAD) */
@@ -1944,7 +1996,7 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
 
 #define FUNC_LEAVE_API_COMMON(ret_value) H5TRACE_RETURN(ret_value);
 
-#define FUNC_LEAVE_API(ret_value)                                                                            \
+#define FUNC_LEAVE_API(ret_value, ...)                                                                            \
     ;                                                                                                        \
     } /*end scope from end of FUNC_ENTER*/                                                                   \
     FUNC_LEAVE_API_COMMON(ret_value);                                                                        \
@@ -1955,7 +2007,7 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
     H5_POP_FUNC                                                                                              \
     if (err_occurred)                                                                                        \
         (void)H5E_dump_api_stack(TRUE);                                                                      \
-    FUNC_LEAVE_API_THREADSAFE                                                                                \
+    FUNC_LEAVE_API_THREADSAFE(__VA_ARGS__);                                                                           \
     return (ret_value);                                                                                      \
     }                                                                                                        \
     } /*end scope from beginning of FUNC_ENTER*/
@@ -1964,7 +2016,7 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
 /* Note the lock/unlock of the global mutex around the func exit code.  This is necessary for now, as this
  * code is not currently multi-thread safe.  Needless to say, this has to be fixed.
  */
-#define FUNC_LEAVE_API_NO_MUTEX(ret_value)                                                                   \
+#define FUNC_LEAVE_API_NO_MUTEX(ret_value, ...)                                                                   \
     ;                                                                                                        \
     } /*end scope from end of FUNC_ENTER*/                                                                   \
     H5_API_LOCK                                                                                              \
@@ -1977,31 +2029,31 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
     if (err_occurred)                                                                                        \
         (void)H5E_dump_api_stack(TRUE);                                                                      \
     H5_API_UNLOCK                                                                                            \
-    FUNC_LEAVE_API_THREADSAFE_NO_MUTEX                                                                       \
+    FUNC_LEAVE_API_THREADSAFE_NO_MUTEX(__VA_ARGS__)                                                                  \
     return (ret_value);                                                                                      \
     }                                                                                                        \
     } /*end scope from beginning of FUNC_ENTER*/
 
 /* Use this macro to match the FUNC_ENTER_API_NOINIT macro */
-#define FUNC_LEAVE_API_NOINIT(ret_value)                                                                     \
+#define FUNC_LEAVE_API_NOINIT(ret_value, ...)                                                                 \
     ;                                                                                                        \
     } /*end scope from end of FUNC_ENTER*/                                                                   \
     FUNC_LEAVE_API_COMMON(ret_value);                                                                        \
     H5_POP_FUNC                                                                                              \
     if (err_occurred)                                                                                        \
         (void)H5E_dump_api_stack(TRUE);                                                                      \
-    FUNC_LEAVE_API_THREADSAFE                                                                                \
+    FUNC_LEAVE_API_THREADSAFE(__VA_ARGS__)                                                                                \
     return (ret_value);                                                                                      \
     }                                                                                                        \
     }                                                                                                        \
     } /*end scope from beginning of FUNC_ENTER*/
 
 /* Use this macro to match the FUNC_ENTER_API_NOINIT_NOERR_NOFS macro */
-#define FUNC_LEAVE_API_NOFS(ret_value)                                                                       \
+#define FUNC_LEAVE_API_NOFS(ret_value, ...)                                                                       \
     ;                                                                                                        \
     } /*end scope from end of FUNC_ENTER*/                                                                   \
     FUNC_LEAVE_API_COMMON(ret_value);                                                                        \
-    FUNC_LEAVE_API_THREADSAFE                                                                                \
+    FUNC_LEAVE_API_THREADSAFE(__VA_ARGS__)                                                                            \
     return (ret_value);                                                                                      \
     }                                                                                                        \
     }                                                                                                        \
@@ -2009,12 +2061,12 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
     } /*end scope from beginning of FUNC_ENTER*/
 
 /* Use this macro to match the FUNC_ENTER_API_NOPUSH macro */
-#define FUNC_LEAVE_API_NOPUSH(ret_value)                                                                     \
+#define FUNC_LEAVE_API_NOPUSH(ret_value, ...)                                                                     \
     ;                                                                                                        \
     } /*end scope from end of FUNC_ENTER*/                                                                   \
     if (err_occurred)                                                                                        \
         (void)H5E_dump_api_stack(TRUE);                                                                      \
-    FUNC_LEAVE_API_THREADSAFE                                                                                \
+    FUNC_LEAVE_API_THREADSAFE(__VA_ARGS__)                                                                                \
     return (ret_value);                                                                                      \
     }                                                                                                        \
     }                                                                                                        \
@@ -2237,6 +2289,10 @@ H5_DLL herr_t  H5_mpio_gatherv_alloc_simple(void *send_buf, int send_count, MPI_
 H5_DLL herr_t  H5_mpio_get_file_sync_required(MPI_File fh, hbool_t *file_sync_required);
 #endif /* H5_HAVE_PARALLEL */
 
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
+
+H5_DLL bool H5_varname_is_id(const char *varname);
+#endif
 /* Functions for debugging */
 H5_DLL herr_t H5_buffer_dump(FILE *stream, int indent, const uint8_t *buf, const uint8_t *marker,
                              size_t buf_offset, size_t buf_size);

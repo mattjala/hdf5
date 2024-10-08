@@ -1398,6 +1398,9 @@ typedef struct H5I_mt_id_info_kernel_t {
     hbool_t                   is_future;  /* Whether this ID represents a future object */
     hbool_t                   have_global_mutex; 
 
+#if H5_HAVE_VIRTUAL_LOCK
+    int lock_count;      /* Virtual lock for this ID */
+#endif /* H5_HAVE_VIRTUAL_LOCK */
 } H5I_mt_id_info_kernel_t;
 
 typedef struct H5I_mt_id_info_t {

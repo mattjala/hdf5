@@ -87,7 +87,7 @@ H5Tget_member_offset(hid_t type_id, unsigned membno)
     H5T_t *dt;        /* Datatype to query */
     size_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(0)
+    FUNC_ENTER_API(0, H5I_INVALID_HID)
     H5TRACE2("z", "iIu", type_id, membno);
 
     /* Check args */
@@ -100,7 +100,7 @@ H5Tget_member_offset(hid_t type_id, unsigned membno)
     ret_value = H5T_GET_MEMBER_OFFSET(dt->shared, membno);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_member_offset() */
 
 /*-------------------------------------------------------------------------
@@ -147,7 +147,7 @@ H5Tget_member_class(hid_t type_id, unsigned membno)
     H5T_t      *dt;        /* Datatype to query */
     H5T_class_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(H5T_NO_CLASS)
+    FUNC_ENTER_API(H5T_NO_CLASS, H5I_INVALID_HID)
     H5TRACE2("Tt", "iIu", type_id, membno);
 
     /* Check args */
@@ -162,7 +162,7 @@ H5Tget_member_class(hid_t type_id, unsigned membno)
     ret_value = H5T_GET_CLASS(dt->shared->u.compnd.memb[membno].type->shared, FALSE);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_member_class() */
 
 /*-------------------------------------------------------------------------
@@ -187,7 +187,7 @@ H5Tget_member_type(hid_t type_id, unsigned membno)
     H5T_t *memb_dt = NULL; /* Member datatype */
     hid_t  ret_value;      /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE2("i", "iIu", type_id, membno);
 
     /* Check args */
@@ -209,7 +209,7 @@ done:
         if (memb_dt && H5T_close(memb_dt) < 0)
             HDONE_ERROR(H5E_DATATYPE, H5E_CANTCLOSEOBJ, H5I_INVALID_HID, "can't close datatype");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_member_type() */
 
 /*-------------------------------------------------------------------------
@@ -324,7 +324,7 @@ H5Tinsert(hid_t parent_id, const char *name, size_t offset, hid_t member_id)
     H5T_t *member;              /* The member datatype	*/
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*szi", parent_id, name, offset, member_id);
 
     /* Check args */
@@ -345,7 +345,7 @@ H5Tinsert(hid_t parent_id, const char *name, size_t offset, hid_t member_id)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINSERT, FAIL, "unable to insert member");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tinsert() */
 
 /*-------------------------------------------------------------------------
@@ -364,7 +364,7 @@ H5Tpack(hid_t type_id)
     H5T_t *dt;                  /* Datatype to modify */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", type_id);
 
     /* Check args */
@@ -377,7 +377,7 @@ H5Tpack(hid_t type_id)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to pack compound datatype");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tpack() */
 
 /*-------------------------------------------------------------------------

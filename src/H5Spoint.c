@@ -989,7 +989,7 @@ H5Sget_select_elem_npoints(hid_t spaceid)
     H5S_t   *space;     /* Dataspace to modify selection of */
     hssize_t ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("Hs", "i", spaceid);
 
     /* Check args */
@@ -1001,7 +1001,7 @@ H5Sget_select_elem_npoints(hid_t spaceid)
     ret_value = (hssize_t)H5S_GET_SELECT_NPOINTS(space);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sget_select_elem_npoints() */
 
 /*--------------------------------------------------------------------------
@@ -1623,7 +1623,7 @@ H5Sget_select_elem_pointlist(hid_t spaceid, hsize_t startpoint, hsize_t numpoint
     H5S_t *space;     /* Dataspace to modify selection of */
     herr_t ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "ihhx", spaceid, startpoint, numpoints, buf);
 
     /* Check args */
@@ -1637,7 +1637,7 @@ H5Sget_select_elem_pointlist(hid_t spaceid, hsize_t startpoint, hsize_t numpoint
     ret_value = H5S__get_select_elem_pointlist(space, startpoint, numpoints, buf);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sget_select_elem_pointlist() */
 
 /*--------------------------------------------------------------------------
@@ -2420,7 +2420,7 @@ H5Sselect_elements(hid_t spaceid, H5S_seloper_t op, size_t num_elem, const hsize
     H5S_t *space;     /* Dataspace to modify selection of */
     herr_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "iSsz*h", spaceid, op, num_elem, coord);
 
     /* Check args */
@@ -2440,5 +2440,5 @@ H5Sselect_elements(hid_t spaceid, H5S_seloper_t op, size_t num_elem, const hsize
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTDELETE, FAIL, "can't select elements");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sselect_elements() */
