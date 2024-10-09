@@ -85,7 +85,7 @@ H5Tarray_create2(hid_t base_id, unsigned ndims, const hsize_t dim[/* ndims */])
     unsigned u;         /* local index variable */
     hid_t    ret_value; /* return value	*/
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE3("i", "iIu*h", base_id, ndims, dim);
 
     /* Check args */
@@ -112,7 +112,7 @@ done:
         if (dt && H5T_close_real(dt) < 0)
             HDONE_ERROR(H5E_DATATYPE, H5E_CANTRELEASE, H5I_INVALID_HID, "can't release datatype");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tarray_create2() */
 
 /*-------------------------------------------------------------------------
@@ -189,7 +189,7 @@ H5Tget_array_ndims(hid_t type_id)
     H5T_t *dt;        /* pointer to array datatype	*/
     int    ret_value; /* return value			*/
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("Is", "i", type_id);
 
     /* Check args */
@@ -202,7 +202,7 @@ H5Tget_array_ndims(hid_t type_id)
     ret_value = H5T__get_array_ndims(dt);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_array_ndims */
 
 /*-------------------------------------------------------------------------
@@ -244,7 +244,7 @@ H5Tget_array_dims2(hid_t type_id, hsize_t dims[] /*out*/)
     H5T_t *dt;        /* pointer to array data type	*/
     int    ret_value; /* return value			*/
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("Is", "ix", type_id, dims);
 
     /* Check args */
@@ -257,7 +257,7 @@ H5Tget_array_dims2(hid_t type_id, hsize_t dims[] /*out*/)
     if ((ret_value = H5T__get_array_dims(dt, dims)) < 0)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "unable to get dimension sizes");
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_array_dims2() */
 
 /*-------------------------------------------------------------------------
@@ -317,7 +317,7 @@ H5Tarray_create1(hid_t base_id, int ndims, const hsize_t dim[/* ndims */],
     unsigned u;         /* local index variable */
     hid_t    ret_value; /* return value	*/
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE4("i", "iIs*h*Is", base_id, ndims, dim, perm);
 
     /* Check args */
@@ -344,7 +344,7 @@ done:
         if (dt && H5T_close_real(dt) < 0)
             HDONE_ERROR(H5E_DATATYPE, H5E_CANTRELEASE, H5I_INVALID_HID, "can't release datatype");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tarray_create1() */
 
 /*-------------------------------------------------------------------------
@@ -363,7 +363,7 @@ H5Tget_array_dims1(hid_t type_id, hsize_t dims[] /*out*/, int H5_ATTR_UNUSED per
     H5T_t *dt;        /* Array datatype to query	*/
     int    ret_value; /* return value			*/
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("Is", "ixx", type_id, dims, perm);
 
     /* Check args */
@@ -377,6 +377,6 @@ H5Tget_array_dims1(hid_t type_id, hsize_t dims[] /*out*/, int H5_ATTR_UNUSED per
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "unable to get dimension sizes");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_array_dims1() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

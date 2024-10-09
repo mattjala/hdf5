@@ -11,6 +11,7 @@ jobs:
         strategy:
             matrix:
                 api_tests: ["--enable-api-tests", "--disable-api-tests"]
+                multi_thread: ["--enable-multithread --disable-hl", "--disable-multithread --enable-threadsafe --disable-hl", "--disable-multithread --disable-threadsafe"]
             fail-fast: false
 
         steps:
@@ -25,15 +26,14 @@ jobs:
             - name: Configure HDF5
               working-directory: ${{github.workspace}}
               run: |
-                    autoreconf -if
-                    ./configure --enable-shared --enable-tests ${{ matrix.api_tests }}
+                    sh ./autogen.sh
+                    ./configure --enable-shared --enable-tests ${{ matrix.multi_thread }} ${{ matrix.api_tests }} --enable-build-mode=debug
 
             - name: Build HDF5
               working-directory: ${{github.workspace}}
               run: |
                     make -j
-                    make install
-
+        
             - name: API Tests
               if: matrix.api_tests == '--enable-api-tests'
               working-directory: ${{github.workspace}}

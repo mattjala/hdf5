@@ -159,7 +159,7 @@ H5Gcreate1(hid_t loc_id, const char *name, size_t size_hint)
     hid_t             tmp_gcpl  = H5I_INVALID_HID; /* Temporary group creation property list */
     hid_t             ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE3("i", "i*sz", loc_id, name, size_hint);
 
     /* Check arguments */
@@ -228,7 +228,7 @@ done:
         if (grp && H5VL_group_close(vol_obj, H5P_DATASET_XFER_DEFAULT, H5_REQUEST_NULL) < 0)
             HDONE_ERROR(H5E_SYM, H5E_CLOSEERROR, H5I_INVALID_HID, "unable to release group");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gcreate1() */
 
 /*-------------------------------------------------------------------------
@@ -253,7 +253,7 @@ H5Gopen1(hid_t loc_id, const char *name)
     H5VL_loc_params_t loc_params;
     hid_t             ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE2("i", "i*s", loc_id, name);
 
     /* Check args */
@@ -282,7 +282,7 @@ done:
         if (grp && H5VL_group_close(vol_obj, H5P_DATASET_XFER_DEFAULT, H5_REQUEST_NULL) < 0)
             HDONE_ERROR(H5E_SYM, H5E_CLOSEERROR, H5I_INVALID_HID, "unable to release group");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gopen1() */
 
 /*-------------------------------------------------------------------------
@@ -299,7 +299,7 @@ H5Glink(hid_t cur_loc_id, H5G_link_t type, const char *cur_name, const char *new
     H5VL_link_create_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t                  ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "iLl*s*s", cur_loc_id, type, cur_name, new_name);
 
     /* Check arguments */
@@ -371,7 +371,7 @@ H5Glink(hid_t cur_loc_id, H5G_link_t type, const char *cur_name, const char *new
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "Not a valid link type");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Glink() */
 
 /*-------------------------------------------------------------------------
@@ -388,7 +388,7 @@ H5Glink2(hid_t cur_loc_id, const char *cur_name, H5G_link_t type, hid_t new_loc_
     H5VL_link_create_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t                  ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "i*sLli*s", cur_loc_id, cur_name, type, new_loc_id, new_name);
 
     /* Check arguments */
@@ -464,7 +464,7 @@ H5Glink2(hid_t cur_loc_id, const char *cur_name, H5G_link_t type, hid_t new_loc_
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "not a valid link type");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Glink2() */
 
 /*-------------------------------------------------------------------------
@@ -482,7 +482,7 @@ H5Gmove(hid_t src_loc_id, const char *src_name, const char *dst_name)
     H5VL_loc_params_t loc_params2;
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*s*s", src_loc_id, src_name, dst_name);
 
     /* Set up collective metadata if appropriate */
@@ -508,7 +508,7 @@ H5Gmove(hid_t src_loc_id, const char *src_name, const char *dst_name)
         HGOTO_ERROR(H5E_SYM, H5E_CANTMOVE, FAIL, "couldn't move link");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gmove() */
 
 /*-------------------------------------------------------------------------
@@ -527,7 +527,7 @@ H5Gmove2(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id, const char *d
     H5VL_loc_params_t loc_params2;
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*si*s", src_loc_id, src_name, dst_loc_id, dst_name);
 
     /* Set up collective metadata if appropriate */
@@ -561,7 +561,7 @@ H5Gmove2(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id, const char *d
         HGOTO_ERROR(H5E_SYM, H5E_CANTMOVE, FAIL, "unable to move link");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gmove2() */
 
 /*-------------------------------------------------------------------------
@@ -579,7 +579,7 @@ H5Gunlink(hid_t loc_id, const char *name)
     H5VL_loc_params_t         loc_params;
     herr_t                    ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*s", loc_id, name);
 
     /* Check arguments */
@@ -607,7 +607,7 @@ H5Gunlink(hid_t loc_id, const char *name)
         HGOTO_ERROR(H5E_SYM, H5E_CANTDELETE, FAIL, "couldn't delete link");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gunlink() */
 
 /*-------------------------------------------------------------------------
@@ -626,7 +626,7 @@ H5Gget_linkval(hid_t loc_id, const char *name, size_t size, char *buf /*out*/)
     H5VL_loc_params_t    loc_params;
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*szx", loc_id, name, size, buf);
 
     /* Check arguments */
@@ -657,7 +657,7 @@ H5Gget_linkval(hid_t loc_id, const char *name, size_t size, char *buf /*out*/)
         HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "unable to get link value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gget_linkval() */
 
 /*-------------------------------------------------------------------------
@@ -683,7 +683,7 @@ H5Gset_comment(hid_t loc_id, const char *name, const char *comment)
     H5VL_loc_params_t                  loc_params;
     herr_t                             ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*s*s", loc_id, name, comment);
 
     if (!name || !*name)
@@ -714,7 +714,7 @@ H5Gset_comment(hid_t loc_id, const char *name, const char *comment)
         HGOTO_ERROR(H5E_SYM, H5E_CANTSET, FAIL, "unable to set comment value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gset_comment() */
 
 /*-------------------------------------------------------------------------
@@ -747,7 +747,7 @@ H5Gget_comment(hid_t loc_id, const char *name, size_t bufsize, char *buf /*out*/
     size_t                             comment_len = 0; /* Length of comment */
     int                                ret_value;       /* Return value */
 
-    FUNC_ENTER_API(-1)
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE4("Is", "i*szx", loc_id, name, bufsize, buf);
 
     if (!name || !*name)
@@ -785,7 +785,7 @@ H5Gget_comment(hid_t loc_id, const char *name, size_t bufsize, char *buf /*out*/
     ret_value = (int)comment_len;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gget_comment() */
 
 /*-------------------------------------------------------------------------
@@ -821,7 +821,7 @@ H5Giterate(hid_t loc_id, const char *name, int *idx_p, H5G_iterate_t op, void *o
     hsize_t                           last_obj = 0; /* Pointer to index value */
     herr_t                            ret_value;    /* Return value                     */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "i*s*IsGi*x", loc_id, name, idx_p, op, op_data);
 
     /* Check args */
@@ -858,7 +858,7 @@ H5Giterate(hid_t loc_id, const char *name, int *idx_p, H5G_iterate_t op, void *o
         *idx_p = (int)last_obj;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Giterate() */
 
 /*-------------------------------------------------------------------------
@@ -883,7 +883,7 @@ H5Gget_num_objs(hid_t loc_id, hsize_t *num_objs /*out*/)
     H5G_info_t            grp_info;            /* Group information */
     herr_t                ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", loc_id, num_objs);
 
     /* Check args */
@@ -907,7 +907,7 @@ H5Gget_num_objs(hid_t loc_id, hsize_t *num_objs /*out*/)
     *num_objs = grp_info.nlinks;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gget_num_objs() */
 
 /*-------------------------------------------------------------------------
@@ -932,7 +932,7 @@ H5Gget_objinfo(hid_t loc_id, const char *name, hbool_t follow_link, H5G_stat_t *
     H5VL_native_group_optional_args_t grp_opt_args;        /* Arguments for optional operation */
     herr_t                            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*sbx", loc_id, name, follow_link, statbuf);
 
     /* Check arguments */
@@ -962,7 +962,7 @@ H5Gget_objinfo(hid_t loc_id, const char *name, hbool_t follow_link, H5G_stat_t *
         HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't get info for object: '%s'", name);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gget_objinfo() */
 
 /*-------------------------------------------------------------------------
@@ -1147,7 +1147,7 @@ H5Gget_objname_by_idx(hid_t loc_id, hsize_t idx, char *name /*out*/, size_t size
     size_t               name_len = 0; /* Length of object name */
     ssize_t              ret_value;    /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("Zs", "ihxz", loc_id, idx, name, size);
 
     /* Set up collective metadata if appropriate */
@@ -1181,7 +1181,7 @@ H5Gget_objname_by_idx(hid_t loc_id, hsize_t idx, char *name /*out*/, size_t size
     ret_value = (ssize_t)name_len;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gget_objname_by_idx() */
 
 /*-------------------------------------------------------------------------
@@ -1205,7 +1205,7 @@ H5Gget_objtype_by_idx(hid_t loc_id, hsize_t idx)
     H5O_info2_t            oinfo;     /* Object info (contains object type) */
     H5G_obj_t              ret_value; /* Return value */
 
-    FUNC_ENTER_API(H5G_UNKNOWN)
+    FUNC_ENTER_API(H5G_UNKNOWN, H5I_INVALID_HID)
     H5TRACE2("Go", "ih", loc_id, idx);
 
     /* Set location parameters */
@@ -1235,6 +1235,6 @@ H5Gget_objtype_by_idx(hid_t loc_id, hsize_t idx)
         HGOTO_ERROR(H5E_SYM, H5E_BADTYPE, H5G_UNKNOWN, "can't determine object type");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Gget_objtype_by_idx() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

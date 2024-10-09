@@ -80,7 +80,7 @@ H5Tget_order(hid_t type_id)
     H5T_t      *dt;        /* Datatype to query */
     H5T_order_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(H5T_ORDER_ERROR)
+    FUNC_ENTER_API(H5T_ORDER_ERROR, H5I_INVALID_HID)
     H5TRACE1("To", "i", type_id);
 
     /* Check args */
@@ -92,7 +92,7 @@ H5Tget_order(hid_t type_id)
         HGOTO_ERROR(H5E_DATATYPE, H5E_UNSUPPORTED, H5T_ORDER_ERROR, "can't get order for specified datatype");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_order() */
 
 /*-------------------------------------------------------------------------
@@ -180,7 +180,7 @@ H5Tset_order(hid_t type_id, H5T_order_t order)
     H5T_t *dt        = NULL;    /* Datatype to modify */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iTo", type_id, order);
 
     /* Check args */
@@ -198,7 +198,7 @@ H5Tset_order(hid_t type_id, H5T_order_t order)
         HGOTO_ERROR(H5E_DATATYPE, H5E_UNSUPPORTED, FAIL, "can't set order");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tset_order() */
 
 /*-------------------------------------------------------------------------

@@ -517,7 +517,7 @@ H5Pset_core_write_tracking(hid_t plist_id, hbool_t is_enabled, size_t page_size)
     const H5FD_core_fapl_t *old_fa;              /* Old core VFD info */
     herr_t                  ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ibz", plist_id, is_enabled, page_size);
 
     /* The page size cannot be zero */
@@ -544,7 +544,7 @@ H5Pset_core_write_tracking(hid_t plist_id, hbool_t is_enabled, size_t page_size)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set core VFD as driver");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_core_write_tracking() */
 
 /*-------------------------------------------------------------------------
@@ -564,7 +564,7 @@ H5Pget_core_write_tracking(hid_t plist_id, hbool_t *is_enabled /*out*/, size_t *
     const H5FD_core_fapl_t *fa;                  /* Core VFD info */
     herr_t                  ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", plist_id, is_enabled, page_size);
 
     /* Get the plist structure */
@@ -582,7 +582,7 @@ H5Pget_core_write_tracking(hid_t plist_id, hbool_t *is_enabled /*out*/, size_t *
         *page_size = fa->page_size;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_core_write_tracking() */
 
 /*-------------------------------------------------------------------------
@@ -603,7 +603,7 @@ H5Pset_fapl_core(hid_t fapl_id, size_t increment, hbool_t backing_store)
     H5FD_core_fapl_t fa;                  /* Core VFD info */
     herr_t           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "izb", fapl_id, increment, backing_store);
 
     /* Check argument */
@@ -622,7 +622,7 @@ H5Pset_fapl_core(hid_t fapl_id, size_t increment, hbool_t backing_store)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set core VFD as driver");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_fapl_core() */
 
 /*-------------------------------------------------------------------------
@@ -641,7 +641,7 @@ H5Pget_fapl_core(hid_t fapl_id, size_t *increment /*out*/, hbool_t *backing_stor
     const H5FD_core_fapl_t *fa;                  /* Core VFD info */
     herr_t                  ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", fapl_id, increment, backing_store);
 
     if (NULL == (plist = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
@@ -657,7 +657,7 @@ H5Pget_fapl_core(hid_t fapl_id, size_t *increment /*out*/, hbool_t *backing_stor
         *backing_store = fa->backing_store;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_fapl_core() */
 
 /*-------------------------------------------------------------------------

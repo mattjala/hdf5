@@ -46,7 +46,7 @@ H5Tget_precision(hid_t type_id)
     H5T_t *dt;
     size_t ret_value;
 
-    FUNC_ENTER_API(0)
+    FUNC_ENTER_API(0, H5I_INVALID_HID)
     H5TRACE1("z", "i", type_id);
 
     /* Check args */
@@ -58,7 +58,7 @@ H5Tget_precision(hid_t type_id)
         HGOTO_ERROR(H5E_DATATYPE, H5E_UNSUPPORTED, 0, "can't get precision for specified datatype");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_precision() */
 
 /*-------------------------------------------------------------------------
@@ -123,7 +123,7 @@ H5Tset_precision(hid_t type_id, size_t prec)
     H5T_t *dt        = NULL;
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iz", type_id, prec);
 
     /* Check args */
@@ -147,7 +147,7 @@ H5Tset_precision(hid_t type_id, size_t prec)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTSET, FAIL, "unable to set precision");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------

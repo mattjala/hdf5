@@ -87,7 +87,7 @@ H5Pcopy(hid_t id)
     void *obj;                         /* Property object to copy */
     hid_t ret_value = H5I_INVALID_HID; /* return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", id);
 
     if (H5P_DEFAULT == id)
@@ -121,7 +121,7 @@ H5Pcopy(hid_t id)
     }     /* end else */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pcopy() */
 
 /*--------------------------------------------------------------------------
@@ -167,7 +167,7 @@ H5Pcreate_class(hid_t parent, const char *name, H5P_cls_create_func_t cls_create
     H5P_genclass_t *pclass    = NULL;            /* Property list class created */
     hid_t           ret_value = H5I_INVALID_HID; /* Return value		   */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE8("i", "i*sPc*xPo*xPl*x", parent, name, cls_create, create_data, cls_copy, copy_data, cls_close,
              close_data);
 
@@ -199,7 +199,7 @@ done:
     if (H5I_INVALID_HID == ret_value && pclass)
         H5P__close_class(pclass);
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pcreate_class() */
 
 /*--------------------------------------------------------------------------
@@ -230,7 +230,7 @@ H5Pcreate(hid_t cls_id)
     H5P_genclass_t *pclass;                      /* Property list class to modify */
     hid_t           ret_value = H5I_INVALID_HID; /* return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", cls_id);
 
     /* Check arguments. */
@@ -242,7 +242,7 @@ H5Pcreate(hid_t cls_id)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCREATE, H5I_INVALID_HID, "unable to create property list");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pcreate() */
 
 /*--------------------------------------------------------------------------
@@ -408,7 +408,7 @@ H5Pregister2(hid_t cls_id, const char *name, size_t size, void *def_value, H5P_p
     H5P_genclass_t *orig_pclass; /* Original property class */
     herr_t          ret_value;   /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE11("e", "i*sz*xPCPSPGPDPOPMPL", cls_id, name, size, def_value, prp_create, prp_set, prp_get,
               prp_delete, prp_copy, prp_cmp, prp_close);
 
@@ -442,7 +442,7 @@ H5Pregister2(hid_t cls_id, const char *name, size_t size, void *def_value, H5P_p
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pregister2() */
 
 /*--------------------------------------------------------------------------
@@ -592,7 +592,7 @@ H5Pinsert2(hid_t plist_id, const char *name, size_t size, void *value, H5P_prp_s
     H5P_genplist_t *plist;     /* Property list to modify */
     herr_t          ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE10("e", "i*sz*xPSPGPDPOPMPL", plist_id, name, size, value, prp_set, prp_get, prp_delete, prp_copy,
               prp_cmp, prp_close);
 
@@ -610,7 +610,7 @@ H5Pinsert2(hid_t plist_id, const char *name, size_t size, void *value, H5P_prp_s
         HGOTO_ERROR(H5E_PLIST, H5E_CANTREGISTER, FAIL, "unable to register property in plist");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pinsert2() */
 
 /*--------------------------------------------------------------------------
@@ -650,7 +650,7 @@ H5Pset(hid_t plist_id, const char *name, const void *value)
     H5P_genplist_t *plist;               /* Property list to modify */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*s*x", plist_id, name, value);
 
     /* Check arguments. */
@@ -666,7 +666,7 @@ H5Pset(hid_t plist_id, const char *name, const void *value)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTREGISTER, FAIL, "unable to set value in plist");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pset() */
 
 /*--------------------------------------------------------------------------
@@ -698,7 +698,7 @@ H5Pexist(hid_t id, const char *name)
     H5P_genclass_t *pclass;    /* Property class to query */
     htri_t          ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("t", "i*s", id, name);
 
     /* Check arguments. */
@@ -724,7 +724,7 @@ H5Pexist(hid_t id, const char *name)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pexist() */
 
 /*--------------------------------------------------------------------------
@@ -757,7 +757,7 @@ H5Pget_size(hid_t id, const char *name, size_t *size /*out*/)
     H5P_genplist_t *plist;     /* Property list to query */
     herr_t          ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*sx", id, name, size);
 
     /* Check arguments. */
@@ -788,7 +788,7 @@ H5Pget_size(hid_t id, const char *name, size_t *size /*out*/)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pget_size() */
 
 /*--------------------------------------------------------------------------
@@ -821,7 +821,7 @@ H5Pencode2(hid_t plist_id, void *buf, size_t *nalloc, hid_t fapl_id)
     H5P_genplist_t *plist;               /* Property list to query */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*x*zi", plist_id, buf, nalloc, fapl_id);
 
     /* Check arguments. */
@@ -837,7 +837,7 @@ H5Pencode2(hid_t plist_id, void *buf, size_t *nalloc, hid_t fapl_id)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTENCODE, FAIL, "unable to encode property list");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pencode2() */
 
 /*--------------------------------------------------------------------------
@@ -868,7 +868,7 @@ H5Pdecode(const void *buf)
 {
     hid_t ret_value = H5I_INVALID_HID; /* return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "*x", buf);
 
     /* Call the internal decode routine */
@@ -876,7 +876,7 @@ H5Pdecode(const void *buf)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTDECODE, H5I_INVALID_HID, "unable to decode property list");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pdecode() */
 
 /*--------------------------------------------------------------------------
@@ -906,7 +906,7 @@ H5Pget_class(hid_t plist_id)
     H5P_genclass_t *pclass    = NULL;            /* Property list class */
     hid_t           ret_value = H5I_INVALID_HID; /* return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", plist_id);
 
     /* Check arguments. */
@@ -929,7 +929,7 @@ done:
     if (H5I_INVALID_HID == ret_value && pclass)
         H5P__close_class(pclass);
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pget_class() */
 
 /*--------------------------------------------------------------------------
@@ -962,7 +962,7 @@ H5Pget_nprops(hid_t id, size_t *nprops /*out*/)
     H5P_genclass_t *pclass;              /* Property class to query */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", id, nprops);
 
     /* Check arguments. */
@@ -987,7 +987,7 @@ H5Pget_nprops(hid_t id, size_t *nprops /*out*/)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pget_nprops() */
 
 /*--------------------------------------------------------------------------
@@ -1016,7 +1016,7 @@ H5Pequal(hid_t id1, hid_t id2)
     void  *obj1, *obj2;       /* Property objects to compare */
     htri_t ret_value = FALSE; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("t", "ii", id1, id2);
 
     /* Check arguments. */
@@ -1045,7 +1045,7 @@ H5Pequal(hid_t id1, hid_t id2)
     } /* end else */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pequal() */
 
 /*--------------------------------------------------------------------------
@@ -1076,7 +1076,7 @@ H5Pisa_class(hid_t plist_id, hid_t pclass_id)
 {
     htri_t ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("t", "ii", plist_id, pclass_id);
 
     /* Check arguments. */
@@ -1090,7 +1090,7 @@ H5Pisa_class(hid_t plist_id, hid_t pclass_id)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTREGISTER, FAIL, "unable to compare property list classes");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pisa_class() */
 
 /*--------------------------------------------------------------------------
@@ -1193,7 +1193,7 @@ H5Piterate(hid_t id, int *idx, H5P_iterate_t iter_func, void *iter_data)
     void         *obj;          /* Property object to copy */
     int           ret_value;    /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("Is", "i*IsPi*x", id, idx, iter_func, iter_data);
 
     /* Check arguments. */
@@ -1225,7 +1225,7 @@ H5Piterate(hid_t id, int *idx, H5P_iterate_t iter_func, void *iter_data)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a property object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Piterate() */
 
 /*--------------------------------------------------------------------------
@@ -1262,7 +1262,7 @@ H5Pget(hid_t plist_id, const char *name, void *value /*out*/)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*sx", plist_id, name, value);
 
     /* Check arguments. */
@@ -1278,7 +1278,7 @@ H5Pget(hid_t plist_id, const char *name, void *value /*out*/)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to query property value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pget() */
 
 /*--------------------------------------------------------------------------
@@ -1313,7 +1313,7 @@ H5Premove(hid_t plist_id, const char *name)
     H5P_genplist_t *plist;     /* Property list to modify */
     herr_t          ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*s", plist_id, name);
 
     /* Check arguments. */
@@ -1327,7 +1327,7 @@ H5Premove(hid_t plist_id, const char *name)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTDELETE, FAIL, "unable to remove property");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Premove() */
 
 /*--------------------------------------------------------------------------
@@ -1374,7 +1374,7 @@ H5Pcopy_prop(hid_t dst_id, hid_t src_id, const char *name)
     H5I_type_t src_id_type, dst_id_type; /* ID types */
     herr_t     ret_value = SUCCEED;      /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ii*s", dst_id, src_id, name);
 
     /* Check arguments. */
@@ -1402,7 +1402,7 @@ H5Pcopy_prop(hid_t dst_id, hid_t src_id, const char *name)
     } /* end else */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pcopy_prop() */
 
 /*--------------------------------------------------------------------------
@@ -1432,7 +1432,7 @@ H5Punregister(hid_t pclass_id, const char *name)
     H5P_genclass_t *pclass;    /* Property list class to modify */
     herr_t          ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*s", pclass_id, name);
 
     /* Check arguments. */
@@ -1446,7 +1446,7 @@ H5Punregister(hid_t pclass_id, const char *name)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTREGISTER, FAIL, "unable to remove property from class");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Punregister() */
 
 /*--------------------------------------------------------------------------
@@ -1475,7 +1475,7 @@ H5Pclose(hid_t plist_id)
 {
     herr_t ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", plist_id);
 
     /* Allow default property lists to pass through without throwing an error */
@@ -1490,7 +1490,7 @@ H5Pclose(hid_t plist_id)
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pclose() */
 
 /*--------------------------------------------------------------------------
@@ -1519,7 +1519,7 @@ H5Pget_class_name(hid_t pclass_id)
     H5P_genclass_t *pclass;    /* Property class to query */
     char           *ret_value; /* return value */
 
-    FUNC_ENTER_API(NULL)
+    FUNC_ENTER_API(NULL, H5I_INVALID_HID)
     H5TRACE1("*s", "i", pclass_id);
 
     /* Check arguments. */
@@ -1531,7 +1531,7 @@ H5Pget_class_name(hid_t pclass_id)
         HGOTO_ERROR(H5E_PLIST, H5E_NOTFOUND, NULL, "unable to query name of class");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pget_class_name() */
 
 /*--------------------------------------------------------------------------
@@ -1560,7 +1560,7 @@ H5Pget_class_parent(hid_t pclass_id)
     H5P_genclass_t *parent    = NULL;            /* Parent's property class */
     hid_t           ret_value = H5I_INVALID_HID; /* return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", pclass_id);
 
     /* Check arguments. */
@@ -1583,7 +1583,7 @@ done:
     if (H5I_INVALID_HID == ret_value && parent)
         H5P__close_class(parent);
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pget_class_parent() */
 
 /*--------------------------------------------------------------------------
@@ -1609,7 +1609,7 @@ H5Pclose_class(hid_t cls_id)
 {
     herr_t ret_value = SUCCEED; /* Return value			*/
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", cls_id);
 
     /* Check arguments */
@@ -1621,5 +1621,5 @@ H5Pclose_class(hid_t cls_id)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTFREE, FAIL, "can't close");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pclose_class() */

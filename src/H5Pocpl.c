@@ -205,7 +205,7 @@ H5Pset_attr_phase_change(hid_t plist_id, unsigned max_compact, unsigned min_dens
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "iIuIu", plist_id, max_compact, min_dense);
 
     /* Range check values */
@@ -227,7 +227,7 @@ H5Pset_attr_phase_change(hid_t plist_id, unsigned max_compact, unsigned min_dens
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set min. # of dense attributes in property list");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_attr_phase_change */
 
 /*-------------------------------------------------------------------------
@@ -245,7 +245,7 @@ H5Pget_attr_phase_change(hid_t plist_id, unsigned *max_compact /*out*/, unsigned
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", plist_id, max_compact, min_dense);
 
     /* Get the plist structure */
@@ -263,7 +263,7 @@ H5Pget_attr_phase_change(hid_t plist_id, unsigned *max_compact /*out*/, unsigned
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_attr_phase_change() */
 
 /*-------------------------------------------------------------------------
@@ -282,7 +282,7 @@ H5Pset_attr_creation_order(hid_t plist_id, unsigned crt_order_flags)
     uint8_t         ohdr_flags;          /* Object header flags */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iIu", plist_id, crt_order_flags);
 
     /* Check for bad combination of flags */
@@ -311,7 +311,7 @@ H5Pset_attr_creation_order(hid_t plist_id, unsigned crt_order_flags)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set object header flags");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_attr_creation_order() */
 
 /*-------------------------------------------------------------------------
@@ -329,7 +329,7 @@ H5Pget_attr_creation_order(hid_t plist_id, unsigned *crt_order_flags /*out*/)
 {
     herr_t ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, crt_order_flags);
 
     /* Get values */
@@ -354,7 +354,7 @@ H5Pget_attr_creation_order(hid_t plist_id, unsigned *crt_order_flags /*out*/)
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_attr_creation_order() */
 
 /*-------------------------------------------------------------------------
@@ -387,7 +387,7 @@ H5Pset_obj_track_times(hid_t plist_id, hbool_t track_times)
     uint8_t         ohdr_flags;          /* Object header flags */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ib", plist_id, track_times);
 
     /* Get the plist structure */
@@ -409,7 +409,7 @@ H5Pset_obj_track_times(hid_t plist_id, hbool_t track_times)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set object header flags");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_obj_track_times() */
 
 /*-------------------------------------------------------------------------
@@ -426,7 +426,7 @@ H5Pget_obj_track_times(hid_t plist_id, hbool_t *track_times /*out*/)
 {
     herr_t ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, track_times);
 
     /* Get values */
@@ -447,7 +447,7 @@ H5Pget_obj_track_times(hid_t plist_id, hbool_t *track_times /*out*/)
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_obj_track_times() */
 
 /*-------------------------------------------------------------------------
@@ -548,7 +548,7 @@ H5Pmodify_filter(hid_t plist_id, H5Z_filter_t filter, unsigned int flags, size_t
     H5P_genplist_t *plist;               /* Property list */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "iZfIuz*[a3]Iu", plist_id, filter, flags, cd_nelmts, cd_values);
 
     /* Check args */
@@ -568,7 +568,7 @@ H5Pmodify_filter(hid_t plist_id, H5Z_filter_t filter, unsigned int flags, size_t
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINIT, FAIL, "can't modify filter");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pmodify_filter() */
 
 /*-------------------------------------------------------------------------
@@ -607,7 +607,7 @@ H5Pset_filter(hid_t plist_id, H5Z_filter_t filter, unsigned int flags, size_t cd
     H5P_genplist_t *plist;               /* Property list */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "iZfIuz*[a3]Iu", plist_id, filter, flags, cd_nelmts, cd_values);
 
     /* Check args */
@@ -627,7 +627,7 @@ H5Pset_filter(hid_t plist_id, H5Z_filter_t filter, unsigned int flags, size_t cd
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "failed to call private function");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_filter() */
 
 /*-------------------------------------------------------------------------
@@ -716,7 +716,7 @@ H5Pget_nfilters(hid_t plist_id)
     H5O_pline_t     pline;     /* Filter pipeline */
     int             ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("Is", "i", plist_id);
 
     /* Get the plist structure */
@@ -731,7 +731,7 @@ H5Pget_nfilters(hid_t plist_id)
     ret_value = (int)(pline.nused);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_nfilters */
 
 /*-------------------------------------------------------------------------
@@ -765,7 +765,7 @@ H5Pget_filter2(hid_t plist_id, unsigned idx, unsigned int *flags /*out*/, size_t
     const H5Z_filter_info_t *filter;    /* Pointer to filter information */
     H5Z_filter_t             ret_value; /* return value */
 
-    FUNC_ENTER_API(H5Z_FILTER_ERROR)
+    FUNC_ENTER_API(H5Z_FILTER_ERROR, H5I_INVALID_HID)
     H5TRACE8("Zf", "iIux*zxzxx", plist_id, idx, flags, cd_nelmts, cd_values, namelen, name, filter_config);
 
     /* Check args */
@@ -813,7 +813,7 @@ H5Pget_filter2(hid_t plist_id, unsigned idx, unsigned int *flags /*out*/, size_t
     ret_value = filter->id;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_filter2() */
 
 /*-------------------------------------------------------------------------
@@ -889,7 +889,7 @@ H5Pget_filter_by_id2(hid_t plist_id, H5Z_filter_t id, unsigned int *flags /*out*
     H5P_genplist_t *plist;               /* Property list */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE8("e", "iZfx*zxzxx", plist_id, id, flags, cd_nelmts, cd_values, namelen, name, filter_config);
 
     /* Check args */
@@ -924,7 +924,7 @@ H5Pget_filter_by_id2(hid_t plist_id, H5Z_filter_t id, unsigned int *flags /*out*
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get filter info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_filter_by_id2() */
 
 /*-------------------------------------------------------------------------
@@ -946,7 +946,7 @@ H5Pall_filters_avail(hid_t plist_id)
     H5O_pline_t     pline;     /* Filter pipeline */
     htri_t          ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("t", "i", plist_id);
 
     /* Get the plist structure */
@@ -962,7 +962,7 @@ H5Pall_filters_avail(hid_t plist_id)
         HGOTO_ERROR(H5E_PLIST, H5E_NOTFOUND, FAIL, "can't check pipeline information");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pall_filters_avail() */
 
 /*-------------------------------------------------------------------------
@@ -1014,7 +1014,7 @@ H5Premove_filter(hid_t plist_id, H5Z_filter_t filter)
     H5O_pline_t     pline;               /* Filter pipeline */
     herr_t          ret_value = SUCCEED; /* return value          */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iZf", plist_id, filter);
 
     /* Get the plist structure */
@@ -1037,7 +1037,7 @@ H5Premove_filter(hid_t plist_id, H5Z_filter_t filter)
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Premove_filter() */
 
 /*-------------------------------------------------------------------------
@@ -1062,7 +1062,7 @@ H5Pset_deflate(hid_t plist_id, unsigned level)
     H5O_pline_t     pline;               /* Filter pipeline */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iIu", plist_id, level);
 
     /* Check arguments */
@@ -1086,7 +1086,7 @@ H5Pset_deflate(hid_t plist_id, unsigned level)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set pipeline");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_deflate() */
 
 /*-------------------------------------------------------------------------
@@ -1106,7 +1106,7 @@ H5Pset_fletcher32(hid_t plist_id)
     H5O_pline_t     pline;               /* Filter pipeline */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", plist_id);
 
     /* Get the plist structure */
@@ -1126,7 +1126,7 @@ H5Pset_fletcher32(hid_t plist_id)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set pipeline");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_fletcher32() */
 
 /*-------------------------------------------------------------------------
@@ -1664,7 +1664,7 @@ H5Pget_filter1(hid_t plist_id, unsigned idx, unsigned int *flags /*out*/, size_t
     H5P_genplist_t          *plist;     /* Property list pointer */
     H5Z_filter_t             ret_value; /* return value */
 
-    FUNC_ENTER_API(H5Z_FILTER_ERROR)
+    FUNC_ENTER_API(H5Z_FILTER_ERROR, H5I_INVALID_HID)
     H5TRACE7("Zf", "iIux*zxzx", plist_id, idx, flags, cd_nelmts, cd_values, namelen, name);
 
     /* Check args */
@@ -1712,7 +1712,7 @@ H5Pget_filter1(hid_t plist_id, unsigned idx, unsigned int *flags /*out*/, size_t
     ret_value = filter->id;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_filter1() */
 
 /*-------------------------------------------------------------------------
@@ -1741,7 +1741,7 @@ H5Pget_filter_by_id1(hid_t plist_id, H5Z_filter_t id, unsigned int *flags /*out*
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "iZfx*zxzx", plist_id, id, flags, cd_nelmts, cd_values, namelen, name);
 
     /* Check args */
@@ -1776,6 +1776,6 @@ H5Pget_filter_by_id1(hid_t plist_id, H5Z_filter_t id, unsigned int *flags /*out*
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get filter info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_filter_by_id1() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

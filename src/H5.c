@@ -544,7 +544,7 @@ H5dont_atexit(void)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NOINIT_NOERR_NOFS
+    FUNC_ENTER_API_NOINIT_NOERR_NOFS()
     H5TRACE0("e", "");
 
     if (H5_dont_atexit_g)
@@ -552,7 +552,7 @@ H5dont_atexit(void)
     else
         H5_dont_atexit_g = TRUE;
 
-    FUNC_LEAVE_API_NOFS(ret_value)
+    FUNC_LEAVE_API_NOFS(ret_value, H5I_INVALID_HID)
 } /* end H5dont_atexit() */
 
 /*-------------------------------------------------------------------------
@@ -577,7 +577,7 @@ H5garbage_collect(void)
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE0("e", "");
 
     /* Call the garbage collection routines in the library */
@@ -585,7 +585,7 @@ H5garbage_collect(void)
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGC, FAIL, "can't garbage collect objects");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5garbage_collect() */
 
 /*-------------------------------------------------------------------------
@@ -621,7 +621,7 @@ H5set_free_list_limits(int reg_global_lim, int reg_list_lim, int arr_global_lim,
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "IsIsIsIsIsIs", reg_global_lim, reg_list_lim, arr_global_lim, arr_list_lim, blk_global_lim,
              blk_list_lim);
 
@@ -631,7 +631,7 @@ H5set_free_list_limits(int reg_global_lim, int reg_list_lim, int arr_global_lim,
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTSET, FAIL, "can't set garbage collection limits");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5set_free_list_limits() */
 
 /*-------------------------------------------------------------------------
@@ -659,7 +659,7 @@ H5get_free_list_sizes(size_t *reg_size /*out*/, size_t *arr_size /*out*/, size_t
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "xxxx", reg_size, arr_size, blk_size, fac_size);
 
     /* Call the free list function to actually get the sizes */
@@ -667,7 +667,7 @@ H5get_free_list_sizes(size_t *reg_size /*out*/, size_t *arr_size /*out*/, size_t
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTGET, FAIL, "can't get garbage collection sizes");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5get_free_list_sizes() */
 
 /*-------------------------------------------------------------------------
@@ -819,7 +819,7 @@ H5get_libversion(unsigned *majnum /*out*/, unsigned *minnum /*out*/, unsigned *r
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "xxx", majnum, minnum, relnum);
 
     /* Set the version information */
@@ -831,7 +831,7 @@ H5get_libversion(unsigned *majnum /*out*/, unsigned *minnum /*out*/, unsigned *r
         *relnum = H5_VERS_RELEASE;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5get_libversion() */
 
 /*-------------------------------------------------------------------------
@@ -882,7 +882,7 @@ H5check_version(unsigned majnum, unsigned minnum, unsigned relnum)
     static const char  *release_mismatch_warning = RELEASE_MISMATCH_WARNING;
     herr_t              ret_value                = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NOINIT_NOERR_NOFS
+    FUNC_ENTER_API_NOINIT_NOERR_NOFS()
     H5TRACE3("e", "IuIuIu", majnum, minnum, relnum);
 
     /* Don't check again, if we already have */
@@ -1008,7 +1008,7 @@ H5check_version(unsigned majnum, unsigned minnum, unsigned relnum)
     }
 
 done:
-    FUNC_LEAVE_API_NOFS(ret_value)
+    FUNC_LEAVE_API_NOFS(ret_value, H5I_INVALID_HID)
 } /* end H5check_version() */
 
 /*-------------------------------------------------------------------------
@@ -1028,13 +1028,13 @@ H5open(void)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NOPUSH(FAIL)
+    FUNC_ENTER_API_NOPUSH(FAIL, H5I_INVALID_HID)
     /*NO TRACE*/
 
     /* all work is done by FUNC_ENTER() */
 
 done:
-    FUNC_LEAVE_API_NOPUSH(ret_value)
+    FUNC_LEAVE_API_NOPUSH(ret_value, H5I_INVALID_HID)
 } /* end H5open() */
 
 /*-------------------------------------------------------------------------
@@ -1053,7 +1053,7 @@ H5atclose(H5_atclose_func_t func, void *ctx)
     H5_atclose_node_t *new_atclose;         /* New 'atclose' node */
     herr_t             ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "Hc*x", func, ctx);
 
     /* Check arguments */
@@ -1073,7 +1073,7 @@ H5atclose(H5_atclose_func_t func, void *ctx)
     H5_atclose_head   = new_atclose;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5atclose() */
 
 /*-------------------------------------------------------------------------
@@ -1093,12 +1093,12 @@ H5close(void)
      * whole library just to release it all right away.  It is safe to call
      * this function for an uninitialized library.
      */
-    FUNC_ENTER_API_NOINIT_NOERR_NOFS
+    FUNC_ENTER_API_NOINIT_NOERR_NOFS()
     H5TRACE0("e", "");
 
     H5_term_library();
 
-    FUNC_LEAVE_API_NOFS(SUCCEED)
+    FUNC_LEAVE_API_NOFS(SUCCEED, H5I_INVALID_HID)
 } /* end H5close() */
 
 /*-------------------------------------------------------------------------
@@ -1131,7 +1131,7 @@ H5allocate_memory(size_t size, hbool_t clear)
 {
     void *ret_value = NULL;
 
-    FUNC_ENTER_API_NOINIT
+    FUNC_ENTER_API_NOINIT()
     H5TRACE2("*x", "zb", size, clear);
 
     if (0 == size)
@@ -1142,7 +1142,7 @@ H5allocate_memory(size_t size, hbool_t clear)
     else
         ret_value = H5MM_malloc(size);
 
-    FUNC_LEAVE_API_NOINIT(ret_value)
+    FUNC_LEAVE_API_NOINIT(ret_value, H5I_INVALID_HID)
 } /* end H5allocate_memory() */
 
 /*-------------------------------------------------------------------------
@@ -1174,12 +1174,12 @@ H5resize_memory(void *mem, size_t size)
 {
     void *ret_value = NULL;
 
-    FUNC_ENTER_API_NOINIT
+    FUNC_ENTER_API_NOINIT()
     H5TRACE2("*x", "*xz", mem, size);
 
     ret_value = H5MM_realloc(mem, size);
 
-    FUNC_LEAVE_API_NOINIT(ret_value)
+    FUNC_LEAVE_API_NOINIT(ret_value, H5I_INVALID_HID)
 } /* end H5resize_memory() */
 
 /*-------------------------------------------------------------------------
@@ -1197,13 +1197,13 @@ H5resize_memory(void *mem, size_t size)
 herr_t
 H5free_memory(void *mem)
 {
-    FUNC_ENTER_API_NOINIT
+    FUNC_ENTER_API_NOINIT()
     H5TRACE1("e", "*x", mem);
 
     /* At this time, it is impossible for this to fail. */
     H5MM_xfree(mem);
 
-    FUNC_LEAVE_API_NOINIT(SUCCEED)
+    FUNC_LEAVE_API_NOINIT(SUCCEED, H5I_INVALID_HID)
 } /* end H5free_memory() */
 
 /*-------------------------------------------------------------------------
@@ -1221,7 +1221,7 @@ H5is_library_threadsafe(hbool_t *is_ts /*out*/)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NOINIT
+    FUNC_ENTER_API_NOINIT()
     H5TRACE1("e", "x", is_ts);
 
     if (is_ts) {
@@ -1234,7 +1234,7 @@ H5is_library_threadsafe(hbool_t *is_ts /*out*/)
     else
         ret_value = FAIL;
 
-    FUNC_LEAVE_API_NOINIT(ret_value)
+    FUNC_LEAVE_API_NOINIT(ret_value, H5I_INVALID_HID)
 } /* end H5is_library_threadsafe() */
 
 /*-------------------------------------------------------------------------
@@ -1256,7 +1256,7 @@ H5is_library_terminating(hbool_t *is_terminating /*out*/)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NOINIT
+    FUNC_ENTER_API_NOINIT()
     H5TRACE1("e", "x", is_terminating);
 
     assert(is_terminating);
@@ -1266,7 +1266,7 @@ H5is_library_terminating(hbool_t *is_terminating /*out*/)
     else
         ret_value = FAIL;
 
-    FUNC_LEAVE_API_NOINIT(ret_value)
+    FUNC_LEAVE_API_NOINIT(ret_value, H5I_INVALID_HID)
 } /* end H5is_library_terminating() */
 
 #if defined(H5_HAVE_THREADSAFE) && defined(H5_BUILT_AS_DYNAMIC_LIB) && defined(H5_HAVE_WIN32_API) &&         \
@@ -1328,3 +1328,18 @@ DllMain(_In_ HINSTANCE hinstDLL, _In_ DWORD fdwReason, _In_ LPVOID lpvReserved)
     return fOkay;
 }
 #endif /* H5_HAVE_WIN32_API && H5_BUILT_AS_DYNAMIC_LIB && H5_HAVE_WIN_THREADS && H5_HAVE_THREADSAFE*/
+
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
+// TODO
+bool H5_varname_is_id(const char *varname) {
+    const char *suffix = "_id";
+    size_t len_var = strlen(varname);
+    size_t len_suffix = strlen(suffix);
+
+    if (len_var < len_suffix) {
+        return false;
+    }
+
+    return strcmp(varname + len_var - len_suffix, suffix) == 0;
+}
+#endif

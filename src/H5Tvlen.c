@@ -145,7 +145,7 @@ H5Tvlen_create(hid_t base_id)
     H5T_t *dt   = NULL; /*new datatype	*/
     hid_t  ret_value;   /*return value			*/
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("i", "i", base_id);
 
     /* Check args */
@@ -161,7 +161,7 @@ H5Tvlen_create(hid_t base_id)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTREGISTER, FAIL, "unable to register datatype");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tvlen_create() */
 
 /*-------------------------------------------------------------------------

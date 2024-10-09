@@ -335,7 +335,7 @@ H5Pset_fapl_family(hid_t fapl_id, hsize_t msize, hid_t memb_fapl_id)
     H5FD_family_fapl_t fa = {0, H5I_INVALID_HID};
     H5P_genplist_t    *plist; /* Property list pointer */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ihi", fapl_id, msize, memb_fapl_id);
 
     /* Check arguments */
@@ -359,7 +359,7 @@ H5Pset_fapl_family(hid_t fapl_id, hsize_t msize, hid_t memb_fapl_id)
     ret_value = H5P_set_driver(plist, H5FD_FAMILY, &fa, NULL);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -381,7 +381,7 @@ H5Pget_fapl_family(hid_t fapl_id, hsize_t *msize /*out*/, hid_t *memb_fapl_id /*
     const H5FD_family_fapl_t *fa;
     herr_t                    ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", fapl_id, msize, memb_fapl_id);
 
     if (NULL == (plist = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
@@ -399,7 +399,7 @@ H5Pget_fapl_family(hid_t fapl_id, hsize_t *msize /*out*/, hid_t *memb_fapl_id /*
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------

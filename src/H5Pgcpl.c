@@ -149,7 +149,7 @@ H5Pset_local_heap_size_hint(hid_t plist_id, size_t size_hint)
     H5O_ginfo_t     ginfo;               /* Group information structure */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iz", plist_id, size_hint);
 
     /* Get the plist structure */
@@ -168,7 +168,7 @@ H5Pset_local_heap_size_hint(hid_t plist_id, size_t size_hint)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set group info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_local_heap_size_hint() */
 
 /*-------------------------------------------------------------------------
@@ -186,7 +186,7 @@ H5Pget_local_heap_size_hint(hid_t plist_id, size_t *size_hint /*out*/)
 {
     herr_t ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, size_hint);
 
     if (size_hint) {
@@ -206,7 +206,7 @@ H5Pget_local_heap_size_hint(hid_t plist_id, size_t *size_hint /*out*/)
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_local_heap_size_hint() */
 
 /*-------------------------------------------------------------------------
@@ -231,7 +231,7 @@ H5Pset_link_phase_change(hid_t plist_id, unsigned max_compact, unsigned min_dens
     H5O_ginfo_t     ginfo;               /* Group information structure */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "iIuIu", plist_id, max_compact, min_dense);
 
     /* Range check values */
@@ -263,7 +263,7 @@ H5Pset_link_phase_change(hid_t plist_id, unsigned max_compact, unsigned min_dens
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set group info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_link_phase_change() */
 
 /*-------------------------------------------------------------------------
@@ -281,7 +281,7 @@ H5Pget_link_phase_change(hid_t plist_id, unsigned *max_compact /*out*/, unsigned
 {
     herr_t ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", plist_id, max_compact, min_dense);
 
     /* Get values */
@@ -304,7 +304,7 @@ H5Pget_link_phase_change(hid_t plist_id, unsigned *max_compact /*out*/, unsigned
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_link_phase_change() */
 
 /*-------------------------------------------------------------------------
@@ -331,7 +331,7 @@ H5Pset_est_link_info(hid_t plist_id, unsigned est_num_entries, unsigned est_name
     H5O_ginfo_t     ginfo;               /* Group information structure */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "iIuIu", plist_id, est_num_entries, est_name_len);
 
     /* Range check values */
@@ -361,7 +361,7 @@ H5Pset_est_link_info(hid_t plist_id, unsigned est_num_entries, unsigned est_name
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set group info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_est_link_info() */
 
 /*-------------------------------------------------------------------------
@@ -379,7 +379,7 @@ H5Pget_est_link_info(hid_t plist_id, unsigned *est_num_entries /*out*/, unsigned
 {
     herr_t ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", plist_id, est_num_entries, est_name_len);
 
     /* Get values */
@@ -402,7 +402,7 @@ H5Pget_est_link_info(hid_t plist_id, unsigned *est_num_entries /*out*/, unsigned
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_est_link_info() */
 
 /*-------------------------------------------------------------------------
@@ -421,7 +421,7 @@ H5Pset_link_creation_order(hid_t plist_id, unsigned crt_order_flags)
     H5O_linfo_t     linfo;               /* Link information structure */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iIu", plist_id, crt_order_flags);
 
     /* Check for bad combination of flags */
@@ -445,7 +445,7 @@ H5Pset_link_creation_order(hid_t plist_id, unsigned crt_order_flags)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set link info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_link_creation_order() */
 
 /*-------------------------------------------------------------------------
@@ -463,7 +463,7 @@ H5Pget_link_creation_order(hid_t plist_id, unsigned *crt_order_flags /*out*/)
 {
     herr_t ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, crt_order_flags);
 
     /* Get values */
@@ -487,7 +487,7 @@ H5Pget_link_creation_order(hid_t plist_id, unsigned *crt_order_flags /*out*/)
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_link_creation_order() */
 
 /*-------------------------------------------------------------------------

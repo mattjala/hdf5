@@ -371,7 +371,7 @@ H5Pset_fapl_ros3(hid_t fapl_id, const H5FD_ros3_fapl_t *fa)
     H5P_genplist_t *plist     = NULL; /* Property list pointer */
     herr_t          ret_value = FAIL;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*#", fapl_id, fa);
 
     assert(fa != NULL);
@@ -390,7 +390,7 @@ H5Pset_fapl_ros3(hid_t fapl_id, const H5FD_ros3_fapl_t *fa)
     ret_value = H5P_set_driver(plist, H5FD_ROS3, (const void *)fa, NULL);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_fapl_ros3() */
 
 /*-------------------------------------------------------------------------
@@ -450,7 +450,7 @@ H5Pget_fapl_ros3(hid_t fapl_id, H5FD_ros3_fapl_t *fa_dst /*out*/)
     H5P_genplist_t         *plist     = NULL;
     herr_t                  ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", fapl_id, fa_dst);
 
 #if ROS3_DEBUG
@@ -475,7 +475,7 @@ H5Pget_fapl_ros3(hid_t fapl_id, H5FD_ros3_fapl_t *fa_dst /*out*/)
     H5MM_memcpy(fa_dst, fa_src, sizeof(H5FD_ros3_fapl_t));
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_fapl_ros3() */
 
 /*-------------------------------------------------------------------------
@@ -599,7 +599,7 @@ H5Pget_fapl_ros3_token(hid_t fapl_id, size_t size, char *token_dst /*out*/)
     size_t          tokenlen  = 0;
     herr_t          ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "izx", fapl_id, size, token_dst);
 
 #if ROS3_DEBUG
@@ -631,7 +631,7 @@ H5Pget_fapl_ros3_token(hid_t fapl_id, size_t size, char *token_dst /*out*/)
     token_dst[tokenlen] = '\0';
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_fapl_ros3_token() */
 
 /*-------------------------------------------------------------------------
@@ -785,7 +785,7 @@ H5Pset_fapl_ros3_token(hid_t fapl_id, const char *token)
     htri_t          token_exists;
     herr_t          ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*s", fapl_id, token);
 
 #if ROS3_DEBUG
@@ -823,7 +823,7 @@ H5Pset_fapl_ros3_token(hid_t fapl_id, const char *token)
     }
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_fapl_ros3_token() */
 
 #if ROS3_STATS

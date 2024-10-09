@@ -154,7 +154,7 @@ H5Pset_map_iterate_hints(hid_t mapl_id, size_t key_prefetch_size, size_t key_all
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "izz", mapl_id, key_prefetch_size, key_alloc_size);
 
     /* Get the plist structure */
@@ -168,7 +168,7 @@ H5Pset_map_iterate_hints(hid_t mapl_id, size_t key_prefetch_size, size_t key_all
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set key allocation size");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_map_iterate_hints() */
 
 /*-------------------------------------------------------------------------
@@ -186,7 +186,7 @@ H5Pget_map_iterate_hints(hid_t mapl_id, size_t *key_prefetch_size /*out*/, size_
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", mapl_id, key_prefetch_size, key_alloc_size);
 
     /* Get the plist structure */
@@ -204,6 +204,6 @@ H5Pget_map_iterate_hints(hid_t mapl_id, size_t *key_prefetch_size /*out*/, size_
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_map_iterate_hints() */
 #endif

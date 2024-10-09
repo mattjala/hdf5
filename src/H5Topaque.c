@@ -38,7 +38,7 @@ H5Tset_tag(hid_t type_id, const char *tag)
     H5T_t *dt        = NULL;
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*s", type_id, tag);
 
     /* Check args */
@@ -60,7 +60,7 @@ H5Tset_tag(hid_t type_id, const char *tag)
     dt->shared->u.opaque.tag = H5MM_strdup(tag);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -79,7 +79,7 @@ H5Tget_tag(hid_t type_id)
     H5T_t *dt = NULL;
     char  *ret_value;
 
-    FUNC_ENTER_API(NULL)
+    FUNC_ENTER_API(NULL, H5I_INVALID_HID)
     H5TRACE1("*s", "i", type_id);
 
     /* Check args */
@@ -95,5 +95,5 @@ H5Tget_tag(hid_t type_id)
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }

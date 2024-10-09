@@ -559,7 +559,7 @@ H5Pset_fapl_hdfs(hid_t fapl_id, H5FD_hdfs_fapl_t *fa)
     H5P_genplist_t *plist     = NULL; /* Property list pointer */
     herr_t          ret_value = FAIL;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*#", fapl_id, fa);
 
     assert(fa != NULL);
@@ -577,7 +577,7 @@ H5Pset_fapl_hdfs(hid_t fapl_id, H5FD_hdfs_fapl_t *fa)
     ret_value = H5P_set_driver(plist, H5FD_HDFS, (void *)fa, NULL);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pset_fapl_hdfs() */
 
 /*-------------------------------------------------------------------------
@@ -599,7 +599,7 @@ H5Pget_fapl_hdfs(hid_t fapl_id, H5FD_hdfs_fapl_t *fa_dst /*out*/)
     H5P_genplist_t         *plist     = NULL;
     herr_t                  ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", fapl_id, fa_dst);
 
 #if HDFS_DEBUG
@@ -623,7 +623,7 @@ H5Pget_fapl_hdfs(hid_t fapl_id, H5FD_hdfs_fapl_t *fa_dst /*out*/)
     H5MM_memcpy(fa_dst, fa_src, sizeof(H5FD_hdfs_fapl_t));
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pget_fapl_hdfs() */
 
 /*-------------------------------------------------------------------------

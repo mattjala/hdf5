@@ -139,7 +139,7 @@ H5Pset_create_intermediate_group(hid_t plist_id, unsigned crt_intmd_group)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iIu", plist_id, crt_intmd_group);
 
     /* Get the plist structure */
@@ -152,7 +152,7 @@ H5Pset_create_intermediate_group(hid_t plist_id, unsigned crt_intmd_group)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set intermediate group creation flag");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_create_intermediate_group() */
 
 /*-------------------------------------------------------------------------
@@ -171,7 +171,7 @@ H5Pget_create_intermediate_group(hid_t plist_id, unsigned *crt_intmd_group /*out
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, crt_intmd_group);
 
     /* Get the plist structure */
@@ -184,5 +184,5 @@ H5Pget_create_intermediate_group(hid_t plist_id, unsigned *crt_intmd_group /*out
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get intermediate group creation flag");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_create_intermediate_group() */

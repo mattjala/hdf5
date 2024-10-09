@@ -85,7 +85,7 @@ H5Sencode1(hid_t obj_id, void *buf, size_t *nalloc)
     hid_t  temp_fapl_id = H5P_DEFAULT;
     herr_t ret_value    = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*x*z", obj_id, buf, nalloc);
 
     /* Check argument and retrieve object */
@@ -101,6 +101,6 @@ H5Sencode1(hid_t obj_id, void *buf, size_t *nalloc)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTENCODE, FAIL, "can't encode dataspace");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Sencode1() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

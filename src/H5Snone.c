@@ -1056,7 +1056,7 @@ H5Sselect_none(hid_t spaceid)
     H5S_t *space;               /* Dataspace to modify selection of */
     herr_t ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", spaceid);
 
     /* Check args */
@@ -1068,5 +1068,5 @@ H5Sselect_none(hid_t spaceid)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTDELETE, FAIL, "can't change selection");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sselect_none() */

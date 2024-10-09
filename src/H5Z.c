@@ -220,7 +220,7 @@ H5Zregister(const void *cls)
     H5Z_class2_t cls_new; /* Translated class struct */
 #endif
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "*x", cls);
 
     /* Check args */
@@ -273,7 +273,7 @@ H5Zregister(const void *cls)
         HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, FAIL, "unable to register filter");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -352,7 +352,7 @@ H5Zunregister(H5Z_filter_t id)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "Zf", id);
 
     /* Check args */
@@ -366,7 +366,7 @@ H5Zunregister(H5Z_filter_t id)
         HGOTO_ERROR(H5E_PLINE, H5E_CANTINIT, FAIL, "unable to unregister filter");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Zunregister() */
 
 /*-------------------------------------------------------------------------
@@ -646,7 +646,7 @@ H5Zfilter_avail(H5Z_filter_t id)
 {
     htri_t ret_value = FALSE; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("t", "Zf", id);
 
     /* Check args */
@@ -657,7 +657,7 @@ H5Zfilter_avail(H5Z_filter_t id)
         HGOTO_ERROR(H5E_PLINE, H5E_NOTFOUND, FAIL, "unable to check the availability of the filter");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Zfilter_avail() */
 
 /*-------------------------------------------------------------------------
@@ -1659,7 +1659,7 @@ H5Zget_filter_info(H5Z_filter_t filter, unsigned *filter_config_flags /*out*/)
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "Zfx", filter, filter_config_flags);
 
     /* Get the filter info */
@@ -1667,7 +1667,7 @@ H5Zget_filter_info(H5Z_filter_t filter, unsigned *filter_config_flags /*out*/)
         HGOTO_ERROR(H5E_PLINE, H5E_CANTGET, FAIL, "Filter info not retrieved");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Zget_filter_info() */
 
 /*-------------------------------------------------------------------------

@@ -610,7 +610,7 @@ H5Pset_copy_object(hid_t plist_id, unsigned cpy_option)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iIu", plist_id, cpy_option);
 
     /* Check parameters */
@@ -626,7 +626,7 @@ H5Pset_copy_object(hid_t plist_id, unsigned cpy_option)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set copy object flag");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_copy_object() */
 
 /*-------------------------------------------------------------------------
@@ -645,7 +645,7 @@ H5Pget_copy_object(hid_t plist_id, unsigned *cpy_option /*out*/)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, cpy_option);
 
     /* Get the plist structure */
@@ -658,7 +658,7 @@ H5Pget_copy_object(hid_t plist_id, unsigned *cpy_option /*out*/)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get object copy flag");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_copy_object() */
 
 /*-------------------------------------------------------------------------
@@ -687,7 +687,7 @@ H5Padd_merge_committed_dtype_path(hid_t plist_id, const char *path)
     H5O_copy_dtype_merge_list_t *new_obj   = NULL;    /* New object to add to list */
     herr_t                       ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*s", plist_id, path);
 
     /* Check parameters */
@@ -722,7 +722,7 @@ done:
             new_obj       = H5FL_FREE(H5O_copy_dtype_merge_list_t, new_obj);
         } /* end if */
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Padd_merge_committed_dtype_path() */
 
 /*-------------------------------------------------------------------------
@@ -746,7 +746,7 @@ H5Pfree_merge_committed_dtype_paths(hid_t plist_id)
     H5O_copy_dtype_merge_list_t *dt_list;             /* Merge committed dtype list currently present */
     herr_t                       ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", plist_id);
 
     /* Get the plist structure */
@@ -765,7 +765,7 @@ H5Pfree_merge_committed_dtype_paths(hid_t plist_id)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set merge committed dtype list");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pfree_merge_committed_dtype_paths() */
 
 /*-------------------------------------------------------------------------
@@ -792,7 +792,7 @@ H5Pset_mcdt_search_cb(hid_t plist_id, H5O_mcdt_search_cb_t func, void *op_data)
     H5O_mcdt_cb_info_t cb_info;             /* Callback info struct */
     herr_t             ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "iOs*x", plist_id, func, op_data);
 
     /* Check if the callback function is NULL and the user data is non-NULL.
@@ -813,7 +813,7 @@ H5Pset_mcdt_search_cb(hid_t plist_id, H5O_mcdt_search_cb_t func, void *op_data)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set callback info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_mcdt_search_cb() */
 
 /*-------------------------------------------------------------------------
@@ -838,7 +838,7 @@ H5Pget_mcdt_search_cb(hid_t plist_id, H5O_mcdt_search_cb_t *func /*out*/, void *
     H5O_mcdt_cb_info_t cb_info;             /* Callback info struct */
     herr_t             ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", plist_id, func, op_data);
 
     /* Get the plist structure */
@@ -856,5 +856,5 @@ H5Pget_mcdt_search_cb(hid_t plist_id, H5O_mcdt_search_cb_t *func /*out*/, void *
         *op_data = cb_info.user_data;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_mcdt_search_cb() */

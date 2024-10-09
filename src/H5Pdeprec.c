@@ -216,7 +216,7 @@ H5Pregister1(hid_t cls_id, const char *name, size_t size, void *def_value, H5P_p
     H5P_genclass_t *orig_pclass; /* Original property class */
     herr_t          ret_value;   /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE10("e", "i*sz*xPCPSPGPDPOPL", cls_id, name, size, def_value, prp_create, prp_set, prp_get,
               prp_delete, prp_copy, prp_close);
 
@@ -250,7 +250,7 @@ H5Pregister1(hid_t cls_id, const char *name, size_t size, void *def_value, H5P_p
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pregister1() */
 
 /*--------------------------------------------------------------------------
@@ -400,7 +400,7 @@ H5Pinsert1(hid_t plist_id, const char *name, size_t size, void *value, H5P_prp_s
     H5P_genplist_t *plist;     /* Property list to modify */
     herr_t          ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE9("e", "i*sz*xPSPGPDPOPL", plist_id, name, size, value, prp_set, prp_get, prp_delete, prp_copy,
              prp_close);
 
@@ -418,7 +418,7 @@ H5Pinsert1(hid_t plist_id, const char *name, size_t size, void *value, H5P_prp_s
         HGOTO_ERROR(H5E_PLIST, H5E_CANTREGISTER, FAIL, "unable to register property in plist");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pinsert1() */
 
 /*-------------------------------------------------------------------------
@@ -448,7 +448,7 @@ H5Pget_version(hid_t plist_id, unsigned *super /*out*/, unsigned *freelist /*out
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "ixxxx", plist_id, super, freelist, stab, shhdr);
 
     /* Get the plist structure */
@@ -467,7 +467,7 @@ H5Pget_version(hid_t plist_id, unsigned *super /*out*/, unsigned *freelist /*out
         *shhdr = HDF5_SHAREDHEADER_VERSION; /* (hard-wired) */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_version() */
 
 /*--------------------------------------------------------------------------
@@ -498,7 +498,7 @@ H5Pencode1(hid_t plist_id, void *buf, size_t *nalloc)
     hid_t           temp_fapl_id = H5P_DEFAULT;
     herr_t          ret_value    = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*x*z", plist_id, buf, nalloc);
 
     /* Check arguments. */
@@ -514,7 +514,7 @@ H5Pencode1(hid_t plist_id, void *buf, size_t *nalloc)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTENCODE, FAIL, "unable to encode property list");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pencode1() */
 
 /*-------------------------------------------------------------------------
@@ -537,7 +537,7 @@ H5Pset_file_space(hid_t plist_id, H5F_file_space_type_t strategy, hsize_t thresh
     hsize_t               in_threshold  = threshold;                    /* Input threshold */
     herr_t                ret_value     = SUCCEED;                      /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "iFth", plist_id, strategy, threshold);
 
     if ((unsigned)in_strategy >= H5F_FILE_SPACE_NTYPES)
@@ -584,7 +584,7 @@ H5Pset_file_space(hid_t plist_id, H5F_file_space_type_t strategy, hsize_t thresh
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set file space strategy");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pset_file_space() */
 
 /*-------------------------------------------------------------------------
@@ -604,7 +604,7 @@ H5Pget_file_space(hid_t plist_id, H5F_file_space_type_t *strategy /*out*/, hsize
     hsize_t               new_threshold;       /* Free-space section threshold */
     herr_t                ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", plist_id, strategy, threshold);
 
     /* Get current file space info */
@@ -641,6 +641,6 @@ H5Pget_file_space(hid_t plist_id, H5F_file_space_type_t *strategy /*out*/, hsize
         *threshold = new_threshold;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pget_file_space() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

@@ -11,39 +11,16 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- * This header file contains information required for testing the HDF5 library.
+ * Purpose: The header file for the 'fake open' testing VOL connector.
+ * The 'fake open' connector is a VOL connector that always returns 'succeed'
+ * from its file open callback in order to test VOL registration during file
+ * open failure.
  */
 
-#ifndef TTSAFE_H
-#define TTSAFE_H
+#ifndef H5VL_fake_open_H
+#define H5VL_fake_open_H
 
-/*
- * Include required headers.  This file tests internal library functions,
- * so we include the private headers here.
- */
-#include "testhdf5.h"
+#define THREAD_TEST_VOL_CONNECTOR_VALUE ((H5VL_class_value_t)161)
+#define THREAD_TEST_VOL_CONNECTOR_NAME "thread_test_vol_connector"
 
-/* Prototypes for the support routines */
-extern char *gen_name(int);
-
-/* Prototypes for the test routines */
-void tts_is_threadsafe(void);
-#ifdef H5_HAVE_THREADSAFE
-void tts_dcreate(void);
-void tts_error(void);
-void tts_cancel(void);
-void tts_acreate(void);
-void tts_attr_vlen(void);
-void tts_errstk(void);
-void tts_mutex(void);
-
-/* Prototypes for the cleanup routines */
-void cleanup_dcreate(void);
-void cleanup_error(void);
-void cleanup_cancel(void);
-void cleanup_acreate(void);
-void cleanup_attr_vlen(void);
-void cleanup_mutex(void);
-
-#endif /* H5_HAVE_THREADSAFE */
-#endif /* TTSAFE_H */
+#endif /* H5VL_fake_open_H */

@@ -253,7 +253,7 @@ H5Rget_obj_type1(hid_t id, H5R_type_t ref_type, const void *ref)
     H5O_type_t             obj_type  = H5O_TYPE_UNKNOWN;           /* Type of the referenced object */
     H5G_obj_t              ret_value;                              /* Return value */
 
-    FUNC_ENTER_API(H5G_UNKNOWN)
+    FUNC_ENTER_API(H5G_UNKNOWN, H5I_INVALID_HID)
     H5TRACE3("Go", "iRt*x", id, ref_type, ref);
 
     /* Check args */
@@ -291,7 +291,7 @@ H5Rget_obj_type1(hid_t id, H5R_type_t ref_type, const void *ref)
     ret_value = H5G_map_obj_type(obj_type);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Rget_obj_type1() */
 
 /*-------------------------------------------------------------------------
@@ -317,7 +317,7 @@ H5Rdereference1(hid_t obj_id, H5R_type_t ref_type, const void *ref)
     const unsigned char *buf        = (const unsigned char *)ref; /* Reference buffer */
     hid_t                ret_value  = H5I_INVALID_HID;            /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE3("i", "iRt*x", obj_id, ref_type, ref);
 
     /* Check args */
@@ -353,7 +353,7 @@ H5Rdereference1(hid_t obj_id, H5R_type_t ref_type, const void *ref)
         HGOTO_ERROR(H5E_REFERENCE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object handle");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Rdereference1() */
 
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
@@ -385,7 +385,7 @@ H5Rcreate(void *ref, hid_t loc_id, const char *name, H5R_type_t ref_type, hid_t 
     unsigned char              *buf          = (unsigned char *)ref; /* Return reference pointer */
     herr_t                      ret_value    = SUCCEED;              /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "*xi*sRti", ref, loc_id, name, ref_type, space_id);
 
     /* Check args */
@@ -484,7 +484,7 @@ H5Rcreate(void *ref, hid_t loc_id, const char *name, H5R_type_t ref_type, hid_t 
 done:
     if (file_id != H5I_INVALID_HID && H5I_dec_ref(file_id) < 0)
         HDONE_ERROR(H5E_REFERENCE, H5E_CANTDEC, FAIL, "unable to decrement refcount on file");
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Rcreate() */
 
 /*-------------------------------------------------------------------------
@@ -508,7 +508,7 @@ H5Rget_obj_type2(hid_t id, H5R_type_t ref_type, const void *ref, H5O_type_t *obj
     const unsigned char   *buf       = (const unsigned char *)ref; /* Reference pointer */
     herr_t                 ret_value = SUCCEED;                    /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "iRt*xx", id, ref_type, ref, obj_type);
 
     /* Check args */
@@ -543,7 +543,7 @@ H5Rget_obj_type2(hid_t id, H5R_type_t ref_type, const void *ref, H5O_type_t *obj
         HGOTO_ERROR(H5E_REFERENCE, H5E_CANTGET, FAIL, "can't retrieve object type");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Rget_obj_type2() */
 
 /*-------------------------------------------------------------------------
@@ -569,7 +569,7 @@ H5Rdereference2(hid_t obj_id, hid_t oapl_id, H5R_type_t ref_type, const void *re
     const unsigned char *buf        = (const unsigned char *)ref; /* Reference pointer */
     hid_t                ret_value  = H5I_INVALID_HID;            /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE4("i", "iiRt*x", obj_id, oapl_id, ref_type, ref);
 
     /* Check args */
@@ -611,7 +611,7 @@ H5Rdereference2(hid_t obj_id, hid_t oapl_id, H5R_type_t ref_type, const void *re
         HGOTO_ERROR(H5E_REFERENCE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object handle");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Rdereference2() */
 
 /*-------------------------------------------------------------------------
@@ -641,7 +641,7 @@ H5Rget_region(hid_t id, H5R_type_t ref_type, const void *ref)
     const unsigned char  *buf      = (const unsigned char *)ref; /* Reference pointer */
     hid_t                 ret_value;                             /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE3("i", "iRt*x", id, ref_type, ref);
 
     /* Check args */
@@ -703,7 +703,7 @@ H5Rget_region(hid_t id, H5R_type_t ref_type, const void *ref)
 done:
     if (file_id != H5I_INVALID_HID && H5I_dec_ref(file_id) < 0)
         HDONE_ERROR(H5E_REFERENCE, H5E_CANTDEC, H5I_INVALID_HID, "unable to decrement refcount on file");
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Rget_region1() */
 
 /*-------------------------------------------------------------------------
@@ -729,7 +729,7 @@ H5Rget_name(hid_t id, H5R_type_t ref_type, const void *ref, char *name /*out*/, 
     size_t                 obj_name_len = 0;                          /* Length of object's name */
     ssize_t                ret_value    = -1;                         /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE5("Zs", "iRt*xxz", id, ref_type, ref, name, size);
 
     /* Check args */
@@ -769,5 +769,5 @@ H5Rget_name(hid_t id, H5R_type_t ref_type, const void *ref, char *name /*out*/, 
     ret_value = (ssize_t)obj_name_len;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Rget_name() */

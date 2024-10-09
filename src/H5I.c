@@ -103,7 +103,7 @@ H5Iregister_type(size_t H5_ATTR_DEBUG_API_USED hash_size, unsigned reserved, H5I
     H5I_type_t   new_type  = H5I_BADID; /* New ID type value */
     H5I_type_t   ret_value = H5I_BADID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_BADID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_BADID, H5I_INVALID_HID)
     H5TRACE3("It", "zIuIf", hash_size, reserved, free_func);
 
     H5I__enter(TRUE);
@@ -184,7 +184,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iregister_type() */
 
@@ -214,7 +214,7 @@ H5Iregister_type(size_t H5_ATTR_DEBUG_API_USED hash_size, unsigned reserved, H5I
     H5I_type_t   new_type  = H5I_BADID; /* New ID type value */
     H5I_type_t   ret_value = H5I_BADID; /* Return value */
 
-    FUNC_ENTER_API(H5I_BADID)
+    FUNC_ENTER_API(H5I_BADID, H5I_INVALID_HID)
     H5TRACE3("It", "zIuIf", hash_size, reserved, free_func);
 
     /* Generate a new H5I_type_t value */
@@ -266,7 +266,7 @@ done:
         if (cls)
             cls = H5MM_xfree(cls);
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iregister_type() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -288,7 +288,7 @@ H5Itype_exists(H5I_type_t type)
 {
     htri_t ret_value = TRUE; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE1("t", "It", type);
 
     H5I__enter(TRUE);
@@ -307,7 +307,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Itype_exists() */
 
@@ -328,7 +328,7 @@ H5Itype_exists(H5I_type_t type)
 {
     htri_t ret_value = TRUE; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("t", "It", type);
 
     /* Validate parameter */
@@ -342,7 +342,7 @@ H5Itype_exists(H5I_type_t type)
         ret_value = FALSE;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Itype_exists() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -372,7 +372,7 @@ H5Inmembers(H5I_type_t type, hsize_t *num_members)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
 
     H5TRACE2("e", "It*h", type, num_members);
 
@@ -422,7 +422,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Inmembers() */
 
@@ -449,7 +449,7 @@ H5Inmembers(H5I_type_t type, hsize_t *num_members)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "It*h", type, num_members);
 
     if (H5I_IS_LIB_TYPE(type))
@@ -474,7 +474,7 @@ H5Inmembers(H5I_type_t type, hsize_t *num_members)
     }
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Inmembers() */
 
 #endif /* H5I_MT */
@@ -501,7 +501,7 @@ H5Iclear_type(H5I_type_t type, hbool_t force)
 {
     herr_t ret_value = FAIL; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "Itb", type, force);
 
     H5I__enter(TRUE);
@@ -515,7 +515,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iclear_type() */
 
@@ -541,7 +541,7 @@ H5Iclear_type(H5I_type_t type, hbool_t force)
 {
     herr_t ret_value = FAIL; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "Itb", type, force);
 
     if (H5I_IS_LIB_TYPE(type))
@@ -550,7 +550,7 @@ H5Iclear_type(H5I_type_t type, hbool_t force)
     ret_value = H5I_clear_type(type, force, TRUE);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iclear_type() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -578,7 +578,7 @@ H5Idestroy_type(H5I_type_t type)
 {
     herr_t ret_value = FAIL; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "It", type);
 
     H5I__enter(TRUE);
@@ -592,7 +592,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Idestroy_type() */
 
@@ -619,7 +619,7 @@ H5Idestroy_type(H5I_type_t type)
 {
     herr_t ret_value = FAIL; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "It", type);
 
     if (H5I_IS_LIB_TYPE(type))
@@ -628,7 +628,7 @@ H5Idestroy_type(H5I_type_t type)
     ret_value = H5I__destroy_type(type);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Idestroy_type() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -650,7 +650,7 @@ H5Iregister(H5I_type_t type, const void *object)
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE2("i", "It*x", type, object);
 
     H5I__enter(TRUE);
@@ -666,7 +666,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iregister() */
 
@@ -687,7 +687,7 @@ H5Iregister(H5I_type_t type, const void *object)
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE2("i", "It*x", type, object);
 
     if (H5I_IS_LIB_TYPE(type))
@@ -698,7 +698,7 @@ H5Iregister(H5I_type_t type, const void *object)
         HGOTO_ERROR(H5E_ID, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iregister() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -721,7 +721,7 @@ H5Iregister_future(H5I_type_t type, const void *object, H5I_future_realize_func_
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE4("i", "It*xIRID", type, object, realize_cb, discard_cb);
 
     H5I__enter(TRUE);
@@ -740,7 +740,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iregister_future() */
 
@@ -762,7 +762,7 @@ H5Iregister_future(H5I_type_t type, const void *object, H5I_future_realize_func_
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE4("i", "It*xIRID", type, object, realize_cb, discard_cb);
 
     /* Check arguments */
@@ -776,7 +776,7 @@ H5Iregister_future(H5I_type_t type, const void *object, H5I_future_realize_func_
         HGOTO_ERROR(H5E_ID, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register object");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iregister_future() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -803,7 +803,7 @@ H5Iobject_verify(hid_t id, H5I_type_t type)
 {
     void *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(NULL)
+    FUNC_ENTER_API_NO_MUTEX(NULL, H5I_INVALID_HID)
     H5TRACE2("*x", "iIt", id, type);
 
     H5I__enter(TRUE);
@@ -823,7 +823,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iobject_verify() */
 
@@ -847,7 +847,7 @@ H5Iobject_verify(hid_t id, H5I_type_t type)
 {
     void *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_API(NULL)
+    FUNC_ENTER_API(NULL, H5I_INVALID_HID)
     H5TRACE2("*x", "iIt", id, type);
 
     /* Validate parameters */
@@ -859,7 +859,7 @@ H5Iobject_verify(hid_t id, H5I_type_t type)
     ret_value = H5I_object_verify(id, type);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iobject_verify() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -888,7 +888,7 @@ H5Iget_type(hid_t id)
 {
     H5I_type_t ret_value = H5I_BADID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_BADID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_BADID, H5I_INVALID_HID)
     H5TRACE1("It", "i", id);
 
     H5I__enter(TRUE);
@@ -904,7 +904,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iget_type() */
 
@@ -930,7 +930,7 @@ H5Iget_type(hid_t id)
 {
     H5I_type_t ret_value = H5I_BADID; /* Return value */
 
-    FUNC_ENTER_API(H5I_BADID)
+    FUNC_ENTER_API(H5I_BADID, H5I_INVALID_HID)
     H5TRACE1("It", "i", id);
 
     ret_value = H5I_get_type(id);
@@ -939,7 +939,7 @@ H5Iget_type(hid_t id)
         HGOTO_DONE(H5I_BADID);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iget_type() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -968,7 +968,7 @@ H5Iremove_verify(hid_t id, H5I_type_t type)
 {
     void *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(NULL)
+    FUNC_ENTER_API_NO_MUTEX(NULL, H5I_INVALID_HID)
     H5TRACE2("*x", "iIt", id, type);
 
     H5I__enter(TRUE);
@@ -983,7 +983,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iremove_verify() */
 
@@ -1011,7 +1011,7 @@ H5Iremove_verify(hid_t id, H5I_type_t type)
 {
     void *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_API(NULL)
+    FUNC_ENTER_API(NULL, H5I_INVALID_HID)
     H5TRACE2("*x", "iIt", id, type);
 
     if (H5I_IS_LIB_TYPE(type))
@@ -1021,7 +1021,7 @@ H5Iremove_verify(hid_t id, H5I_type_t type)
     ret_value = H5I__remove_verify(id, type);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iremove_verify() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -1048,7 +1048,7 @@ H5Idec_ref(hid_t id)
 {
     int ret_value = 0; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX((-1))
+    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "i", id);
 
     H5I__enter(TRUE);
@@ -1065,7 +1065,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Idec_ref() */
 
@@ -1091,7 +1091,7 @@ H5Idec_ref(hid_t id)
 {
     int ret_value = 0; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "i", id);
 
     /* Check arguments */
@@ -1103,7 +1103,7 @@ H5Idec_ref(hid_t id)
         HGOTO_ERROR(H5E_ID, H5E_CANTDEC, (-1), "can't decrement ID ref count");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Idec_ref() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -1125,7 +1125,7 @@ H5Iinc_ref(hid_t id)
 {
     int ret_value = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX((-1))
+    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "i", id);
 
     H5I__enter(TRUE);
@@ -1142,7 +1142,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iinc_ref() */
 
@@ -1163,7 +1163,7 @@ H5Iinc_ref(hid_t id)
 {
     int ret_value = -1; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "i", id);
 
     /* Check arguments */
@@ -1175,7 +1175,7 @@ H5Iinc_ref(hid_t id)
         HGOTO_ERROR(H5E_ID, H5E_CANTINC, (-1), "can't increment ID ref count");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iinc_ref() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -1197,7 +1197,7 @@ H5Iget_ref(hid_t id)
 {
     int ret_value = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX((-1))
+    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "i", id);
 
     H5I__enter(TRUE);
@@ -1214,7 +1214,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iget_ref() */
 
@@ -1235,7 +1235,7 @@ H5Iget_ref(hid_t id)
 {
     int ret_value = -1; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "i", id);
 
     /* Check arguments */
@@ -1247,7 +1247,7 @@ H5Iget_ref(hid_t id)
         HGOTO_ERROR(H5E_ID, H5E_CANTGET, (-1), "can't get ID ref count");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iget_ref() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -1269,7 +1269,7 @@ H5Iinc_type_ref(H5I_type_t type)
 {
     int ret_value = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX((-1))
+    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "It", type);
 
     H5I__enter(TRUE);
@@ -1290,7 +1290,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iinc_ref() */
 
@@ -1311,7 +1311,7 @@ H5Iinc_type_ref(H5I_type_t type)
 {
     int ret_value = -1; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "It", type);
 
     /* Check arguments */
@@ -1327,7 +1327,7 @@ H5Iinc_type_ref(H5I_type_t type)
         HGOTO_ERROR(H5E_ID, H5E_CANTINC, (-1), "can't increment ID type ref count");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iinc_ref() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -1363,7 +1363,7 @@ H5Idec_type_ref(H5I_type_t type)
 {
     herr_t ret_value = 0; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX((-1))
+    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
     H5TRACE1("e", "It", type);
 
     H5I__enter(TRUE);
@@ -1379,7 +1379,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Idec_type_ref() */
 
@@ -1414,7 +1414,7 @@ H5Idec_type_ref(H5I_type_t type)
 {
     herr_t ret_value = 0; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE1("e", "It", type);
 
     /* why no range check on type? -- JRM */
@@ -1425,7 +1425,7 @@ H5Idec_type_ref(H5I_type_t type)
     ret_value = H5I_dec_type_ref(type);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Idec_type_ref() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -1447,7 +1447,7 @@ H5Iget_type_ref(H5I_type_t type)
 {
     int ret_value = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX((-1))
+    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "It", type);
 
     H5I__enter(TRUE);
@@ -1468,7 +1468,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iget_ref() */
 
@@ -1489,7 +1489,7 @@ H5Iget_type_ref(H5I_type_t type)
 {
     int ret_value = -1; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "It", type);
 
     /* Check arguments */
@@ -1505,7 +1505,7 @@ H5Iget_type_ref(H5I_type_t type)
         HGOTO_ERROR(H5E_ID, H5E_CANTGET, (-1), "can't get ID type ref count");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iget_ref() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -1530,7 +1530,7 @@ H5Iis_valid(hid_t id)
     H5I_mt_id_info_t *id_info_ptr      = NULL; /* Pointer to the ID info */
     htri_t            ret_value = TRUE;        /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE1("t", "i", id);
 
     H5I__enter(TRUE);
@@ -1556,7 +1556,7 @@ done:
 
     H5I__exit();
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iis_valid() */
 
@@ -1578,7 +1578,7 @@ H5Iis_valid(hid_t id)
     H5I_id_info_t *info      = NULL; /* Pointer to the ID info */
     htri_t         ret_value = TRUE; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("t", "i", id);
 
     /* Find the ID */
@@ -1588,7 +1588,7 @@ H5Iis_valid(hid_t id)
         ret_value = FALSE;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iis_valid() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -1657,7 +1657,7 @@ H5Isearch(H5I_type_t type, H5I_search_func_t func, void *key)
     H5I_search_ud_t udata;            /* Context for iteration */
     void           *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_API(NULL)
+    FUNC_ENTER_API(NULL, H5I_INVALID_HID)
     H5TRACE3("*x", "ItIS*x", type, func, key);
 
 #ifdef H5_HAVE_MULTITHREAD
@@ -1691,7 +1691,7 @@ done:
     H5I__exit();
 #endif /* H5_HAVE_MULTITHREAD */
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Isearch() */
 
 /*-------------------------------------------------------------------------
@@ -1766,7 +1766,7 @@ H5Iiterate(H5I_type_t type, H5I_iterate_func_t op, void *op_data)
     H5I_iterate_pub_ud_t int_udata;        /* Internal user data */
     herr_t               ret_value = FAIL; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ItII*x", type, op, op_data);
 
 #ifdef H5_HAVE_MULTITHREAD
@@ -1794,7 +1794,7 @@ done:
     H5I__exit();
 #endif /* H5_HAVE_MULTITHREAD */
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 
 } /* end H5Iiterate() */
 
@@ -1820,7 +1820,7 @@ H5Iget_file_id(hid_t obj_id)
     H5I_type_t type;                        /* ID type */
     hid_t      ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", obj_id);
 
 #ifdef H5_HAVE_MULTITHREAD
@@ -1851,7 +1851,7 @@ H5Iget_file_id(hid_t obj_id)
 #endif /* H5_HAVE_MULTITHREAD */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iget_file_id() */
 
 /*-------------------------------------------------------------------------
@@ -1888,7 +1888,7 @@ H5Iget_name(hid_t id, char *name /*out*/, size_t size)
     size_t                 obj_name_len = 0;  /* Length of object's name */
     ssize_t                ret_value    = -1; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE3("Zs", "ixz", id, name, size);
 
 #ifdef H5_HAVE_MULTITHREAD
@@ -1926,5 +1926,183 @@ done:
     H5I__exit();
 #endif /* H5_HAVE_MULTITHREAD */
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Iget_name() */
+
+
+#if H5_HAVE_VIRTUAL_LOCK
+
+/*-------------------------------------------------------------------------
+ * Function:    H5I__is_default_plist
+ *
+ * Purpose:     Determine if the provided ID refers to a default property list.
+ *
+ * Return:      True if the ID refers to a default property list, false otherwise.
+ *
+ *-------------------------------------------------------------------------
+ */
+bool H5I_is_default_plist(hid_t id) {
+  hid_t H5I_def_plists[] = {
+    H5P_LST_FILE_CREATE_ID_g,
+    H5P_LST_FILE_ACCESS_ID_g,
+    H5P_LST_DATASET_CREATE_ID_g,
+    H5P_LST_DATASET_ACCESS_ID_g,
+    H5P_LST_DATASET_XFER_ID_g,
+    H5P_LST_FILE_MOUNT_ID_g,
+    H5P_LST_GROUP_CREATE_ID_g,
+    H5P_LST_GROUP_ACCESS_ID_g,
+    H5P_LST_DATATYPE_CREATE_ID_g,
+    H5P_LST_DATATYPE_ACCESS_ID_g,
+    H5P_LST_MAP_CREATE_ID_g,
+    H5P_LST_MAP_ACCESS_ID_g,
+    H5P_LST_ATTRIBUTE_CREATE_ID_g,
+    H5P_LST_ATTRIBUTE_ACCESS_ID_g,
+    H5P_LST_OBJECT_COPY_ID_g,
+    H5P_LST_LINK_CREATE_ID_g,
+    H5P_LST_LINK_ACCESS_ID_g,
+    H5P_LST_VOL_INITIALIZE_ID_g,
+    H5P_LST_REFERENCE_ACCESS_ID_g
+    };
+
+    size_t num_default_plists = (size_t) (sizeof(H5I_def_plists) / sizeof(H5I_def_plists[0]));
+
+    if (id == H5P_DEFAULT)
+        return true;
+
+    for (size_t i = 0; i <num_default_plists; i++) {
+        if (id == H5I_def_plists[i])
+            return true;
+    }
+
+    return false;
+}
+
+/*-------------------------------------------------------------------------
+ * Function:    H5I_vlock_enter
+ *
+ * Purpose:     Increment the lock count of the provided ID's virtual lock.
+ * 
+ *              If the provided ID is a special value (invalid, default plist)
+ *              this function returns a successful no-op.
+ *               
+ *              If the provided ID cannot be found, returns a 
+ *              successful no-op.
+ *
+ * Return:      Success:    0
+ *              Failure:    -1
+ *
+ * Notes:
+ *  This should only be invoked through function entry macros.
+ * 
+ *-------------------------------------------------------------------------
+ */
+herr_t H5I_vlock_enter(hid_t id) {
+    herr_t ret_value = SUCCEED;
+    H5I_mt_id_info_t *id_info_ptr = NULL;
+    
+    H5I_mt_id_info_kernel_t info_k;
+    H5I_mt_id_info_kernel_t mod_info_k;
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    /* Initialize */
+    memset(&info_k, 0, sizeof(info_k));
+    memset(&mod_info_k, 0, sizeof(mod_info_k));
+
+    /* No-op for fake ids */
+    if (H5I_is_default_plist(id) || (id == H5I_INVALID_HID))
+        HGOTO_DONE(SUCCEED);
+
+    /* Try to get ID info - if it was already released, do nothing */
+    if ((id_info_ptr = H5I__find_id(id)) == NULL)
+        HGOTO_DONE(SUCCEED);
+
+    /* Update the lock count and check for consistency with ID ref count */
+    do {
+        info_k = atomic_load(&(id_info_ptr->k));
+        mod_info_k = info_k;
+
+        /* If this attempt fails, this is undone by assignment of mod_info_k */
+        mod_info_k.lock_count++;
+
+        if (mod_info_k.lock_count <= 0)
+            HGOTO_DONE(FAIL);
+
+        /* If ID info was concurrently modified, restart and check again */
+        /* This incr/decr always succeeds, validity check happens afterwards */
+    } while (!atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k));
+
+    /* Validity check */
+    if ((size_t) mod_info_k.lock_count > mod_info_k.app_count)
+        HGOTO_DONE(FAIL);
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value);
+} /* H5I_vlock_enter() */
+
+/*-------------------------------------------------------------------------
+ * Function:    H5I_vlock_exit
+ *
+ * Purpose:     Decrement the lock count of the provided ID's virtual lock.
+ * 
+ *              If the provided ID is a special value (invalid, default plist)
+ *              this function returns a successful no-op.
+ *               
+ *              If the provided ID cannot be found, this assumes it was 
+ *              released during the course of the API routine and returns a 
+ *              successful no-op.
+ *
+ * Return:      Success:    0
+ *              Failure:    -1
+ *
+ * Notes:
+ *  This should only be invoked through function exit macros.
+ * 
+ *-------------------------------------------------------------------------
+ */
+herr_t H5I_vlock_exit(hid_t id) {
+    herr_t ret_value = SUCCEED;
+    H5I_mt_id_info_t *id_info_ptr = NULL;
+    
+    H5I_mt_id_info_kernel_t info_k;
+    H5I_mt_id_info_kernel_t mod_info_k;
+
+    FUNC_ENTER_NOAPI_NOERR
+
+    /* Initialize */
+    memset(&info_k, 0, sizeof(info_k));
+    memset(&mod_info_k, 0, sizeof(mod_info_k));
+
+    /* No-op for fake ids */
+    if (H5I_is_default_plist(id) || (id == H5I_INVALID_HID))
+        HGOTO_DONE(SUCCEED);
+
+    /* Get ID info */
+    if ((id_info_ptr = H5I__find_id(id)) == NULL) {
+        /* Assume ID was released during the course of the API routine */
+        HGOTO_DONE(SUCCEED);
+    }
+
+    /* Update the lock count and check for consistency with ID ref count */
+    do {
+        info_k = atomic_load(&(id_info_ptr->k));
+        mod_info_k = info_k;
+
+        mod_info_k.lock_count--;
+
+        if (mod_info_k.lock_count < 0)
+            HGOTO_DONE(FAIL);
+
+        /* If ID info was concurrently modified, restart and check again */
+        /* This incr/decr always succeeds, validity check happens afterwards */
+    } while (!atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k));
+
+    /* Validity check */
+    if ((size_t) mod_info_k.lock_count > mod_info_k.app_count)
+        HGOTO_DONE(FAIL);
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value);
+} /* H5I_vlock_exit() */
+
+#endif /* H5_HAVE_VIRTUAL_LOCK */

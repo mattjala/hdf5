@@ -148,7 +148,7 @@ H5Literate1(hid_t group_id, H5_index_t idx_type, H5_iter_order_t order, hsize_t 
     hbool_t                   is_native_vol_obj;
     herr_t                    ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "iIiIo*hLi*x", group_id, idx_type, order, idx_p, op, op_data);
 
     /* Check arguments */
@@ -196,7 +196,7 @@ H5Literate1(hid_t group_id, H5_index_t idx_type, H5_iter_order_t order, hsize_t 
         HGOTO_ERROR(H5E_LINK, H5E_BADITER, FAIL, "link iteration failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Literate1() */
 
 /*-------------------------------------------------------------------------
@@ -230,7 +230,7 @@ H5Literate_by_name1(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
     hbool_t                   is_native_vol_obj;
     herr_t                    ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE8("e", "i*sIiIo*hLi*xi", loc_id, group_name, idx_type, order, idx_p, op, op_data, lapl_id);
 
     /* Check arguments */
@@ -285,7 +285,7 @@ H5Literate_by_name1(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
         HGOTO_ERROR(H5E_LINK, H5E_BADITER, FAIL, "link iteration failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Literate_by_name1() */
 
 /*-------------------------------------------------------------------------
@@ -310,7 +310,7 @@ H5Lget_info1(hid_t loc_id, const char *name, H5L_info1_t *linfo /*out*/, hid_t l
     hbool_t              is_native_vol_obj;
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*sxi", loc_id, name, linfo, lapl_id);
 
     /* Check arguments */
@@ -368,7 +368,7 @@ H5Lget_info1(hid_t loc_id, const char *name, H5L_info1_t *linfo /*out*/, hid_t l
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Lget_info1() */
 
 /*-------------------------------------------------------------------------
@@ -395,7 +395,7 @@ H5Lget_info_by_idx1(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
     hbool_t              is_native_vol_obj;
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "i*sIiIohxi", loc_id, group_name, idx_type, order, n, linfo, lapl_id);
 
     /* Check arguments */
@@ -460,7 +460,7 @@ H5Lget_info_by_idx1(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Lget_info_by_idx1() */
 
 /*-------------------------------------------------------------------------
@@ -501,7 +501,7 @@ H5Lvisit1(hid_t group_id, H5_index_t idx_type, H5_iter_order_t order, H5L_iterat
     hbool_t                   is_native_vol_obj;
     herr_t                    ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "iIiIoLi*x", group_id, idx_type, order, op, op_data);
 
     /* Check args */
@@ -549,7 +549,7 @@ H5Lvisit1(hid_t group_id, H5_index_t idx_type, H5_iter_order_t order, H5L_iterat
         HGOTO_ERROR(H5E_LINK, H5E_BADITER, FAIL, "link visitation failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Lvisit1() */
 
 /*-------------------------------------------------------------------------
@@ -590,7 +590,7 @@ H5Lvisit_by_name1(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5_
     hbool_t                   is_native_vol_obj;
     herr_t                    ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "i*sIiIoLi*xi", loc_id, group_name, idx_type, order, op, op_data, lapl_id);
 
     /* Check args */
@@ -645,7 +645,7 @@ H5Lvisit_by_name1(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5_
         HGOTO_ERROR(H5E_LINK, H5E_BADITER, FAIL, "link visitation failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Lvisit_by_name1() */
 
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

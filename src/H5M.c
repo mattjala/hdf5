@@ -293,7 +293,7 @@ H5Mcreate(hid_t loc_id, const char *name, hid_t key_type_id, hid_t val_type_id, 
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE7("i", "i*siiiii", loc_id, name, key_type_id, val_type_id, lcpl_id, mcpl_id, mapl_id);
 
     /* Create the map synchronously */
@@ -302,7 +302,7 @@ H5Mcreate(hid_t loc_id, const char *name, hid_t key_type_id, hid_t val_type_id, 
         HGOTO_ERROR(H5E_MAP, H5E_CANTCREATE, H5I_INVALID_HID, "unable to create map synchronously");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mcreate() */
 
 /*-------------------------------------------------------------------------
@@ -326,7 +326,7 @@ H5Mcreate_async(const char *app_file, const char *app_func, unsigned app_line, h
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE11("i", "*s*sIui*siiiiii", app_file, app_func, app_line, loc_id, name, key_type_id, val_type_id,
               lcpl_id, mcpl_id, mapl_id, es_id);
 
@@ -351,7 +351,7 @@ H5Mcreate_async(const char *app_file, const char *app_func, unsigned app_line, h
         } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mcreate_async() */
 
 /*-------------------------------------------------------------------------
@@ -387,7 +387,7 @@ H5Mcreate_anon(hid_t loc_id, hid_t key_type_id, hid_t val_type_id, hid_t mcpl_id
     H5VL_map_args_t      map_args;                    /* Arguments for map operations */
     hid_t                ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE5("i", "iiiii", loc_id, key_type_id, val_type_id, mcpl_id, mapl_id);
 
     /* Check arguments */
@@ -439,7 +439,7 @@ done:
             HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, H5I_INVALID_HID, "unable to release map");
     } /* end if */
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mcreate_anon() */
 
 /*------------------------------------------------------------------------
@@ -526,7 +526,7 @@ H5Mopen(hid_t loc_id, const char *name, hid_t mapl_id)
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE3("i", "i*si", loc_id, name, mapl_id);
 
     /* Open the map synchronously */
@@ -534,7 +534,7 @@ H5Mopen(hid_t loc_id, const char *name, hid_t mapl_id)
         HGOTO_ERROR(H5E_MAP, H5E_CANTCREATE, H5I_INVALID_HID, "unable to open map synchronously");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mopen() */
 
 /*------------------------------------------------------------------------
@@ -557,7 +557,7 @@ H5Mopen_async(const char *app_file, const char *app_func, unsigned app_line, hid
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE7("i", "*s*sIui*sii", app_file, app_func, app_line, loc_id, name, mapl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -580,7 +580,7 @@ H5Mopen_async(const char *app_file, const char *app_func, unsigned app_line, hid
         } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mopen_async() */
 
 /*-------------------------------------------------------------------------
@@ -599,7 +599,7 @@ H5Mclose(hid_t map_id)
 {
     herr_t ret_value = SUCCEED; /* Return value                     */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", map_id);
 
     /* Check args */
@@ -613,7 +613,7 @@ H5Mclose(hid_t map_id)
         HGOTO_ERROR(H5E_MAP, H5E_CANTDEC, FAIL, "can't decrement count on map ID");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mclose() */
 
 /*-------------------------------------------------------------------------
@@ -634,7 +634,7 @@ H5Mclose_async(const char *app_file, const char *app_func, unsigned app_line, hi
     H5VL_t        *connector = NULL;            /* VOL connector */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "*s*sIuii", app_file, app_func, app_line, map_id, es_id);
 
     /* Check args */
@@ -649,8 +649,8 @@ H5Mclose_async(const char *app_file, const char *app_func, unsigned app_line, hi
     if (H5ES_NONE != es_id) {
         /* Increase connector's refcount, so it doesn't get closed if closing
          * the dataset closes the file */
+        H5VL_conn_inc_rc(vol_obj->connector);
         connector = vol_obj->connector;
-        H5VL_conn_inc_rc(connector);
 
         /* Point at token for operation to set up */
         token_ptr = &token;
@@ -674,7 +674,7 @@ done:
     if (connector && H5VL_conn_dec_rc(connector) < 0)
         HDONE_ERROR(H5E_MAP, H5E_CANTDEC, FAIL, "can't decrement ref count on connector");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mclose_async() */
 
 /*-------------------------------------------------------------------------
@@ -698,7 +698,7 @@ H5Mget_key_type(hid_t map_id)
     H5VL_map_args_t      map_args;                    /* Arguments for map operations */
     hid_t                ret_value = H5I_INVALID_HID; /* Return value         */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", map_id);
 
     /* Check args */
@@ -719,7 +719,7 @@ H5Mget_key_type(hid_t map_id)
     ret_value = map_args.get.args.get_key_type.type_id;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mget_key_type() */
 
 /*-------------------------------------------------------------------------
@@ -743,7 +743,7 @@ H5Mget_val_type(hid_t map_id)
     H5VL_map_args_t      map_args;                    /* Arguments for map operations */
     hid_t                ret_value = H5I_INVALID_HID; /* Return value         */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", map_id);
 
     /* Check args */
@@ -764,7 +764,7 @@ H5Mget_val_type(hid_t map_id)
     ret_value = map_args.get.args.get_val_type.type_id;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mget_val_type() */
 
 /*-------------------------------------------------------------------------
@@ -788,7 +788,7 @@ H5Mget_create_plist(hid_t map_id)
     H5VL_map_args_t      map_args;                    /* Arguments for map operations */
     hid_t                ret_value = H5I_INVALID_HID; /* Return value         */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", map_id);
 
     /* Check args */
@@ -809,7 +809,7 @@ H5Mget_create_plist(hid_t map_id)
     ret_value = map_args.get.args.get_mcpl.mcpl_id;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mget_create_plist() */
 
 /*-------------------------------------------------------------------------
@@ -836,7 +836,7 @@ H5Mget_access_plist(hid_t map_id)
     H5VL_map_args_t      map_args;                    /* Arguments for map operations */
     hid_t                ret_value = H5I_INVALID_HID; /* Return value         */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", map_id);
 
     /* Check args */
@@ -857,7 +857,7 @@ H5Mget_access_plist(hid_t map_id)
     ret_value = map_args.get.args.get_mapl.mapl_id;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mget_access_plist() */
 
 /*-------------------------------------------------------------------------
@@ -880,7 +880,7 @@ H5Mget_count(hid_t map_id, hsize_t *count /*out*/, hid_t dxpl_id)
     H5VL_map_args_t      map_args;            /* Arguments for map operations */
     herr_t               ret_value = SUCCEED; /* Return value         */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE3("e", "ixi", map_id, count, dxpl_id);
 
     /* Check args */
@@ -911,7 +911,7 @@ H5Mget_count(hid_t map_id, hsize_t *count /*out*/, hid_t dxpl_id)
         *count = map_args.get.args.get_count.count;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mget_count() */
 
 /*-------------------------------------------------------------------------
@@ -993,7 +993,7 @@ H5Mput(hid_t map_id, hid_t key_mem_type_id, const void *key, hid_t val_mem_type_
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "ii*xi*xi", map_id, key_mem_type_id, key, val_mem_type_id, value, dxpl_id);
 
     /* Add key-value pair to the map synchronously */
@@ -1002,7 +1002,7 @@ H5Mput(hid_t map_id, hid_t key_mem_type_id, const void *key, hid_t val_mem_type_
         HGOTO_ERROR(H5E_MAP, H5E_CANTPUT, FAIL, "unable to put value to map synchronously");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mput() */
 
 /*-------------------------------------------------------------------------
@@ -1024,7 +1024,7 @@ H5Mput_async(const char *app_file, const char *app_func, unsigned app_line, hid_
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE10("e", "*s*sIuii*xi*xii", app_file, app_func, app_line, map_id, key_mem_type_id, key,
               val_mem_type_id, value, dxpl_id, es_id);
 
@@ -1046,7 +1046,7 @@ H5Mput_async(const char *app_file, const char *app_func, unsigned app_line, hid_
             HGOTO_ERROR(H5E_MAP, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mput_async() */
 
 /*-------------------------------------------------------------------------
@@ -1131,7 +1131,7 @@ H5Mget(hid_t map_id, hid_t key_mem_type_id, const void *key, hid_t val_mem_type_
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "ii*xi*xi", map_id, key_mem_type_id, key, val_mem_type_id, value, dxpl_id);
 
     /* Get key-value pair from the map synchronously */
@@ -1140,7 +1140,7 @@ H5Mget(hid_t map_id, hid_t key_mem_type_id, const void *key, hid_t val_mem_type_
         HGOTO_ERROR(H5E_MAP, H5E_CANTGET, FAIL, "unable to get value from map synchronously");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mget() */
 
 /*-------------------------------------------------------------------------
@@ -1162,7 +1162,7 @@ H5Mget_async(const char *app_file, const char *app_func, unsigned app_line, hid_
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE10("e", "*s*sIuii*xi*xii", app_file, app_func, app_line, map_id, key_mem_type_id, key,
               val_mem_type_id, value, dxpl_id, es_id);
 
@@ -1184,7 +1184,7 @@ H5Mget_async(const char *app_file, const char *app_func, unsigned app_line, hid_
             HGOTO_ERROR(H5E_MAP, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mget_async() */
 
 /*-------------------------------------------------------------------------
@@ -1208,7 +1208,7 @@ H5Mexists(hid_t map_id, hid_t key_mem_type_id, const void *key, hbool_t *exists,
     H5VL_map_args_t      map_args;            /* Arguments for map operations */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "ii*x*bi", map_id, key_mem_type_id, key, exists, dxpl_id);
 
     /* Check arguments */
@@ -1244,7 +1244,7 @@ H5Mexists(hid_t map_id, hid_t key_mem_type_id, const void *key, hbool_t *exists,
         *exists = map_args.exists.exists;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mexists() */
 
 /*-------------------------------------------------------------------------
@@ -1286,7 +1286,7 @@ H5Miterate(hid_t map_id, hsize_t *idx, hid_t key_mem_type_id, H5M_iterate_t op, 
     H5VL_map_args_t      map_args;            /* Arguments for map operations */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "i*hiMI*xi", map_id, idx, key_mem_type_id, op, op_data, dxpl_id);
 
     /* Check arguments */
@@ -1328,7 +1328,7 @@ H5Miterate(hid_t map_id, hsize_t *idx, hid_t key_mem_type_id, H5M_iterate_t op, 
         *idx = map_args.specific.args.iterate.idx;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Miterate() */
 
 /*-------------------------------------------------------------------------
@@ -1371,7 +1371,7 @@ H5Miterate_by_name(hid_t loc_id, const char *map_name, hsize_t *idx, hid_t key_m
     H5VL_map_args_t      map_args;            /* Arguments for map operations */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE8("e", "i*s*hiMI*xii", loc_id, map_name, idx, key_mem_type_id, op, op_data, dxpl_id, lapl_id);
 
     /* Check arguments */
@@ -1419,7 +1419,7 @@ H5Miterate_by_name(hid_t loc_id, const char *map_name, hsize_t *idx, hid_t key_m
         *idx = map_args.specific.args.iterate.idx;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Miterate_by_name() */
 
 /*-------------------------------------------------------------------------
@@ -1445,7 +1445,7 @@ H5Mdelete(hid_t map_id, hid_t key_mem_type_id, const void *key, hid_t dxpl_id)
     H5VL_map_args_t      map_args;            /* Arguments for map operations */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "ii*xi", map_id, key_mem_type_id, key, dxpl_id);
 
     /* Check arguments */
@@ -1479,7 +1479,7 @@ H5Mdelete(hid_t map_id, hid_t key_mem_type_id, const void *key, hid_t dxpl_id)
         HGOTO_ERROR(H5E_MAP, H5E_CANTSET, FAIL, "unable to delete key/value pair");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Mdelete() */
 
 #endif /*  H5_HAVE_MAP_API */

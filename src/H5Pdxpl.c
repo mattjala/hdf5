@@ -958,7 +958,7 @@ H5Pset_data_transform(hid_t plist_id, const char *expression)
     H5Z_data_xform_t *data_xform_prop = NULL;    /* New data xform property */
     herr_t            ret_value       = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*s", plist_id, expression);
 
     /* Check arguments */
@@ -990,7 +990,7 @@ done:
         if (data_xform_prop && H5Z_xform_destroy(data_xform_prop) < 0)
             HDONE_ERROR(H5E_PLIST, H5E_CLOSEERROR, FAIL, "unable to release data transform expression");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_data_transform() */
 
 /*-------------------------------------------------------------------------
@@ -1021,7 +1021,7 @@ H5Pget_data_transform(hid_t plist_id, char *expression /*out*/, size_t size)
     const char       *pexp;
     ssize_t           ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("Zs", "ixz", plist_id, expression, size);
 
     /* Get the plist structure */
@@ -1049,7 +1049,7 @@ H5Pget_data_transform(hid_t plist_id, char *expression /*out*/, size_t size)
     ret_value = (ssize_t)len;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_data_transform() */
 
 /*-------------------------------------------------------------------------
@@ -1076,7 +1076,7 @@ H5Pset_buffer(hid_t plist_id, size_t size, void *tconv, void *bkg)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "iz*x*x", plist_id, size, tconv, bkg);
 
     /* Check arguments */
@@ -1096,7 +1096,7 @@ H5Pset_buffer(hid_t plist_id, size_t size, void *tconv, void *bkg)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "Can't set background type conversion buffer");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_buffer() */
 
 /*-------------------------------------------------------------------------
@@ -1117,7 +1117,7 @@ H5Pget_buffer(hid_t plist_id, void **tconv /*out*/, void **bkg /*out*/)
     size_t          size;      /* Type conversion buffer size */
     size_t          ret_value; /* Return value */
 
-    FUNC_ENTER_API(0)
+    FUNC_ENTER_API(0, H5I_INVALID_HID)
     H5TRACE3("z", "ixx", plist_id, tconv, bkg);
 
     /* Get the plist structure */
@@ -1140,7 +1140,7 @@ H5Pget_buffer(hid_t plist_id, void **tconv /*out*/, void **bkg /*out*/)
     ret_value = size;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_buffer() */
 
 /*-------------------------------------------------------------------------
@@ -1163,7 +1163,7 @@ H5Pset_preserve(hid_t plist_id, hbool_t status)
     H5T_bkg_t       need_bkg;            /* Value for background buffer type */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ib", plist_id, status);
 
     /* Get the plist structure */
@@ -1176,7 +1176,7 @@ H5Pset_preserve(hid_t plist_id, hbool_t status)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_preserve() */
 
 /*-------------------------------------------------------------------------
@@ -1197,7 +1197,7 @@ H5Pget_preserve(hid_t plist_id)
     H5P_genplist_t *plist;     /* Property list pointer */
     int             ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("Is", "i", plist_id);
 
     /* Get the plist structure */
@@ -1212,7 +1212,7 @@ H5Pget_preserve(hid_t plist_id)
     ret_value = need_bkg ? TRUE : FALSE;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_preserve() */
 
 /*-------------------------------------------------------------------------
@@ -1233,7 +1233,7 @@ H5Pset_edc_check(hid_t plist_id, H5Z_EDC_t check)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iZe", plist_id, check);
 
     /* Check argument */
@@ -1249,7 +1249,7 @@ H5Pset_edc_check(hid_t plist_id, H5Z_EDC_t check)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_edc_check() */
 
 /*-------------------------------------------------------------------------
@@ -1270,7 +1270,7 @@ H5Pget_edc_check(hid_t plist_id)
     H5P_genplist_t *plist;     /* Property list pointer */
     H5Z_EDC_t       ret_value; /* Return value */
 
-    FUNC_ENTER_API(H5Z_ERROR_EDC)
+    FUNC_ENTER_API(H5Z_ERROR_EDC, H5I_INVALID_HID)
     H5TRACE1("Ze", "i", plist_id);
 
     /* Get the plist structure */
@@ -1282,7 +1282,7 @@ H5Pget_edc_check(hid_t plist_id)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, H5Z_ERROR_EDC, "unable to set value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_edc_check() */
 
 /*-------------------------------------------------------------------------
@@ -1303,7 +1303,7 @@ H5Pset_filter_callback(hid_t plist_id, H5Z_filter_func_t func, void *op_data)
     herr_t          ret_value = SUCCEED; /* return value */
     H5Z_cb_t        cb_struct;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "iZF*x", plist_id, func, op_data);
 
     /* Get the plist structure */
@@ -1318,7 +1318,7 @@ H5Pset_filter_callback(hid_t plist_id, H5Z_filter_func_t func, void *op_data)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -1339,7 +1339,7 @@ H5Pset_type_conv_cb(hid_t plist_id, H5T_conv_except_func_t op, void *operate_dat
     herr_t          ret_value = SUCCEED; /* return value */
     H5T_conv_cb_t   cb_struct;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "iTE*x", plist_id, op, operate_data);
 
     /* Get the plist structure */
@@ -1354,7 +1354,7 @@ H5Pset_type_conv_cb(hid_t plist_id, H5T_conv_except_func_t op, void *operate_dat
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -1375,7 +1375,7 @@ H5Pget_type_conv_cb(hid_t plist_id, H5T_conv_except_func_t *op /*out*/, void **o
     H5T_conv_cb_t   cb_struct;
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", plist_id, op, operate_data);
 
     /* Get the plist structure */
@@ -1391,7 +1391,7 @@ H5Pget_type_conv_cb(hid_t plist_id, H5T_conv_except_func_t *op /*out*/, void **o
     *operate_data = cb_struct.user_data;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -1413,7 +1413,7 @@ H5Pget_btree_ratios(hid_t plist_id, double *left /*out*/, double *middle /*out*/
     double          btree_split_ratio[3]; /* B-tree node split ratios */
     herr_t          ret_value = SUCCEED;  /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "ixxx", plist_id, left, middle, right);
 
     /* Get the plist structure */
@@ -1433,7 +1433,7 @@ H5Pget_btree_ratios(hid_t plist_id, double *left /*out*/, double *middle /*out*/
         *right = btree_split_ratio[2];
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_btree_ratios() */
 
 /*-------------------------------------------------------------------------
@@ -1460,7 +1460,7 @@ H5Pset_btree_ratios(hid_t plist_id, double left, double middle, double right)
     double          split_ratio[3];      /* B-tree node split ratios */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "iddd", plist_id, left, middle, right);
 
     /* Check arguments */
@@ -1481,7 +1481,7 @@ H5Pset_btree_ratios(hid_t plist_id, double left, double middle, double right)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_btree_ratios() */
 
 /*-------------------------------------------------------------------------
@@ -1547,7 +1547,7 @@ H5Pset_vlen_mem_manager(hid_t plist_id, H5MM_allocate_t alloc_func, void *alloc_
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "iMa*xMf*x", plist_id, alloc_func, alloc_info, free_func, free_info);
 
     /* Check arguments */
@@ -1559,7 +1559,7 @@ H5Pset_vlen_mem_manager(hid_t plist_id, H5MM_allocate_t alloc_func, void *alloc_
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set values");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_vlen_mem_manager() */
 
 /*-------------------------------------------------------------------------
@@ -1578,7 +1578,7 @@ H5Pget_vlen_mem_manager(hid_t plist_id, H5MM_allocate_t *alloc_func /*out*/, voi
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "ixxxx", plist_id, alloc_func, alloc_info, free_func, free_info);
 
     /* Get the plist structure */
@@ -1599,7 +1599,7 @@ H5Pget_vlen_mem_manager(hid_t plist_id, H5MM_allocate_t *alloc_func /*out*/, voi
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_vlen_mem_manager() */
 
 /*-------------------------------------------------------------------------
@@ -1626,7 +1626,7 @@ H5Pset_hyper_vector_size(hid_t plist_id, size_t vector_size)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iz", plist_id, vector_size);
 
     /* Check arguments */
@@ -1642,7 +1642,7 @@ H5Pset_hyper_vector_size(hid_t plist_id, size_t vector_size)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_hyper_vector_size() */
 
 /*-------------------------------------------------------------------------
@@ -1660,7 +1660,7 @@ H5Pget_hyper_vector_size(hid_t plist_id, size_t *vector_size /*out*/)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, vector_size);
 
     /* Get the plist structure */
@@ -1673,7 +1673,7 @@ H5Pget_hyper_vector_size(hid_t plist_id, size_t *vector_size /*out*/)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_hyper_vector_size() */
 
 /*-------------------------------------------------------------------------
@@ -1892,7 +1892,7 @@ H5Pget_mpio_actual_chunk_opt_mode(hid_t                             plist_id,
     H5P_genplist_t *plist;
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, actual_chunk_opt_mode);
 
     /* Get the plist structure */
@@ -1905,7 +1905,7 @@ H5Pget_mpio_actual_chunk_opt_mode(hid_t                             plist_id,
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_mpio_actual_chunk_opt_mode() */
 
 /*-------------------------------------------------------------------------
@@ -1924,7 +1924,7 @@ H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_mpio_actual_io_mode_t *actual_io_
     H5P_genplist_t *plist;
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, actual_io_mode);
 
     /* Get the plist structure */
@@ -1937,7 +1937,7 @@ H5Pget_mpio_actual_io_mode(hid_t plist_id, H5D_mpio_actual_io_mode_t *actual_io_
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_mpio_actual_io_mode() */
 
 /*-------------------------------------------------------------------------
@@ -1956,7 +1956,7 @@ H5Pget_mpio_no_collective_cause(hid_t plist_id, uint32_t *local_no_collective_ca
     H5P_genplist_t *plist;
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", plist_id, local_no_collective_cause, global_no_collective_cause);
 
     /* Get the plist structure */
@@ -1972,7 +1972,7 @@ H5Pget_mpio_no_collective_cause(hid_t plist_id, uint32_t *local_no_collective_ca
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get global value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_mpio_no_collective_cause() */
 #endif /* H5_HAVE_PARALLEL */
 
@@ -2258,7 +2258,7 @@ H5Pset_dataset_io_hyperslab_selection(hid_t plist_id, unsigned rank, H5S_seloper
     hbool_t         reset_prop_on_error = FALSE;   /* Whether to reset the property on failure */
     herr_t          ret_value           = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "iIuSs*h*h*h*h", plist_id, rank, op, start, stride, count, block);
 
     /* Check arguments */
@@ -2348,7 +2348,7 @@ done:
             HDONE_ERROR(H5E_PLIST, H5E_CLOSEERROR, FAIL, "unable to release dataspace");
     } /* end if */
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_dataset_io_hyperslab_selection() */
 
 /*-------------------------------------------------------------------------
@@ -2371,7 +2371,7 @@ H5Pset_selection_io(hid_t plist_id, H5D_selection_io_mode_t selection_io_mode)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iDC", plist_id, selection_io_mode);
 
     /* Check arguments */
@@ -2386,7 +2386,7 @@ H5Pset_selection_io(hid_t plist_id, H5D_selection_io_mode_t selection_io_mode)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_selection_io() */
 
 /*-------------------------------------------------------------------------
@@ -2409,7 +2409,7 @@ H5Pget_selection_io(hid_t plist_id, H5D_selection_io_mode_t *selection_io_mode /
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, selection_io_mode);
 
     /* Check arguments */
@@ -2422,7 +2422,7 @@ H5Pget_selection_io(hid_t plist_id, H5D_selection_io_mode_t *selection_io_mode /
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_selection_io() */
 
 /*-------------------------------------------------------------------------
@@ -2440,7 +2440,7 @@ H5Pget_no_selection_io_cause(hid_t plist_id, uint32_t *no_selection_io_cause /*o
     H5P_genplist_t *plist;
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, no_selection_io_cause);
 
     /* Get the plist structure */
@@ -2453,7 +2453,7 @@ H5Pget_no_selection_io_cause(hid_t plist_id, uint32_t *no_selection_io_cause /*o
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get no_selection_io_cause value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_no_selection_io_cause() */
 
 /*-------------------------------------------------------------------------
@@ -2538,7 +2538,7 @@ H5Pset_modify_write_buf(hid_t plist_id, hbool_t modify_write_buf)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ib", plist_id, modify_write_buf);
 
     /* Check arguments */
@@ -2553,7 +2553,7 @@ H5Pset_modify_write_buf(hid_t plist_id, hbool_t modify_write_buf)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_modify_write_buf() */
 
 /*-------------------------------------------------------------------------
@@ -2572,7 +2572,7 @@ H5Pget_modify_write_buf(hid_t plist_id, hbool_t *modify_write_buf /*out*/)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, modify_write_buf);
 
     /* Check arguments */
@@ -2585,5 +2585,5 @@ H5Pget_modify_write_buf(hid_t plist_id, hbool_t *modify_write_buf /*out*/)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_modify_write_buf() */

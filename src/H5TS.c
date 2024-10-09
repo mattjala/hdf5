@@ -535,6 +535,23 @@ done:
 } /* end H5TS_mutex_lock() */
 
 /*--------------------------------------------------------------------------
+ * Function:    H5TSmutex_lock
+ *
+ * Purpose:     Acquire the HDF5 library global lock, 
+ *              or increment its lock count if it is already held.
+ *
+ * Return:      Non-negative on success / Negative on failure
+ *
+ *--------------------------------------------------------------------------
+ */
+herr_t H5TSmutex_lock(void) {
+    FUNC_ENTER_API_NAMECHECK_ONLY
+
+    FUNC_LEAVE_API_NAMECHECK_ONLY(H5TS_mutex_lock(&H5_g.init_lock))
+} /* end H5TSmutex_lock() */
+
+
+/*--------------------------------------------------------------------------
  * Function:    H5TS_have_mutex
  *
  * Purpose:     Determine whether the current thread holds the supplied 
@@ -710,6 +727,22 @@ done:
 #endif /* H5_HAVE_WIN_THREADS */
     FUNC_LEAVE_NOAPI_NAMECHECK_ONLY(ret_value)
 } /* H5TS_mutex_unlock */
+
+/*--------------------------------------------------------------------------
+ * Function:    H5TSmutex_unlock
+ *
+ * Purpose:     Release the HDF5 library global lock, 
+ *              or decrement the lock count if it is held recursively.
+ *
+ * Return:      Non-negative on success / Negative on failure
+ *
+ *--------------------------------------------------------------------------
+ */
+herr_t H5TSmutex_unlock(void) {
+    FUNC_ENTER_API_NAMECHECK_ONLY
+
+    FUNC_LEAVE_API_NAMECHECK_ONLY(H5TS_mutex_unlock(&H5_g.init_lock))
+} /* end H5TSmutex_unlock() */
 
 /*--------------------------------------------------------------------------
  * Function:    H5TSmutex_get_attempt_count

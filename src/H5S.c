@@ -327,7 +327,7 @@ H5Screate(H5S_class_t type)
     H5S_t *new_ds = NULL; /* New dataspace structure */
     hid_t  ret_value;     /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("i", "Sc", type);
 
     /* Check args */
@@ -346,7 +346,7 @@ done:
         if (new_ds && H5S_close(new_ds) < 0)
             HDONE_ERROR(H5E_DATASPACE, H5E_CANTRELEASE, FAIL, "unable to release dataspace");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Screate() */
 
 /*-------------------------------------------------------------------------
@@ -430,7 +430,7 @@ H5Sclose(hid_t space_id)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", space_id);
 
     /* Check args */
@@ -442,7 +442,7 @@ H5Sclose(hid_t space_id)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTDEC, FAIL, "problem freeing id");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sclose() */
 
 /*-------------------------------------------------------------------------
@@ -463,7 +463,7 @@ H5Scopy(hid_t space_id)
     H5S_t *dst       = NULL;
     hid_t  ret_value = H5I_INVALID_HID;
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", space_id);
 
     /* Check args */
@@ -483,7 +483,7 @@ done:
         if (dst && H5S_close(dst) < 0)
             HDONE_ERROR(H5E_DATASPACE, H5E_CANTRELEASE, H5I_INVALID_HID, "unable to release dataspace");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Scopy() */
 
 /*-------------------------------------------------------------------------
@@ -502,7 +502,7 @@ H5Sextent_copy(hid_t dst_id, hid_t src_id)
     H5S_t *dst;
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ii", dst_id, src_id);
 
     /* Check args */
@@ -516,7 +516,7 @@ H5Sextent_copy(hid_t dst_id, hid_t src_id)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOPY, FAIL, "can't copy extent");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sextent_copy() */
 
 /*-------------------------------------------------------------------------
@@ -710,7 +710,7 @@ H5Sget_simple_extent_npoints(hid_t space_id)
     H5S_t   *ds;
     hssize_t ret_value;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("Hs", "i", space_id);
 
     /* Check args */
@@ -720,7 +720,7 @@ H5Sget_simple_extent_npoints(hid_t space_id)
     ret_value = (hssize_t)H5S_GET_EXTENT_NPOINTS(ds);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sget_simple_extent_npoints() */
 
 /*-------------------------------------------------------------------------
@@ -800,7 +800,7 @@ H5Sget_simple_extent_ndims(hid_t space_id)
     H5S_t *ds;
     int    ret_value = -1;
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "i", space_id);
 
     /* Check args */
@@ -810,7 +810,7 @@ H5Sget_simple_extent_ndims(hid_t space_id)
     ret_value = (int)H5S_GET_EXTENT_NDIMS(ds);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sget_simple_extent_ndims() */
 
 /*-------------------------------------------------------------------------
@@ -875,7 +875,7 @@ H5Sget_simple_extent_dims(hid_t space_id, hsize_t dims[] /*out*/, hsize_t maxdim
     H5S_t *ds;
     int    ret_value = -1;
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE3("Is", "ixx", space_id, dims, maxdims);
 
     /* Check args */
@@ -885,7 +885,7 @@ H5Sget_simple_extent_dims(hid_t space_id, hsize_t dims[] /*out*/, hsize_t maxdim
     ret_value = H5S_get_simple_extent_dims(ds, dims, maxdims);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sget_simple_extent_dims() */
 
 /*-------------------------------------------------------------------------
@@ -1122,7 +1122,7 @@ H5Sis_simple(hid_t space_id)
     H5S_t *space;     /* Dataspace to check */
     htri_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("t", "i", space_id);
 
     /* Check args and all the boring stuff. */
@@ -1132,7 +1132,7 @@ H5Sis_simple(hid_t space_id)
     ret_value = H5S__is_simple(space);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sis_simple() */
 
 /*--------------------------------------------------------------------------
@@ -1168,7 +1168,7 @@ H5Sset_extent_simple(hid_t space_id, int rank, const hsize_t dims[/*rank*/], con
     int    u;                   /* Local counting variable */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "iIs*[a1]h*[a1]h", space_id, rank, dims, max);
 
     /* Check args */
@@ -1197,7 +1197,7 @@ H5Sset_extent_simple(hid_t space_id, int rank, const hsize_t dims[/*rank*/], con
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, FAIL, "unable to set simple extent");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sset_extent_simple() */
 
 /*-------------------------------------------------------------------------
@@ -1295,7 +1295,7 @@ H5Screate_simple(int rank, const hsize_t dims[/*rank*/], const hsize_t maxdims[/
     int    i;
     hid_t  ret_value = H5I_INVALID_HID;
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE3("i", "Is*[a0]h*[a0]h", rank, dims, maxdims);
 
     /* Check arguments */
@@ -1332,7 +1332,7 @@ done:
         if (space && H5S_close(space) < 0)
             HDONE_ERROR(H5E_DATASPACE, H5E_CANTRELEASE, H5I_INVALID_HID, "unable to release dataspace");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Screate_simple() */
 
 /*-------------------------------------------------------------------------
@@ -1384,7 +1384,7 @@ H5Sencode2(hid_t obj_id, void *buf, size_t *nalloc, hid_t fapl_id)
     H5S_t *dspace;
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*x*zi", obj_id, buf, nalloc, fapl_id);
 
     /* Check argument and retrieve object */
@@ -1399,7 +1399,7 @@ H5Sencode2(hid_t obj_id, void *buf, size_t *nalloc, hid_t fapl_id)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTENCODE, FAIL, "can't encode dataspace");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sencode2() */
 
 /*-------------------------------------------------------------------------
@@ -1493,7 +1493,7 @@ H5Sdecode(const void *buf)
     H5S_t *ds;
     hid_t  ret_value;
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "*x", buf);
 
     if (buf == NULL)
@@ -1507,7 +1507,7 @@ H5Sdecode(const void *buf)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register dataspace");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sdecode() */
 
 /*-------------------------------------------------------------------------
@@ -1636,7 +1636,7 @@ H5Sget_simple_extent_type(hid_t sid)
     H5S_t      *space;
     H5S_class_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(H5S_NO_CLASS)
+    FUNC_ENTER_API(H5S_NO_CLASS, H5I_INVALID_HID)
     H5TRACE1("Sc", "i", sid);
 
     /* Check arguments */
@@ -1646,7 +1646,7 @@ H5Sget_simple_extent_type(hid_t sid)
     ret_value = H5S_GET_EXTENT_TYPE(space);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sget_simple_extent_type() */
 
 /*--------------------------------------------------------------------------
@@ -1669,7 +1669,7 @@ H5Sset_extent_none(hid_t space_id)
     H5S_t *space;               /* Dataspace to modify */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", space_id);
 
     /* Check args */
@@ -1683,7 +1683,7 @@ H5Sset_extent_none(hid_t space_id)
     space->extent.type = H5S_NULL;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sset_extent_none() */
 
 /*-------------------------------------------------------------------------
@@ -1818,7 +1818,7 @@ H5Sextent_equal(hid_t space1_id, hid_t space2_id)
     const H5S_t *ds2;
     htri_t       ret_value;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("t", "ii", space1_id, space2_id);
 
     /* check args */
@@ -1831,7 +1831,7 @@ H5Sextent_equal(hid_t space1_id, hid_t space2_id)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOMPARE, FAIL, "dataspace comparison failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sextent_equal() */
 
 /*--------------------------------------------------------------------------

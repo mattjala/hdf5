@@ -128,7 +128,7 @@ H5Soffset_simple(hid_t space_id, const hssize_t *offset)
     H5S_t *space;               /* Dataspace to modify */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*Hs", space_id, offset);
 
     /* Check args */
@@ -145,7 +145,7 @@ H5Soffset_simple(hid_t space_id, const hssize_t *offset)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, FAIL, "can't set offset");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Soffset_simple() */
 
 /*--------------------------------------------------------------------------
@@ -176,7 +176,7 @@ H5Sselect_copy(hid_t dst_id, hid_t src_id)
     H5S_t *dst;
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ii", dst_id, src_id);
 
     /* Check args */
@@ -190,7 +190,7 @@ H5Sselect_copy(hid_t dst_id, hid_t src_id)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOPY, FAIL, "can't copy selection");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sselect_copy() */
 
 /*--------------------------------------------------------------------------
@@ -366,7 +366,7 @@ H5Sget_select_npoints(hid_t spaceid)
     H5S_t   *space;     /* Dataspace to modify selection of */
     hssize_t ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("Hs", "i", spaceid);
 
     /* Check args */
@@ -376,7 +376,7 @@ H5Sget_select_npoints(hid_t spaceid)
     ret_value = (hssize_t)H5S_GET_SELECT_NPOINTS(space);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Sget_select_npoints() */
 
 /*--------------------------------------------------------------------------
@@ -436,7 +436,7 @@ H5Sselect_valid(hid_t spaceid)
     H5S_t *space;     /* Dataspace to modify selection of */
     htri_t ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("t", "i", spaceid);
 
     /* Check args */
@@ -446,7 +446,7 @@ H5Sselect_valid(hid_t spaceid)
     ret_value = H5S_SELECT_VALID(space);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sselect_valid() */
 
 /*--------------------------------------------------------------------------
@@ -595,7 +595,7 @@ H5Sget_select_bounds(hid_t spaceid, hsize_t start[] /*out*/, hsize_t end[] /*out
     H5S_t *space;     /* Dataspace to modify selection of */
     herr_t ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", spaceid, start, end);
 
     /* Check args */
@@ -607,7 +607,7 @@ H5Sget_select_bounds(hid_t spaceid, hsize_t start[] /*out*/, hsize_t end[] /*out
     ret_value = H5S_SELECT_BOUNDS(space, start, end);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sget_select_bounds() */
 
 /*--------------------------------------------------------------------------
@@ -986,7 +986,7 @@ H5Sselect_adjust(hid_t space_id, const hssize_t *offset)
     unsigned u;
     herr_t   ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*Hs", space_id, offset);
 
     if (NULL == (space = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
@@ -1005,7 +1005,7 @@ H5Sselect_adjust(hid_t space_id, const hssize_t *offset)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTSET, FAIL, "can't adjust selection");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sselect_adjust() */
 
 /*--------------------------------------------------------------------------
@@ -1525,7 +1525,7 @@ H5Sget_select_type(hid_t space_id)
     H5S_t       *space;     /* dataspace to modify */
     H5S_sel_type ret_value; /* Return value */
 
-    FUNC_ENTER_API(H5S_SEL_ERROR)
+    FUNC_ENTER_API(H5S_SEL_ERROR, H5I_INVALID_HID)
     H5TRACE1("St", "i", space_id);
 
     /* Check args */
@@ -1536,7 +1536,7 @@ H5Sget_select_type(hid_t space_id)
     ret_value = H5S_GET_SELECT_TYPE(space);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sget_select_type() */
 
 /*--------------------------------------------------------------------------
@@ -1883,7 +1883,7 @@ H5Sselect_shape_same(hid_t space1_id, hid_t space2_id)
     H5S_t *space1, *space2; /* Dataspaces to compare */
     htri_t ret_value;       /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("t", "ii", space1_id, space2_id);
 
     if (NULL == (space1 = (H5S_t *)H5I_object_verify(space1_id, H5I_DATASPACE)))
@@ -1895,7 +1895,7 @@ H5Sselect_shape_same(hid_t space1_id, hid_t space2_id)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOMPARE, FAIL, "can't compare selections");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sselect_shape_same() */
 
 /*--------------------------------------------------------------------------
@@ -1987,7 +1987,7 @@ H5Sselect_intersect_block(hid_t space_id, const hsize_t *start, const hsize_t *e
     unsigned u;                /* Local index value */
     htri_t   ret_value = FAIL; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("t", "i*h*h", space_id, start, end);
 
     /* Check arguments */
@@ -2009,7 +2009,7 @@ H5Sselect_intersect_block(hid_t space_id, const hsize_t *start, const hsize_t *e
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOMPARE, FAIL, "can't compare selection and block");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sselect_intersect_block() */
 
 /*--------------------------------------------------------------------------
@@ -2665,7 +2665,7 @@ H5Sselect_project_intersection(hid_t src_space_id, hid_t dst_space_id, hid_t src
     H5S_t *proj_space = NULL;                           /* Output dataspace */
     hid_t  ret_value;                                   /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("i", "iii", src_space_id, dst_space_id, src_intersect_space_id);
 
     /* Check args */
@@ -2700,7 +2700,7 @@ done:
         if (proj_space && H5S_close(proj_space) < 0)
             HDONE_ERROR(H5E_DATASPACE, H5E_CANTRELEASE, FAIL, "unable to release dataspace");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sselect_project_intersection() */
 
 /*--------------------------------------------------------------------------
@@ -2817,7 +2817,7 @@ H5Ssel_iter_create(hid_t space_id, size_t elmt_size, unsigned flags)
     H5S_sel_iter_t *sel_iter;  /* Selection iterator created */
     hid_t           ret_value; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE3("i", "izIu", space_id, elmt_size, flags);
 
     /* Check args */
@@ -2845,7 +2845,7 @@ H5Ssel_iter_create(hid_t space_id, size_t elmt_size, unsigned flags)
                     "unable to register dataspace selection iterator ID");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Ssel_iter_create() */
 
 /*--------------------------------------------------------------------------
@@ -2900,7 +2900,7 @@ H5Ssel_iter_get_seq_list(hid_t sel_iter_id, size_t maxseq, size_t maxelmts, size
     H5S_sel_iter_t *sel_iter;            /* Dataspace selection iterator to operate on */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "izzxxxx", sel_iter_id, maxseq, maxelmts, nseq, nelmts, off, len);
 
     /* Check args */
@@ -2924,7 +2924,7 @@ H5Ssel_iter_get_seq_list(hid_t sel_iter_id, size_t maxseq, size_t maxelmts, size
         *nseq = *nelmts = 0;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Ssel_iter_get_seq_list() */
 
 /*--------------------------------------------------------------------------
@@ -3032,7 +3032,7 @@ H5Ssel_iter_reset(hid_t sel_iter_id, hid_t space_id)
     H5S_t          *space;
     herr_t          ret_value = SUCCEED;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ii", sel_iter_id, space_id);
 
     /* Check args */
@@ -3051,7 +3051,7 @@ H5Ssel_iter_reset(hid_t sel_iter_id, hid_t space_id)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, FAIL, "unable to re-initialize selection iterator");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Ssel_iter_reset() */
 
 /*-------------------------------------------------------------------------
@@ -3136,7 +3136,7 @@ H5Ssel_iter_close(hid_t sel_iter_id)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", sel_iter_id);
 
     /* Check args */
@@ -3148,5 +3148,5 @@ H5Ssel_iter_close(hid_t sel_iter_id)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTDEC, FAIL, "problem freeing dataspace selection iterator ID");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Ssel_iter_close() */

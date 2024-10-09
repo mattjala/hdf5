@@ -26,7 +26,7 @@
 /*****************/
 
 /* Identifier for the native VOL connector */
-#define H5VL_NATIVE (H5VL_native_register())
+#define H5VL_NATIVE (H5OPEN H5VL_native_register())
 
 /* Characteristics of the native VOL connector */
 #define H5VL_NATIVE_NAME    "native"

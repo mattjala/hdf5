@@ -93,7 +93,7 @@ H5Fget_info1(hid_t obj_id, H5F_info1_t *finfo /*out*/)
     H5F_info2_t                      finfo2;              /* Current file info struct */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", obj_id, finfo);
 
     /* Check args */
@@ -126,7 +126,7 @@ H5Fget_info1(hid_t obj_id, H5F_info1_t *finfo /*out*/)
     finfo->sohm.msgs_info = finfo2.sohm.msgs_info;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Fget_info1() */
 
 /*-------------------------------------------------------------------------
@@ -149,7 +149,7 @@ H5Fis_hdf5(const char *name)
     hbool_t                   is_accessible = FALSE; /* Whether file is accessible */
     htri_t                    ret_value;             /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE1("t", "*s", name);
 
     /* Check args and all the boring stuff. */
@@ -170,7 +170,7 @@ H5Fis_hdf5(const char *name)
     ret_value = (htri_t)is_accessible;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Fis_hdf5() */
 
 /*-------------------------------------------------------------------------
@@ -214,7 +214,7 @@ H5Fset_latest_format(hid_t file_id, hbool_t latest_format)
     H5F_libver_t                     low       = H5F_LIBVER_LATEST; /* Low bound 		    */
     herr_t                           ret_value = SUCCEED;           /* Return value                 */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ib", file_id, latest_format);
 
     /* Check args */
@@ -242,6 +242,6 @@ H5Fset_latest_format(hid_t file_id, hbool_t latest_format)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set library version bounds");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Fset_latest_format() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
