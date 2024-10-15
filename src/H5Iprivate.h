@@ -68,7 +68,7 @@ H5_DLL herr_t     H5I_init(void);
 H5_DLL herr_t     H5I_register_type(const H5I_class_t *cls);
 H5_DLL int64_t    H5I_nmembers(H5I_type_t type);
 H5_DLL herr_t     H5I_clear_type(H5I_type_t type, hbool_t force, hbool_t app_ref);
-H5_DLL H5I_type_t Ht5I_get_type(hid_t id);
+H5_DLL H5I_type_t H5I_get_type(hid_t id);
 H5_DLL herr_t     H5I_iterate(H5I_type_t type, H5I_search_func_t func, void *udata, hbool_t app_ref);
 H5_DLL int        H5I_get_ref(hid_t id, hbool_t app_ref);
 H5_DLL int        H5I_inc_ref(hid_t id, hbool_t app_ref);
