@@ -97,6 +97,7 @@ typedef struct thread_info_t {
     size_t   n_tests_failed_g;
     size_t   n_tests_skipped_g;
     const char *vol_connector_name;
+    char *vol_connector_info;
 } thread_info_t;
 
 #ifdef H5_HAVE_MULTITHREAD
