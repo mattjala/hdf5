@@ -45,13 +45,13 @@
 /* Acquire global mutex before entering connector callback, if connector is not threadsafe */
 #define VOL_CONN_LOCK(cls)                                                                                   \
     do {                                                                                                     \
-        if (cls && !(cls->cap_flags && H5VL_CAP_FLAG_THREADSAFE)) {                                          \
+        if (cls && !(cls->cap_flags & H5VL_CAP_FLAG_THREADSAFE)) {                                          \
             H5_API_LOCK;                                                                                     \
         }
 
 /* Release global mutex after finishing connector callback, if connector is not threadsafe */
 #define VOL_CONN_UNLOCK(cls)                                                                                 \
-    if (cls && !(cls->cap_flags && H5VL_CAP_FLAG_THREADSAFE)) {                                              \
+    if (cls && !(cls->cap_flags & H5VL_CAP_FLAG_THREADSAFE)) {                                              \
         H5_API_UNLOCK;                                                                                       \
     }\
     } while (0);
