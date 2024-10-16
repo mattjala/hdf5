@@ -567,6 +567,9 @@ done:
     if (NULL == ret_value) {
         if (conn_rc_incr && H5VL_conn_dec_rc(vol_connector) < 0)
             HDONE_ERROR(H5E_VOL, H5E_CANTDEC, NULL, "unable to decrement ref count on VOL connector");
+        
+        if (new_vol_obj)
+            new_vol_obj = H5FL_FREE(H5VL_object_t, new_vol_obj);
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
