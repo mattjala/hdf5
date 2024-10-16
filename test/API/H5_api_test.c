@@ -269,16 +269,6 @@ run_h5_API_tests_thread(void *thread_info)
         }
     }
 
-    /* Retrieve the VOL cap flags - work around an HDF5
-     * library issue by creating a FAPL
-     */
-    vol_cap_flags_g = H5VL_CAP_FLAG_NONE;
-    if (H5Pget_vol_cap_flags(fapl_id, &vol_cap_flags_g) < 0) {
-        fprintf(stderr, "Unable to retrieve VOL connector capability flags\n");
-        tinfo->result = API_TEST_ERROR;
-        goto done;
-    }
-
     /*
      * Create the file that will be used for all of the tests,
      * except for those which test file creation.
@@ -340,6 +330,8 @@ main(int argc, char **argv)
     const char *vol_connector_name = NULL;
     char *vol_connector_name_copy = NULL;
     char *vol_connector_info = NULL;
+    hid_t fapl_id = H5I_INVALID_HID;
+
 #ifdef H5_HAVE_MULTITHREAD
 #define MAX_THREADS 10
     pthread_t threads[MAX_THREADS];
@@ -409,7 +401,29 @@ main(int argc, char **argv)
 
 
 
+    /* Retrieve the VOL cap flags - work around an HDF5
+     * library issue by creating a FAPL
+     */
 
+    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
+        fprintf(stderr, "Unable to create FAPL\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if (H5Pget_vol_cap_flags(fapl_id, &vol_cap_flags_g) < 0) {
+        fprintf(stderr, "Unable to retrieve VOL connector capability flags\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if (H5Pclose(fapl_id) < 0) {
+        fprintf(stderr, "Unable to close FAPL\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    fapl_id = H5I_INVALID_HID;
 
 #ifdef H5_HAVE_MULTITHREAD
 
@@ -531,6 +545,7 @@ main(int argc, char **argv)
 
 done:
     free(vol_connector_name_copy);
+
     H5close();
 
 #ifdef H5_HAVE_PARALLEL
