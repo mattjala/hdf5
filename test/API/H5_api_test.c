@@ -383,7 +383,7 @@ main(int argc, char **argv)
             goto done;
         }
 
-        tinfo->vol_connector_name = token;
+        vol_connector_name = token;
 
         if (NULL != (token = HDstrtok(NULL, " "))) {
             vol_connector_info = token;
@@ -473,6 +473,8 @@ main(int argc, char **argv)
 
             if (((thread_info_t *)(retval))->result == API_TEST_ERROR) {
                 fprintf(stderr, "An internal error occurred during API tests in thread %zu\n", ((thread_info_t*)(retval))->thread_idx);
+                ret_value = 1;
+                goto done;
             }
                             
             if (((thread_info_t *)(retval))->result == API_TEST_FAIL) {
