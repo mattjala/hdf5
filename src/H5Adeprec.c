@@ -108,7 +108,7 @@ H5Acreate1(hid_t loc_id, const char *name, hid_t type_id, hid_t space_id, hid_t 
     H5VL_loc_params_t loc_params;
     hid_t             ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE5("i", "i*siii", loc_id, name, type_id, space_id, acpl_id);
 
     /* Check arguments */
@@ -149,7 +149,7 @@ done:
         if (attr && H5VL_attr_close(vol_obj, H5P_DATASET_XFER_DEFAULT, H5_REQUEST_NULL) < 0)
             HDONE_ERROR(H5E_ATTR, H5E_CLOSEERROR, H5I_INVALID_HID, "can't close attribute");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Acreate1() */
 
 /*--------------------------------------------------------------------------
@@ -182,7 +182,7 @@ H5Aopen_name(hid_t loc_id, const char *name)
     H5VL_loc_params_t loc_params;
     hid_t             ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE2("i", "i*s", loc_id, name);
 
     /* Check arguments */
@@ -214,7 +214,7 @@ done:
         if (attr && H5VL_attr_close(vol_obj, H5P_DATASET_XFER_DEFAULT, H5_REQUEST_NULL) < 0)
             HDONE_ERROR(H5E_ATTR, H5E_CLOSEERROR, H5I_INVALID_HID, "can't close attribute");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Aopen_name() */
 
 /*--------------------------------------------------------------------------
@@ -247,7 +247,7 @@ H5Aopen_idx(hid_t loc_id, unsigned idx)
     H5VL_loc_params_t loc_params;
     hid_t             ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE2("i", "iIu", loc_id, idx);
 
     /* Check arguments */
@@ -282,7 +282,7 @@ done:
         if (attr && H5VL_attr_close(vol_obj, H5P_DATASET_XFER_DEFAULT, H5_REQUEST_NULL) < 0)
             HDONE_ERROR(H5E_ATTR, H5E_CLOSEERROR, H5I_INVALID_HID, "can't close attribute");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Aopen_idx() */
 
 /*--------------------------------------------------------------------------
@@ -312,7 +312,7 @@ H5Aget_num_attrs(hid_t loc_id)
     H5O_info2_t            oinfo;
     int                    ret_value = -1;
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "i", loc_id);
 
     loc_params.type     = H5VL_OBJECT_BY_SELF;
@@ -334,7 +334,7 @@ H5Aget_num_attrs(hid_t loc_id)
     H5_CHECKED_ASSIGN(ret_value, int, oinfo.num_attrs, hsize_t);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Aget_num_attrs() */
 
 /*--------------------------------------------------------------------------
@@ -382,7 +382,7 @@ H5Aiterate1(hid_t loc_id, unsigned *attr_num /*in,out*/, H5A_operator1_t op, voi
     H5VL_native_attr_optional_args_t attr_opt_args;  /* Arguments for optional operation */
     herr_t                           ret_value;      /* Return value */
 
-    FUNC_ENTER_API(H5_ITER_ERROR)
+    FUNC_ENTER_API(H5_ITER_ERROR, H5I_INVALID_HID)
     H5TRACE4("e", "i*IuAo*x", loc_id, attr_num, op, op_data);
 
     /* check arguments */
@@ -407,6 +407,6 @@ H5Aiterate1(hid_t loc_id, unsigned *attr_num /*in,out*/, H5A_operator1_t op, voi
         HERROR(H5E_ATTR, H5E_BADITER, "error iterating over attributes");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Aiterate1() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

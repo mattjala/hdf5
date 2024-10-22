@@ -761,7 +761,7 @@ H5Pset_chunk_cache(hid_t dapl_id, size_t rdcc_nslots, size_t rdcc_nbytes, double
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "izzd", dapl_id, rdcc_nslots, rdcc_nbytes, rdcc_w0);
 
     /* Check arguments.  Note that we allow negative values - they are
@@ -784,7 +784,7 @@ H5Pset_chunk_cache(hid_t dapl_id, size_t rdcc_nslots, size_t rdcc_nbytes, double
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set preempt read chunks");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_chunk_cache() */
 
 /*-------------------------------------------------------------------------
@@ -809,7 +809,7 @@ H5Pget_chunk_cache(hid_t dapl_id, size_t *rdcc_nslots /*out*/, size_t *rdcc_nbyt
     H5P_genplist_t *def_plist;           /* Default file access property list */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "ixxx", dapl_id, rdcc_nslots, rdcc_nbytes, rdcc_w0);
 
     /* Get the plist structure */
@@ -845,7 +845,7 @@ H5Pget_chunk_cache(hid_t dapl_id, size_t *rdcc_nslots /*out*/, size_t *rdcc_nbyt
     } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_chunk_cache() */
 
 /*-------------------------------------------------------------------------
@@ -1071,7 +1071,7 @@ H5Pset_virtual_view(hid_t plist_id, H5D_vds_view_t view)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iDv", plist_id, view);
 
     /* Check argument */
@@ -1087,7 +1087,7 @@ H5Pset_virtual_view(hid_t plist_id, H5D_vds_view_t view)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_virtual_view() */
 
 /*-------------------------------------------------------------------------
@@ -1107,7 +1107,7 @@ H5Pget_virtual_view(hid_t plist_id, H5D_vds_view_t *view /*out*/)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, view);
 
     /* Get the plist structure */
@@ -1120,7 +1120,7 @@ H5Pget_virtual_view(hid_t plist_id, H5D_vds_view_t *view /*out*/)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_virtual_view() */
 
 /*-------------------------------------------------------------------------
@@ -1213,7 +1213,7 @@ H5Pset_virtual_printf_gap(hid_t plist_id, hsize_t gap_size)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ih", plist_id, gap_size);
 
     /* Check argument */
@@ -1229,7 +1229,7 @@ H5Pset_virtual_printf_gap(hid_t plist_id, hsize_t gap_size)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "unable to set value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_virtual_printf_gap() */
 
 /*-------------------------------------------------------------------------
@@ -1250,7 +1250,7 @@ H5Pget_virtual_printf_gap(hid_t plist_id, hsize_t *gap_size /*out*/)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, gap_size);
 
     /* Get the plist structure */
@@ -1263,7 +1263,7 @@ H5Pget_virtual_printf_gap(hid_t plist_id, hsize_t *gap_size /*out*/)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "unable to get value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_virtual_printf_gap() */
 
 /*-------------------------------------------------------------------------
@@ -1290,7 +1290,7 @@ H5Pset_append_flush(hid_t plist_id, unsigned ndims, const hsize_t *boundary, H5D
     unsigned           u;                   /* Local index variable */
     herr_t             ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "iIu*hDA*x", plist_id, ndims, boundary, func, udata);
 
     /* Check arguments */
@@ -1328,7 +1328,7 @@ H5Pset_append_flush(hid_t plist_id, unsigned ndims, const hsize_t *boundary, H5D
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set append flush");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pset_append_flush() */
 
 /*-------------------------------------------------------------------------
@@ -1352,7 +1352,7 @@ H5Pget_append_flush(hid_t plist_id, unsigned ndims, hsize_t boundary[], H5D_appe
     unsigned           u;                   /* local index variable */
     herr_t             ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "iIu*hxx", plist_id, ndims, boundary, func, udata);
 
     /* Get the plist structure */
@@ -1376,7 +1376,7 @@ H5Pget_append_flush(hid_t plist_id, unsigned ndims, hsize_t boundary[], H5D_appe
         *udata = info.udata;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Pget_append_flush() */
 
 /*-------------------------------------------------------------------------
@@ -1402,7 +1402,7 @@ H5Pset_efile_prefix(hid_t plist_id, const char *prefix)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*s", plist_id, prefix);
 
     /* Get the plist structure */
@@ -1414,7 +1414,7 @@ H5Pset_efile_prefix(hid_t plist_id, const char *prefix)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set prefix info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_efile_prefix() */
 
 /*-------------------------------------------------------------------------
@@ -1435,7 +1435,7 @@ H5Pget_efile_prefix(hid_t plist_id, char *prefix /*out*/, size_t size)
     size_t          len;       /* Length of prefix string */
     ssize_t         ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("Zs", "ixz", plist_id, prefix, size);
 
     /* Get the plist structure */
@@ -1463,7 +1463,7 @@ H5Pget_efile_prefix(hid_t plist_id, char *prefix /*out*/, size_t size)
     ret_value = (ssize_t)len;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_efile_prefix() */
 
 /*-------------------------------------------------------------------------
@@ -1490,7 +1490,7 @@ H5Pset_virtual_prefix(hid_t plist_id, const char *prefix)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*s", plist_id, prefix);
 
     /* Get the plist structure */
@@ -1502,7 +1502,7 @@ H5Pset_virtual_prefix(hid_t plist_id, const char *prefix)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set prefix info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_virtual_prefix() */
 
 /*-------------------------------------------------------------------------
@@ -1525,7 +1525,7 @@ H5Pget_virtual_prefix(hid_t plist_id, char *prefix /*out*/, size_t size)
     size_t          len;       /* Length of prefix string */
     ssize_t         ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("Zs", "ixz", plist_id, prefix, size);
 
     /* Get the plist structure */
@@ -1553,5 +1553,5 @@ H5Pget_virtual_prefix(hid_t plist_id, char *prefix /*out*/, size_t size)
     ret_value = (ssize_t)len;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_virtual_prefix() */

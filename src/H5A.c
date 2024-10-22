@@ -226,7 +226,7 @@ H5Acreate2(hid_t loc_id, const char *attr_name, hid_t type_id, hid_t space_id, h
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE6("i", "i*siiii", loc_id, attr_name, type_id, space_id, acpl_id, aapl_id);
 
     /* Create the attribute synchronously */
@@ -235,7 +235,7 @@ H5Acreate2(hid_t loc_id, const char *attr_name, hid_t type_id, hid_t space_id, h
         HGOTO_ERROR(H5E_ATTR, H5E_CANTCREATE, H5I_INVALID_HID, "unable to synchronously create attribute");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Acreate2() */
 
 /*--------------------------------------------------------------------------
@@ -257,8 +257,9 @@ H5Acreate_async(const char *app_file, const char *app_func, unsigned app_line, h
     void          *token     = NULL;            /* Request token for async operation        */
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
+    int            dec_ref_ret = 0;             /* Ref count decrement return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE10("i", "*s*sIui*siiiii", app_file, app_func, app_line, loc_id, attr_name, type_id, space_id,
               acpl_id, aapl_id, es_id);
 
@@ -277,13 +278,19 @@ H5Acreate_async(const char *app_file, const char *app_func, unsigned app_line, h
         if (H5ES_insert(es_id, vol_obj->connector, token,
                         H5ARG_TRACE10(__func__, "*s*sIui*siiiii", app_file, app_func, app_line, loc_id, attr_name, type_id, space_id, acpl_id, aapl_id, es_id)) < 0) {
             /* clang-format on */
-            if (H5I_dec_app_ref(ret_value) < 0)
+            /* TBD: Retain lock to protect ID iteration */
+            H5_API_LOCK
+            dec_ref_ret = H5I_dec_app_ref(ret_value);
+            H5_API_UNLOCK
+
+            if (dec_ref_ret < 0)
                 HDONE_ERROR(H5E_ATTR, H5E_CANTDEC, H5I_INVALID_HID, "can't decrement count on attribute ID");
+
             HGOTO_ERROR(H5E_ATTR, H5E_CANTINSERT, H5I_INVALID_HID, "can't insert token into event set");
         } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Acreate_async() */
 
 /*--------------------------------------------------------------------------
@@ -375,7 +382,7 @@ H5Acreate_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, hid
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE8("i", "i*s*siiiii", loc_id, obj_name, attr_name, type_id, space_id, acpl_id, aapl_id, lapl_id);
 
     /* Create the attribute synchronously */
@@ -384,7 +391,7 @@ H5Acreate_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, hid
         HGOTO_ERROR(H5E_ATTR, H5E_CANTCREATE, H5I_INVALID_HID, "unable to synchronously create attribute");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Acreate_by_name() */
 
 /*--------------------------------------------------------------------------
@@ -406,8 +413,9 @@ H5Acreate_by_name_async(const char *app_file, const char *app_func, unsigned app
     void          *token     = NULL;            /* Request token for async operation        */
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
+    int            dec_ref_ret = 0;             /* Ref count decrement return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE12("i", "*s*sIui*s*siiiiii", app_file, app_func, app_line, loc_id, obj_name, attr_name, type_id,
               space_id, acpl_id, aapl_id, lapl_id, es_id);
 
@@ -426,13 +434,19 @@ H5Acreate_by_name_async(const char *app_file, const char *app_func, unsigned app
         if (H5ES_insert(es_id, vol_obj->connector, token,
                         H5ARG_TRACE12(__func__, "*s*sIui*s*siiiiii", app_file, app_func, app_line, loc_id, obj_name, attr_name, type_id, space_id, acpl_id, aapl_id, lapl_id, es_id)) < 0) {
             /* clang-format on */
-            if (H5I_dec_app_ref(ret_value) < 0)
+            /* TBD: Retain lock to protect ID iteration */
+            H5_API_LOCK
+            dec_ref_ret = H5I_dec_app_ref(ret_value);
+            H5_API_UNLOCK
+            
+            if (dec_ref_ret < 0)
                 HDONE_ERROR(H5E_ATTR, H5E_CANTDEC, H5I_INVALID_HID, "can't decrement count on attribute ID");
+
             HGOTO_ERROR(H5E_ATTR, H5E_CANTINSERT, H5I_INVALID_HID, "can't insert token into event set");
         } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Acreate_by_name_async() */
 
 /*-------------------------------------------------------------------------
@@ -542,7 +556,7 @@ H5Aopen(hid_t loc_id, const char *attr_name, hid_t aapl_id)
 {
     hid_t ret_value = H5I_INVALID_HID;
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE3("i", "i*si", loc_id, attr_name, aapl_id);
 
     /* Open the attribute synchronously */
@@ -550,7 +564,7 @@ H5Aopen(hid_t loc_id, const char *attr_name, hid_t aapl_id)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTCREATE, H5I_INVALID_HID, "unable to synchronously open attribute");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aopen() */
 
 /*--------------------------------------------------------------------------
@@ -571,8 +585,9 @@ H5Aopen_async(const char *app_file, const char *app_func, unsigned app_line, hid
     void          *token     = NULL;            /* Request token for async operation        */
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
+    int            dec_ref_ret = 0;             /* Ref count decrement return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE7("i", "*s*sIui*sii", app_file, app_func, app_line, loc_id, attr_name, aapl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -589,13 +604,19 @@ H5Aopen_async(const char *app_file, const char *app_func, unsigned app_line, hid
         if (H5ES_insert(es_id, vol_obj->connector, token,
                         H5ARG_TRACE7(__func__, "*s*sIui*sii", app_file, app_func, app_line, loc_id, attr_name, aapl_id, es_id)) < 0) {
             /* clang-format on */
-            if (H5I_dec_app_ref(ret_value) < 0)
+            /* TBD: Retain lock to protect ID iteration */
+            H5_API_LOCK
+            dec_ref_ret = H5I_dec_app_ref(ret_value);
+            H5_API_UNLOCK
+
+            if (dec_ref_ret < 0)
                 HDONE_ERROR(H5E_ATTR, H5E_CANTDEC, H5I_INVALID_HID, "can't decrement count on attribute ID");
+
             HGOTO_ERROR(H5E_ATTR, H5E_CANTINSERT, H5I_INVALID_HID, "can't insert token into event set");
         } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aopen_async() */
 
 /*-------------------------------------------------------------------------
@@ -670,7 +691,7 @@ H5Aopen_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, hid_t
 {
     hid_t ret_value = H5I_INVALID_HID;
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE5("i", "i*s*sii", loc_id, obj_name, attr_name, aapl_id, lapl_id);
 
     /* Open the attribute by name asynchronously */
@@ -679,7 +700,7 @@ H5Aopen_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, hid_t
         HGOTO_ERROR(H5E_ATTR, H5E_CANTOPENOBJ, H5I_INVALID_HID, "unable to synchronously open attribute");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Aopen_by_name() */
 
 /*--------------------------------------------------------------------------
@@ -700,8 +721,9 @@ H5Aopen_by_name_async(const char *app_file, const char *app_func, unsigned app_l
     void          *token     = NULL;            /* Request token for async operation        */
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     hid_t          ret_value = H5I_INVALID_HID;
+    int            dec_ref_ret = 0; /* Ref count decrement return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE9("i", "*s*sIui*s*siii", app_file, app_func, app_line, loc_id, obj_name, attr_name, aapl_id,
              lapl_id, es_id);
 
@@ -720,13 +742,19 @@ H5Aopen_by_name_async(const char *app_file, const char *app_func, unsigned app_l
         if (H5ES_insert(es_id, vol_obj->connector, token,
                         H5ARG_TRACE9(__func__, "*s*sIui*s*siii", app_file, app_func, app_line, loc_id, obj_name, attr_name, aapl_id, lapl_id, es_id)) < 0) {
             /* clang-format on */
-            if (H5I_dec_app_ref(ret_value) < 0)
+            /* TBD: Retain lock to protect ID iteration */
+            H5_API_LOCK
+            dec_ref_ret = H5I_dec_app_ref(ret_value);
+            H5_API_UNLOCK
+
+            if (dec_ref_ret < 0)
                 HDONE_ERROR(H5E_ATTR, H5E_CANTDEC, H5I_INVALID_HID, "can't decrement count on attribute ID");
+
             HGOTO_ERROR(H5E_ATTR, H5E_CANTINSERT, H5I_INVALID_HID, "can't insert token into event set");
         } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Aopen_by_name_async() */
 
 /*-------------------------------------------------------------------------
@@ -809,7 +837,7 @@ H5Aopen_by_idx(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_iter_
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE7("i", "i*sIiIohii", loc_id, obj_name, idx_type, order, n, aapl_id, lapl_id);
 
     /* Open the attribute by idx synchronously */
@@ -818,7 +846,7 @@ H5Aopen_by_idx(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_iter_
         HGOTO_ERROR(H5E_ATTR, H5E_CANTCREATE, H5I_INVALID_HID, "unable to synchronously open attribute");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aopen_by_idx() */
 
 /*--------------------------------------------------------------------------
@@ -840,8 +868,9 @@ H5Aopen_by_idx_async(const char *app_file, const char *app_func, unsigned app_li
     void          *token     = NULL;            /* Request token for async operation        */
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     hid_t          ret_value = H5I_INVALID_HID;
+    int            dec_ref_ret = 0; /* Ref count decrement return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE11("i", "*s*sIui*sIiIohiii", app_file, app_func, app_line, loc_id, obj_name, idx_type, order, n,
               aapl_id, lapl_id, es_id);
 
@@ -860,13 +889,19 @@ H5Aopen_by_idx_async(const char *app_file, const char *app_func, unsigned app_li
         if (H5ES_insert(es_id, vol_obj->connector, token,
                         H5ARG_TRACE11(__func__, "*s*sIui*sIiIohiii", app_file, app_func, app_line, loc_id, obj_name, idx_type, order, n, aapl_id, lapl_id, es_id)) < 0) {
             /* clang-format on */
-            if (H5I_dec_app_ref(ret_value) < 0)
+            /* TBD: Retain lock to protect ID iteration */
+            H5_API_LOCK
+            dec_ref_ret = H5I_dec_app_ref(ret_value);
+            H5_API_UNLOCK
+
+            if (dec_ref_ret < 0)
                 HDONE_ERROR(H5E_ATTR, H5E_CANTDEC, H5I_INVALID_HID, "can't decrement count on attribute ID");
+
             HGOTO_ERROR(H5E_ATTR, H5E_CANTINSERT, H5I_INVALID_HID, "can't insert token into event set");
         } /* end if */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Aopen_by_idx_async() */
 
 /*--------------------------------------------------------------------------
@@ -927,7 +962,7 @@ H5Awrite(hid_t attr_id, hid_t dtype_id, const void *buf)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ii*x", attr_id, dtype_id, buf);
 
     /* Synchronously write the data */
@@ -935,7 +970,7 @@ H5Awrite(hid_t attr_id, hid_t dtype_id, const void *buf)
         HGOTO_ERROR(H5E_ATTR, H5E_WRITEERROR, FAIL, "can't synchronously write data");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Awrite() */
 
 /*--------------------------------------------------------------------------
@@ -955,7 +990,7 @@ H5Awrite_async(const char *app_file, const char *app_func, unsigned app_line, hi
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "*s*sIuii*xi", app_file, app_func, app_line, attr_id, dtype_id, buf, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -975,7 +1010,7 @@ H5Awrite_async(const char *app_file, const char *app_func, unsigned app_line, hi
             HGOTO_ERROR(H5E_ATTR, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Awrite_async() */
 
 /*--------------------------------------------------------------------------
@@ -1035,7 +1070,7 @@ H5Aread(hid_t attr_id, hid_t dtype_id, void *buf /*out*/)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "iix", attr_id, dtype_id, buf);
 
     /* Synchronously read the data */
@@ -1043,7 +1078,7 @@ H5Aread(hid_t attr_id, hid_t dtype_id, void *buf /*out*/)
         HGOTO_ERROR(H5E_ATTR, H5E_READERROR, FAIL, "can't synchronously read data");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aread() */
 
 /*--------------------------------------------------------------------------
@@ -1063,7 +1098,7 @@ H5Aread_async(const char *app_file, const char *app_func, unsigned app_line, hid
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "*s*sIuiixi", app_file, app_func, app_line, attr_id, dtype_id, buf, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -1083,7 +1118,7 @@ H5Aread_async(const char *app_file, const char *app_func, unsigned app_line, hid
             HGOTO_ERROR(H5E_ATTR, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aread_async() */
 
 /*--------------------------------------------------------------------------
@@ -1109,7 +1144,7 @@ H5Aget_space(hid_t attr_id)
     H5VL_attr_get_args_t vol_cb_args;                 /* Arguments to VOL callback */
     hid_t                ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", attr_id);
 
     /* Check arguments */
@@ -1128,7 +1163,7 @@ H5Aget_space(hid_t attr_id)
     ret_value = vol_cb_args.args.get_space.space_id;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aget_space() */
 
 /*--------------------------------------------------------------------------
@@ -1154,7 +1189,7 @@ H5Aget_type(hid_t attr_id)
     H5VL_attr_get_args_t vol_cb_args;                 /* Arguments to VOL callback */
     hid_t                ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", attr_id);
 
     /* Check arguments */
@@ -1173,7 +1208,7 @@ H5Aget_type(hid_t attr_id)
     ret_value = vol_cb_args.args.get_type.type_id;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aget_type() */
 
 /*--------------------------------------------------------------------------
@@ -1202,7 +1237,7 @@ H5Aget_create_plist(hid_t attr_id)
     H5VL_attr_get_args_t vol_cb_args;                 /* Arguments to VOL callback */
     hid_t                ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", attr_id);
 
     assert(H5P_LST_ATTRIBUTE_CREATE_ID_g != -1);
@@ -1224,7 +1259,7 @@ H5Aget_create_plist(hid_t attr_id)
     ret_value = vol_cb_args.args.get_acpl.acpl_id;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Aget_create_plist() */
 
 /*--------------------------------------------------------------------------
@@ -1256,7 +1291,7 @@ H5Aget_name(hid_t attr_id, size_t buf_size, char *buf /*out*/)
     size_t               attr_name_len = 0;  /* Length of attribute name */
     ssize_t              ret_value     = -1; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
     H5TRACE3("Zs", "izx", attr_id, buf_size, buf);
 
     /* check arguments */
@@ -1281,7 +1316,7 @@ H5Aget_name(hid_t attr_id, size_t buf_size, char *buf /*out*/)
     ret_value = (ssize_t)attr_name_len;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aget_name() */
 
 /*-------------------------------------------------------------------------
@@ -1307,7 +1342,7 @@ H5Aget_name_by_idx(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_i
     size_t               attr_name_len = 0; /* Length of attribute name */
     ssize_t              ret_value;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE8("Zs", "i*sIiIohxzi", loc_id, obj_name, idx_type, order, n, name, size, lapl_id);
 
     /* Check args */
@@ -1351,7 +1386,7 @@ H5Aget_name_by_idx(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_i
     ret_value = (ssize_t)attr_name_len;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Aget_name_by_idx() */
 
 /*-------------------------------------------------------------------------
@@ -1376,7 +1411,7 @@ H5Aget_storage_size(hid_t attr_id)
     hsize_t              storage_size = 0; /* Storage size of attribute */
     hsize_t              ret_value;        /* Return value */
 
-    FUNC_ENTER_API(0)
+    FUNC_ENTER_API_NO_MUTEX(0, H5I_INVALID_HID)
     H5TRACE1("h", "i", attr_id);
 
     /* Check arguments */
@@ -1395,7 +1430,7 @@ H5Aget_storage_size(hid_t attr_id)
     ret_value = storage_size;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Aget_storage_size() */
 
 /*-------------------------------------------------------------------------
@@ -1415,7 +1450,7 @@ H5Aget_info(hid_t attr_id, H5A_info_t *ainfo /*out*/)
     H5VL_attr_get_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", attr_id, ainfo);
 
     /* Check args */
@@ -1436,7 +1471,7 @@ H5Aget_info(hid_t attr_id, H5A_info_t *ainfo /*out*/)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTGET, FAIL, "unable to get attribute info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Aget_info() */
 
 /*-------------------------------------------------------------------------
@@ -1457,7 +1492,7 @@ H5Aget_info_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, H
     H5VL_attr_get_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "i*s*sxi", loc_id, obj_name, attr_name, ainfo, lapl_id);
 
     /* Check args */
@@ -1492,7 +1527,7 @@ H5Aget_info_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, H
         HGOTO_ERROR(H5E_ATTR, H5E_CANTGET, FAIL, "unable to get attribute info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Aget_info_by_name() */
 
 /*-------------------------------------------------------------------------
@@ -1514,7 +1549,7 @@ H5Aget_info_by_idx(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_i
     H5VL_attr_get_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "i*sIiIohxi", loc_id, obj_name, idx_type, order, n, ainfo, lapl_id);
 
     /* Check args */
@@ -1554,7 +1589,7 @@ H5Aget_info_by_idx(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_i
         HGOTO_ERROR(H5E_ATTR, H5E_CANTGET, FAIL, "unable to get attribute info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Aget_info_by_idx() */
 
 /*--------------------------------------------------------------------------
@@ -1657,7 +1692,7 @@ H5Arename(hid_t loc_id, const char *old_name, const char *new_name)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*s*s", loc_id, old_name, new_name);
 
     /* Synchronously rename the attribute */
@@ -1665,7 +1700,7 @@ H5Arename(hid_t loc_id, const char *old_name, const char *new_name)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTRENAME, FAIL, "can't synchronously rename attribute");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Arename() */
 
 /*--------------------------------------------------------------------------
@@ -1685,7 +1720,7 @@ H5Arename_async(const char *app_file, const char *app_func, unsigned app_line, h
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "*s*sIui*s*si", app_file, app_func, app_line, loc_id, old_name, new_name, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -1705,7 +1740,7 @@ H5Arename_async(const char *app_file, const char *app_func, unsigned app_line, h
             HGOTO_ERROR(H5E_ATTR, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Arename_async() */
 
 /*--------------------------------------------------------------------------
@@ -1770,7 +1805,7 @@ H5Arename_by_name(hid_t loc_id, const char *obj_name, const char *old_attr_name,
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "i*s*s*si", loc_id, obj_name, old_attr_name, new_attr_name, lapl_id);
 
     /* Synchronously rename the attribute */
@@ -1779,7 +1814,7 @@ H5Arename_by_name(hid_t loc_id, const char *obj_name, const char *old_attr_name,
         HGOTO_ERROR(H5E_ATTR, H5E_CANTRENAME, FAIL, "can't synchronously rename attribute");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Arename_by_name() */
 
 /*--------------------------------------------------------------------------
@@ -1800,7 +1835,7 @@ H5Arename_by_name_async(const char *app_file, const char *app_func, unsigned app
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE9("e", "*s*sIui*s*s*sii", app_file, app_func, app_line, loc_id, obj_name, old_attr_name,
              new_attr_name, lapl_id, es_id);
 
@@ -1822,7 +1857,7 @@ H5Arename_by_name_async(const char *app_file, const char *app_func, unsigned app
             HGOTO_ERROR(H5E_ATTR, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Arename_by_name_async() */
 
 /*--------------------------------------------------------------------------
@@ -1875,7 +1910,7 @@ H5Aiterate2(hid_t loc_id, H5_index_t idx_type, H5_iter_order_t order, hsize_t *i
     H5VL_attr_specific_args_t vol_cb_args;    /* Arguments to VOL callback */
     herr_t                    ret_value;      /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "iIiIo*hAO*x", loc_id, idx_type, order, idx, op, op_data);
 
     /* Check arguments */
@@ -1908,7 +1943,7 @@ H5Aiterate2(hid_t loc_id, H5_index_t idx_type, H5_iter_order_t order, hsize_t *i
         HERROR(H5E_ATTR, H5E_BADITER, "error iterating over attributes");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aiterate2() */
 
 /*--------------------------------------------------------------------------
@@ -1963,7 +1998,7 @@ H5Aiterate_by_name(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_i
     H5VL_attr_specific_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t                    ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE8("e", "i*sIiIo*hAO*xi", loc_id, obj_name, idx_type, order, idx, op, op_data, lapl_id);
 
     /* Check arguments */
@@ -2004,7 +2039,7 @@ H5Aiterate_by_name(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_i
         HERROR(H5E_ATTR, H5E_BADITER, "attribute iteration failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aiterate_by_name() */
 
 /*--------------------------------------------------------------------------
@@ -2029,7 +2064,7 @@ H5Adelete(hid_t loc_id, const char *name)
     H5VL_attr_specific_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t                    ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*s", loc_id, name);
 
     /* Check arguments */
@@ -2061,7 +2096,7 @@ H5Adelete(hid_t loc_id, const char *name)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTDELETE, FAIL, "unable to delete attribute");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Adelete() */
 
 /*--------------------------------------------------------------------------
@@ -2088,7 +2123,7 @@ H5Adelete_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, hid
     H5VL_attr_specific_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t                    ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*s*si", loc_id, obj_name, attr_name, lapl_id);
 
     /* Check arguments */
@@ -2122,7 +2157,7 @@ H5Adelete_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, hid
         HGOTO_ERROR(H5E_ATTR, H5E_CANTDELETE, FAIL, "unable to delete attribute");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Adelete_by_name() */
 
 /*--------------------------------------------------------------------------
@@ -2158,7 +2193,7 @@ H5Adelete_by_idx(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_ite
     H5VL_attr_specific_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t                    ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "i*sIiIohi", loc_id, obj_name, idx_type, order, n, lapl_id);
 
     /* check arguments */
@@ -2196,7 +2231,7 @@ H5Adelete_by_idx(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_ite
         HGOTO_ERROR(H5E_ATTR, H5E_CANTDELETE, FAIL, "unable to delete attribute");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Adelete_by_idx() */
 
 /*-------------------------------------------------------------------------
@@ -2214,8 +2249,9 @@ herr_t
 H5Aclose(hid_t attr_id)
 {
     herr_t ret_value = SUCCEED; /* Return value */
+    int    dec_ref_ret = 0;     /* Ref count decrement return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", attr_id);
 
     /* Check arguments */
@@ -2225,11 +2261,16 @@ H5Aclose(hid_t attr_id)
     /* Decrement the counter on the attribute ID. It will be freed if the count
      * reaches zero.
      */
-    if (H5I_dec_app_ref(attr_id) < 0)
+    /* TBD: Retain lock to protect ID iteration */
+    H5_API_LOCK
+    dec_ref_ret = H5I_dec_app_ref(attr_id);
+    H5_API_UNLOCK
+
+    if (dec_ref_ret < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTDEC, FAIL, "decrementing attribute ID failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aclose() */
 
 /*-------------------------------------------------------------------------
@@ -2249,8 +2290,9 @@ H5Aclose_async(const char *app_file, const char *app_func, unsigned app_line, hi
     void          *token     = NULL;            /* Request token for async operation        */
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
+    int            dec_ref_ret = 0;             /* Ref count decrement return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "*s*sIuii", app_file, app_func, app_line, attr_id, es_id);
 
     /* Check arguments */
@@ -2265,8 +2307,8 @@ H5Aclose_async(const char *app_file, const char *app_func, unsigned app_line, hi
 
         /* Increase connector's refcount, so it doesn't get closed if closing
          * the attribute closes the file */
+        H5VL_conn_inc_rc(vol_obj->connector);
         connector = vol_obj->connector;
-        H5VL_conn_inc_rc(connector);
 
         /* Point at token for operation to set up */
         token_ptr = &token;
@@ -2275,7 +2317,12 @@ H5Aclose_async(const char *app_file, const char *app_func, unsigned app_line, hi
     /* Decrement the counter on the attribute ID. It will be freed if the count
      * reaches zero.
      */
-    if (H5I_dec_app_ref_async(attr_id, token_ptr) < 0)
+    /* TBD: Retain lock to protect ID iteration */
+    H5_API_LOCK
+    dec_ref_ret = H5I_dec_app_ref_async(attr_id, token_ptr);
+    H5_API_UNLOCK
+
+    if (dec_ref_ret < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTDEC, FAIL, "decrementing attribute ID failed");
 
     /* If a token was created, add the token to the event set */
@@ -2290,7 +2337,7 @@ done:
     if (connector && H5VL_conn_dec_rc(connector) < 0)
         HDONE_ERROR(H5E_ATTR, H5E_CANTDEC, FAIL, "can't decrement ref count on connector");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aclose_async() */
 
 /*--------------------------------------------------------------------------
@@ -2388,7 +2435,7 @@ H5Aexists(hid_t obj_id, const char *attr_name)
     hbool_t exists;           /* Flag for attribute existence */
     htri_t  ret_value = FAIL; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE2("t", "i*s", obj_id, attr_name);
 
     /* Synchronously check if an attribute exists */
@@ -2400,7 +2447,7 @@ H5Aexists(hid_t obj_id, const char *attr_name)
     ret_value = (htri_t)exists;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aexists() */
 
 /*--------------------------------------------------------------------------
@@ -2420,7 +2467,7 @@ H5Aexists_async(const char *app_file, const char *app_func, unsigned app_line, h
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "*s*sIui*s*bi", app_file, app_func, app_line, obj_id, attr_name, attr_exists, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -2440,7 +2487,7 @@ H5Aexists_async(const char *app_file, const char *app_func, unsigned app_line, h
             HGOTO_ERROR(H5E_ATTR, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aexists_async() */
 
 /*--------------------------------------------------------------------------
@@ -2501,7 +2548,7 @@ H5Aexists_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, hid
     hbool_t exists;           /* Flag for attribute existence */
     htri_t  ret_value = FAIL; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE4("t", "i*s*si", loc_id, obj_name, attr_name, lapl_id);
 
     /* Synchronously check if an attribute exists */
@@ -2513,7 +2560,7 @@ H5Aexists_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, hid
     ret_value = (htri_t)exists;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aexists_by_name() */
 
 /*--------------------------------------------------------------------------
@@ -2534,7 +2581,7 @@ H5Aexists_by_name_async(const char *app_file, const char *app_func, unsigned app
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE9("e", "*s*sIui*s*s*bii", app_file, app_func, app_line, loc_id, obj_name, attr_name, attr_exists,
              lapl_id, es_id);
 
@@ -2557,5 +2604,5 @@ H5Aexists_by_name_async(const char *app_file, const char *app_func, unsigned app
             HGOTO_ERROR(H5E_ATTR, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Aexists_by_name_async() */

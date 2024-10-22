@@ -97,7 +97,7 @@ H5Lmove(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id, const char *ds
     H5VL_object_t     tmp_vol_obj;         /* Temporary object */
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "i*si*sii", src_loc_id, src_name, dst_loc_id, dst_name, lcpl_id, lapl_id);
 
     /* Check arguments */
@@ -174,7 +174,7 @@ H5Lmove(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id, const char *ds
         HGOTO_ERROR(H5E_LINK, H5E_CANTMOVE, FAIL, "unable to move link");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lmove() */
 
 /*-------------------------------------------------------------------------
@@ -199,7 +199,7 @@ H5Lcopy(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id, const char *ds
     H5VL_object_t     tmp_vol_obj;         /* Temporary object */
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "i*si*sii", src_loc_id, src_name, dst_loc_id, dst_name, lcpl_id, lapl_id);
 
     /* Check arguments */
@@ -276,7 +276,7 @@ H5Lcopy(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id, const char *ds
         HGOTO_ERROR(H5E_LINK, H5E_CANTMOVE, FAIL, "unable to copy link");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lcopy() */
 
 /*-------------------------------------------------------------------------
@@ -361,7 +361,7 @@ H5Lcreate_soft(const char *link_target, hid_t link_loc_id, const char *link_name
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "*si*sii", link_target, link_loc_id, link_name, lcpl_id, lapl_id);
 
     /* Creates a soft link synchronously */
@@ -369,7 +369,7 @@ H5Lcreate_soft(const char *link_target, hid_t link_loc_id, const char *link_name
         HGOTO_ERROR(H5E_LINK, H5E_CANTCREATE, FAIL, "unable to synchronously create soft link");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lcreate_soft() */
 
 /*-------------------------------------------------------------------------
@@ -390,7 +390,7 @@ H5Lcreate_soft_async(const char *app_file, const char *app_func, unsigned app_li
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE9("e", "*s*sIu*si*siii", app_file, app_func, app_line, link_target, link_loc_id, link_name,
              lcpl_id, lapl_id, es_id);
 
@@ -412,7 +412,7 @@ H5Lcreate_soft_async(const char *app_file, const char *app_func, unsigned app_li
             HGOTO_ERROR(H5E_LINK, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Lcreate_soft_async() */
 
 /*-------------------------------------------------------------------------
@@ -544,7 +544,7 @@ H5Lcreate_hard(hid_t cur_loc_id, const char *cur_name, hid_t new_loc_id, const c
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "i*si*sii", cur_loc_id, cur_name, new_loc_id, new_name, lcpl_id, lapl_id);
 
     /* Creates a hard link synchronously */
@@ -553,7 +553,7 @@ H5Lcreate_hard(hid_t cur_loc_id, const char *cur_name, hid_t new_loc_id, const c
         HGOTO_ERROR(H5E_LINK, H5E_CANTCREATE, FAIL, "unable to synchronously create hard link");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lcreate_hard() */
 
 /*-------------------------------------------------------------------------
@@ -581,7 +581,7 @@ H5Lcreate_hard_async(const char *app_file, const char *app_func, unsigned app_li
     void         **token_ptr   = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value   = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE10("e", "*s*sIui*si*siii", app_file, app_func, app_line, cur_loc_id, cur_name, new_loc_id,
               new_name, lcpl_id, lapl_id, es_id);
 
@@ -603,7 +603,7 @@ H5Lcreate_hard_async(const char *app_file, const char *app_func, unsigned app_li
             HGOTO_ERROR(H5E_LINK, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Lcreate_hard_async() */
 
 /*-------------------------------------------------------------------------
@@ -638,7 +638,7 @@ H5Lcreate_external(const char *file_name, const char *obj_name, hid_t link_loc_i
     uint8_t                *p;                    /* Pointer into external link buffer */
     herr_t                  ret_value = SUCCEED;  /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "*s*si*sii", file_name, obj_name, link_loc_id, link_name, lcpl_id, lapl_id);
 
     /* Check arguments */
@@ -702,7 +702,7 @@ done:
     H5MM_xfree(ext_link_buf);
     H5MM_xfree(norm_obj_name);
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lcreate_external() */
 
 /*-------------------------------------------------------------------------
@@ -735,7 +735,7 @@ H5Lcreate_ud(hid_t link_loc_id, const char *link_name, H5L_type_t link_type, con
     H5VL_loc_params_t       loc_params;          /* Location parameters for object access */
     herr_t                  ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "i*sLl*xzii", link_loc_id, link_name, link_type, udata, udata_size, lcpl_id, lapl_id);
 
     /* Check arguments */
@@ -778,7 +778,7 @@ H5Lcreate_ud(hid_t link_loc_id, const char *link_name, H5L_type_t link_type, con
         HGOTO_ERROR(H5E_LINK, H5E_CANTINIT, FAIL, "unable to create link");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lcreate_ud() */
 
 /*-------------------------------------------------------------------------
@@ -840,7 +840,7 @@ H5Ldelete(hid_t loc_id, const char *name, hid_t lapl_id)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*si", loc_id, name, lapl_id);
 
     /* Delete a link synchronously */
@@ -848,7 +848,7 @@ H5Ldelete(hid_t loc_id, const char *name, hid_t lapl_id)
         HGOTO_ERROR(H5E_LINK, H5E_CANTDELETE, FAIL, "unable to synchronously delete link");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Ldelete() */
 
 /*-------------------------------------------------------------------------
@@ -869,7 +869,7 @@ H5Ldelete_async(const char *app_file, const char *app_func, unsigned app_line, h
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "*s*sIui*sii", app_file, app_func, app_line, loc_id, name, lapl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -889,7 +889,7 @@ H5Ldelete_async(const char *app_file, const char *app_func, unsigned app_line, h
             HGOTO_ERROR(H5E_LINK, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Ldelete_async() */
 
 /*-------------------------------------------------------------------------
@@ -962,7 +962,7 @@ H5Ldelete_by_idx(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5_i
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "i*sIiIohi", loc_id, group_name, idx_type, order, n, lapl_id);
 
     /* Delete a link synchronously */
@@ -970,7 +970,7 @@ H5Ldelete_by_idx(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5_i
         HGOTO_ERROR(H5E_LINK, H5E_CANTDELETE, FAIL, "unable to synchronously delete link");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Ldelete_by_idx() */
 
 /*-------------------------------------------------------------------------
@@ -992,7 +992,7 @@ H5Ldelete_by_idx_async(const char *app_file, const char *app_func, unsigned app_
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE10("e", "*s*sIui*sIiIohii", app_file, app_func, app_line, loc_id, group_name, idx_type, order, n,
               lapl_id, es_id);
 
@@ -1014,7 +1014,7 @@ H5Ldelete_by_idx_async(const char *app_file, const char *app_func, unsigned app_
             HGOTO_ERROR(H5E_LINK, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Ldelete_by_idx_async() */
 
 /*-------------------------------------------------------------------------
@@ -1041,7 +1041,7 @@ H5Lget_val(hid_t loc_id, const char *name, void *buf /*out*/, size_t size, hid_t
     H5VL_loc_params_t    loc_params;          /* Location parameters for object access */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "i*sxzi", loc_id, name, buf, size, lapl_id);
 
     /* Check arguments */
@@ -1072,7 +1072,7 @@ H5Lget_val(hid_t loc_id, const char *name, void *buf /*out*/, size_t size, hid_t
         HGOTO_ERROR(H5E_LINK, H5E_CANTGET, FAIL, "unable to get link value for '%s'", name);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lget_val() */
 
 /*-------------------------------------------------------------------------
@@ -1099,7 +1099,7 @@ H5Lget_val_by_idx(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5_
     H5VL_loc_params_t    loc_params;          /* Location parameters for object access */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE8("e", "i*sIiIohxzi", loc_id, group_name, idx_type, order, n, buf, size, lapl_id);
 
     /* Check arguments */
@@ -1137,7 +1137,7 @@ H5Lget_val_by_idx(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5_
         HGOTO_ERROR(H5E_LINK, H5E_CANTGET, FAIL, "unable to get link value");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lget_val_by_idx() */
 
 /*--------------------------------------------------------------------------
@@ -1198,7 +1198,7 @@ H5Lexists(hid_t loc_id, const char *name, hid_t lapl_id)
     hbool_t exists;           /* Flag to indicate if link exists */
     htri_t  ret_value = FAIL; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE3("t", "i*si", loc_id, name, lapl_id);
 
     /* Synchronously check if a link exists */
@@ -1210,7 +1210,7 @@ H5Lexists(hid_t loc_id, const char *name, hid_t lapl_id)
     ret_value = (htri_t)exists;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lexists() */
 
 /*--------------------------------------------------------------------------
@@ -1230,7 +1230,7 @@ H5Lexists_async(const char *app_file, const char *app_func, unsigned app_line, h
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE8("e", "*s*sIui*s*bii", app_file, app_func, app_line, loc_id, name, exists, lapl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -1250,7 +1250,7 @@ H5Lexists_async(const char *app_file, const char *app_func, unsigned app_line, h
             HGOTO_ERROR(H5E_LINK, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Lexists_async() */
 
 /*-------------------------------------------------------------------------
@@ -1271,7 +1271,7 @@ H5Lget_info2(hid_t loc_id, const char *name, H5L_info2_t *linfo /*out*/, hid_t l
     H5VL_loc_params_t    loc_params;          /* Location parameters for object access */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*sxi", loc_id, name, linfo, lapl_id);
 
     /* Check arguments */
@@ -1301,7 +1301,7 @@ H5Lget_info2(hid_t loc_id, const char *name, H5L_info2_t *linfo /*out*/, hid_t l
         HGOTO_ERROR(H5E_LINK, H5E_CANTGET, FAIL, "unable to get link info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lget_info2() */
 
 /*-------------------------------------------------------------------------
@@ -1324,7 +1324,7 @@ H5Lget_info_by_idx2(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
     H5VL_loc_params_t    loc_params;          /* Location parameters for object access */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "i*sIiIohxi", loc_id, group_name, idx_type, order, n, linfo, lapl_id);
 
     /* Check arguments */
@@ -1361,7 +1361,7 @@ H5Lget_info_by_idx2(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
         HGOTO_ERROR(H5E_LINK, H5E_CANTGET, FAIL, "unable to get link info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lget_info_by_idx2() */
 
 /*-------------------------------------------------------------------------
@@ -1385,7 +1385,7 @@ H5Lregister(const H5L_class_t *cls)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "*#", cls);
 
     /* Check args */
@@ -1419,7 +1419,7 @@ H5Lregister(const H5L_class_t *cls)
         HGOTO_ERROR(H5E_LINK, H5E_NOTREGISTERED, FAIL, "unable to register link type");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Lregister() */
 
 /*-------------------------------------------------------------------------
@@ -1439,7 +1439,7 @@ H5Lunregister(H5L_type_t id)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "Ll", id);
 
     /* Check args */
@@ -1451,7 +1451,7 @@ H5Lunregister(H5L_type_t id)
         HGOTO_ERROR(H5E_LINK, H5E_NOTREGISTERED, FAIL, "unable to unregister link type");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Lunregister() */
 
 /*-------------------------------------------------------------------------
@@ -1472,7 +1472,7 @@ H5Lis_registered(H5L_type_t id)
     hbool_t is_registered = FALSE;
     htri_t  ret_value     = FALSE; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("t", "Ll", id);
 
     /* Check args */
@@ -1486,7 +1486,7 @@ H5Lis_registered(H5L_type_t id)
     ret_value = is_registered ? TRUE : FALSE;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Lis_registered() */
 
 /*-------------------------------------------------------------------------
@@ -1514,7 +1514,7 @@ H5Lget_name_by_idx(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5
     size_t               link_name_len = 0;  /* Length of the link name string */
     ssize_t              ret_value     = -1; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
     H5TRACE8("Zs", "i*sIiIohxzi", loc_id, group_name, idx_type, order, n, name, size, lapl_id);
 
     /* Check arguments */
@@ -1556,7 +1556,7 @@ H5Lget_name_by_idx(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5
     ret_value = (ssize_t)link_name_len;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lget_name_by_idx() */
 
 /*-------------------------------------------------------------------------
@@ -1639,7 +1639,7 @@ H5Literate2(hid_t group_id, H5_index_t idx_type, H5_iter_order_t order, hsize_t 
 {
     herr_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "iIiIo*hLI*x", group_id, idx_type, order, idx_p, op, op_data);
 
     /* Iterate over links synchronously */
@@ -1647,7 +1647,7 @@ H5Literate2(hid_t group_id, H5_index_t idx_type, H5_iter_order_t order, hsize_t 
         HGOTO_ERROR(H5E_LINK, H5E_BADITER, FAIL, "synchronous link iteration failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Literate2() */
 
 /*-------------------------------------------------------------------------
@@ -1676,7 +1676,7 @@ H5Literate_async(const char *app_file, const char *app_func, unsigned app_line, 
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value;                   /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE10("e", "*s*sIuiIiIo*hLI*xi", app_file, app_func, app_line, group_id, idx_type, order, idx_p, op,
               op_data, es_id);
 
@@ -1698,7 +1698,7 @@ H5Literate_async(const char *app_file, const char *app_func, unsigned app_line, 
             HGOTO_ERROR(H5E_LINK, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5Literate_async() */
 
 /*-------------------------------------------------------------------------
@@ -1729,7 +1729,7 @@ H5Literate_by_name2(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
     H5VL_loc_params_t         loc_params;     /* Location parameters for object access */
     herr_t                    ret_value;      /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE8("e", "i*sIiIo*hLI*xi", loc_id, group_name, idx_type, order, idx_p, op, op_data, lapl_id);
 
     /* Check arguments */
@@ -1773,7 +1773,7 @@ H5Literate_by_name2(hid_t loc_id, const char *group_name, H5_index_t idx_type, H
         HGOTO_ERROR(H5E_LINK, H5E_BADITER, FAIL, "link iteration failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Literate_by_name() */
 
 /*-------------------------------------------------------------------------
@@ -1810,7 +1810,7 @@ H5Lvisit2(hid_t group_id, H5_index_t idx_type, H5_iter_order_t order, H5L_iterat
     H5I_type_t                id_type;        /* Type of ID */
     herr_t                    ret_value;      /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "iIiIoLI*x", group_id, idx_type, order, op, op_data);
 
     /* Check args */
@@ -1847,7 +1847,7 @@ H5Lvisit2(hid_t group_id, H5_index_t idx_type, H5_iter_order_t order, H5L_iterat
         HGOTO_ERROR(H5E_LINK, H5E_BADITER, FAIL, "link visitation failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lvisit2() */
 
 /*-------------------------------------------------------------------------
@@ -1884,7 +1884,7 @@ H5Lvisit_by_name2(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5_
     H5VL_loc_params_t         loc_params;     /* Location parameters for object access */
     herr_t                    ret_value;      /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "i*sIiIoLI*xi", loc_id, group_name, idx_type, order, op, op_data, lapl_id);
 
     /* Check args */
@@ -1928,7 +1928,7 @@ H5Lvisit_by_name2(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5_
         HGOTO_ERROR(H5E_LINK, H5E_BADITER, FAIL, "link visitation failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5Lvisit_by_name2() */
 
 /*-------------------------------------------------------------------------
@@ -1961,7 +1961,7 @@ H5Lunpack_elink_val(const void *_ext_linkval, size_t link_size, unsigned *flags,
     size_t         len;                                         /* Length of the filename in the linkval*/
     herr_t         ret_value = SUCCEED;                         /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "*xz*Iu**s**s", _ext_linkval, link_size, flags, filename, obj_path);
 
     /* Sanity check external link buffer */
@@ -2007,5 +2007,5 @@ H5Lunpack_elink_val(const void *_ext_linkval, size_t link_size, unsigned *flags,
         *flags = lnk_flags;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Lunpack_elink_val() */

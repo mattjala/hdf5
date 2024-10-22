@@ -39,7 +39,7 @@ H5Tget_sign(hid_t type_id)
     H5T_t     *dt = NULL;
     H5T_sign_t ret_value;
 
-    FUNC_ENTER_API(H5T_SGN_ERROR)
+    FUNC_ENTER_API(H5T_SGN_ERROR, H5I_INVALID_HID)
     H5TRACE1("Ts", "i", type_id);
 
     /* Check args */
@@ -49,7 +49,7 @@ H5Tget_sign(hid_t type_id)
     ret_value = H5T_get_sign(dt);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -103,7 +103,7 @@ H5Tset_sign(hid_t type_id, H5T_sign_t sign)
     H5T_t *dt        = NULL;
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iTs", type_id, sign);
 
     /* Check args */
@@ -124,5 +124,5 @@ H5Tset_sign(hid_t type_id, H5T_sign_t sign)
     dt->shared->u.atomic.u.i.sign = sign;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }

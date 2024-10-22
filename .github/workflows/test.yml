@@ -11,6 +11,7 @@ jobs:
         strategy:
             matrix:
                 api_tests: ["--enable-api-tests", "--disable-api-tests"]
+                multi_thread: ["--enable-multithread --disable-hl", "--disable-multithread --enable-threadsafe --disable-hl", "--disable-multithread --disable-threadsafe"]
             fail-fast: false
 
         steps:
@@ -25,22 +26,39 @@ jobs:
             - name: Configure HDF5
               working-directory: ${{github.workspace}}
               run: |
-                    autoreconf -if
-                    ./configure --enable-shared --enable-tests ${{ matrix.api_tests }}
+                    sh ./autogen.sh
+                    ./configure --enable-shared --enable-tests ${{ matrix.multi_thread }} ${{ matrix.api_tests }} --enable-build-mode=debug
 
             - name: Build HDF5
               working-directory: ${{github.workspace}}
               run: |
                     make -j
-                    make install
-
+        
             - name: API Tests
               if: matrix.api_tests == '--enable-api-tests'
               working-directory: ${{github.workspace}}
               run: |
                 valgrind ./test/API/api_tests
 
+            - name: API Tests with multithread test VOL
+              if: matrix.api_tests == '--enable-api-tests' && matrix.multi_thread == '--enable-multithread --disable-hl'
+              working-directory: ${{github.workspace}}
+              env:
+                HDF5_PLUGIN_PATH: ${{github.workspace}}/test/.libs
+                HDF5_VOL_CONNECTOR: "mt_test_vol_connector"
+              run: |
+                valgrind ./test/API/api_tests
+            
+            - name: API Tests with passthrough multithread test VOL
+              if: matrix.api_tests == '--enable-api-tests' && matrix.multi_thread == '--enable-multithread --disable-hl'
+              working-directory: ${{github.workspace}}
+              env:
+                HDF5_PLUGIN_PATH: ${{github.workspace}}/test/.libs
+                HDF5_VOL_CONNECTOR: "mt_test_passthru_vol_connector under_vol=0\\;under_info={}"
+              run: |
+                valgrind ./test/API/api_tests
+
             - name: Test HDF5
               working-directory: ${{github.workspace}}
               run: |
-                    make check
+                make check

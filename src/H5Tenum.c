@@ -46,7 +46,7 @@ H5Tenum_create(hid_t parent_id)
     H5T_t *dt     = NULL; /*new enumeration data type	*/
     hid_t  ret_value;     /*return value			*/
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE1("i", "i", parent_id);
 
     /* Check args */
@@ -63,7 +63,7 @@ H5Tenum_create(hid_t parent_id)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register data type ID");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tenum_create() */
 
 /*-------------------------------------------------------------------------
@@ -122,7 +122,7 @@ H5Tenum_insert(hid_t type, const char *name, const void *value)
     H5T_t *dt        = NULL;
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*s*x", type, name, value);
 
     /* Check args */
@@ -140,7 +140,7 @@ H5Tenum_insert(hid_t type, const char *name, const void *value)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to insert new enumeration member");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -221,7 +221,7 @@ H5Tget_member_value(hid_t type, unsigned membno, void *value /*out*/)
     H5T_t *dt        = NULL;
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "iIux", type, membno, value);
 
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type, H5I_DATATYPE)))
@@ -236,7 +236,7 @@ H5Tget_member_value(hid_t type, unsigned membno, void *value /*out*/)
     if (H5T__get_member_value(dt, membno, value) < 0)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "unable to get member value");
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -288,7 +288,7 @@ H5Tenum_nameof(hid_t type, const void *value, char *name /*out*/, size_t size)
     H5T_t *dt        = NULL;
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*xxz", type, value, name, size);
 
     /* Check args */
@@ -305,7 +305,7 @@ H5Tenum_nameof(hid_t type, const void *value, char *name /*out*/, size_t size)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "nameof query failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -419,7 +419,7 @@ H5Tenum_valueof(hid_t type, const char *name, void *value /*out*/)
     H5T_t *dt;
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*sx", type, name, value);
 
     /* Check args */
@@ -436,7 +436,7 @@ H5Tenum_valueof(hid_t type, const char *name, void *value /*out*/)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "valueof query failed");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* H5Tenum_valueof() */
 
 /*-------------------------------------------------------------------------

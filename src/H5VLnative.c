@@ -199,12 +199,17 @@ H5VL_native_register(void)
     FUNC_ENTER_NOAPI(H5I_INVALID_HID)
 
     /* Register the native VOL connector, if it isn't already */
-    if (H5I_INVALID_HID == H5VL_NATIVE_ID_g)
+    if (H5I_INVALID_HID == H5VL_NATIVE_ID_g) {
+        /* Lock to prevent concurrent modification attempts */
+        H5_API_LOCK
+
         if ((H5VL_NATIVE_ID_g =
                  H5VL__register_connector(&H5VL_native_cls_g, TRUE, H5P_VOL_INITIALIZE_DEFAULT)) < 0)
             HGOTO_ERROR(H5E_VOL, H5E_CANTINSERT, H5I_INVALID_HID, "can't create ID for native VOL connector");
 
-    /* Set return value */
+        H5_API_UNLOCK
+    }
+
     ret_value = H5VL_NATIVE_ID_g;
 
 done:
@@ -226,7 +231,9 @@ H5VL__native_term(void)
     FUNC_ENTER_PACKAGE_NOERR
 
     /* Reset VOL ID */
+    H5_API_LOCK
     H5VL_NATIVE_ID_g = H5I_INVALID_HID;
+    H5_API_UNLOCK
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5VL__native_term() */
@@ -373,7 +380,7 @@ H5VLnative_addr_to_token(hid_t loc_id, haddr_t addr, H5O_token_t *token)
     void      *vol_obj      = NULL;      /* VOL Object of loc_id */
     herr_t     ret_value    = SUCCEED;   /* Return value         */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ia*k", loc_id, addr, token);
 
     /* Check args */
@@ -411,7 +418,7 @@ H5VLnative_addr_to_token(hid_t loc_id, haddr_t addr, H5O_token_t *token)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSERIALIZE, FAIL, "couldn't serialize haddr_t into object token");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5VLnative_addr_to_token() */
 
 /*-------------------------------------------------------------------------
@@ -467,7 +474,7 @@ H5VLnative_token_to_addr(hid_t loc_id, H5O_token_t token, haddr_t *addr)
     void      *vol_obj      = NULL;      /* VOL Object of loc_id */
     herr_t     ret_value    = SUCCEED;   /* Return value         */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ik*a", loc_id, token, addr);
 
     /* Check args */
@@ -505,7 +512,7 @@ H5VLnative_token_to_addr(hid_t loc_id, H5O_token_t token, haddr_t *addr)
         HGOTO_ERROR(H5E_VOL, H5E_CANTUNSERIALIZE, FAIL, "couldn't deserialize object token into haddr_t");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5VLnative_token_to_addr() */
 
 /*-------------------------------------------------------------------------

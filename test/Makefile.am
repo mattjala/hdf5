@@ -59,6 +59,7 @@ check_SCRIPTS = $(TEST_SCRIPT)
 # executed, generally most specific tests to least specific tests.
 # As an exception, long-running tests should occur earlier in the list.
 # This gives them more time to run when tests are executing in parallel.
+# TODO: Build MT tests under CMake as well
 TEST_PROG= testhdf5 \
            cache cache_api cache_image cache_tagging lheap ohdr \
            stab gheap evict_on_close farray earray btree2 fheap \
@@ -70,7 +71,7 @@ TEST_PROG= testhdf5 \
            enc_dec_plist_cross_platform getname vfd ros3 s3comms hdfs ntypes \
            dangle dtransform reserved cross_read freespace mf vds file_image \
            unregister cache_logging cork swmr thread_id vol timer event_set \
-           onion mt_id_test
+           onion mt_id_test threads/unit/mt_vl_test
 
 # List programs to be built when testing here
 #
@@ -126,7 +127,7 @@ if HAVE_SHARED_CONDITIONAL
   # The libh5test library provides common support code for the tests.
   # The filter_plugin* libraries are for use in filter_plugin.c.
   # Build them as shared libraries if that option was enabled in configure.
-  noinst_LTLIBRARIES=libh5test.la libfilter_plugin1_dsets.la libfilter_plugin2_dsets.la libfilter_plugin3_dsets.la libfilter_plugin4_groups.la libnull_vfd_plugin.la libnull_vol_connector.la
+  noinst_LTLIBRARIES=libh5test.la libfilter_plugin1_dsets.la libfilter_plugin2_dsets.la libfilter_plugin3_dsets.la libfilter_plugin4_groups.la libnull_vfd_plugin.la libnull_vol_connector.la libthread_test_vol_connector.la libmt_test_vol_connector.la libmt_test_passthru_vol_connector.la
   libfilter_plugin1_dsets_la_SOURCES=filter_plugin1_dsets.c
   libfilter_plugin2_dsets_la_SOURCES=filter_plugin2_dsets.c
   libfilter_plugin3_dsets_la_SOURCES=filter_plugin3_dsets.c
@@ -149,7 +150,14 @@ if HAVE_SHARED_CONDITIONAL
   # null_vol_connector is used for testing basic VOL plugin functionality.
   libnull_vol_connector_la_SOURCES=null_vol_connector.c
   libnull_vol_connector_la_LDFLAGS=$(AM_LDFLAGS) -avoid-version -module -shared -export-dynamic -rpath /nowhere
-
+  # thread_test_vol_connector is used for testing the H5VL module's internals
+  libthread_test_vol_connector_la_SOURCES=thread_test_vol_connector.c
+  libthread_test_vol_connector_la_LDFLAGS=$(AM_LDFLAGS) -avoid-version -module -shared -export-dynamic -rpath /nowhere
+  # mt_test_vol_connector and mt_test_passthru_connector are used for testing the H5VL module with real operations
+  libmt_test_vol_connector_la_SOURCES=mt_test_vol_connector.c
+  libmt_test_vol_connector_la_LDFLAGS=$(AM_LDFLAGS) -avoid-version -module -shared -export-dynamic -rpath /nowhere
+  libmt_test_passthru_vol_connector_la_SOURCES=mt_test_passthru_vol_connector.c
+  libmt_test_passthru_vol_connector_la_LDFLAGS=$(AM_LDFLAGS) -avoid-version -module -shared -export-dynamic -rpath /nowhere
 else
   # The libh5test library provides common support code for the tests.
   noinst_LTLIBRARIES=libh5test.la
@@ -162,7 +170,7 @@ LDADD=libh5test.la $(LIBHDF5)
 
 # List the source files for tests that have more than one
 ttsafe_SOURCES=ttsafe.c ttsafe_dcreate.c ttsafe_error.c ttsafe_cancel.c       \
-               ttsafe_acreate.c ttsafe_attr_vlen.c ttsafe_error_stacks.c
+               ttsafe_acreate.c ttsafe_attr_vlen.c ttsafe_error_stacks.c ttsafe_mutex.c
 cache_image_SOURCES=cache_image.c genall5.c
 mirror_vfd_SOURCES=mirror_vfd.c genall5.c
 

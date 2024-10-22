@@ -99,7 +99,7 @@ H5Tcommit1(hid_t loc_id, const char *name, hid_t type_id)
     H5VL_loc_params_t loc_params;
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "i*si", loc_id, name, type_id);
 
     /* Check arguments */
@@ -135,7 +135,7 @@ H5Tcommit1(hid_t loc_id, const char *name, hid_t type_id)
     dt->vol_obj = new_obj;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tcommit1() */
 
 /*-------------------------------------------------------------------------
@@ -159,7 +159,7 @@ H5Topen1(hid_t loc_id, const char *name)
     H5VL_loc_params_t loc_params;
     hid_t             ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE2("i", "i*s", loc_id, name);
 
     /* Check args */
@@ -188,6 +188,6 @@ done:
         if (dt && H5VL_datatype_close(vol_obj, H5P_DATASET_XFER_DEFAULT, H5_REQUEST_NULL) < 0)
             HDONE_ERROR(H5E_DATATYPE, H5E_CLOSEERROR, H5I_INVALID_HID, "unable to close datatype");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Topen1() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

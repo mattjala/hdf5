@@ -46,7 +46,7 @@ H5Tget_fields(hid_t type_id, size_t *spos /*out*/, size_t *epos /*out*/, size_t 
     H5T_t *dt;                  /* Datatype */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "ixxxxx", type_id, spos, epos, esize, mpos, msize);
 
     /* Check args */
@@ -70,7 +70,7 @@ H5Tget_fields(hid_t type_id, size_t *spos /*out*/, size_t *epos /*out*/, size_t 
         *msize = dt->shared->u.atomic.u.f.msize;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_fields() */
 
 /*-------------------------------------------------------------------------
@@ -94,7 +94,7 @@ H5Tset_fields(hid_t type_id, size_t spos, size_t epos, size_t esize, size_t mpos
     H5T_t *dt;                  /* Datatype */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "izzzzz", type_id, spos, epos, esize, mpos, msize);
 
     /* Check args */
@@ -129,7 +129,7 @@ H5Tset_fields(hid_t type_id, size_t spos, size_t epos, size_t esize, size_t mpos
     dt->shared->u.atomic.u.f.msize = msize;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tset_fields() */
 
 /*-------------------------------------------------------------------------
@@ -149,7 +149,7 @@ H5Tget_ebias(hid_t type_id)
     H5T_t *dt;        /* Datatype */
     size_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(0)
+    FUNC_ENTER_API(0, H5I_INVALID_HID)
     H5TRACE1("z", "i", type_id);
 
     /* Check args */
@@ -164,7 +164,7 @@ H5Tget_ebias(hid_t type_id)
     H5_CHECKED_ASSIGN(ret_value, size_t, dt->shared->u.atomic.u.f.ebias, uint64_t);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_ebias() */
 
 /*-------------------------------------------------------------------------
@@ -182,7 +182,7 @@ H5Tset_ebias(hid_t type_id, size_t ebias)
     H5T_t *dt;                  /* Datatype */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iz", type_id, ebias);
 
     /* Check args */
@@ -199,7 +199,7 @@ H5Tset_ebias(hid_t type_id, size_t ebias)
     dt->shared->u.atomic.u.f.ebias = ebias;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tset_ebias() */
 
 /*-------------------------------------------------------------------------
@@ -220,7 +220,7 @@ H5Tget_norm(hid_t type_id)
     H5T_t     *dt;        /* Datatype */
     H5T_norm_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(H5T_NORM_ERROR)
+    FUNC_ENTER_API(H5T_NORM_ERROR, H5I_INVALID_HID)
     H5TRACE1("Tn", "i", type_id);
 
     /* Check args */
@@ -235,7 +235,7 @@ H5Tget_norm(hid_t type_id)
     ret_value = dt->shared->u.atomic.u.f.norm;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_norm() */
 
 /*-------------------------------------------------------------------------
@@ -254,7 +254,7 @@ H5Tset_norm(hid_t type_id, H5T_norm_t norm)
     H5T_t *dt;                  /* Datatype */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iTn", type_id, norm);
 
     /* Check args */
@@ -273,7 +273,7 @@ H5Tset_norm(hid_t type_id, H5T_norm_t norm)
     dt->shared->u.atomic.u.f.norm = norm;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tset_norm() */
 
 /*-------------------------------------------------------------------------
@@ -296,7 +296,7 @@ H5Tget_inpad(hid_t type_id)
     H5T_t    *dt;        /* Datatype */
     H5T_pad_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(H5T_PAD_ERROR)
+    FUNC_ENTER_API(H5T_PAD_ERROR, H5I_INVALID_HID)
     H5TRACE1("Tp", "i", type_id);
 
     /* Check args */
@@ -311,7 +311,7 @@ H5Tget_inpad(hid_t type_id)
     ret_value = dt->shared->u.atomic.u.f.pad;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_inpad() */
 
 /*-------------------------------------------------------------------------
@@ -332,7 +332,7 @@ H5Tset_inpad(hid_t type_id, H5T_pad_t pad)
     H5T_t *dt;                  /* Datatype */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iTp", type_id, pad);
 
     /* Check args */
@@ -351,5 +351,5 @@ H5Tset_inpad(hid_t type_id, H5T_pad_t pad)
     dt->shared->u.atomic.u.f.pad = pad;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tset_inpad() */

@@ -85,7 +85,7 @@ H5Eget_major(H5E_major_t maj)
     char      *msg_str = NULL;
     char      *ret_value; /* Return value */
 
-    FUNC_ENTER_API_NOCLEAR(NULL)
+    FUNC_ENTER_API_NOCLEAR(NULL, H5I_INVALID_HID)
     H5TRACE1("*s", "i", maj);
 
     /* Get the message object */
@@ -134,7 +134,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Eget_major() */
 
 /*-------------------------------------------------------------------------
@@ -156,7 +156,7 @@ H5Eget_minor(H5E_minor_t min)
     char      *msg_str = NULL;
     char      *ret_value; /* Return value */
 
-    FUNC_ENTER_API_NOCLEAR(NULL)
+    FUNC_ENTER_API_NOCLEAR(NULL, H5I_INVALID_HID)
     H5TRACE1("*s", "i", min);
 
     /* Get the message object */
@@ -205,7 +205,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Eget_minor() */
 
 /*-------------------------------------------------------------------------
@@ -231,7 +231,7 @@ H5Epush1(const char *file, const char *func, unsigned line, H5E_major_t maj, H5E
     herr_t ret_value = SUCCEED; /* Return value */
 
     /* Don't clear the error stack! :-) */
-    FUNC_ENTER_API_NOCLEAR(FAIL)
+    FUNC_ENTER_API_NOCLEAR(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "*s*sIuii*s", file, func, line, maj, min, str);
 
     /* Push the error on the default error stack */
@@ -239,7 +239,7 @@ H5Epush1(const char *file, const char *func, unsigned line, H5E_major_t maj, H5E
         HGOTO_ERROR(H5E_ERROR, H5E_CANTSET, FAIL, "can't push error on stack");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Epush1() */
 
 /*-------------------------------------------------------------------------
@@ -258,7 +258,7 @@ H5Eclear1(void)
     herr_t ret_value = SUCCEED; /* Return value */
 
     /* Don't clear the error stack! :-) */
-    FUNC_ENTER_API_NOCLEAR(FAIL)
+    FUNC_ENTER_API_NOCLEAR(FAIL, H5I_INVALID_HID)
     H5TRACE0("e", "");
 
     /* Clear the default error stack */
@@ -266,7 +266,7 @@ H5Eclear1(void)
         HGOTO_ERROR(H5E_ERROR, H5E_CANTSET, FAIL, "can't clear error stack");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Eclear1() */
 
 /*-------------------------------------------------------------------------
@@ -289,7 +289,7 @@ H5Eprint1(FILE *stream)
     herr_t ret_value = SUCCEED; /* Return value */
 
     /* Don't clear the error stack! :-) */
-    FUNC_ENTER_API_NOCLEAR(FAIL)
+    FUNC_ENTER_API_NOCLEAR(FAIL, H5I_INVALID_HID)
     /*NO TRACE*/
 
     if (NULL == (estack = H5E__get_my_stack())) /*lint !e506 !e774 Make lint 'constant value Boolean' in
@@ -301,7 +301,7 @@ H5Eprint1(FILE *stream)
         HGOTO_ERROR(H5E_ERROR, H5E_CANTLIST, FAIL, "can't display error stack");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Eprint1() */
 
 /*-------------------------------------------------------------------------
@@ -323,7 +323,7 @@ H5Ewalk1(H5E_direction_t direction, H5E_walk1_t func, void *client_data)
     herr_t        ret_value = SUCCEED; /* Return value */
 
     /* Don't clear the error stack! :-) */
-    FUNC_ENTER_API_NOCLEAR(FAIL)
+    FUNC_ENTER_API_NOCLEAR(FAIL, H5I_INVALID_HID)
     /*NO TRACE*/
 
     if (NULL == (estack = H5E__get_my_stack())) /*lint !e506 !e774 Make lint 'constant value Boolean' in
@@ -337,7 +337,7 @@ H5Ewalk1(H5E_direction_t direction, H5E_walk1_t func, void *client_data)
         HGOTO_ERROR(H5E_ERROR, H5E_CANTLIST, FAIL, "can't walk error stack");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Ewalk1() */
 
 /*-------------------------------------------------------------------------
@@ -360,7 +360,7 @@ H5Eget_auto1(H5E_auto1_t *func /*out*/, void **client_data /*out*/)
     H5E_auto_op_t auto_op;             /* Error stack operator */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "xx", func, client_data);
 
     /* Retrieve default error stack */
@@ -380,7 +380,7 @@ H5Eget_auto1(H5E_auto1_t *func /*out*/, void **client_data /*out*/)
         *func = auto_op.func1;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Eget_auto1() */
 
 /*-------------------------------------------------------------------------
@@ -411,7 +411,7 @@ H5Eset_auto1(H5E_auto1_t func, void *client_data)
     herr_t        ret_value = SUCCEED; /* Return value */
 
     /* Don't clear the error stack! :-) */
-    FUNC_ENTER_API_NOCLEAR(FAIL)
+    FUNC_ENTER_API_NOCLEAR(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "Ea*x", func, client_data);
 
     if (NULL == (estack = H5E__get_my_stack())) /*lint !e506 !e774 Make lint 'constant value Boolean' in
@@ -434,6 +434,6 @@ H5Eset_auto1(H5E_auto1_t func, void *client_data)
         HGOTO_ERROR(H5E_ERROR, H5E_CANTSET, FAIL, "can't set automatic error info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Eset_auto1() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

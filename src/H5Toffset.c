@@ -57,7 +57,7 @@ H5Tget_offset(hid_t type_id)
     H5T_t *dt;
     int    ret_value;
 
-    FUNC_ENTER_API(-1)
+    FUNC_ENTER_API(-1, H5I_INVALID_HID)
     H5TRACE1("Is", "i", type_id);
 
     /* Check args */
@@ -69,7 +69,7 @@ H5Tget_offset(hid_t type_id)
         HGOTO_ERROR(H5E_DATATYPE, H5E_UNSUPPORTED, FAIL, "can't get offset for specified datatype");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_offset() */
 
 /*-------------------------------------------------------------------------
@@ -156,7 +156,7 @@ H5Tset_offset(hid_t type_id, size_t offset)
     H5T_t *dt;
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iz", type_id, offset);
 
     /* Check args */
@@ -177,7 +177,7 @@ H5Tset_offset(hid_t type_id, size_t offset)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to set offset");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------

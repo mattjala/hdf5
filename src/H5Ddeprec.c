@@ -102,7 +102,7 @@ H5Dcreate1(hid_t loc_id, const char *name, hid_t type_id, hid_t space_id, hid_t 
     H5VL_loc_params_t loc_params;
     hid_t             ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE5("i", "i*siii", loc_id, name, type_id, space_id, dcpl_id);
 
     /* Check arguments */
@@ -146,7 +146,7 @@ done:
         if (dset && H5VL_dataset_close(vol_obj, H5P_DATASET_XFER_DEFAULT, H5_REQUEST_NULL) < 0)
             HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, H5I_INVALID_HID, "unable to release dataset");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Dcreate1() */
 
 /*-------------------------------------------------------------------------
@@ -171,7 +171,7 @@ H5Dopen1(hid_t loc_id, const char *name)
     H5VL_loc_params_t loc_params;
     hid_t             ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE2("i", "i*s", loc_id, name);
 
     /* Check args */
@@ -202,7 +202,7 @@ done:
         if (dset && H5VL_dataset_close(vol_obj, H5P_DATASET_XFER_DEFAULT, H5_REQUEST_NULL) < 0)
             HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, H5I_INVALID_HID, "unable to release dataset");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Dopen1() */
 
 /*-------------------------------------------------------------------------
@@ -231,7 +231,7 @@ H5Dextend(hid_t dset_id, const hsize_t size[])
     int                          i;                       /* Local index variable */
     herr_t                       ret_value = SUCCEED;     /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*h", dset_id, size);
 
     /* Check args */
@@ -288,7 +288,7 @@ done:
     if (sid != H5I_INVALID_HID && H5I_dec_app_ref(sid) < 0)
         HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL, "can't close dataspace");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Dextend() */
 
 /*-------------------------------------------------------------------------
@@ -309,7 +309,7 @@ H5Dvlen_reclaim(hid_t type_id, hid_t space_id, hid_t dxpl_id, void *buf)
     H5S_t *space;     /* Dataspace for iteration */
     herr_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "iii*x", type_id, space_id, dxpl_id, buf);
 
     /* Check args */
@@ -333,7 +333,7 @@ H5Dvlen_reclaim(hid_t type_id, hid_t space_id, hid_t dxpl_id, void *buf)
     ret_value = H5T_reclaim(type_id, space, buf);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Dvlen_reclaim() */
 
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

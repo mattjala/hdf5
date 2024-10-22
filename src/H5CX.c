@@ -439,7 +439,7 @@ static H5CX_node_t *H5CX__pop_common(hbool_t update_dxpl_props);
 
 #if !defined(H5_HAVE_THREADSAFE) && !defined(H5_HAVE_MULTITHREAD)
 static H5CX_node_t *H5CX_head_g = NULL; /* Pointer to head of context stack */
-#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
+#endif                                  /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 /* Define a "default" dataset transfer property list cache structure to use for default DXPLs */
 static H5CX_dxpl_cache_t H5CX_def_dxpl_cache;
@@ -943,33 +943,38 @@ H5CX_retrieve_state(H5CX_state_t **api_state)
 
     /* Keep a copy of the VOL connector property, if there is one */
     if ((*head)->ctx.vol_connector_prop_valid && (*head)->ctx.vol_connector_prop.connector_id > 0) {
-        /* Get the connector property */
-        H5MM_memcpy(&(*api_state)->vol_connector_prop, &(*head)->ctx.vol_connector_prop,
-                    sizeof(H5VL_connector_prop_t));
+        /* Get a pointer to this context's connector property */
+        H5VL_connector_prop_t *ctx_conn_prop = &(*head)->ctx.vol_connector_prop;
 
-        /* Check for actual VOL connector property */
-        if ((*api_state)->vol_connector_prop.connector_id) {
-            /* Copy connector info, if it exists */
-            if ((*api_state)->vol_connector_prop.connector_info) {
-                H5VL_class_t *connector;                 /* Pointer to connector */
-                void         *new_connector_info = NULL; /* Copy of connector info */
+        /* Increment the refcount on the connector ID before duplication */
+        if (H5I_inc_ref(ctx_conn_prop->connector_id, FALSE) < 0)
+            HGOTO_ERROR(H5E_CONTEXT, H5E_CANTINC, FAIL, "incrementing VOL connector ID failed");
 
-                /* Retrieve the connector for the ID */
-                if (NULL ==
-                    (connector = (H5VL_class_t *)H5I_object((*api_state)->vol_connector_prop.connector_id)))
-                    HGOTO_ERROR(H5E_CONTEXT, H5E_BADTYPE, FAIL, "not a VOL connector ID");
+        (*api_state)->vol_connector_prop.connector_id = ctx_conn_prop->connector_id;
+    
+        /* Copy connector info, if it exists */
+        if (ctx_conn_prop->connector_info) {
+            H5VL_class_t *connector;                 /* Pointer to connector */
+            void         *new_connector_info = NULL; /* Copy of connector info */
 
-                /* Allocate and copy connector info */
-                if (H5VL_copy_connector_info(connector, &new_connector_info,
-                                             (*api_state)->vol_connector_prop.connector_info) < 0)
-                    HGOTO_ERROR(H5E_CONTEXT, H5E_CANTCOPY, FAIL, "connector info copy failed");
-                (*api_state)->vol_connector_prop.connector_info = new_connector_info;
-            } /* end if */
+            /* Retrieve the connector for the ID */
+            connector = (H5VL_class_t *)H5I_object(ctx_conn_prop->connector_id);
 
-            /* Increment the refcount on the connector ID */
-            if (H5I_inc_ref((*api_state)->vol_connector_prop.connector_id, FALSE) < 0)
-                HGOTO_ERROR(H5E_CONTEXT, H5E_CANTINC, FAIL, "incrementing VOL connector ID failed");
+            if (connector == NULL)
+                HGOTO_ERROR(H5E_CONTEXT, H5E_BADTYPE, FAIL, "not a VOL connector ID");
+
+            /* Allocate and copy connector info */
+            if (H5VL_copy_connector_info(connector, 
+                                         &new_connector_info,
+                                         ctx_conn_prop->connector_info) < 0)
+                HGOTO_ERROR(H5E_CONTEXT, H5E_CANTCOPY, FAIL, "connector info copy failed");
+            
+            
+
+            /* Copy succeeded, safely publish connector info to the state object */
+            (*api_state)->vol_connector_prop.connector_info = new_connector_info;
         } /* end if */
+
     }     /* end if */
 
 #ifdef H5_HAVE_PARALLEL
@@ -1185,6 +1190,7 @@ H5CX_set_dcpl(hid_t dcpl_id)
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
+    H5_API_LOCK
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1193,6 +1199,7 @@ H5CX_set_dcpl(hid_t dcpl_id)
     /* Set the API context's DCPL to a new value */
     (*head)->ctx.dcpl_id = dcpl_id;
 
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI_VOID
 } /* end H5CX_set_dcpl() */
 
@@ -1244,6 +1251,7 @@ H5CX_set_lcpl(hid_t lcpl_id)
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
+    H5_API_LOCK
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1252,6 +1260,7 @@ H5CX_set_lcpl(hid_t lcpl_id)
     /* Set the API context's LCPL to a new value */
     (*head)->ctx.lcpl_id = lcpl_id;
 
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI_VOID
 } /* end H5CX_set_lcpl() */
 
@@ -1308,6 +1317,7 @@ H5CX_set_apl(hid_t *acspl_id, const H5P_libclass_t *libclass,
     herr_t        ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
+    H5_API_LOCK
 
     /* Sanity checks */
     assert(acspl_id);
@@ -1399,6 +1409,7 @@ H5CX_set_apl(hid_t *acspl_id, const H5P_libclass_t *libclass,
 #endif    /* H5_HAVE_PARALLEL */
 
 done:
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5CX_set_apl() */
 
@@ -1426,6 +1437,7 @@ H5CX_set_loc(hid_t
     herr_t        ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
+    H5_API_LOCK
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1451,6 +1463,7 @@ H5CX_set_loc(hid_t
     } /* end if */
 
 done:
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 #else  /* H5_HAVE_PARALLEL */
     FUNC_ENTER_NOAPI_NOINIT_NOERR
@@ -1505,6 +1518,7 @@ H5CX_set_vol_connector_prop(const H5VL_connector_prop_t *vol_connector_prop)
     herr_t        ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI_NOERR
+    H5_API_LOCK
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1516,6 +1530,7 @@ H5CX_set_vol_connector_prop(const H5VL_connector_prop_t *vol_connector_prop)
     /* Mark the value as valid */
     (*head)->ctx.vol_connector_prop_valid = TRUE;
 
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5CX_set_vol_connector_prop() */
 

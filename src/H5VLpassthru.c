@@ -35,6 +35,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* TODO: H5_HAVE_MULTITHREAD seems not to be exposed to this module, always import */
+#include <stdatomic.h>
+
 /* Public HDF5 file */
 #include "hdf5.h"
 
@@ -365,7 +368,11 @@ static const H5VL_class_t H5VL_pass_through_g = {
 };
 
 /* The connector identification number, initialized at runtime */
-static hid_t H5VL_PASSTHRU_g = H5I_INVALID_HID;
+#ifdef H5_HAVE_MULTITHREAD
+static _Atomic(hid_t) H5VL_PASSTHRU_ID_g = ATOMIC_VAR_INIT(H5I_INVALID_HID);
+#else
+static hid_t H5VL_PASSTHRU_ID_g = H5I_INVALID_HID;
+#endif
 
 /*-------------------------------------------------------------------------
  * Function:    H5VL__pass_through_new_obj
@@ -434,11 +441,32 @@ H5VL_pass_through_free_obj(H5VL_pass_through_t *obj)
 hid_t
 H5VL_pass_through_register(void)
 {
-    /* Singleton register the pass-through VOL connector ID */
-    if (H5VL_PASSTHRU_g < 0)
-        H5VL_PASSTHRU_g = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT);
+    hid_t ret_value;
 
-    return H5VL_PASSTHRU_g;
+#ifdef H5_HAVE_MULTITHREAD
+    hid_t invalid_id = H5I_INVALID_HID;
+
+    if (atomic_load(&H5VL_PASSTHRU_ID_g) < 0) {
+        ret_value = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT);
+
+        /* If another thread already set the passthrough ID, do nothing. */
+        atomic_compare_exchange_strong(&H5VL_PASSTHRU_ID_g, &invalid_id, ret_value);
+    }
+#else
+    /* Singleton register the pass-through VOL connector ID */
+    if (H5VL_PASSTHRU_ID_g < 0)
+        H5VL_PASSTHRU_ID_g = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT);
+
+#endif
+
+#ifdef H5_HAVE_MULTITHREAD
+    ret_value = atomic_load(&H5VL_PASSTHRU_ID_g);
+#else
+    ret_value          = H5VL_PASSTHRU_ID_g;
+#endif
+
+    return ret_value;
+
 } /* end H5VL_pass_through_register() */
 
 /*-------------------------------------------------------------------------
@@ -487,7 +515,11 @@ H5VL_pass_through_term(void)
 #endif
 
     /* Reset VOL ID */
-    H5VL_PASSTHRU_g = H5I_INVALID_HID;
+#ifdef H5_HAVE_MULTITHREAD
+    atomic_store(&H5VL_PASSTHRU_ID_g, H5I_INVALID_HID);
+#else
+    H5VL_PASSTHRU_ID_g = H5I_INVALID_HID;
+#endif
 
     return 0;
 } /* end H5VL_pass_through_term() */
@@ -750,7 +782,7 @@ H5VL_pass_through_get_wrap_ctx(const void *obj, void **wrap_ctx)
 {
     const H5VL_pass_through_t    *o = (const H5VL_pass_through_t *)obj;
     H5VL_pass_through_wrap_ctx_t *new_wrap_ctx;
-
+    
 #ifdef ENABLE_PASSTHRU_LOGGING
     printf("------- PASS THROUGH VOL WRAP CTX Get\n");
 #endif
@@ -761,9 +793,12 @@ H5VL_pass_through_get_wrap_ctx(const void *obj, void **wrap_ctx)
     /* Increment reference count on underlying VOL ID, and copy the VOL info */
     new_wrap_ctx->under_vol_id = o->under_vol_id;
 
-    H5Iinc_ref(new_wrap_ctx->under_vol_id);
+    if (new_wrap_ctx->under_vol_id != H5I_INVALID_HID)
+        if (H5Iinc_ref(new_wrap_ctx->under_vol_id) < 0)
+            return -1;
 
-    H5VLget_wrap_ctx(o->under_object, o->under_vol_id, &new_wrap_ctx->under_wrap_ctx);
+    if (H5VLget_wrap_ctx(o->under_object, o->under_vol_id, &new_wrap_ctx->under_wrap_ctx) < 0)
+        return -1;
 
     /* Set wrap context to return */
     *wrap_ctx = new_wrap_ctx;

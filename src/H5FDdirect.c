@@ -262,7 +262,7 @@ H5Pset_fapl_direct(hid_t fapl_id, size_t boundary, size_t block_size, size_t cbu
     H5FD_direct_fapl_t fa;
     herr_t             ret_value;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "izzz", fapl_id, boundary, block_size, cbuf_size);
 
     if (NULL == (plist = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
@@ -274,7 +274,7 @@ H5Pset_fapl_direct(hid_t fapl_id, size_t boundary, size_t block_size, size_t cbu
     ret_value = H5P_set_driver(plist, H5FD_DIRECT, &fa, NULL);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -297,7 +297,7 @@ H5Pget_fapl_direct(hid_t fapl_id, size_t *boundary /*out*/, size_t *block_size /
     const H5FD_direct_fapl_t *fa;
     herr_t                    ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "ixxx", fapl_id, boundary, block_size, cbuf_size);
 
     if (NULL == (plist = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
@@ -314,7 +314,7 @@ H5Pget_fapl_direct(hid_t fapl_id, size_t *boundary /*out*/, size_t *block_size /
         *cbuf_size = fa->cbsize;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_fapl_direct() */
 
 /*-------------------------------------------------------------------------

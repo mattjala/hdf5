@@ -133,13 +133,10 @@ H5_api_test_run(void)
 void *
 run_h5_API_tests_thread(void *thread_info)
 {
-    const char    *vol_connector_string;
     unsigned       seed;
     hid_t          fapl_id                   = H5I_INVALID_HID;
     hid_t          default_con_id            = H5I_INVALID_HID;
     hid_t          registered_con_id         = H5I_INVALID_HID;
-    char          *vol_connector_string_copy = NULL;
-    char          *vol_connector_info        = NULL;
     thread_info_t *tinfo                     = NULL;
     int chars_written;
 
@@ -157,6 +154,7 @@ run_h5_API_tests_thread(void *thread_info)
         tinfo->result = API_TEST_ERROR;
         goto done;
     }
+
 #endif
 
     printf("%zu: Running API tests\n", tinfo->thread_idx);
@@ -201,32 +199,6 @@ run_h5_API_tests_thread(void *thread_info)
         goto done;
     }
 
-    if (NULL == (vol_connector_string = HDgetenv(HDF5_VOL_CONNECTOR))) {
-        printf("No VOL connector selected; using native VOL connector\n");
-        tinfo->vol_connector_name = "native";
-        vol_connector_info = NULL;
-    }
-    else {
-        char *token;
-
-        if (NULL == (vol_connector_string_copy = HDstrdup(vol_connector_string))) {
-            fprintf(stderr, "Unable to copy VOL connector string\n");
-            tinfo->result = API_TEST_ERROR;
-            goto done;
-        }
-
-        if (NULL == (token = HDstrtok(vol_connector_string_copy, " "))) {
-            fprintf(stderr, "Error while parsing VOL connector string\n");
-            tinfo->result = API_TEST_ERROR;
-            goto done;
-        }
-
-        tinfo->vol_connector_name = token;
-
-        if (NULL != (token = HDstrtok(NULL, " "))) {
-            vol_connector_info = token;
-        }
-    }
 
 #ifndef H5_HAVE_MULTITHREAD
     n_tests_run_g = 0;
@@ -236,7 +208,7 @@ run_h5_API_tests_thread(void *thread_info)
 #endif
 
     printf("Running API tests with VOL connector '%s' and info string '%s'\n\n", tinfo->vol_connector_name,
-           vol_connector_info ? vol_connector_info : "");
+           tinfo->vol_connector_info ? tinfo->vol_connector_info : "");
     printf("Test parameters:\n");
     printf("  - Test file name: '%s'\n", H5_API_TEST_FILENAME);
     printf("  - Test seed: %u\n", seed);
@@ -297,16 +269,6 @@ run_h5_API_tests_thread(void *thread_info)
         }
     }
 
-    /* Retrieve the VOL cap flags - work around an HDF5
-     * library issue by creating a FAPL
-     */
-    vol_cap_flags_g = H5VL_CAP_FLAG_NONE;
-    if (H5Pget_vol_cap_flags(fapl_id, &vol_cap_flags_g) < 0) {
-        fprintf(stderr, "Unable to retrieve VOL connector capability flags\n");
-        tinfo->result = API_TEST_ERROR;
-        goto done;
-    }
-
     /*
      * Create the file that will be used for all of the tests,
      * except for those which test file creation.
@@ -335,7 +297,6 @@ run_h5_API_tests_thread(void *thread_info)
         tinfo->result = API_TEST_FAIL;
     }
 done:
-    free(vol_connector_string_copy);
     if (tinfo && tinfo->H5_api_test_filename)
         free(tinfo->H5_api_test_filename);
 
@@ -366,6 +327,10 @@ main(int argc, char **argv)
 {
     void* retval = NULL;
     int   ret_value = EXIT_SUCCESS;
+    const char *vol_connector_name = NULL;
+    char *vol_connector_name_copy = NULL;
+    char *vol_connector_info = NULL;
+    hid_t fapl_id = H5I_INVALID_HID;
 
 #ifdef H5_HAVE_MULTITHREAD
 #define MAX_THREADS 10
@@ -383,7 +348,6 @@ main(int argc, char **argv)
     n_tests_skipped_g = 0;
 
 #endif
-
     thread_info_t tinfo[MAX_THREADS];
 
     memset(tinfo, 0, sizeof(tinfo));
@@ -398,6 +362,33 @@ main(int argc, char **argv)
         }
     }
 
+    if (NULL == (vol_connector_name = HDgetenv(HDF5_VOL_CONNECTOR))) {
+        printf("No VOL connector selected; using native VOL connector\n");
+        vol_connector_name = "native";
+        vol_connector_info = NULL;
+    }
+    else {
+        char *token;
+
+        if (NULL == (vol_connector_name_copy = HDstrdup(vol_connector_name))) {
+            fprintf(stderr, "Unable to copy VOL connector string\n");
+            ret_value = FAIL;
+            goto done;
+        }
+
+        if (NULL == (token = HDstrtok(vol_connector_name_copy, " "))) {
+            fprintf(stderr, "Error while parsing VOL connector string\n");
+            ret_value = FAIL;
+            goto done;
+        }
+
+        vol_connector_name = token;
+
+        if (NULL != (token = HDstrtok(NULL, " "))) {
+            vol_connector_info = token;
+        }
+    }
+
 #ifdef H5_HAVE_PARALLEL
     /* If HDF5 was built with parallel enabled, go ahead and call MPI_Init before
      * running these tests. Even though these are meant to be serial tests, they will
@@ -409,7 +400,29 @@ main(int argc, char **argv)
 
 
 
+    /* Retrieve the VOL cap flags - work around an HDF5
+     * library issue by creating a FAPL
+     */
 
+    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
+        fprintf(stderr, "Unable to create FAPL\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if (H5Pget_vol_cap_flags(fapl_id, &vol_cap_flags_g) < 0) {
+        fprintf(stderr, "Unable to retrieve VOL connector capability flags\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if (H5Pclose(fapl_id) < 0) {
+        fprintf(stderr, "Unable to close FAPL\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    fapl_id = H5I_INVALID_HID;
 
 #ifdef H5_HAVE_MULTITHREAD
 
@@ -429,6 +442,12 @@ main(int argc, char **argv)
 
             tinfo[thread_idx].thread_idx     = thread_idx;
             tinfo[thread_idx].result = API_TEST_PASS;
+            tinfo[thread_idx].vol_connector_name = vol_connector_name;
+            tinfo[thread_idx].vol_connector_info = vol_connector_info;
+            tinfo[thread_idx].n_tests_run_g = 0;
+            tinfo[thread_idx].n_tests_passed_g = 0;
+            tinfo[thread_idx].n_tests_failed_g = 0;
+            tinfo[thread_idx].n_tests_skipped_g = 0;
 
             if (pthread_create(&threads[thread_idx], NULL, run_h5_API_tests_thread,
                             (void *)&tinfo[thread_idx]) != 0) {
@@ -453,6 +472,8 @@ main(int argc, char **argv)
 
             if (((thread_info_t *)(retval))->result == API_TEST_ERROR) {
                 fprintf(stderr, "An internal error occurred during API tests in thread %zu\n", ((thread_info_t*)(retval))->thread_idx);
+                ret_value = 1;
+                goto done;
             }
                             
             if (((thread_info_t *)(retval))->result == API_TEST_FAIL) {
@@ -496,12 +517,13 @@ main(int argc, char **argv)
         n_tests_failed = 0;
         n_tests_skipped = 0;
 
-        memset(tinfo, 0, sizeof(tinfo));
     }
 
 #else
     tinfo[0].thread_idx = 0;
     tinfo[0].result = API_TEST_PASS;
+    tinfo[0].vol_connector_name = vol_connector_name;
+    tinfo[0].vol_connector_info = vol_connector_info;
 
     if ((retval = run_h5_API_tests_thread((void*) &tinfo[0])) == NULL) {
         fprintf(stderr, "Error running API tests\n");
@@ -525,6 +547,8 @@ main(int argc, char **argv)
 
 
 done:
+    free(vol_connector_name_copy);
+
     H5close();
 
 #ifdef H5_HAVE_PARALLEL

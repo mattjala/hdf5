@@ -39,9 +39,13 @@ extern "C" {
 #endif
 
 /* HDF5 global library lock routines */
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 H5_DLL herr_t H5TSmutex_acquire(unsigned int lock_count, bool *acquired);
 H5_DLL herr_t H5TSmutex_release(unsigned int *lock_count);
 H5_DLL herr_t H5TSmutex_get_attempt_count(unsigned int *count);
+H5_DLL herr_t H5TSmutex_lock(void);
+H5_DLL herr_t H5TSmutex_unlock(void);
+#endif
 
 #ifdef __cplusplus
 }

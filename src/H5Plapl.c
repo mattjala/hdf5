@@ -855,7 +855,7 @@ H5Pset_nlinks(hid_t plist_id, size_t nlinks)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iz", plist_id, nlinks);
 
     if (nlinks <= 0)
@@ -870,7 +870,7 @@ H5Pset_nlinks(hid_t plist_id, size_t nlinks)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set nlink info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_nlinks() */
 
 /*-------------------------------------------------------------------------
@@ -892,7 +892,7 @@ H5Pget_nlinks(hid_t plist_id, size_t *nlinks /*out*/)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", plist_id, nlinks);
 
     if (!nlinks)
@@ -907,7 +907,7 @@ H5Pget_nlinks(hid_t plist_id, size_t *nlinks /*out*/)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get number of links");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -927,7 +927,7 @@ H5Pset_elink_prefix(hid_t plist_id, const char *prefix)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "i*s", plist_id, prefix);
 
     /* Get the plist structure */
@@ -939,7 +939,7 @@ H5Pset_elink_prefix(hid_t plist_id, const char *prefix)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set prefix info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_elink_prefix() */
 
 /*-------------------------------------------------------------------------
@@ -963,7 +963,7 @@ H5Pget_elink_prefix(hid_t plist_id, char *prefix /*out*/, size_t size)
     size_t          len;       /* Length of prefix string */
     ssize_t         ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("Zs", "ixz", plist_id, prefix, size);
 
     /* Get the plist structure */
@@ -991,7 +991,7 @@ H5Pget_elink_prefix(hid_t plist_id, char *prefix /*out*/, size_t size)
     ret_value = (ssize_t)len;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_elink_prefix() */
 
 /*-------------------------------------------------------------------------
@@ -1009,7 +1009,7 @@ H5Pset_elink_fapl(hid_t lapl_id, hid_t fapl_id)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ii", lapl_id, fapl_id);
 
     /* Check arguments */
@@ -1021,7 +1021,7 @@ H5Pset_elink_fapl(hid_t lapl_id, hid_t fapl_id)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set fapl for link");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_elink_fapl() */
 
 /*-------------------------------------------------------------------------
@@ -1040,7 +1040,7 @@ H5Pget_elink_fapl(hid_t lapl_id)
     H5P_genplist_t *plist;     /* Property list pointer */
     hid_t           ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("i", "i", lapl_id);
 
     /* Get the plist structure */
@@ -1051,7 +1051,7 @@ H5Pget_elink_fapl(hid_t lapl_id)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get fapl for links");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_elink_fapl() */
 
 /*-------------------------------------------------------------------------
@@ -1071,7 +1071,7 @@ H5Pset_elink_acc_flags(hid_t lapl_id, unsigned flags)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "iIu", lapl_id, flags);
 
     /* Check that flags are valid */
@@ -1089,7 +1089,7 @@ H5Pset_elink_acc_flags(hid_t lapl_id, unsigned flags)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set access flags");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_elink_acc_flags() */
 
 /*-------------------------------------------------------------------------
@@ -1108,7 +1108,7 @@ H5Pget_elink_acc_flags(hid_t lapl_id, unsigned *flags /*out*/)
     H5P_genplist_t *plist;               /* Property list pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("e", "ix", lapl_id, flags);
 
     /* Get the plist structure */
@@ -1121,7 +1121,7 @@ H5Pget_elink_acc_flags(hid_t lapl_id, unsigned *flags /*out*/)
             HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, 0, "can't get access flags");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_elink_acc_flags() */
 
 /*-------------------------------------------------------------------------
@@ -1142,7 +1142,7 @@ H5Pset_elink_cb(hid_t lapl_id, H5L_elink_traverse_t func, void *op_data)
     H5L_elink_cb_t  cb_info;             /* Callback info struct */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "iLt*x", lapl_id, func, op_data);
 
     /* Check if the callback function is NULL and the user data is non-NULL.
@@ -1163,7 +1163,7 @@ H5Pset_elink_cb(hid_t lapl_id, H5L_elink_traverse_t func, void *op_data)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set callback info");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_elink_acc_flags() */
 
 /*-------------------------------------------------------------------------
@@ -1183,7 +1183,7 @@ H5Pget_elink_cb(hid_t lapl_id, H5L_elink_traverse_t *func /*out*/, void **op_dat
     H5L_elink_cb_t  cb_info;             /* Callback info struct */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "ixx", lapl_id, func, op_data);
 
     /* Get the plist structure */
@@ -1200,5 +1200,5 @@ H5Pget_elink_cb(hid_t lapl_id, H5L_elink_traverse_t *func /*out*/, void **op_dat
         *op_data = cb_info.user_data;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pget_elink_cb() */

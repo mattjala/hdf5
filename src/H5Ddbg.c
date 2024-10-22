@@ -66,7 +66,7 @@ H5Ddebug(hid_t dset_id)
     H5D_t *dset;                /* Dataset to debug */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("e", "i", dset_id);
 
     /* Check args */
@@ -80,5 +80,5 @@ H5Ddebug(hid_t dset_id)
         fprintf(stdout, "    %-10s %" PRIuHADDR "\n", "Address:", dset->shared->layout.storage.u.contig.addr);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Ddebug() */

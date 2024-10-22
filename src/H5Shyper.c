@@ -3481,7 +3481,7 @@ H5Sget_select_hyper_nblocks(hid_t spaceid)
     H5S_t   *space;     /* Dataspace to modify selection of */
     hssize_t ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("Hs", "i", spaceid);
 
     /* Check args */
@@ -3496,7 +3496,7 @@ H5Sget_select_hyper_nblocks(hid_t spaceid)
     ret_value = (hssize_t)H5S__get_select_hyper_nblocks(space, TRUE);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sget_select_hyper_nblocks() */
 
 /*--------------------------------------------------------------------------
@@ -4820,7 +4820,7 @@ H5Sget_select_hyper_blocklist(hid_t spaceid, hsize_t startblock, hsize_t numbloc
     H5S_t *space;     /* Dataspace to modify selection of */
     herr_t ret_value; /* return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "ihhx", spaceid, startblock, numblocks, buf);
 
     /* Check args */
@@ -4840,7 +4840,7 @@ H5Sget_select_hyper_blocklist(hid_t spaceid, hsize_t startblock, hsize_t numbloc
         ret_value = SUCCEED; /* Successfully got 0 blocks... */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sget_select_hyper_blocklist() */
 
 /*--------------------------------------------------------------------------
@@ -10299,7 +10299,7 @@ H5Sselect_hyperslab(hid_t space_id, H5S_seloper_t op, const hsize_t start[], con
     H5S_t *space;               /* Dataspace to modify selection of */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE6("e", "iSs*h*h*h*h", space_id, op, start, stride, count, block);
 
     /* Check args */
@@ -10326,7 +10326,7 @@ H5Sselect_hyperslab(hid_t space_id, H5S_seloper_t op, const hsize_t start[], con
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, FAIL, "unable to set hyperslab selection");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sselect_hyperslab() */
 
 /*--------------------------------------------------------------------------
@@ -10624,7 +10624,7 @@ H5Scombine_hyperslab(hid_t space_id, H5S_seloper_t op, const hsize_t start[], co
     H5S_t *new_space = NULL; /* New dataspace created */
     hid_t  ret_value;        /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE6("i", "iSs*h*h*h*h", space_id, op, start, stride, count, block);
 
     /* Check args */
@@ -10647,7 +10647,7 @@ done:
     if (ret_value < 0 && new_space)
         H5S_close(new_space);
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Scombine_hyperslab() */
 
 /*-------------------------------------------------------------------------
@@ -10744,7 +10744,7 @@ H5Scombine_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
     H5S_t *new_space = NULL; /* New Dataspace */
     hid_t  ret_value;        /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE3("i", "iSsi", space1_id, op, space2_id);
 
     /* Check args */
@@ -10786,7 +10786,7 @@ done:
     if (ret_value < 0 && new_space)
         H5S_close(new_space);
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Scombine_select() */
 
 /*-------------------------------------------------------------------------
@@ -10874,7 +10874,7 @@ H5Smodify_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
     H5S_t *space2;              /* Second Dataspace */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "iSsi", space1_id, op, space2_id);
 
     /* Check args */
@@ -10924,7 +10924,7 @@ H5Smodify_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, FAIL, "unable to modify hyperslab selection");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Smodify_select() */
 
 /*--------------------------------------------------------------------------
@@ -12381,7 +12381,7 @@ H5Sis_regular_hyperslab(hid_t spaceid)
     H5S_t *space;     /* Dataspace to query */
     htri_t ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("t", "i", spaceid);
 
     /* Check args */
@@ -12393,7 +12393,7 @@ H5Sis_regular_hyperslab(hid_t spaceid)
     ret_value = H5S__hyper_is_regular(space);
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sis_regular_hyperslab() */
 
 /*--------------------------------------------------------------------------
@@ -12430,7 +12430,7 @@ H5Sget_regular_hyperslab(hid_t spaceid, hsize_t start[] /*out*/, hsize_t stride[
     unsigned u;                   /* Local index variable */
     herr_t   ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE5("e", "ixxxx", spaceid, start, stride, count, block);
 
     /* Check args */
@@ -12456,5 +12456,5 @@ H5Sget_regular_hyperslab(hid_t spaceid, hsize_t start[] /*out*/, hsize_t stride[
             block[u] = space->select.sel_info.hslab->diminfo.app[u].block;
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Sget_regular_hyperslab() */

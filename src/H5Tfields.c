@@ -43,7 +43,7 @@ H5Tget_nmembers(hid_t type_id)
     H5T_t *dt;        /* Datatype to query */
     int    ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE1("Is", "i", type_id);
 
     /* Check args */
@@ -54,7 +54,7 @@ H5Tget_nmembers(hid_t type_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "cannot return member number");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_nmembers() */
 
 /*-------------------------------------------------------------------------
@@ -113,7 +113,7 @@ H5Tget_member_name(hid_t type_id, unsigned membno)
     H5T_t *dt = NULL;
     char  *ret_value;
 
-    FUNC_ENTER_API(NULL)
+    FUNC_ENTER_API(NULL, H5I_INVALID_HID)
     H5TRACE2("*s", "iIu", type_id, membno);
 
     /* Check args */
@@ -124,7 +124,7 @@ H5Tget_member_name(hid_t type_id, unsigned membno)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "unable to get member name");
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 }
 
 /*-------------------------------------------------------------------------
@@ -203,7 +203,7 @@ H5Tget_member_index(hid_t type_id, const char *name)
     int      ret_value = FAIL;
     unsigned i;
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE2("Is", "i*s", type_id, name);
 
     /* Check arguments */
@@ -240,7 +240,7 @@ H5Tget_member_index(hid_t type_id, const char *name)
     } /*lint !e788 All appropriate cases are covered */
 
 done:
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_member_index() */
 
 /*-------------------------------------------------------------------------

@@ -298,7 +298,7 @@ H5Pset_fapl_log(hid_t fapl_id, const char *logfile, unsigned long long flags, si
     H5P_genplist_t *plist;     /* Property list pointer */
     herr_t          ret_value; /* Return value */
 
-    FUNC_ENTER_API(FAIL)
+    FUNC_ENTER_API(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "i*sULz", fapl_id, logfile, flags, buf_size);
 
     /* Do this first, so that we don't try to free a wild pointer if
@@ -326,7 +326,7 @@ done:
     if (fa.logfile)
         H5MM_free(fa.logfile);
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Pset_fapl_log() */
 
 /*-------------------------------------------------------------------------

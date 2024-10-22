@@ -72,7 +72,7 @@ H5Tget_native_type(hid_t type_id, H5T_direction_t direction)
     size_t comp_size = 0;    /* Compound datatype's size */
     hid_t  ret_value;        /* Return value */
 
-    FUNC_ENTER_API(H5I_INVALID_HID)
+    FUNC_ENTER_API(H5I_INVALID_HID, H5I_INVALID_HID)
     H5TRACE2("i", "iTd", type_id, direction);
 
     /* Check arguments */
@@ -95,7 +95,7 @@ done:
         if (new_dt && H5T_close_real(new_dt) < 0)
             HDONE_ERROR(H5E_DATATYPE, H5E_CLOSEERROR, H5I_INVALID_HID, "unable to release datatype");
 
-    FUNC_LEAVE_API(ret_value)
+    FUNC_LEAVE_API(ret_value, H5I_INVALID_HID)
 } /* end H5Tget_native_type() */
 
 /*-------------------------------------------------------------------------
