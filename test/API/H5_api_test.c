@@ -348,7 +348,6 @@ main(int argc, char **argv)
     n_tests_skipped_g = 0;
 
 #endif
-
     thread_info_t tinfo[MAX_THREADS];
 
     memset(tinfo, 0, sizeof(tinfo));
@@ -523,6 +522,8 @@ main(int argc, char **argv)
 #else
     tinfo[0].thread_idx = 0;
     tinfo[0].result = API_TEST_PASS;
+    tinfo[0].vol_connector_name = vol_connector_name;
+    tinfo[0].vol_connector_info = vol_connector_info;
 
     if ((retval = run_h5_API_tests_thread((void*) &tinfo[0])) == NULL) {
         fprintf(stderr, "Error running API tests\n");
