@@ -1075,6 +1075,8 @@ H5VL_object_inc_rc(H5VL_object_t *vol_obj)
     size_t prev_rc = 0;
 
     FUNC_ENTER_NOAPI_NOERR
+    /* Silence compiler warnings */
+    (void) prev_rc;
 
     /* Check arguments */
     assert(vol_obj);
@@ -1110,6 +1112,8 @@ H5VL_free_object(H5VL_object_t *vol_obj)
     size_t prev_rc = 0;
 
     FUNC_ENTER_NOAPI(FAIL)
+    /* Silence compiler warnings */
+    (void) prev_rc;
 
     /* Check arguments */
     assert(vol_obj);
