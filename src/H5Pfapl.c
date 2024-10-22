@@ -5788,6 +5788,7 @@ H5P_set_vol(H5P_genplist_t *plist, hid_t vol_id, const void *vol_info)
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
+    H5_API_LOCK
 
     if (NULL == H5I_object_verify(vol_id, H5I_VOL))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a VOL connector ID");
@@ -5807,6 +5808,7 @@ H5P_set_vol(H5P_genplist_t *plist, hid_t vol_id, const void *vol_info)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a file access property list");
 
 done:
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5P_set_vol() */
 
