@@ -79,8 +79,9 @@ typedef struct mt_test_pass_through_wrap_ctx_t {
 static mt_test_pass_through_t *mt_test_pass_through_new_obj(void *under_obj, hid_t under_vol_id);
 static herr_t               mt_test_pass_through_free_obj(mt_test_pass_through_t *obj);
 
-/* "Management" callbacks */
-static herr_t mt_test_pass_through_init(hid_t vipl_id);
+/* Dynamic plugin routines */
+H5PL_type_t H5PLget_plugin_type(void);
+const void *H5PLget_plugin_info(void);
 
 /* VOL info callbacks */
 static void  *mt_test_pass_through_info_copy(const void *info);
