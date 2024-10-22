@@ -1978,11 +1978,44 @@ bool H5I_is_default_plist(hid_t id) {
 }
 
 /*-------------------------------------------------------------------------
+ * Function:    H5I__is_default_id
+ *
+ * Purpose:     Determine if the provided ID is a default ID that is
+ *              not reference-counted normally.
+ *
+ *-------------------------------------------------------------------------
+ */
+bool H5I_is_default_id(hid_t id) {
+    bool ret_value = false;
+    H5T_t *dtype = NULL;
+
+    if (id == H5I_INVALID_HID)
+        HGOTO_DONE(true);
+
+    /* Default ID */
+    if (id == 0)
+        HGOTO_DONE(true);
+
+    if (H5I_is_default_plist(id))
+        HGOTO_DONE(true);
+    
+    /* Is this a predefined library type? */
+    if (H5I_TYPE(id) == H5I_DATATYPE) {
+        dtype = (H5T_t *)H5I_object_verify(id, H5I_DATATYPE);
+        
+        if (H5T_is_immutable(dtype))
+            HGOTO_DONE(true);
+    }
+
+done:
+    return ret_value;
+}
+/*-------------------------------------------------------------------------
  * Function:    H5I_vlock_enter
  *
  * Purpose:     Increment the lock count of the provided ID's virtual lock.
  * 
- *              If the provided ID is a special value (invalid, default plist)
+ *              If the provided ID is a special value (invalid or default ID)
  *              this function returns a successful no-op.
  *               
  *              If the provided ID cannot be found, returns a 
@@ -2002,15 +2035,15 @@ herr_t H5I_vlock_enter(hid_t id) {
     
     H5I_mt_id_info_kernel_t info_k;
     H5I_mt_id_info_kernel_t mod_info_k;
-
+    
     FUNC_ENTER_NOAPI_NOERR
 
     /* Initialize */
     memset(&info_k, 0, sizeof(info_k));
     memset(&mod_info_k, 0, sizeof(mod_info_k));
 
-    /* No-op for fake ids */
-    if (H5I_is_default_plist(id) || (id == H5I_INVALID_HID))
+    /* No-op for default ids */
+    if (H5I_is_default_id(id))
         HGOTO_DONE(SUCCEED);
 
     /* Try to get ID info - if it was already released, do nothing */
@@ -2025,16 +2058,20 @@ herr_t H5I_vlock_enter(hid_t id) {
         /* If this attempt fails, this is undone by assignment of mod_info_k */
         mod_info_k.lock_count++;
 
-        if (mod_info_k.lock_count <= 0)
+        if (mod_info_k.lock_count <= 0) {
+            printf("lock count underflow\n");
             HGOTO_DONE(FAIL);
+        }
 
         /* If ID info was concurrently modified, restart and check again */
         /* This incr/decr always succeeds, validity check happens afterwards */
     } while (!atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k));
 
     /* Validity check */
-    if ((size_t) mod_info_k.lock_count > mod_info_k.app_count)
+    if ((size_t) mod_info_k.lock_count > mod_info_k.app_count) {
+        printf("ID is used from API more times than ref count permits: %d > %u\n", mod_info_k.lock_count, mod_info_k.app_count);
         HGOTO_DONE(FAIL);
+    }
 
 done:
     FUNC_LEAVE_NOAPI(ret_value);
@@ -2045,7 +2082,7 @@ done:
  *
  * Purpose:     Decrement the lock count of the provided ID's virtual lock.
  * 
- *              If the provided ID is a special value (invalid, default plist)
+ *              If the provided ID is a special value (invalid or default ID)
  *              this function returns a successful no-op.
  *               
  *              If the provided ID cannot be found, this assumes it was 
@@ -2073,8 +2110,8 @@ herr_t H5I_vlock_exit(hid_t id) {
     memset(&info_k, 0, sizeof(info_k));
     memset(&mod_info_k, 0, sizeof(mod_info_k));
 
-    /* No-op for fake ids */
-    if (H5I_is_default_plist(id) || (id == H5I_INVALID_HID))
+    /* No-op for default ids */
+    if (H5I_is_default_id(id))
         HGOTO_DONE(SUCCEED);
 
     /* Get ID info */

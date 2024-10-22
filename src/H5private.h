@@ -1500,8 +1500,21 @@ extern hbool_t H5_libterm_g; /* Is the library being shutdown? */
     /* Add invalid ID to pad list in the event __VA_ARGS__ is empty */\
     const hid_t _vars[] = {H5I_INVALID_HID, __VA_ARGS__}; \
     bool success = true;\
+    bool repeat = false;\
     for (size_t _i = 1; _i < sizeof(_vars) / sizeof(hid_t); _i++) {\
+        /* If same ID provided twice, only virtual lock it once */\
+        for (size_t _j = 1; _j < _i; _j++) {\
+            if (_vars[_i] == _vars[_j]) {\
+                repeat = true;\
+                break;\
+            }\
+        }\
+        if (repeat) {\
+            repeat = false;\
+            continue;\
+        }\
         if (H5I_vlock_enter(_vars[_i]) < 0) {\
+            fprintf(stderr, "H5I_vlock_enter failed on id %ld, the %d-th entry in the list %s\n", _vars[_i], (int) _i, #__VA_ARGS__);\
             success = false;\
         }\
     }\
@@ -1514,7 +1527,19 @@ extern hbool_t H5_libterm_g; /* Is the library being shutdown? */
     {\
     const hid_t _vars[] = {H5I_INVALID_HID, __VA_ARGS__}; \
     bool success_exit = true;\
+    bool repeat_exit = false;\
     for (size_t _i = 1; _i < sizeof(_vars) / sizeof(hid_t); _i++) {\
+        /* If same ID provided twice, only virtual unlock it once */\
+        for (size_t _j = 1; _j < _i; _j++) {\
+            if (_vars[_i] == _vars[_j]) {\
+                repeat_exit = true;\
+                break;\
+            }\
+        }\
+        if (repeat_exit) {\
+            repeat_exit = false;\
+            continue;\
+        }\
         if (H5I_vlock_exit(_vars[_i]) < 0) {\
             success_exit = false;\
         }\

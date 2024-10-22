@@ -85,6 +85,7 @@ H5_DLL herr_t     H5I_find_id(const void *object, H5I_type_t type, hid_t *id /*o
 H5_DLL herr_t H5I_vlock_enter(hid_t id);
 H5_DLL herr_t H5I_vlock_exit(hid_t id);
 H5_DLL bool H5I_is_default_plist(hid_t id);
+H5_DLL bool H5I_is_default_id(hid_t id);
 #endif /* H5_HAVE_VIRTUAL_LOCK */
 
 /* External iterator for use in the multi-thread case */
