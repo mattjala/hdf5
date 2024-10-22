@@ -1735,7 +1735,7 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
 
 /* In non multi-thread builds, FUNC_ENTER_API_NO_MUTEX must be the same as FUNC_ENTER_API */
 
-#define FUNC_ENTER_API_NO_MUTEX(err)    FUNC_ENTER_API(err)
+#define FUNC_ENTER_API_NO_MUTEX(err, ...)    FUNC_ENTER_API(err, __VA_ARGS__)
 
 #endif /* defined(H5_HAVE_MULTITHREAD) */
 
