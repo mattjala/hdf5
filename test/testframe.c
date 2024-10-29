@@ -50,6 +50,8 @@ static const char *TestProgName                     = NULL;
 static void (*TestPrivateUsage)(void)               = NULL;
 static int (*TestPrivateParser)(int ac, char *av[]) = NULL;
 
+static int TestMaxNumThreads_g = -1; /* Max number of threads that can be spawned */
+
 /*
  * Setup a test function and add it to the list of tests.
  *      It must have no parameters and returns void.
@@ -276,6 +278,33 @@ TestParseCmdLine(int argc, char *argv[])
         }
         else if ((HDstrcmp(*argv, "-cleanoff") == 0) || (HDstrcmp(*argv, "-c") == 0))
             SetTestNoCleanup();
+        else if ((strcmp(*argv, "-maxthreads") == 0) || (strcmp(*argv, "-t") == 0)) {
+            if (argc > 0) {
+                long max_threads;
+
+                --argc;
+                ++argv;
+
+                errno       = 0;
+
+                if (*argv == NULL) {
+                    TestUsage();
+                    exit(EXIT_FAILURE);
+                }
+
+                max_threads = strtol(*argv, NULL, 10);
+
+                if (errno != 0 || max_threads <= 0 || max_threads > (long)INT_MAX) {
+                    fprintf(stderr, "invalid value (%ld) specified for maximum number of threads\n", max_threads);
+                    exit(EXIT_FAILURE);
+                }
+
+                SetTestMaxNumThreads((int)max_threads);
+            } else {
+                TestUsage();
+                exit(EXIT_FAILURE);
+            }
+        }
         else {
             /* non-standard option.  Break out. */
             break;
@@ -649,4 +678,25 @@ TestAlarmOff(void)
     /* Set the number of seconds to zero */
     alarm(0);
 #endif
+}
+
+/*
+ * Returns the value set for the maximum number of threads that a test
+ * program can spawn in addition to the main thread.
+ */
+H5_ATTR_PURE int
+GetTestMaxNumThreads(void)
+{
+    return TestMaxNumThreads_g;
+}
+
+/*
+ * Set the value for the maximum number of threads that a test program
+ * can spawn in addition to the main thread.
+ */
+void
+SetTestMaxNumThreads(int max_num_threads)
+{
+    TestMaxNumThreads_g = max_num_threads;
+    return;
 }

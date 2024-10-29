@@ -428,6 +428,9 @@ H5TEST_DLL void        SetTest(const char *testname, int action);
 H5TEST_DLL void        TestAlarmOn(void);
 H5TEST_DLL void        TestAlarmOff(void);
 
+H5TEST_DLL int  GetTestMaxNumThreads(void);
+H5TEST_DLL void SetTestMaxNumThreads(int num_threads);
+
 #ifdef H5_HAVE_FILTER_SZIP
 H5TEST_DLL int h5_szip_can_encode(void);
 #endif /* H5_HAVE_FILTER_SZIP */
