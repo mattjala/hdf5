@@ -22,7 +22,7 @@
 /* Prototypes for the test routines */
 typedef struct mt_test_params {
     size_t num_repetitions;
-    size_t subtest_timeout;
+    unsigned subtest_timeout;
 } mt_test_params;
 
 #ifdef H5_HAVE_MULTITHREAD

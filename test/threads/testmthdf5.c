@@ -34,7 +34,10 @@
 /* Margin of runtime for each subtest allocated to cleanup */
 #define MARGIN 10
 
-#define DEFAULT_NUM_THREADS 32
+/* Margin of runtime for each subtest allocated to cleanup */
+#define MARGIN 1
+
+#define DEFAULT_NUM_THREADS 10
 
 /* Parameter to determine extent of stress testing */
 #define NUM_ITERS 100
@@ -44,6 +47,7 @@ int main(int argc, char *argv[])
     unsigned runtime;           /* Maximum run-time for test (in seconds) */
     unsigned num_subtests = 11;
     int testExpress;
+    int num_errs_occurred = 0;
     mt_test_params params;
 
     /* Initialize testing framework */
@@ -107,6 +111,9 @@ int main(int argc, char *argv[])
     /* Display testing information */
     TestInfo(argv[0]);
 
+    /* TODO: Refactor TestAlarmOn to accept specific timeout */
+    TestAlarmOn();
+
     /* Parse command line arguments */
     TestParseCmdLine(argc, argv);
 
@@ -124,10 +131,15 @@ int main(int argc, char *argv[])
     if (GetTestCleanup() && !HDgetenv(HDF5_NOCLEANUP))
         TestCleanup();
 
+    /* TODO: Refactor TestAlarmOff to accept specific timeout */
+    TestAlarmOff();
+
+    num_errs_occurred = GetTestNumErrs();
+
     /* Release test infrastructure */
     TestShutdown();
 
-    if (GetTestNumErrs() > 0) {
+    if (num_errs_occurred > 0) {
         exit(EXIT_FAILURE);
     } else {
         exit(EXIT_SUCCESS);

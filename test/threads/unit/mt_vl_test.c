@@ -28,6 +28,10 @@
 #define OPERATIONS_PER_SUBCLASS 5
 
 #ifdef H5_HAVE_MULTITHREAD
+
+/* Silence compiler warning */
+extern int GetTestMaxNumThreads(void);
+
 /* Shared VOL Connector Property for testing */
 H5VL_connector_prop_t conn_prop_g;
 
@@ -86,6 +90,9 @@ void mt_test_run_helper_in_parallel(int max_num_threads, mt_vl_test_cb mt_test_f
  * threads. */
 void mt_test_registration(void) {
   int max_num_threads = GetTestMaxNumThreads();
+  const mt_test_params *params = GetTestParameters();
+  assert(params != NULL);
+  alarm(params->subtest_timeout);
   mt_test_run_helper_in_parallel(max_num_threads, mt_test_registration_helper, NULL);
   return;
 }
@@ -122,7 +129,9 @@ void *mt_test_registration_helper(void H5_ATTR_UNUSED *arg) {
  * threads. */
 void mt_test_registration_by_name(void) {
   int max_num_threads = GetTestMaxNumThreads();
-
+  const mt_test_params *params = GetTestParameters();
+  assert(params != NULL);
+  alarm(params->subtest_timeout);
   mt_test_run_helper_in_parallel(max_num_threads, mt_test_registration_by_name_helper, NULL);
   return;
 }
@@ -163,7 +172,9 @@ void *mt_test_registration_by_name_helper(void H5_ATTR_UNUSED *arg) {
  * threads. */
 void mt_test_registration_by_value(void) {
   int max_num_threads = GetTestMaxNumThreads();
-
+  const mt_test_params *params = GetTestParameters();
+  assert(params != NULL);
+  alarm(params->subtest_timeout);
   mt_test_run_helper_in_parallel(max_num_threads, mt_test_registration_by_value_helper, NULL);
   return;
 }
@@ -203,7 +214,9 @@ void *mt_test_registration_by_value_helper(void H5_ATTR_UNUSED *arg) {
 /* Test concurrent registration and unregistration of dynamic VOL operations */
 void mt_test_dyn_op_registration(void) {
   int max_num_threads = GetTestMaxNumThreads();
-
+  const mt_test_params *params = GetTestParameters();
+  assert(params != NULL);
+  alarm(params->subtest_timeout);
   mt_test_run_helper_in_parallel(max_num_threads, mt_test_dyn_op_registration_helper, NULL);
   return;
 }
@@ -296,6 +309,9 @@ void mt_test_registration_operation(void) {
   hid_t file_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
   int max_num_threads = GetTestMaxNumThreads();
+  const mt_test_params *params = GetTestParameters();
+  assert(params != NULL);
+  alarm(params->subtest_timeout);
 
   /* Create test file  */
   file_id = H5Fcreate(MT_TEST_VOL_REGISTRATION_FILENAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -371,6 +387,9 @@ void mt_test_registration_operation_cleanup(void) {
  * H5PL works in a multi-threaded environment */
 void mt_test_file_open_failure_registration(void) {
   int max_num_threads = GetTestMaxNumThreads();
+  const mt_test_params *params = GetTestParameters();
+  assert(params != NULL);
+  alarm(params->subtest_timeout);
 
   mt_test_run_helper_in_parallel(max_num_threads, mt_test_file_open_failure_registration_helper, NULL);
   return;
@@ -407,6 +426,10 @@ void mt_test_vol_property_copy(void) {
   hid_t fapl_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
   int max_num_threads = GetTestMaxNumThreads();
+
+  const mt_test_params *params = GetTestParameters();
+  assert(params != NULL);
+  alarm(params->subtest_timeout);
 
   fapl_id = H5Pcreate(H5P_FILE_ACCESS);
   CHECK(fapl_id, H5I_INVALID_HID, "H5Pcreate");
@@ -476,6 +499,10 @@ void mt_test_register_and_search(void) {
   int ret = 0;
 
   int max_num_threads = GetTestMaxNumThreads();
+
+  const mt_test_params *params = GetTestParameters();
+  assert(params != NULL);
+  alarm(params->subtest_timeout);
 
   threads_per_group = max_num_threads / 3;
 
@@ -610,6 +637,10 @@ void *mt_test_search_search_by_value_helper(void *arg) {
 void mt_test_lib_state_ops(void) {
   int max_num_threads = GetTestMaxNumThreads();
 
+  const mt_test_params *params = GetTestParameters();
+  assert(params != NULL);
+  alarm(params->subtest_timeout);
+
   mt_test_run_helper_in_parallel(max_num_threads, mt_test_lib_state_ops_helper, NULL);
   return;
 }
@@ -655,6 +686,10 @@ void mt_test_vol_wrap_ctx(void) {
   H5VL_pass_through_info_t passthru_info = {H5VL_NATIVE, NULL};
   hid_t passthru_id = H5I_INVALID_HID;
   int max_num_threads = GetTestMaxNumThreads();
+
+  const mt_test_params *params = GetTestParameters();
+  assert(params != NULL);
+  alarm(params->subtest_timeout);
 
   /* Register the passthrough connector */
   passthru_id = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT);
@@ -738,6 +773,10 @@ void mt_test_vol_wrap_ctx_cleanup(void) {
 void mt_test_vol_info(void) {
   int max_num_threads = GetTestMaxNumThreads();
 
+  const mt_test_params *params = GetTestParameters();
+  assert(params != NULL);
+  alarm(params->subtest_timeout);
+
   mt_test_run_helper_in_parallel(max_num_threads, mt_test_vol_info_helper, NULL);
   return;
 }
@@ -796,4 +835,5 @@ void *mt_test_vol_info_helper(void H5_ATTR_UNUSED *arg) {
 
   return NULL;
 }
+
 #endif /* H5_HAVE_MULTITHREAD */
