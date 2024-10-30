@@ -103,15 +103,21 @@ static herr_t H5VL__get_registered_connector_st(H5VL_get_connector_ud_t *op_data
 
 static herr_t H5VL__get_registered_connector(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
 
-#define H5I_DEC_REF(id, app_ref)                                                                             \
-    if (app_ref) {                                                                                           \
-        if (H5I_dec_app_ref(id) < 0)                                                                         \
-            HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "can't decrement ID ref count");                         \
-    }                                                                                                        \
-    else {                                                                                                   \
-        if (H5I_dec_ref(id) < 0)                                                                             \
-            HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "can't decrement ID ref count");                         \
+#define H5I_DEC_REF(id, app_ref)                                                                                 \
+    {                                                                                                            \
+        /* Retain lock to protect ID iteration */                                                                \
+        int dec_ref_ret = 0;                                                                                     \
+        H5_API_LOCK                                                                                              \
+        if (app_ref) {                                                                                           \
+            dec_ref_ret = H5I_dec_app_ref(id);                                                                   \
+        } else {                                                                                                 \
+            dec_ref_ret = H5I_dec_ref(id);                                                                       \
+        }                                                                                                        \
+        H5_API_UNLOCK                                                                                            \
+        if (dec_ref_ret < 0)                                                                                     \
+            HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "can't decrement ID ref count");                             \
     }
+
 /*********************/
 /* Package Variables */
 /*********************/
@@ -280,7 +286,10 @@ H5VL_term_package(void)
             } /* end if */
             else {
                 /* Destroy the VOL connector ID group */
+                /* TBD: Retain lock to protect ID iteration */
+                H5_API_LOCK
                 n += (H5I_dec_type_ref(H5I_VOL) > 0);
+                H5_API_UNLOCK
             } /* end else */
         }     /* end else */
     }         /* end else */
@@ -343,9 +352,10 @@ H5VL__set_def_conn(void)
     H5P_genclass_t *def_fapclass;           /* Default file access property class */
     const char     *env_var;                /* Environment variable for default VOL connector */
     char           *buf          = NULL;    /* Buffer for tokenizing string */
-    hid_t           connector_id = -1;      /* VOL conntector ID */
+    hid_t           connector_id = H5I_INVALID_HID; /* VOL connector ID */
     void           *vol_info     = NULL;    /* VOL connector info */
     herr_t          ret_value    = SUCCEED; /* Return value */
+    int dec_ref_ret = 0;                     /* Return value from H5I_dec_ref() */
 
     FUNC_ENTER_PACKAGE
 
@@ -450,10 +460,16 @@ done:
         if (vol_info)
             if (H5VL_free_connector_info(connector_id, vol_info) < 0)
                 HDONE_ERROR(H5E_VOL, H5E_CANTRELEASE, FAIL, "can't free VOL connector info");
-        if (connector_id >= 0)
+        if (connector_id != H5I_INVALID_HID) {
             /* The H5VL_class_t struct will be freed by this function */
-            if (H5I_dec_ref(connector_id) < 0)
+            /* TBD: Retain lock to protect ID iteration */
+            H5_API_LOCK
+            dec_ref_ret = H5I_dec_ref(connector_id);
+            H5_API_UNLOCK
+
+            if (dec_ref_ret < 0)
                 HDONE_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "unable to unregister VOL connector");
+        }
     } /* end if */
 
     /* Clean up */
@@ -592,6 +608,7 @@ H5VL_conn_copy(H5VL_connector_prop_t *connector_prop)
 {
     herr_t ret_value    = SUCCEED; /* Return value */
     bool   conn_id_incr = false;   /* Whether the connector has had its ref count incremented */
+    int dec_ref_ret = 0;           /* Return value from H5I_dec_ref() */
     FUNC_ENTER_NOAPI(FAIL)
 
     if (connector_prop) {
@@ -625,9 +642,15 @@ H5VL_conn_copy(H5VL_connector_prop_t *connector_prop)
     }         /* end if */
 
 done:
-    if (ret_value < 0 && conn_id_incr)
-        if (H5I_dec_ref(connector_prop->connector_id) < 0)
+    if (ret_value < 0 && conn_id_incr) {
+        /* TBD: Retain lock to protect ID iteration */
+        H5_API_LOCK
+        dec_ref_ret = H5I_dec_ref(connector_prop->connector_id);
+        H5_API_UNLOCK
+
+        if (dec_ref_ret < 0)
             HDONE_ERROR(H5E_PLIST, H5E_CANTDEC, FAIL, "unable to decrement ref count on VOL connector ID");
+    }
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5VL_conn_copy() */
@@ -646,6 +669,7 @@ herr_t
 H5VL_conn_free(const H5VL_connector_prop_t *connector_prop)
 {
     herr_t ret_value = SUCCEED; /* Return value */
+    int dec_ref_ret = 0;        /* Return value from H5I_dec_ref() */
 
     FUNC_ENTER_NOAPI(FAIL)
 
@@ -660,7 +684,12 @@ H5VL_conn_free(const H5VL_connector_prop_t *connector_prop)
                                 "unable to release VOL connector info object");
 
             /* Decrement reference count for connector ID */
-            if (H5I_dec_ref(connector_prop->connector_id) < 0)
+            /* TBD: Retain lock to protect ID iteration */
+            H5_API_LOCK
+            dec_ref_ret = H5I_dec_ref(connector_prop->connector_id);
+            H5_API_UNLOCK
+
+            if (dec_ref_ret < 0)
                 HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "can't decrement reference count for connector ID");
         }
     }
@@ -773,6 +802,7 @@ H5VL_new_connector(hid_t connector_id)
     H5VL_t       *connector    = NULL;  /* New VOL connector struct */
     hbool_t       conn_id_incr = FALSE; /* Whether the VOL connector ID has been incremented */
     H5VL_t       *ret_value    = NULL;  /* Return value */
+    int          dec_ref_ret  = 0;     /* Return value from H5I_dec_ref() */
 
     FUNC_ENTER_NOAPI(NULL)
 
@@ -804,9 +834,17 @@ done:
     /* Clean up on error */
     if (NULL == ret_value) {
         /* Decrement VOL connector ID ref count on error */
-        if (conn_id_incr && H5I_dec_ref(connector_id) < 0)
-            HDONE_ERROR(H5E_VOL, H5E_CANTDEC, NULL, "unable to decrement ref count on VOL connector");
+        if (conn_id_incr) {
+            /* TBD: Retain lock to protect ID iteration */
+            H5_API_LOCK
+            dec_ref_ret = H5I_dec_ref(connector_id);
+            H5_API_UNLOCK
 
+            if (dec_ref_ret < 0)
+                HDONE_ERROR(H5E_VOL, H5E_CANTDEC, NULL, "unable to decrement ref count on VOL connector");
+
+        }
+       
         /* Free VOL connector struct */
         if (connector)
             connector = H5FL_FREE(H5VL_t, connector);
@@ -918,6 +956,7 @@ H5VL_create_object_using_vol_id(H5I_type_t type, void *obj, hid_t connector_id)
     H5VL_t        *connector    = NULL;  /* VOL connector struct */
     hbool_t        conn_id_incr = FALSE; /* Whether the VOL connector ID has been incremented */
     H5VL_object_t *ret_value    = NULL;  /* Return value */
+    int dec_ref_ret = 0;                /* Return value from H5I_dec_ref() */
 
     FUNC_ENTER_NOAPI(NULL)
 
@@ -951,8 +990,15 @@ done:
     /* Clean up on error */
     if (!ret_value) {
         /* Decrement VOL connector ID ref count on error */
-        if (conn_id_incr && H5I_dec_ref(connector_id) < 0)
-            HDONE_ERROR(H5E_VOL, H5E_CANTDEC, NULL, "unable to decrement ref count on VOL connector");
+        if (conn_id_incr) {
+            /* TBD: Retain lock to protect ID iteration */
+            H5_API_LOCK
+            dec_ref_ret = H5I_dec_ref(connector_id);
+            H5_API_UNLOCK
+
+            if (dec_ref_ret < 0)
+                HDONE_ERROR(H5E_VOL, H5E_CANTDEC, NULL, "unable to decrement ref count on VOL connector");
+        }
 
         /* Free VOL connector struct */
         if (connector)
@@ -1006,6 +1052,7 @@ int64_t
 H5VL_conn_dec_rc(H5VL_t *connector)
 {
     int64_t ret_value = -1; /* Return value */
+    int    dec_ref_ret = 0; /* Return value from H5I_dec_ref() */
 
     FUNC_ENTER_NOAPI(-1)
 
@@ -1031,7 +1078,12 @@ H5VL_conn_dec_rc(H5VL_t *connector)
     if (0 == connector->nrefs)
 #endif
     {
-        if (H5I_dec_ref(connector->id) < 0)
+        /* TBD: Retain lock to protect ID iteration */
+        H5_API_LOCK
+        dec_ref_ret = H5I_dec_ref(connector->id);
+        H5_API_UNLOCK
+
+        if (dec_ref_ret < 0)
             HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "unable to decrement ref count on VOL connector");
 
             /* Sanity check */

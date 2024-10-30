@@ -2069,7 +2069,6 @@ herr_t H5I_vlock_enter(hid_t id) {
 
     /* Validity check */
     if ((size_t) mod_info_k.lock_count > mod_info_k.app_count) {
-        printf("ID is used from API more times than ref count permits: %d > %u\n", mod_info_k.lock_count, mod_info_k.app_count);
         HGOTO_DONE(FAIL);
     }
 
