@@ -6,7 +6,7 @@ on:
             - '*'
 
 env:
-  HDF5TestExpress: 2
+  HDF5TestExpress: 1
 
 jobs:
     build-and-test:
@@ -15,6 +15,7 @@ jobs:
             matrix:
                 api_tests: ["--enable-api-tests", "--disable-api-tests"]
                 multi_thread: ["--enable-multithread --disable-hl", "--disable-multithread --enable-threadsafe --disable-hl", "--disable-multithread --disable-threadsafe"]
+                build_mode: ["production", "debug"]
             fail-fast: false
 
         steps:
@@ -30,7 +31,7 @@ jobs:
               working-directory: ${{github.workspace}}
               run: |
                     sh ./autogen.sh
-                    ./configure --enable-shared --enable-tests ${{ matrix.multi_thread }} ${{ matrix.api_tests }} --enable-build-mode=debug
+                    ./configure --enable-shared --enable-tests ${{ matrix.multi_thread }} ${{ matrix.api_tests }} --enable-build-mode=${{ matrix.build_mode }}
 
             - name: Build HDF5
               working-directory: ${{github.workspace}}

@@ -1499,7 +1499,7 @@ extern hbool_t H5_libterm_g; /* Is the library being shutdown? */
     {\
     /* Add invalid ID to pad list in the event __VA_ARGS__ is empty */\
     const hid_t _vars[] = {H5I_INVALID_HID, __VA_ARGS__}; \
-    bool success = true;\
+    bool id_virtual_lock_success = true;\
     bool repeat = false;\
     for (size_t _i = 1; _i < sizeof(_vars) / sizeof(hid_t); _i++) {\
         /* If same ID provided twice, only virtual lock it once */\
@@ -1514,10 +1514,10 @@ extern hbool_t H5_libterm_g; /* Is the library being shutdown? */
             continue;\
         }\
         if (H5I_vlock_enter(_vars[_i]) < 0) {\
-            success = false;\
+            id_virtual_lock_success = false;\
         }\
     }\
-    assert(success);\
+    assert(id_virtual_lock_success);\
     /* HGOTO_ERROR(H5E_FUNC, H5E_CANTINIT, FAIL, "unable to lock object");*/\
     }
 
@@ -1525,7 +1525,7 @@ extern hbool_t H5_libterm_g; /* Is the library being shutdown? */
     /* Add invalid ID to pad list in the event __VA_ARGS__ is empty */\
     {\
     const hid_t _vars[] = {H5I_INVALID_HID, __VA_ARGS__}; \
-    bool success_exit = true;\
+    bool id_virtual_lock_success_exit = true;\
     bool repeat_exit = false;\
     for (size_t _i = 1; _i < sizeof(_vars) / sizeof(hid_t); _i++) {\
         /* If same ID provided twice, only virtual unlock it once */\
@@ -1540,10 +1540,10 @@ extern hbool_t H5_libterm_g; /* Is the library being shutdown? */
             continue;\
         }\
         if (H5I_vlock_exit(_vars[_i]) < 0) {\
-            success_exit = false;\
+            id_virtual_lock_success_exit = false;\
         }\
     }\
-    assert(success_exit);\
+    assert(id_virtual_lock_success_exit);\
     /*HGOTO_ERROR(H5E_FUNC, H5E_CANTINIT, FAIL, "unable to unlock object"); */\
     }
 
