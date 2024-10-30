@@ -72,6 +72,8 @@ static int H5I__iterate_pub_cb(void *obj, hid_t id, void *udata);
 /* Local Variables */
 /*******************/
 
+const struct timespec sleep_duration = {0, 1000000}; /* 1 ms */
+
 #ifdef H5_HAVE_MULTITHREAD
 
 /*-------------------------------------------------------------------------
@@ -2050,21 +2052,27 @@ herr_t H5I_vlock_enter(hid_t id) {
     if ((id_info_ptr = H5I__find_id(id)) == NULL)
         HGOTO_DONE(SUCCEED);
 
-    /* Update the lock count and check for consistency with ID ref count */
+    /* Ensure that we have exlusive write access to the ID */
     do {
         info_k = atomic_load(&(id_info_ptr->k));
+        
+        if (info_k.do_not_disturb) {
+            /* Wait for other thread to release ID */
+            nanosleep(&sleep_duration, NULL);
+            continue;
+        }
+
+        /* Update the lock count and check for consistency with ID ref count */
         mod_info_k = info_k;
 
         /* If this attempt fails, this is undone by assignment of mod_info_k */
         mod_info_k.lock_count++;
 
         if (mod_info_k.lock_count <= 0) {
-            printf("lock count underflow\n");
             HGOTO_DONE(FAIL);
         }
 
         /* If ID info was concurrently modified, restart and check again */
-        /* This incr/decr always succeeds, validity check happens afterwards */
     } while (!atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k));
 
     /* Validity check */
@@ -2119,9 +2127,17 @@ herr_t H5I_vlock_exit(hid_t id) {
         HGOTO_DONE(SUCCEED);
     }
 
-    /* Update the lock count and check for consistency with ID ref count */
+    /* Ensure that we have exlusive write access to the ID */
     do {
         info_k = atomic_load(&(id_info_ptr->k));
+        
+        if (info_k.do_not_disturb) {
+            /* Wait for other thread to release ID */
+            nanosleep(&sleep_duration, NULL);
+            continue;
+        }
+
+        /* Update the lock count and check for consistency with ID ref count */
         mod_info_k = info_k;
 
         mod_info_k.lock_count--;
@@ -2130,7 +2146,6 @@ herr_t H5I_vlock_exit(hid_t id) {
             HGOTO_DONE(FAIL);
 
         /* If ID info was concurrently modified, restart and check again */
-        /* This incr/decr always succeeds, validity check happens afterwards */
     } while (!atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k));
 
     /* Validity check */
