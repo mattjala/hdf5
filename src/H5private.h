@@ -1514,7 +1514,6 @@ extern hbool_t H5_libterm_g; /* Is the library being shutdown? */
             continue;\
         }\
         if (H5I_vlock_enter(_vars[_i]) < 0) {\
-            fprintf(stderr, "H5I_vlock_enter failed on id %ld, the %d-th entry in the list %s\n", _vars[_i], (int) _i, #__VA_ARGS__);\
             success = false;\
         }\
     }\
@@ -1792,6 +1791,18 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
                 {
 #endif /* modified version */
 
+/* version of the FUNC_ENTER_API_NOINIT macro that does not attempt to gain the global mutex.  This 
+ * version is used on API calls into packages that have been modified to support multi-thread.
+ */
+#define FUNC_ENTER_API_NO_MUTEX_NOINIT(...)                                                             \
+    {                                                                                                        \
+        {                                                                                                    \
+            {                                                                                                \
+                FUNC_ENTER_API_COMMON                                                                        \
+                FUNC_ENTER_API_THREADSAFE_NO_MUTEX(__VA_ARGS__);                                             \
+                H5_PUSH_FUNC                                                                                 \
+                {
+
 /*
  * Use this macro for API functions that shouldn't perform _any_ initialization
  *      of the library or an interface or push themselves on the function
@@ -2068,6 +2079,22 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
     if (err_occurred)                                                                                        \
         (void)H5E_dump_api_stack(TRUE);                                                                      \
     FUNC_LEAVE_API_THREADSAFE(__VA_ARGS__)                                                                                \
+    return (ret_value);                                                                                      \
+    }                                                                                                        \
+    }                                                                                                        \
+    } /*end scope from beginning of FUNC_ENTER*/
+
+/* version of the FUNC_LEAVE_API_NOINIT macro that does not attempt to gain the global mutex.  This 
+ * version is used on API calls into packages that have been modified to support multi-thread.
+ */
+#define FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value, ...)                                                        \
+    ;                                                                                                        \
+    } /*end scope from end of FUNC_ENTER*/                                                                   \
+    FUNC_LEAVE_API_COMMON(ret_value);                                                                        \
+    H5_POP_FUNC                                                                                              \
+    if (err_occurred)                                                                                        \
+        (void)H5E_dump_api_stack(TRUE);                                                                      \
+    FUNC_LEAVE_API_THREADSAFE_NO_MUTEX(__VA_ARGS__)                                                          \
     return (ret_value);                                                                                      \
     }                                                                                                        \
     }                                                                                                        \
