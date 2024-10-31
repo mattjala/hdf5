@@ -2068,17 +2068,16 @@ herr_t H5I_vlock_enter(hid_t id) {
         /* If this attempt fails, this is undone by assignment of mod_info_k */
         mod_info_k.lock_count++;
 
-        if (mod_info_k.lock_count <= 0) {
+        if (mod_info_k.lock_count <= 0)
             HGOTO_DONE(FAIL);
-        }
 
         /* If ID info was concurrently modified, restart and check again */
     } while (!atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k));
 
-    /* Validity check */
-    if ((size_t) mod_info_k.lock_count > mod_info_k.app_count) {
-        HGOTO_DONE(FAIL);
-    }
+
+    assert(mod_info_k.lock_count > 0);
+    /* Ensure that ID is not being used more times than app ref count allows */
+    assert(mod_info_k.lock_count <= (int) mod_info_k.app_count + mod_info_k.app_unlocks );
 
 done:
     FUNC_LEAVE_NOAPI(ret_value);
@@ -2122,10 +2121,9 @@ herr_t H5I_vlock_exit(hid_t id) {
         HGOTO_DONE(SUCCEED);
 
     /* Get ID info */
-    if ((id_info_ptr = H5I__find_id(id)) == NULL) {
+    if ((id_info_ptr = H5I__find_id(id)) == NULL)
         /* Assume ID was released during the course of the API routine */
         HGOTO_DONE(SUCCEED);
-    }
 
     /* Ensure that we have exlusive write access to the ID */
     do {
@@ -2137,10 +2135,20 @@ herr_t H5I_vlock_exit(hid_t id) {
             continue;
         }
 
+        if (info_k.lock_count == 0) {
+            /* Lock count is already 0, no need to decrement */
+            HGOTO_DONE(SUCCEED);
+        }
+
         /* Update the lock count and check for consistency with ID ref count */
         mod_info_k = info_k;
 
-        mod_info_k.lock_count--;
+        if (mod_info_k.app_unlocks > 0) {
+            /* A routine release an application-level reference, and H5I already handled the vlock release */
+            mod_info_k.app_unlocks--;
+        } else {
+            mod_info_k.lock_count--;
+        }
 
         if (mod_info_k.lock_count < 0)
             HGOTO_DONE(FAIL);
@@ -2148,10 +2156,9 @@ herr_t H5I_vlock_exit(hid_t id) {
         /* If ID info was concurrently modified, restart and check again */
     } while (!atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k));
 
-    /* Validity check */
-    if ((size_t) mod_info_k.lock_count > mod_info_k.app_count)
-        HGOTO_DONE(FAIL);
-
+    /* If app count is zero, ID was released and we don't need to worry about the lock count.
+     * Otherwise, ensure that the ID wasn't used more times than ref count allows */
+    assert(mod_info_k.app_count == 0 ||( mod_info_k.lock_count <= ((int)  mod_info_k.app_count) + mod_info_k.app_unlocks) );
 done:
     FUNC_LEAVE_NOAPI(ret_value);
 } /* H5I_vlock_exit() */

@@ -1400,6 +1400,7 @@ typedef struct H5I_mt_id_info_kernel_t {
 
 #if H5_HAVE_VIRTUAL_LOCK
     int lock_count;      /* Virtual lock for this ID */
+    int app_unlocks;     /* Number of times this ID has been unlocked by the application */
 #endif /* H5_HAVE_VIRTUAL_LOCK */
 } H5I_mt_id_info_kernel_t;
 

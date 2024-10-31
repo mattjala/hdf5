@@ -2859,6 +2859,7 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
 
 #if H5_HAVE_VIRTUAL_LOCK
             mod_info_k.lock_count       = info_k.lock_count;
+            mod_info_k.app_unlocks      = info_k.app_unlocks;
 #endif /* H5_HAVE_VIRTUAL_LOCK */
 
             /* We don't want multiple threads trying to either realize or dispose of the 
@@ -2909,6 +2910,7 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
                 assert(info_k.have_global_mutex == mod_info_k.have_global_mutex);
 #if H5_HAVE_VIRTUAL_LOCK
                 assert(info_k.lock_count        == mod_info_k.lock_count);
+                assert(info_k.app_unlocks       == mod_info_k.app_unlocks);
 #endif /* H5_HAVE_VIRTUAL_LOCK */
 #endif /* JRM */
 
@@ -3094,6 +3096,7 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
 
 #if H5_HAVE_VIRTUAL_LOCK
                 mod_info_k.lock_count       = 0;
+                mod_info_k.app_unlocks      = 0;
 #endif /* H5_HAVE_VIRTUAL_LOCK */
             } else {
 
@@ -3108,6 +3111,7 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
 
 #if H5_HAVE_VIRTUAL_LOCK
                 mod_info_k.lock_count       = info_k.lock_count;
+                mod_info_k.app_unlocks      = info_k.app_unlocks;
 #endif /* H5_HAVE_VIRTUAL_LOCK */
             }
 
@@ -4067,6 +4071,7 @@ H5I_subst(hid_t id, const void *new_object)
         mod_info_k.object = new_object;
 #if H5_HAVE_VIRTUAL_LOCK
         mod_info_k.lock_count     = info_k.lock_count;
+        mod_info_k.app_unlocks    = info_k.app_unlocks;
 #endif /* H5_HAVE_VIRTUAL_LOCK */
         if ( atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k) ) {
 
@@ -4840,6 +4845,7 @@ H5I__remove_common(H5I_type_info_t *type_info_ptr, hid_t id)
 
 #if H5_HAVE_VIRTUAL_LOCK
                 mod_info_k.lock_count        = 0;
+                mod_info_k.app_unlocks       = 0;
 #endif /* H5_HAVE_VIRTUAL_LOCK */
                if ( atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k) ) {
 
@@ -5270,7 +5276,15 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
             mod_info_k.have_global_mutex = FALSE;
 
 #if H5_HAVE_VIRTUAL_LOCK
-            mod_info_k.lock_count        = info_k.lock_count;
+            if (app && !H5I_is_default_id(id)) {
+                /* Application-visible reference released, mirror that in the virtual lock */
+                mod_info_k.app_unlocks = info_k.app_unlocks + 1;
+                mod_info_k.lock_count = (info_k.lock_count > 0) ? info_k.lock_count - 1 : mod_info_k.lock_count;
+            } else {
+                /* Internal reference released, virtual lock unaffected */
+                mod_info_k.lock_count        = info_k.lock_count;
+                mod_info_k.app_unlocks       = info_k.app_unlocks;
+            }
 #endif /* H5_HAVE_VIRTUAL_LOCK */
             if ( info_k.count > 1 ) {
 
@@ -5303,6 +5317,7 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
 
 #if H5_HAVE_VIRTUAL_LOCK
                 mod_info_k.lock_count        = 0;
+                mod_info_k.app_unlocks       = 0;
 #endif /* H5_HAVE_VIRTUAL_LOCK */
                 marked_for_deletion = TRUE;
             }
@@ -5396,7 +5411,8 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
             mod_info_k.have_global_mutex = ((have_global_mutex) || (! cls_is_mt_safe));
 
 #if H5_HAVE_VIRTUAL_LOCK
-            mod_info_k.lock_count        = info_k.lock_count;
+            mod_info_k.app_unlocks = 0;
+            mod_info_k.lock_count = 0;
 #endif /* H5_HAVE_VIRTUAL_LOCK */
             /* We want to call the free function, and then mark the id for deletion.  
              * Since we can't roll this action back, we need exclusive access to the 
@@ -5446,6 +5462,7 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
                 assert(info_k.have_global_mutex == mod_info_k.have_global_mutex);
 #if H5_HAVE_VIRTUAL_LOCK
                 assert(info_k.lock_count        == mod_info_k.lock_count);
+                assert(info_k.app_unlocks       == mod_info_k.app_unlocks);
 #endif /* H5_HAVE_VIRTUAL_LOCK */
 #endif /* JRM */
 
@@ -5504,6 +5521,7 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
 
 #if H5_HAVE_VIRTUAL_LOCK
                 mod_info_k.lock_count        = 0;
+                mod_info_k.app_unlocks       = 0;
 #endif /* H5_HAVE_VIRTUAL_LOCK */
                 marked_for_deletion       = TRUE;
 
@@ -6423,6 +6441,7 @@ H5I_inc_ref_internal(hid_t id, hbool_t app_ref)
 
 #if H5_HAVE_VIRTUAL_LOCK
         mod_info_k.lock_count       = info_k.lock_count;
+        mod_info_k.app_unlocks      = info_k.app_unlocks;
 #endif /* H5_HAVE_VIRTUAL_LOCK */
         if ( app_ref ) {
 
@@ -7100,6 +7119,7 @@ H5I__iterate_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
 
 #if H5_HAVE_VIRTUAL_LOCK
                 mod_info_k.lock_count       = info_k.lock_count;
+                mod_info_k.app_unlocks      = info_k.app_unlocks;
 #endif /* H5_HAVE_VIRTUAL_LOCK */
                 /* We want to ensure that no other thread inside H5I does anything with 
                  * the object while we call the user_func on the objec on the object.  
@@ -7152,6 +7172,7 @@ H5I__iterate_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
                     assert(info_k.have_global_mutex == mod_info_k.have_global_mutex);
 #if H5_HAVE_VIRTUAL_LOCK
                     assert(info_k.lock_count       == mod_info_k.lock_count);
+                    assert(info_k.app_unlocks      == mod_info_k.app_unlocks);
 #endif /* H5_HAVE_VIRTUAL_LOCK */
 #endif /* JRM */
 
@@ -8047,6 +8068,7 @@ H5I__find_id(hid_t id)
 
 #if H5_HAVE_VIRTUAL_LOCK
                 mod_info_k.lock_count        = info_k.lock_count;
+                mod_info_k.app_unlocks       = info_k.app_unlocks;
 #endif /* H5_HAVE_VIRTUAL_LOCK */
                 if ( ! atomic_compare_exchange_strong(&(id_info_ptr->k), &info_k, mod_info_k ) ) {
 
@@ -8089,6 +8111,7 @@ H5I__find_id(hid_t id)
 
 #if H5_HAVE_VIRTUAL_LOCK
                     assert(info_k.lock_count        == mod_info_k.lock_count);
+                    assert(info_k.app_unlocks       == mod_info_k.app_unlocks);
 #endif /* H5_HAVE_VIRTUAL_LOCK */
 #endif /* JRM */
 
@@ -9411,8 +9434,10 @@ H5I__new_mt_id_info(hid_t id, unsigned count, unsigned app_count, const void * o
     new_k.do_not_disturb = FALSE;
     new_k.is_future = is_future;
     new_k.have_global_mutex = FALSE;
-
-
+#if H5_HAVE_VIRTUAL_LOCK
+    new_k.lock_count = 0;
+    new_k.app_unlocks = 0;
+#endif
 
     atomic_fetch_add(&(H5I_mt_g.H5I__new_mt_id_info__num_calls), 1ULL);
 

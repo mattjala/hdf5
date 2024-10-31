@@ -492,6 +492,7 @@ H5VLunregister_connector(hid_t vol_id)
     hid_t  native_id = H5I_INVALID_HID;
     herr_t ret_value = SUCCEED; /* Return value */
     int dec_ref_ret = 0; /* Return value from H5I_dec_(app_)ref */
+
     FUNC_ENTER_API_NO_MUTEX(FAIL, vol_id)
     H5TRACE1("e", "i", vol_id);
 
