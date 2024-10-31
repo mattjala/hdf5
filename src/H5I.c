@@ -72,7 +72,7 @@ static int H5I__iterate_pub_cb(void *obj, hid_t id, void *udata);
 /* Local Variables */
 /*******************/
 
-const struct timespec sleep_duration = {0, 1000000}; /* 1 ms */
+const struct timespec sleep_duration = {0, 10000};
 
 #ifdef H5_HAVE_MULTITHREAD
 

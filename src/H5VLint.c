@@ -1405,6 +1405,7 @@ H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref
     size_t        retry_limit = 100;   /* Maximum number of retries */
     size_t        retry_count = 0;     /* Number of retries */
     bool          retry       = false; /* Whether to restart the search */
+    herr_t        id_iter_ret = 0;
 
     FUNC_ENTER_PACKAGE
 
@@ -1412,10 +1413,10 @@ H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref
      * routine must restart the search from the beginning, since it has no way of knowing
      * whether the released ID was the target or not.
      *
-     * Throwing an error on inc/dec ref error could prematurely end a search.
+     * The alternative, throwing an error on inc/dec ref error, would prematurely end a search.
      *
-     * Ignoring inc/dec failures and continuing with the iteration will generally not be possible,
-     * since the ID that H5I_get_next() would need has been freed. */
+     * Similarly, the alternative of ignoring inc/dec failures and continuing with the iteration is
+     * potentially impossible, since the ID that H5I_get_next() would need has been freed. */
     do {
         retry = false;
         retry_count++;
@@ -1424,7 +1425,12 @@ H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref
             HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "maximum number of retries on search reached");
 
         /* Check if connector is already registered */
-        if (H5I_get_first(H5I_VOL, &vol_id_1, (void **)&vol_class_1, false) < 0)
+        /* TBD: Retain lock to protect ID iteration */
+        H5_API_LOCK
+        id_iter_ret = H5I_get_first(H5I_VOL, &vol_id_1, (void **)&vol_class_1, false);
+        H5_API_UNLOCK
+
+        if (id_iter_ret < 0)
             HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't retrieve first VOL ID for iteration");
 
         /* Don't search if no connectors are registered */
@@ -1445,7 +1451,7 @@ H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref
              (vol_class_1->value == op_data->key.u.value))) {
 
             if (!inc_ref) {
-                /* Don't restart search on failure here, since this should not be possible */
+                /* Return the ID ref count to its original value for caller */
                 H5I_DEC_REF(vol_id_1, app_ref);
             }
             op_data->found_id = vol_id_1;
@@ -1455,13 +1461,18 @@ H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref
         /* Iterate through connector IDs */
         while (true) {
             /* Get next ID and release current ID */
-            if (H5I_get_next(H5I_VOL, vol_id_1, &vol_id_2, (void **)&vol_class_2, false) < 0) {
+            /* TBD: Retain lock to protect ID iteration */
+            H5_API_LOCK
+            id_iter_ret = H5I_get_next(H5I_VOL, vol_id_1, &vol_id_2, (void **)&vol_class_2, false);
+            H5_API_UNLOCK
+
+            if (id_iter_ret < 0) {
                 H5I_DEC_REF(vol_id_1, app_ref);
                 HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID,
                             "can't retrieve next VOL ID for iteration");
             }
 
-            /* Don't restart search on failure here, since this should not be possible */
+            /* Return the ID ref count to its original value, since we no longer need to guarantee existence */
             H5I_DEC_REF(vol_id_1, app_ref);
 
             /* Check if we've reached the end of the list */
@@ -1482,9 +1493,10 @@ H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref
                  vol_class_2->value == op_data->key.u.value)) {
 
                 if (!inc_ref) {
-                    /* Don't restart search on failure here, since this should not be possible */
+                    /* Return the ID ref count to its original value for caller */
                     H5I_DEC_REF(vol_id_2, app_ref);
                 }
+
                 op_data->found_id = vol_id_2;
                 HGOTO_DONE(SUCCEED);
             }
@@ -2632,6 +2644,7 @@ H5VL_set_vol_wrapper(const H5VL_object_t *vol_obj)
 {
     H5VL_wrap_ctx_t *vol_wrap_ctx = NULL;    /* Object wrapping context */
     herr_t           ret_value    = SUCCEED; /* Return value */
+    bool conn_incr_rc = false;               /* Whether the connector's ref count has been incremented */
 
     FUNC_ENTER_NOAPI(FAIL)
 
@@ -2666,6 +2679,7 @@ H5VL_set_vol_wrapper(const H5VL_object_t *vol_obj)
 
         /* Increment the outstanding objects that are using the connector */
         H5VL_conn_inc_rc(vol_obj->connector);
+        conn_incr_rc = true;
 
         /* Set up VOL object wrapper context */
         vol_wrap_ctx->connector    = vol_obj->connector;
@@ -2691,6 +2705,11 @@ done:
     if (ret_value < 0 && vol_wrap_ctx)
         /* Release object wrapping context */
         H5FL_FREE(H5VL_wrap_ctx_t, vol_wrap_ctx);
+
+    if (ret_value < 0 && conn_incr_rc)
+        /* Undo ref count increment on connector */
+        if (H5VL_conn_dec_rc(vol_obj->connector) < 0)
+            HDONE_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "unable to decrement ref count on VOL connector");
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5VL_set_vol_wrapper() */

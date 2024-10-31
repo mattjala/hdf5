@@ -66,7 +66,12 @@ int main(int argc, char *argv[])
     }
 
     params.num_repetitions = NUM_ITERS;
-    params.subtest_timeout = (runtime - MARGIN) / num_subtests;
+
+    if (testExpress > 0) {
+        params.subtest_timeout = (runtime - MARGIN) / num_subtests;
+    } else {
+        params.subtest_timeout = 0;
+    }
 
 #ifdef H5_HAVE_MULTITHREAD
     /* H5VL Tests */

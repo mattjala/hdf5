@@ -1072,6 +1072,9 @@ H5CX_free_state(H5CX_state_t *api_state)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
+    /* TBD: Retain ID lock to protect iteration */
+    H5_API_LOCK
+
     FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
@@ -1119,6 +1122,7 @@ H5CX_free_state(H5CX_state_t *api_state)
     api_state = H5FL_FREE(H5CX_state_t, api_state);
 
 done:
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5CX_free_state() */
 
