@@ -139,6 +139,7 @@ run_h5_API_tests_thread(void *thread_info)
     hid_t          registered_con_id         = H5I_INVALID_HID;
     thread_info_t *tinfo                     = NULL;
     int chars_written;
+    size_t tests_failed = 0;
 
     if (!thread_info) {
         fprintf(stderr, "Thread info is NULL\n");
@@ -286,14 +287,21 @@ run_h5_API_tests_thread(void *thread_info)
 
     H5Fdelete(H5_API_TEST_FILENAME, fapl_id);
 
+/*
 #ifndef H5_HAVE_MULTITHREAD
     tinfo->n_tests_run_g = n_tests_run_g;
     tinfo->n_tests_passed_g = n_tests_passed_g;
     tinfo->n_tests_failed_g = n_tests_failed_g;
     tinfo->n_tests_skipped_g = n_tests_skipped_g;
 #endif
+*/
 
-    if (tinfo->n_tests_failed_g > 0) {
+#ifdef H5_HAVE_MULTITHREAD
+    tests_failed = atomic_load(&n_tests_failed_g);
+#else
+    tests_failed = n_tests_failed_g;
+#endif
+    if (tests_failed > 0) {
         tinfo->result = API_TEST_FAIL;
     }
 done:
@@ -339,6 +347,8 @@ main(int argc, char **argv)
     size_t n_tests_passed = 0;
     size_t n_tests_failed = 0;
     size_t n_tests_skipped = 0;
+    
+    memset(threads, 0, sizeof(threads));
 #else
 #define MAX_THREADS 1
     active_thread_ct = 1;
@@ -349,8 +359,10 @@ main(int argc, char **argv)
 
 #endif
     thread_info_t tinfo[MAX_THREADS];
+    htri_t results[MAX_THREADS];
 
     memset(tinfo, 0, sizeof(tinfo));
+    memset(results, 0, sizeof(results));
 
     /* Simple argument checking, TODO can improve that later */
     if (argc > 1) {
@@ -444,10 +456,6 @@ main(int argc, char **argv)
             tinfo[thread_idx].result = API_TEST_PASS;
             tinfo[thread_idx].vol_connector_name = vol_connector_name;
             tinfo[thread_idx].vol_connector_info = vol_connector_info;
-            tinfo[thread_idx].n_tests_run_g = 0;
-            tinfo[thread_idx].n_tests_passed_g = 0;
-            tinfo[thread_idx].n_tests_failed_g = 0;
-            tinfo[thread_idx].n_tests_skipped_g = 0;
 
             if (pthread_create(&threads[thread_idx], NULL, run_h5_API_tests_thread,
                             (void *)&tinfo[thread_idx]) != 0) {
@@ -459,6 +467,8 @@ main(int argc, char **argv)
 
         /* Wait for threads to finish */
         for (size_t i = 0; i < nthreads; i++) {
+            size_t thread_idx = 0;
+
             if (pthread_join(threads[i], (void *)&retval) != 0) {
                 fprintf(stderr, "Error joining an API test thread\n");
                 ret_value = FAIL;
@@ -470,52 +480,39 @@ main(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
 
-            if (((thread_info_t *)(retval))->result == API_TEST_ERROR) {
-                fprintf(stderr, "An internal error occurred during API tests in thread %zu\n", ((thread_info_t*)(retval))->thread_idx);
+            thread_idx = ((thread_info_t *)(retval))->thread_idx;
+
+            results[thread_idx] = ((thread_info_t *)(retval))->result;
+
+            if (results[thread_idx] == API_TEST_ERROR) {
+                fprintf(stderr, "An internal error occurred during API tests in thread %zu\n", thread_idx);
                 ret_value = 1;
                 goto done;
-            }
-                            
-            if (((thread_info_t *)(retval))->result == API_TEST_FAIL) {
-                fprintf(stderr, "A failure occurred during API tests in thread %zu\n", ((thread_info_t*)(retval))->thread_idx);
-                ret_value = FAIL;
-            }
-
-            if (((thread_info_t *)(retval))->result == API_TEST_PASS) {
-                printf("API tests in thread %zu passed\n", ((thread_info_t*)(retval))->thread_idx);
             }
         }
     
         H5close();
 
-        /* Aggregate and display results */
+        /* Display results */
         for (size_t i = 0; i < nthreads; i++) {
-            n_tests_run += tinfo[i].n_tests_run_g;
-            n_tests_passed += tinfo[i].n_tests_passed_g;
-            n_tests_failed += tinfo[i].n_tests_failed_g;
-            n_tests_skipped += tinfo[i].n_tests_skipped_g;
+            if (results[i] == API_TEST_FAIL) {
+                fprintf(stderr, "A failure occurred during API tests in thread %zu\n", i);
+                ret_value = FAIL;
+            }
 
-            printf("[T%zu] %zu/%zu (%.2f%%) API tests passed with VOL connector '%s'\n", tinfo[i].thread_idx, tinfo[i].n_tests_passed_g, tinfo[i].n_tests_run_g,
-                ((double) tinfo[i].n_tests_passed_g/ (double)tinfo[i].n_tests_run_g * 100.0), tinfo[i].vol_connector_name);
-            printf("[T%zu] %zu/%zu (%.2f%%) API tests did not pass with VOL connector '%s'\n", tinfo[i].thread_idx,  tinfo[i].n_tests_failed_g,
-                tinfo[i].n_tests_run_g, ((double)tinfo[i].n_tests_failed_g / (double)tinfo[i].n_tests_run_g * 100.0), tinfo[i].vol_connector_name);
-            printf("[T%zu] %zu/%zu (%.2f%%) API tests were skipped with VOL connector '%s'\n\n", tinfo[i].thread_idx,  tinfo[i].n_tests_skipped_g,
-                tinfo[i].n_tests_run_g, ((double)tinfo[i].n_tests_skipped_g / (double)tinfo[i].n_tests_run_g * 100.0),
-                tinfo[i].vol_connector_name);
+            if (results[i] == API_TEST_PASS) {
+                printf("API tests in thread %zu passed\n", i);
+            }
         }
 
-        printf("[All threads] %zu/%zu (%.2f%%) API tests passed\n", n_tests_passed, n_tests_run,
-               ((double)n_tests_passed / (double)n_tests_run * 100.0));
-        printf("[All threads] %zu/%zu (%.2f%%) API tests did not pass\n", n_tests_failed,
-               n_tests_run, ((double)n_tests_failed / (double)n_tests_run * 100.0));
-        printf("[All threads] %zu/%zu (%.2f%%) API tests were skipped\n",  n_tests_skipped,
-               n_tests_run, ((double)n_tests_skipped / (double)n_tests_run * 100.0));
-
-        /* Reset stats */
-        n_tests_run = 0;
-        n_tests_passed = 0;
-        n_tests_failed = 0;
-        n_tests_skipped = 0;
+        printf("Results from API tests run with %zu thread(s):\n", nthreads);
+        printf("%zu/%zu (%.2f%%) API tests passed with VOL connector '%s'\n",  n_tests_passed_g, n_tests_run_g,
+            ((double) n_tests_passed_g/ (double)n_tests_run_g * 100.0), vol_connector_name);
+        printf("%zu/%zu (%.2f%%) API tests did not pass with VOL connector '%s'\n",   n_tests_failed_g,
+            n_tests_run_g, ((double)n_tests_failed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
+        printf("%zu/%zu (%.2f%%) API tests were skipped with VOL connector '%s'\n\n",   n_tests_skipped_g,
+            n_tests_run_g, ((double)n_tests_skipped_g / (double)n_tests_run_g * 100.0),
+            vol_connector_name);
 
     }
 

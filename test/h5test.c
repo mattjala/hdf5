@@ -110,10 +110,17 @@ const char *LIBVER_NAMES[] = {"earliest", /* H5F_LIBVER_EARLIEST = 0  */
 static H5E_auto2_t err_func = NULL;
 
 /* Global variables for testing */
+#ifdef H5_HAVE_MULTITHREAD
+_Atomic size_t n_tests_run_g = 0;
+_Atomic size_t n_tests_passed_g = 0;
+_Atomic size_t n_tests_failed_g = 0;
+_Atomic size_t n_tests_skipped_g = 0;
+#else
 size_t n_tests_run_g = 0;
 size_t n_tests_passed_g = 0;
 size_t n_tests_failed_g = 0;
 size_t n_tests_skipped_g = 0;
+#endif /* H5_HAVE_MULTITHREAD */
 
 /* Value of currently registered optional dynamic VOL operation */
 int reg_opt_curr_op_val = 0;
