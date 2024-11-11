@@ -270,27 +270,34 @@ static const H5VL_class_t mt_test_vol_g = {
 
 #define MT_TEST_FILENAME_PREFIX "mt_terminal_test_vol_"
 #define MT_TEST_FILENAME_BUF_SIZE 128
-#define THREAD_ID_LEN 15
-#define MT_TEST_PREFIX_LENGTH (THREAD_ID_LEN + strlen(MT_TEST_FILENAME_PREFIX))
+#define MAX_THREAD_ID_LEN 15
+#define MT_TEST_PREFIX_LENGTH (MAX_THREAD_ID_LEN + strlen(MT_TEST_FILENAME_PREFIX))
 
 // out filename must already be allocated
 herr_t generate_filename(const char *original_filename, char *out_filename) {
     int chars_written = 0;
     pthread_t thread_id = pthread_self();
-    char pthread_buf[THREAD_ID_LEN + 1];
+    char pthread_buf[MAX_THREAD_ID_LEN + 1];
 
     /* Make sure thread ID has expected length, to allow for filename recovery later */
-    if ((chars_written = snprintf(pthread_buf, THREAD_ID_LEN + 1, "%ld", thread_id)) < 0) {
+    if ((chars_written = snprintf(pthread_buf, MAX_THREAD_ID_LEN + 1, "%ld", thread_id)) < 0) {
         printf("Failed to create thread ID\n");
         return -1;
     }
 
-    if (chars_written != THREAD_ID_LEN) {
+    if (chars_written > MAX_THREAD_ID_LEN) {
         printf("Thread ID %ld has unexpected length\n", (long int) thread_id);
         return -1;
     }
 
-    if ((chars_written = snprintf(out_filename, MT_TEST_FILENAME_BUF_SIZE, "%s%ld%s", MT_TEST_FILENAME_PREFIX, thread_id, original_filename)) < 0) {
+    if (chars_written < MAX_THREAD_ID_LEN) {
+        /* Pad with right zeros */
+        memset(pthread_buf + chars_written, '0', MAX_THREAD_ID_LEN - (size_t) chars_written);
+    }
+
+    pthread_buf[MAX_THREAD_ID_LEN] = '\0';
+
+    if ((chars_written = snprintf(out_filename, MT_TEST_FILENAME_BUF_SIZE, "%s%s%s", MT_TEST_FILENAME_PREFIX,pthread_buf, original_filename)) < 0) {
         printf("Failed to create new file name\n");
         return -1;
     }
@@ -598,7 +605,7 @@ mt_test_file_get(void *file, H5VL_file_get_args_t *args, hid_t dxpl_id, void **r
         case H5VL_FILE_GET_NAME: {
             if (args->args.get_name.buf == NULL) {
                 /* This is preliminary call to determine necessary buffer length */
-                args->args.get_name.buf_size += (MT_TEST_PREFIX_LENGTH + THREAD_ID_LEN);
+                args->args.get_name.buf_size += (MT_TEST_PREFIX_LENGTH + MAX_THREAD_ID_LEN);
             } else {
                 /* Populate filename buffer */
                 if ((filename_buf = strdup(args->args.get_name.buf)) == NULL) {
@@ -786,9 +793,14 @@ mt_test_link_create(H5VL_link_create_args_t *args, void *obj, const H5VL_loc_par
     const char *original_buf = NULL;
     size_t original_size = 0;
 
+    memset(new_name, 0, MT_TEST_FILENAME_BUF_SIZE);
 
     switch (args->op_type) {
         case H5VL_LINK_CREATE_UD: {
+            if (args->args.ud.type != H5L_TYPE_EXTERNAL) {
+                break;
+            }
+
             size_t name_len = 0;
             size_t new_buf_size = 0;
             uint8_t *p = NULL;
@@ -796,15 +808,18 @@ mt_test_link_create(H5VL_link_create_args_t *args, void *obj, const H5VL_loc_par
 
             /* Skip external link flags */
             original_buf = (const char *) args->args.ud.buf;
+            original_size = args->args.ud.buf_size;
             original_name = original_buf + 1;
             name_len = strlen(original_name);
 
-            norm_obj_buf = original_buf + 1 + name_len + 1;
-            if (generate_filename(original_buf + 1, new_name) < 0) {
+            norm_obj_buf = original_name + name_len + 1;
+            if (generate_filename(original_name, new_name) < 0) {
                 printf("Failed to generate new file name\n");
                 ret_value = FAIL;
                 goto error;
             }
+
+            assert(original_size = 1 + name_len + 1 + strlen(norm_obj_buf) + 1);
 
             new_buf_size = 1 + strlen(new_name) + 1 +  strlen(norm_obj_buf) + 1;
 
@@ -824,8 +839,6 @@ mt_test_link_create(H5VL_link_create_args_t *args, void *obj, const H5VL_loc_par
             strncpy((char*) p, norm_obj_buf, strlen(norm_obj_buf) + 1);
             p += strlen(norm_obj_buf) + 1;
 
-            original_size = args->args.ud.buf_size;
-
             args->args.ud.buf_size = new_buf_size;
             args->args.ud.buf = new_buf;
 
@@ -842,8 +855,10 @@ mt_test_link_create(H5VL_link_create_args_t *args, void *obj, const H5VL_loc_par
 
     switch (args->op_type) {
         case H5VL_LINK_CREATE_UD:
-            args->args.ud.buf = original_buf;
-            args->args.ud.buf_size = original_size;
+            if (args->args.ud.type == H5L_TYPE_EXTERNAL) {
+                args->args.ud.buf = original_buf;
+                args->args.ud.buf_size = original_size;
+            }
             break;
         default:
             break;
@@ -899,6 +914,7 @@ mt_test_link_get(void *obj, const H5VL_loc_params_t *loc_params, H5VL_link_get_a
     switch (args->op_type) {
         case H5VL_LINK_GET_INFO: {
             if (args->args.get_info.linfo->type == H5L_TYPE_EXTERNAL) {
+                /* Actual size on disk will exceed expected size; report the size the user provided */
                 args->args.get_info.linfo->u.val_size -= MT_TEST_PREFIX_LENGTH;
             }
         }

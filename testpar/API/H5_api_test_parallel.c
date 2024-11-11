@@ -372,11 +372,11 @@ main(int argc, char **argv)
     BEGIN_INDEPENDENT_OP(create_test_container)
     {
         if (MAINPROCESS) {
-            if (create_test_container(H5_api_test_parallel_filename, vol_cap_flags_g) < 0) {
+            if (create_test_container((const char *)(H5_api_test_parallel_filename), vol_cap_flags_g) < 0) {
                 fprintf(stderr, "    failed to create testing container file '%s'\n",
                         H5_api_test_parallel_filename);
                 INDEPENDENT_OP_ERROR(create_test_container);
-            }
+                }
         }
     }
     END_INDEPENDENT_OP(create_test_container);

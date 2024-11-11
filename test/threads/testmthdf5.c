@@ -32,10 +32,7 @@
 #include "testmthdf5.h"
 
 /* Margin of runtime for each subtest allocated to cleanup */
-#define MARGIN 10
-
-/* Margin of runtime for each subtest allocated to cleanup */
-#define MARGIN 1
+#define MT_VL_TEST_MARGIN 1
 
 #define DEFAULT_NUM_THREADS 10
 
@@ -68,7 +65,7 @@ int main(int argc, char *argv[])
     params.num_repetitions = NUM_ITERS;
 
     if (testExpress > 0) {
-        params.subtest_timeout = (runtime - MARGIN) / num_subtests;
+        params.subtest_timeout = (runtime - MT_VL_TEST_MARGIN) / num_subtests;
     } else {
         params.subtest_timeout = 0;
     }

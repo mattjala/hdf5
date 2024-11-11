@@ -38,11 +38,11 @@
 /* The name of the file that all of the tests will operate on */
 #define TEST_FILE_NAME "H5_api_test.h5"
 
-extern char H5_api_test_filename[];
-
+/* Final name of the API test container file (for this thread) */
 #ifdef H5_HAVE_MULTITHREAD
-#define H5_API_TEST_FILENAME ((char*) ((thread_info_t*) pthread_getspecific(thread_info_key_g))->H5_api_test_filename)
+#define H5_API_TEST_FILENAME (pthread_getspecific(thread_info_key_g) ? ((thread_info_t*) pthread_getspecific(thread_info_key_g))->H5_api_test_filename : NULL)
 #else
+extern char H5_api_test_filename[];
 #define H5_API_TEST_FILENAME H5_api_test_filename
 #endif
 
@@ -75,4 +75,61 @@ extern size_t active_thread_ct;
  * of a dataspace/datatype. */
 #define MAX_DIM_SIZE 16
 
+#ifdef H5_HAVE_MULTITHREAD
+/* Individual API tests may be run serially or in multiple threads.
+ * If being run in multiple threads, this macro will define a handler
+ * named <test>_thread which creates and tears down the threads.
+ * 
+ * TBD: Note that it invokes another macro-defined routine...which sets up threadlocal info...
+ * */
+#define DECLARE_MT_API_TEST_FUNC_OUTER(func) \
+  void func##_thread_outer(void);\
+  void func##_thread_outer(void) {\
+    pthread_t *threads = NULL;\
+    int max_threads = GetTestMaxNumThreads();\
+    if ((threads = calloc((size_t) max_threads, sizeof(pthread_t))) == NULL) {\
+      TestErrPrintf("Couldn't allocate threads");\
+      return ;\
+    }\
+    for (int64_t i = 0; i < (int64_t) max_threads; i++) { \
+      if (pthread_create(&threads[i], NULL, func##_thread_inner, (void*)i) != 0) { \
+        TestErrPrintf("Couldn't create API test thread %ld", i); \
+        return; \
+      } \
+    } \
+    for (int i = 0; i < max_threads; i++) { \
+      if (pthread_join(threads[i], NULL) != 0) { \
+        TestErrPrintf("Couldn't join API test thread %d", i); \
+        return; \
+      } \
+    } \
+    free(threads); \
+    return; \
+  }
+
+#define MT_API_TEST_FUNC_OUTER(func) func##_thread_outer
+
+/* Invoked by MT_API_TEST_FUNC_OUTER. Sets up thread-local API test info and runs the actual test in this thread. */
+#define DECLARE_MT_API_TEST_FUNC_INNER(func) \
+  void *func##_thread_inner(void *arg);\
+  void *func##_thread_inner(void *arg) {\
+    int64_t thread_idx = (int64_t)arg;\
+    if (H5_api_test_thread_setup((int) thread_idx) < 0) {\
+      TestErrPrintf("Error setting up thread-local API test info");\
+      return (void*)-1;\
+    }\
+    func();\
+    return NULL;\
+  }\
+
+#define MT_API_TEST_FUNC_INNER(func) func##_thread_inner
+
+/* Declare the multi-thread helper routines to execute an API test in multiple threads.*/
+#define MULTI_DECLARE(func)\
+  DECLARE_MT_API_TEST_FUNC_INNER(func)\
+  DECLARE_MT_API_TEST_FUNC_OUTER(func)
+#else /* H5_HAVE_MULTITHREAD */
+#define MT_API_TEST_FUNC_OUTER(func) func
+#define MULTI_DECLARE(func)
+#endif /* H5_HAVE_MULTITHREAD */
 #endif

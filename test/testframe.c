@@ -20,8 +20,8 @@
 /*
  * Definitions for the testing structure.
  */
-#define MAXTESTNAME 16
-#define MAXTESTDESC 64
+#define MAXTESTNAME 64
+#define MAXTESTDESC 128
 
 typedef struct TestStruct {
     int  NumErrors;

@@ -46,14 +46,12 @@
 char H5_api_test_filename[H5_API_TEST_FILENAME_MAX_LENGTH];
 #endif
 
-/* Run the API tests within a single thread */
-static void *run_h5_API_tests_thread(void *thread_info);
-
-
-
-const char *test_path_prefix;
+const char *test_path_prefix = NULL;
 
 size_t active_thread_ct = 0;
+
+/* Margin of runtime for each subtest allocated to cleanup */
+#define API_TEST_MARGIN 1
 
 /* X-macro to define the following for each test:
  * - enum type
@@ -64,27 +62,27 @@ size_t active_thread_ct = 0;
 #ifdef H5_API_TEST_HAVE_ASYNC
 #define H5_API_TESTS                                                                                         \
     X(H5_API_TEST_NULL, "", NULL, 0)                                                                         \
-    X(H5_API_TEST_FILE, "file", H5_api_file_test, 1)                                                         \
-    X(H5_API_TEST_GROUP, "group", H5_api_group_test, 1)                                                      \
-    X(H5_API_TEST_DATASET, "dataset", H5_api_dataset_test, 1)                                                \
-    X(H5_API_TEST_DATATYPE, "datatype", H5_api_datatype_test, 1)                                             \
-    X(H5_API_TEST_ATTRIBUTE, "attribute", H5_api_attribute_test, 1)                                          \
-    X(H5_API_TEST_LINK, "link", H5_api_link_test, 1)                                                         \
-    X(H5_API_TEST_OBJECT, "object", H5_api_object_test, 1)                                                   \
-    X(H5_API_TEST_MISC, "misc", H5_api_misc_test, 1)                                                         \
-    X(H5_API_TEST_ASYNC, "async", H5_api_async_test, 1)                                                      \
+    X(H5_API_TEST_FILE, "file", H5_api_file_test_add, 1)                                                     \
+    X(H5_API_TEST_GROUP, "group", H5_api_group_test_add, 1)                                                  \
+    X(H5_API_TEST_DATASET, "dataset", H5_api_dataset_test_add, 1)                                            \
+    X(H5_API_TEST_DATATYPE, "datatype", H5_api_datatype_test_add, 1)                                         \
+    X(H5_API_TEST_ATTRIBUTE, "attribute", H5_api_attribute_test_add, 1)                                      \
+    X(H5_API_TEST_LINK, "link", H5_api_link_test_add, 1)                                                     \
+    X(H5_API_TEST_OBJECT, "object", H5_api_object_test_add, 1)                                               \
+    X(H5_API_TEST_MISC, "misc", H5_api_misc_test_add, 1)                                                     \
+    X(H5_API_TEST_ASYNC, "async", H5_api_async_test_add, 1)                                                  \
     X(H5_API_TEST_MAX, "", NULL, 0)
 #else
 #define H5_API_TESTS                                                                                         \
     X(H5_API_TEST_NULL, "", NULL, 0)                                                                         \
-    X(H5_API_TEST_FILE, "file", H5_api_file_test, 1)                                                         \
-    X(H5_API_TEST_GROUP, "group", H5_api_group_test, 1)                                                      \
-    X(H5_API_TEST_DATASET, "dataset", H5_api_dataset_test, 1)                                                \
-    X(H5_API_TEST_DATATYPE, "datatype", H5_api_datatype_test, 1)                                             \
-    X(H5_API_TEST_ATTRIBUTE, "attribute", H5_api_attribute_test, 1)                                          \
-    X(H5_API_TEST_LINK, "link", H5_api_link_test, 1)                                                         \
-    X(H5_API_TEST_OBJECT, "object", H5_api_object_test, 1)                                                   \
-    X(H5_API_TEST_MISC, "misc", H5_api_misc_test, 1)                                                         \
+    X(H5_API_TEST_FILE, "file", H5_api_file_test_add, 1)                                                     \
+    X(H5_API_TEST_GROUP, "group", H5_api_group_test_add, 1)                                                  \
+    X(H5_API_TEST_DATASET, "dataset", H5_api_dataset_test_add, 1)                                            \
+    X(H5_API_TEST_DATATYPE, "datatype", H5_api_datatype_test_add, 1)                                         \
+    X(H5_API_TEST_ATTRIBUTE, "attribute", H5_api_attribute_test_add, 1)                                      \
+    X(H5_API_TEST_LINK, "link", H5_api_link_test_add, 1)                                                     \
+    X(H5_API_TEST_OBJECT, "object", H5_api_object_test_add, 1)                                               \
+    X(H5_API_TEST_MISC, "misc", H5_api_misc_test_add, 1)                                                     \
     X(H5_API_TEST_MAX, "", NULL, 0)
 #endif
 
@@ -95,13 +93,11 @@ enum H5_api_test_type { H5_API_TESTS };
 static const char *const H5_api_test_name[] = {H5_API_TESTS};
 #undef X
 #define X(a, b, c, d) c,
-static int (*H5_api_test_func[])(void) = {H5_API_TESTS};
+static void (*H5_api_test_add_func[])() = {H5_API_TESTS};
 #undef X
 #define X(a, b, c, d) d,
 static int H5_api_test_enabled[] = {H5_API_TESTS};
 #undef X
-
-#define MAX_THREAD_ID_LEN 16
 
 static enum H5_api_test_type
 H5_api_test_name_to_type(const char *test_name)
@@ -114,113 +110,123 @@ H5_api_test_name_to_type(const char *test_name)
     return ((i == H5_API_TEST_MAX) ? H5_API_TEST_NULL : i);
 }
 
-/******************************************************************************/
 static void
-H5_api_test_run(void)
+H5_api_test_add(void)
 {
     enum H5_api_test_type i;
 
     for (i = H5_API_TEST_FILE; i < H5_API_TEST_MAX; i++)
         if (H5_api_test_enabled[i])
-            (void)H5_api_test_func[i]();
+            H5_api_test_add_func[i]();
+}
+
+static int
+parse_command_line(int argc, char **argv)
+{
+    /* Simple argument checking, TODO can improve that later */
+    if (argc > 1) {
+        enum H5_api_test_type i = H5_api_test_name_to_type(argv[argc - 1]);
+        if (i != H5_API_TEST_NULL) {
+            /* Run only specific API test */
+            memset(H5_api_test_enabled, 0, sizeof(H5_api_test_enabled));
+            H5_api_test_enabled[i] = 1;
+        }
+    }
+
+    return 0;
+}
+
+static void
+usage(void)
+{
+    print_func("file        run only the file interface tests\n");
+    print_func("group       run only the group interface tests\n");
+    print_func("dataset     run only the dataset interface tests\n");
+    print_func("attribute   run only the attribute interface tests\n");
+    print_func("datatype    run only the datatype interface tests\n");
+    print_func("link        run only the link interface tests\n");
+    print_func("object      run only the object interface tests\n");
+    print_func("misc        run only the miscellaneous tests\n");
+    print_func("async       run only the async interface tests\n");
 }
 
 
-/* Run the API tests from a single thread. 
- * Returns: Pointer to the input thread_info_t structure.
- *         A result summary of the tests run can be found in threat_info_t->result
- */
-void *
-run_h5_API_tests_thread(void *thread_info)
+int
+main(int argc, char **argv)
 {
-    unsigned       seed;
-    hid_t          fapl_id                   = H5I_INVALID_HID;
-    hid_t          default_con_id            = H5I_INVALID_HID;
-    hid_t          registered_con_id         = H5I_INVALID_HID;
-    thread_info_t *tinfo                     = NULL;
-    int chars_written;
-    size_t tests_failed = 0;
+    H5E_auto2_t default_err_func;
+    void       *default_err_data          = NULL;
+    bool        err_occurred              = false;
 
-    if (!thread_info) {
-        fprintf(stderr, "Thread info is NULL\n");
-        tinfo->result = API_TEST_ERROR;
-        goto done;
+    unsigned runtime = 0;           /* Maximum run-time for test (in seconds) */
+    unsigned num_subtests = 8;
+    unsigned subtest_timeout = 0;
+
+    int testExpress = 0;
+    int num_errs_occurred = 0;
+
+    H5open();
+
+    /* Store current error stack printing function since TestInit unsets it */
+    H5Eget_auto2(H5E_DEFAULT, &default_err_func, &default_err_data);
+    /* Initialize testing framework */
+    TestInit(argv[0], usage, NULL);
+    /* Reset error stack printing function */
+    H5Eset_auto2(H5E_DEFAULT, default_err_func, default_err_data);
+
+    /* Hide all output from testing framework and replace with our own */
+    SetTestVerbosity(VERBO_NONE);
+
+    /* Parse command line separately from the test framework since
+     * tests need to be added before TestParseCmdLine in order for
+     * the -help option to show them, but we need to know ahead of
+     * time which tests to add if only a specific interface's tests
+     * are going to be run.
+     */
+    parse_command_line(argc, argv);
+    
+    testExpress = GetTestExpress();
+
+    if (testExpress == 0) {
+        runtime = 0; /* Run with no timeout  */
+    } else if (testExpress == 1) {
+        runtime = 1800; /* 30 minute timeout */
+    } else if (testExpress == 2) {
+        runtime = 600; /* 10 minute timeout */
+    } else {
+        runtime = 60; /* 1 minute timeout */
     }
 
-    tinfo = (thread_info_t *)thread_info;
-
-#ifdef H5_HAVE_MULTITHREAD
-    if (pthread_setspecific(thread_info_key_g, (void *)tinfo) != 0) {
-        fprintf(stderr, "Error setting thread-specific data\n");
-        tinfo->result = API_TEST_ERROR;
-        goto done;
+    if (testExpress > 0) {
+        subtest_timeout = (runtime - API_TEST_MARGIN) / num_subtests;
+    } else {
+        subtest_timeout = 0;
     }
 
-#endif
-
-    printf("%zu: Running API tests\n", tinfo->thread_idx);
-
-    seed = (unsigned)HDtime(NULL);
-    srand(seed);
-
-    if ((test_path_prefix = HDgetenv(HDF5_API_TEST_PATH_PREFIX)) == NULL)
-        test_path_prefix = (const char *)"";
-
-#ifdef H5_HAVE_MULTITHREAD
-    if (MAX_THREAD_ID_LEN + strlen(test_path_prefix) + strlen(TEST_FILE_NAME) >= H5_API_TEST_FILENAME_MAX_LENGTH) {
-        fprintf(stderr, "Test file name exceeded expected size\n");
-        tinfo->result = API_TEST_ERROR;
-        goto done;
-    }
-
-    if (NULL == (tinfo->H5_api_test_filename = (char *)calloc(1, H5_API_TEST_FILENAME_MAX_LENGTH))) {
-        fprintf(stderr, "Unable to allocate memory for test file name\n");
-        tinfo->result = API_TEST_ERROR;
-        goto done;
-    }
-
-    if ((chars_written = HDsnprintf(tinfo->H5_api_test_filename, H5_API_TEST_FILENAME_MAX_LENGTH, "%zu%s%s", tinfo->thread_idx, test_path_prefix,
-               TEST_FILE_NAME)) < 0) {
-        fprintf(stderr, "Error while creating test file name\n");
-        tinfo->result = API_TEST_ERROR;
-        goto done;
-    }
-#else
-    if ((chars_written = HDsnprintf(H5_api_test_filename, H5_API_TEST_FILENAME_MAX_LENGTH, "%zu%s%s", tinfo->thread_idx, test_path_prefix,
-               TEST_FILE_NAME)) < 0) {
-        fprintf(stderr, "Error while creating test file name\n");
-        tinfo->result = API_TEST_ERROR;
-        goto done;
-    }
-#endif
-
-    if (chars_written >= H5_API_TEST_FILENAME_MAX_LENGTH) {
-        fprintf(stderr, "Test file name exceeded expected size\n");
-        tinfo->result = API_TEST_ERROR;
-        goto done;
-    }
-
+    /* Parse command line arguments */
+    TestParseCmdLine(argc, argv);
 
 #ifndef H5_HAVE_MULTITHREAD
-    n_tests_run_g = 0;
-    n_tests_passed_g = 0;
-    n_tests_failed_g = 0;
-    n_tests_skipped_g = 0;
+    if (GetTestMaxNumThreads() > 1) {
+        fprintf(stderr, "HDF5 must be built with multi-thread support to run multi-threaded API tests\n");
+        exit(EXIT_FAILURE);
+    }
 #endif
 
-    printf("Running API tests with VOL connector '%s' and info string '%s'\n\n", tinfo->vol_connector_name,
-           tinfo->vol_connector_info ? tinfo->vol_connector_info : "");
-    printf("Test parameters:\n");
-    printf("  - Test file name: '%s'\n", H5_API_TEST_FILENAME);
-    printf("  - Test seed: %u\n", seed);
-    printf("  - Test path prefix: '%s'\n", test_path_prefix);
-    printf("\n\n");
+    if (GetTestMaxNumThreads() <= 0)
+        SetTestMaxNumThreads(API_TESTS_DEFAULT_NUM_THREADS);
 
-    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
-        fprintf(stderr, "Unable to create FAPL\n");
-        tinfo->result = API_TEST_ERROR;
-        goto done;
+    /* API Test Specific Setup */
+    if (H5_api_test_global_setup() < 0) {
+        fprintf(stderr, "Error setting up global API test info\n");
+        return EXIT_FAILURE;
     }
+
+    /* Display testing information */
+    TestInfo(argv[0]);
+
+    /* TODO: Refactor TestAlarmOn to accept specific timeout */
+    TestAlarmOn();
 
     /*
      * If using a VOL connector other than the native
@@ -229,328 +235,41 @@ run_h5_API_tests_thread(void *thread_info)
      * Otherwise, HDF5 will default to running the tests
      * with the native connector, which could be misleading.
      */
-    if (0 != HDstrcmp(tinfo->vol_connector_name, "native")) {
-        htri_t is_registered;
-
-        if ((is_registered = H5VLis_connector_registered_by_name(tinfo->vol_connector_name)) < 0) {
-            fprintf(stderr, "Unable to determine if VOL connector is registered\n");
-            tinfo->result = API_TEST_ERROR;
-            goto done;
-        }
-
-        if (!is_registered) {
-            fprintf(stderr, "Specified VOL connector '%s' wasn't correctly registered!\n",
-                    tinfo->vol_connector_name);
-            tinfo->result = API_TEST_ERROR;
-            goto done;
-        }
-        else {
-            /*
-             * If the connector was successfully registered, check that
-             * the connector ID set on the default FAPL matches the ID
-             * for the registered connector before running the tests.
-             */
-            if (H5Pget_vol_id(fapl_id, &default_con_id) < 0) {
-                fprintf(stderr, "Couldn't retrieve ID of VOL connector set on default FAPL\n");
-                tinfo->result = API_TEST_ERROR;
-                goto done;
-            }
-
-            if ((registered_con_id = H5VLget_connector_id_by_name(tinfo->vol_connector_name)) < 0) {
-                fprintf(stderr, "Couldn't retrieve ID of registered VOL connector\n");
-                tinfo->result = API_TEST_ERROR;
-                goto done;
-            }
-
-            if (default_con_id != registered_con_id) {
-                fprintf(stderr, "VOL connector set on default FAPL didn't match specified VOL connector\n");
-                tinfo->result = API_TEST_ERROR;
-                goto done;
-            }
-        }
+    if (H5_api_check_vol_registration() < 0) {
+        fprintf(stderr, "Active VOL connector not properly registered\n");
+        return EXIT_FAILURE;
     }
 
-    /*
-     * Create the file that will be used for all of the tests,
-     * except for those which test file creation.
-     */
-    if (create_test_container(H5_API_TEST_FILENAME, vol_cap_flags_g) < 0) {
-        fprintf(stderr, "Unable to create testing container file '%s'\n", H5_API_TEST_FILENAME);
-        tinfo->result = API_TEST_ERROR;
-        goto done;
-    }
+    H5_api_test_add();
 
-    /* Run all the tests that are enabled */
-    H5_api_test_run();
+    /* Perform requested testing */
+    PerformTests();
 
-    printf("Cleaning up testing files\n");
-
-    H5Fdelete(H5_API_TEST_FILENAME, fapl_id);
-
-/*
-#ifndef H5_HAVE_MULTITHREAD
-    tinfo->n_tests_run_g = n_tests_run_g;
-    tinfo->n_tests_passed_g = n_tests_passed_g;
-    tinfo->n_tests_failed_g = n_tests_failed_g;
-    tinfo->n_tests_skipped_g = n_tests_skipped_g;
-#endif
-*/
-
-#ifdef H5_HAVE_MULTITHREAD
-    tests_failed = atomic_load(&n_tests_failed_g);
-#else
-    tests_failed = n_tests_failed_g;
-#endif
-    if (tests_failed > 0) {
-        tinfo->result = API_TEST_FAIL;
-    }
-done:
-    if (tinfo && tinfo->H5_api_test_filename)
-        free(tinfo->H5_api_test_filename);
-
-    if (default_con_id >= 0 && H5VLclose(default_con_id) < 0) {
-        fprintf(stderr, "Unable to close VOL connector ID\n");
-        tinfo->result = API_TEST_ERROR;
-    }
-
-    if (registered_con_id >= 0 && H5VLclose(registered_con_id) < 0) {
-        fprintf(stderr, "Unable to close VOL connector ID\n");
-        tinfo->result = API_TEST_ERROR;
-    }
-
-    if (fapl_id >= 0 && H5Pclose(fapl_id) < 0) {
-        fprintf(stderr, "Unable to close FAPL\n");
-        tinfo->result = API_TEST_ERROR;
-    }
-
-#ifdef H5_HAVE_MULTITHREAD
-    pthread_exit((void *)tinfo);
-#else
-    return (void *)tinfo;
-#endif
-}
-
-int
-main(int argc, char **argv)
-{
-    void* retval = NULL;
-    int   ret_value = EXIT_SUCCESS;
-    const char *vol_connector_name = NULL;
-    char *vol_connector_name_copy = NULL;
-    char *vol_connector_info = NULL;
-    hid_t fapl_id = H5I_INVALID_HID;
-
-#ifdef H5_HAVE_MULTITHREAD
-#define MAX_THREADS 10
-    pthread_t threads[MAX_THREADS];
-    size_t n_tests_run = 0;
-    size_t n_tests_passed = 0;
-    size_t n_tests_failed = 0;
-    size_t n_tests_skipped = 0;
+    /* Display test summary, if requested */
+    if (GetTestSummary())
+        TestSummary();
     
-    memset(threads, 0, sizeof(threads));
-#else
-#define MAX_THREADS 1
-    active_thread_ct = 1;
-    n_tests_run_g     = 0;
-    n_tests_passed_g  = 0;
-    n_tests_failed_g  = 0;
-    n_tests_skipped_g = 0;
-
-#endif
-    thread_info_t tinfo[MAX_THREADS];
-    htri_t results[MAX_THREADS];
-
-    memset(tinfo, 0, sizeof(tinfo));
-    memset(results, 0, sizeof(results));
-
-    /* Simple argument checking, TODO can improve that later */
-    if (argc > 1) {
-        enum H5_api_test_type i = H5_api_test_name_to_type(argv[1]);
-        if (i != H5_API_TEST_NULL) {
-            /* Run only specific API test */
-            memset(H5_api_test_enabled, 0, sizeof(H5_api_test_enabled));
-            H5_api_test_enabled[i] = 1;
-        }
-    }
-
-    if (NULL == (vol_connector_name = HDgetenv(HDF5_VOL_CONNECTOR))) {
-        printf("No VOL connector selected; using native VOL connector\n");
-        vol_connector_name = "native";
-        vol_connector_info = NULL;
-    }
-    else {
-        char *token;
-
-        if (NULL == (vol_connector_name_copy = HDstrdup(vol_connector_name))) {
-            fprintf(stderr, "Unable to copy VOL connector string\n");
-            ret_value = FAIL;
-            goto done;
-        }
-
-        if (NULL == (token = HDstrtok(vol_connector_name_copy, " "))) {
-            fprintf(stderr, "Error while parsing VOL connector string\n");
-            ret_value = FAIL;
-            goto done;
-        }
-
-        vol_connector_name = token;
-
-        if (NULL != (token = HDstrtok(NULL, " "))) {
-            vol_connector_info = token;
-        }
-    }
-
-#ifdef H5_HAVE_PARALLEL
-    /* If HDF5 was built with parallel enabled, go ahead and call MPI_Init before
-     * running these tests. Even though these are meant to be serial tests, they will
-     * likely be run using mpirun (or similar) and we cannot necessarily expect HDF5 or
-     * an HDF5 VOL connector to call MPI_Init.
-     */
-    MPI_Init(&argc, &argv);
-#endif
-
-
-
-    /* Retrieve the VOL cap flags - work around an HDF5
-     * library issue by creating a FAPL
-     */
-
-    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
-        fprintf(stderr, "Unable to create FAPL\n");
-        ret_value = FAIL;
-        goto done;
-    }
-
-    if (H5Pget_vol_cap_flags(fapl_id, &vol_cap_flags_g) < 0) {
-        fprintf(stderr, "Unable to retrieve VOL connector capability flags\n");
-        ret_value = FAIL;
-        goto done;
-    }
-
-    if (H5Pclose(fapl_id) < 0) {
-        fprintf(stderr, "Unable to close FAPL\n");
-        ret_value = FAIL;
-        goto done;
-    }
-
-    fapl_id = H5I_INVALID_HID;
-
-#ifdef H5_HAVE_MULTITHREAD
-
-    if (pthread_key_create(&thread_info_key_g, NULL) != 0) {
-        fprintf(stderr, "Error creating thread-specific data key\n");
-        ret_value = FAIL;
-        goto done;
-    }
-
-    for (size_t nthreads = 1; nthreads <= MAX_THREADS; nthreads++) {
-        H5open();
-
-        /* Execute API tests in each thread */
-        active_thread_ct = nthreads;
-        printf("== Running API tests with %zu thread(s) ==\n", nthreads);
-        for (size_t thread_idx = 0; thread_idx < nthreads; thread_idx++) {
-
-            tinfo[thread_idx].thread_idx     = thread_idx;
-            tinfo[thread_idx].result = API_TEST_PASS;
-            tinfo[thread_idx].vol_connector_name = vol_connector_name;
-            tinfo[thread_idx].vol_connector_info = vol_connector_info;
-
-            if (pthread_create(&threads[thread_idx], NULL, run_h5_API_tests_thread,
-                            (void *)&tinfo[thread_idx]) != 0) {
-                fprintf(stderr, "Error creating thread %zu\n", thread_idx);
-                ret_value = FAIL;
-                goto done;
-            }
-        }
-
-        /* Wait for threads to finish */
-        for (size_t i = 0; i < nthreads; i++) {
-            size_t thread_idx = 0;
-
-            if (pthread_join(threads[i], (void *)&retval) != 0) {
-                fprintf(stderr, "Error joining an API test thread\n");
-                ret_value = FAIL;
-                goto done;
-            }
-
-            if (!retval) {
-                fprintf(stderr, "No return from an API tests thread\n");
-                exit(EXIT_FAILURE);
-            }
-
-            thread_idx = ((thread_info_t *)(retval))->thread_idx;
-
-            results[thread_idx] = ((thread_info_t *)(retval))->result;
-
-            if (results[thread_idx] == API_TEST_ERROR) {
-                fprintf(stderr, "An internal error occurred during API tests in thread %zu\n", thread_idx);
-                ret_value = 1;
-                goto done;
-            }
-        }
+    /* Clean up test files, if allowed */
+    if (GetTestCleanup() && !HDgetenv(HDF5_NOCLEANUP))
+        TestCleanup();
     
-        H5close();
+    TestAlarmOff();
 
-        /* Display results */
-        for (size_t i = 0; i < nthreads; i++) {
-            if (results[i] == API_TEST_FAIL) {
-                fprintf(stderr, "A failure occurred during API tests in thread %zu\n", i);
-                ret_value = FAIL;
-            }
+    num_errs_occurred = GetTestNumErrs();
 
-            if (results[i] == API_TEST_PASS) {
-                printf("API tests in thread %zu passed\n", i);
-            }
-        }
-
-        printf("Results from API tests run with %zu thread(s):\n", nthreads);
-        printf("%zu/%zu (%.2f%%) API tests passed with VOL connector '%s'\n",  n_tests_passed_g, n_tests_run_g,
-            ((double) n_tests_passed_g/ (double)n_tests_run_g * 100.0), vol_connector_name);
-        printf("%zu/%zu (%.2f%%) API tests did not pass with VOL connector '%s'\n",   n_tests_failed_g,
-            n_tests_run_g, ((double)n_tests_failed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
-        printf("%zu/%zu (%.2f%%) API tests were skipped with VOL connector '%s'\n\n",   n_tests_skipped_g,
-            n_tests_run_g, ((double)n_tests_skipped_g / (double)n_tests_run_g * 100.0),
-            vol_connector_name);
-
-    }
-
-#else
-    tinfo[0].thread_idx = 0;
-    tinfo[0].result = API_TEST_PASS;
-    tinfo[0].vol_connector_name = vol_connector_name;
-    tinfo[0].vol_connector_info = vol_connector_info;
-
-    if ((retval = run_h5_API_tests_thread((void*) &tinfo[0])) == NULL) {
-        fprintf(stderr, "Error running API tests\n");
-        ret_value = FAIL;
-        goto done;
-    }
-
-    if (n_tests_run_g > 0) {
-        printf("%zu/%zu (%.2f%%) API tests passed with VOL connector '%s'\n", n_tests_passed_g, n_tests_run_g,
-               ((double)n_tests_passed_g / (double)n_tests_run_g * 100.0), tinfo[0].vol_connector_name);
-        printf("%zu/%zu (%.2f%%) API tests did not pass with VOL connector '%s'\n", n_tests_failed_g,
-               n_tests_run_g, ((double)n_tests_failed_g / (double)n_tests_run_g * 100.0), tinfo[0].vol_connector_name);
-        printf("%zu/%zu (%.2f%%) API tests were skipped with VOL connector '%s'\n", n_tests_skipped_g,
-               n_tests_run_g, ((double)n_tests_skipped_g / (double)n_tests_run_g * 100.0), tinfo[0].vol_connector_name);
-    } else {
-        printf("No API tests were run\n");
-    }
-
-#endif
-
-
-
-done:
-    free(vol_connector_name_copy);
+    /* Release test infrastructure */
+    TestShutdown();
 
     H5close();
 
-#ifdef H5_HAVE_PARALLEL
-    MPI_Finalize();
-#endif
+    if (H5_api_test_global_cleanup() < 0) {
+        fprintf(stderr, "Error cleaning up global API test info\n");
+        return EXIT_FAILURE;
+    }
 
-    exit(ret_value);
+    if (num_errs_occurred > 0) {
+        exit(EXIT_FAILURE);
+    } else {
+        exit(EXIT_SUCCESS);
+    }
 }

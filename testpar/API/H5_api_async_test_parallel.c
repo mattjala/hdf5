@@ -3574,7 +3574,7 @@ error:
  * Cleanup temporary test files
  */
 static void
-cleanup_files(void)
+file_api_test_cleanup(void)
 {
     char file_name[64];
     int  i;
@@ -3625,7 +3625,7 @@ H5_api_async_test_parallel(void)
         printf("Cleaning up testing files\n");
     }
 
-    cleanup_files();
+    file_api_test_cleanup();
 
     if (MAINPROCESS) {
         printf("\n * Re-testing with independent metadata reads *\n");
@@ -3647,7 +3647,7 @@ H5_api_async_test_parallel(void)
         printf("Cleaning up testing files\n");
     }
 
-    cleanup_files();
+    file_api_test_cleanup();
 
     return nerrors;
 }

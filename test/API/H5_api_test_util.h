@@ -13,12 +13,23 @@
 #ifndef H5_API_TEST_UTIL_H_
 #define H5_API_TEST_UTIL_H_
 
+#define API_TESTS_DEFAULT_NUM_THREADS 1
+
 #include "hdf5.h"
 
 hid_t  generate_random_datatype(H5T_class_t parent_class, hbool_t is_compact);
 hid_t  generate_random_dataspace(int rank, const hsize_t *max_dims, hsize_t *dims_out, hbool_t is_compact);
-int    create_test_container(char *filename, uint64_t vol_cap_flags);
+int    create_test_container(const char *filename, uint64_t vol_cap_flags);
+int    destroy_test_container(const char *filename, uint64_t vol_cap_flags);
+int    H5_api_test_global_setup(void);
+int    H5_api_test_global_cleanup(void);
+int H5_api_check_vol_registration(void);
+
 herr_t prefix_filename(const char *prefix, const char *filename, char **filename_out);
 herr_t remove_test_file(const char *prefix, const char *filename);
+
+#ifdef H5_HAVE_MULTITHREAD
+int    H5_api_test_thread_setup(int thread_idx);
+#endif
 
 #endif /* H5_API_TEST_UTIL_H_ */

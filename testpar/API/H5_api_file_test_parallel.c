@@ -311,7 +311,7 @@ error:
  * Cleanup temporary test files
  */
 static void
-cleanup_files(void)
+file_api_test_cleanup(void)
 {
     hid_t fapl_id = H5I_INVALID_HID;
 
@@ -361,7 +361,7 @@ H5_api_file_test_parallel(void)
         printf("Cleaning up testing files\n");
     }
 
-    cleanup_files();
+    file_api_test_cleanup();
 
     return nerrors;
 }

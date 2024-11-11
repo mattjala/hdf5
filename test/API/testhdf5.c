@@ -55,6 +55,7 @@ print_func(const char *format, ...)
     va_list arglist;
     int     ret_value;
 
+	/* Print requested information */
     va_start(arglist, format);
     ret_value = HDvprintf(format, arglist);
     va_end(arglist);

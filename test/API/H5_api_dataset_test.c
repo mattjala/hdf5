@@ -16,147 +16,180 @@
  * XXX: H5Dread_chunk/H5Dwrite_chunk, H5Dfill/scatter/gather
  */
 
-static int test_create_dataset_under_root(void);
-static int test_create_dataset_under_existing_group(void);
-static int test_create_dataset_invalid_params(void);
-static int test_create_anonymous_dataset(void);
-static int test_create_anonymous_dataset_invalid_params(void);
-static int test_create_dataset_null_space(void);
-static int test_create_dataset_scalar_space(void);
-static int test_create_zero_dim_dset(void);
-static int test_create_dataset_random_shapes(void);
-static int test_create_dataset_predefined_types(void);
-static int test_create_dataset_string_types(void);
-static int test_create_dataset_compound_types(void);
-static int test_create_dataset_enum_types(void);
-static int test_create_dataset_array_types(void);
-static int test_create_dataset_creation_properties(void);
-static int test_create_many_dataset(void);
-static int test_open_dataset(void);
-static int test_open_dataset_invalid_params(void);
-static int test_close_dataset_invalid_params(void);
-static int test_get_dataset_space_and_type(void);
-static int test_get_dataset_space_and_type_invalid_params(void);
-static int test_get_dataset_space_status(void);
-static int test_get_dataset_space_status_invalid_params(void);
-static int test_dataset_property_lists(void);
-static int test_get_dataset_storage_size(void);
-static int test_get_dataset_storage_size_invalid_params(void);
-static int test_get_dataset_chunk_storage_size(void);
-static int test_get_dataset_chunk_storage_size_invalid_params(void);
-static int test_get_dataset_offset(void);
-static int test_get_dataset_offset_invalid_params(void);
-static int test_read_dataset_small_all(void);
-static int test_read_dataset_small_hyperslab(void);
-static int test_read_dataset_small_point_selection(void);
-static int test_dataset_io_point_selections(void);
-static int test_read_dataset_invalid_params(void);
-static int test_write_dataset_small_all(void);
-static int test_write_dataset_small_hyperslab(void);
-static int test_write_dataset_small_point_selection(void);
-static int test_write_dataset_data_verification(void);
-static int test_write_dataset_invalid_params(void);
-static int test_dataset_builtin_type_conversion(void);
-static int test_dataset_compound_partial_io(void);
-static int test_dataset_set_extent_chunked_unlimited(void);
-static int test_dataset_set_extent_chunked_fixed(void);
-static int test_dataset_set_extent_data(void);
-static int test_dataset_set_extent_double_handles(void);
-static int test_dataset_set_extent_invalid_params(void);
-static int test_flush_dataset(void);
-static int test_flush_dataset_invalid_params(void);
-static int test_refresh_dataset(void);
-static int test_refresh_dataset_invalid_params(void);
+static void print_dataset_test_header(void);
+static void test_create_dataset_under_root(void);
+static void test_create_dataset_under_existing_group(void);
+static void test_create_dataset_invalid_params(void);
+static void test_create_anonymous_dataset(void);
+static void test_create_anonymous_dataset_invalid_params(void);
+static void test_create_dataset_null_space(void);
+static void test_create_dataset_scalar_space(void);
+static void test_create_zero_dim_dset(void);
+static void test_create_dataset_random_shapes(void);
+static void test_create_dataset_predefined_types(void);
+static void test_create_dataset_string_types(void);
+static void test_create_dataset_compound_types(void);
+static void test_create_dataset_enum_types(void);
+static void test_create_dataset_array_types(void);
+static void test_create_dataset_creation_properties(void);
+static void test_create_many_dataset(void);
+static void test_open_dataset(void);
+static void test_open_dataset_invalid_params(void);
+static void test_close_dataset_invalid_params(void);
+static void test_get_dataset_space_and_type(void);
+static void test_get_dataset_space_and_type_invalid_params(void);
+static void test_get_dataset_space_status(void);
+static void test_get_dataset_space_status_invalid_params(void);
+static void test_dataset_property_lists(void);
+static void test_get_dataset_storage_size(void);
+static void test_get_dataset_storage_size_invalid_params(void);
+static void test_get_dataset_chunk_storage_size(void);
+static void test_get_dataset_chunk_storage_size_invalid_params(void);
+static void test_get_dataset_offset(void);
+static void test_get_dataset_offset_invalid_params(void);
+static void test_read_dataset_small_all(void);
+static void test_read_dataset_small_hyperslab(void);
+static void test_read_dataset_small_point_selection(void);
+static void test_read_multi_dataset_small_all(void);
+static void test_read_multi_dataset_small_hyperslab(void);
+static void test_read_multi_dataset_small_point_selection(void);
+static void test_dataset_io_point_selections(void);
+static void test_read_dataset_invalid_params(void);
+static void test_write_dataset_small_all(void);
+static void test_write_dataset_small_hyperslab(void);
+static void test_write_dataset_small_point_selection(void);
+static void test_write_dataset_data_verification(void);
+static void test_write_multi_dataset_small_all(void);
+static void test_write_multi_dataset_small_hyperslab(void);
+static void test_write_multi_dataset_small_point_selection(void);
+static void test_write_multi_dataset_data_verification(void);
+static void test_write_dataset_invalid_params(void);
+static void test_dataset_string_encodings(void);
+static void test_dataset_builtin_type_conversion(void);
+static void test_dataset_real_to_int_conversion(void);
+static void test_dataset_compound_partial_io(void);
+static void test_dataset_vlen_io(void);
+static void test_dataset_set_extent_chunked_unlimited(void);
+static void test_dataset_set_extent_chunked_fixed(void);
+static void test_dataset_set_extent_data(void);
+static void test_dataset_set_extent_double_handles(void);
+static void test_dataset_set_extent_invalid_params(void);
+static void test_flush_dataset(void);
+static void test_flush_dataset_invalid_params(void);
+static void test_refresh_dataset(void);
+static void test_refresh_dataset_invalid_params(void);
 
 /*
  * Chunking tests
  */
-static int test_create_single_chunk_dataset(void);
-static int test_write_single_chunk_dataset(void);
-static int test_create_multi_chunk_dataset(void);
-static int test_write_multi_chunk_dataset_same_shape_read(void);
-static int test_write_multi_chunk_dataset_diff_shape_read(void);
-static int test_overwrite_multi_chunk_dataset_same_shape_read(void);
-static int test_overwrite_multi_chunk_dataset_diff_shape_read(void);
-static int test_read_partial_chunk_all_selection(void);
-static int test_read_partial_chunk_hyperslab_selection(void);
-static int test_read_partial_chunk_point_selection(void);
+static void test_create_single_chunk_dataset(void);
+static void test_write_single_chunk_dataset(void);
+static void test_create_multi_chunk_dataset(void);
+static void test_write_multi_chunk_dataset_same_shape_read(void);
+static void test_write_multi_chunk_dataset_diff_shape_read(void);
+static void test_overwrite_multi_chunk_dataset_same_shape_read(void);
+static void test_overwrite_multi_chunk_dataset_diff_shape_read(void);
+static void test_read_partial_chunk_all_selection(void);
+static void test_read_partial_chunk_hyperslab_selection(void);
+static void test_read_partial_chunk_point_selection(void);
 
-static int test_get_vlen_buf_size(void);
+static void test_get_vlen_buf_size(void);
 
-/*
- * The array of dataset tests to be performed.
- */
-static int (*dataset_tests[])(void) = {
-    test_create_dataset_under_root,
-    test_create_dataset_under_existing_group,
-    test_create_dataset_invalid_params,
-    test_create_anonymous_dataset,
-    test_create_anonymous_dataset_invalid_params,
-    test_create_dataset_null_space,
-    test_create_dataset_scalar_space,
-    test_create_zero_dim_dset,
-    test_create_dataset_random_shapes,
-    test_create_dataset_predefined_types,
-    test_create_dataset_string_types,
-    test_create_dataset_compound_types,
-    test_create_dataset_enum_types,
-    test_create_dataset_array_types,
-    test_create_dataset_creation_properties,
-    test_create_many_dataset,
-    test_open_dataset,
-    test_open_dataset_invalid_params,
-    test_close_dataset_invalid_params,
-    test_get_dataset_space_and_type,
-    test_get_dataset_space_and_type_invalid_params,
-    test_get_dataset_space_status,
-    test_get_dataset_space_status_invalid_params,
-    test_dataset_property_lists,
-    test_get_dataset_storage_size,
-    test_get_dataset_storage_size_invalid_params,
-    test_get_dataset_chunk_storage_size,
-    test_get_dataset_chunk_storage_size_invalid_params,
-    test_get_dataset_offset,
-    test_get_dataset_offset_invalid_params,
-    test_read_dataset_small_all,
-    test_read_dataset_small_hyperslab,
-    test_read_dataset_small_point_selection,
-    test_dataset_io_point_selections,
-    test_read_dataset_invalid_params,
-    test_write_dataset_small_all,
-    test_write_dataset_small_hyperslab,
-    test_write_dataset_small_point_selection,
-    test_write_dataset_data_verification,
-    test_write_dataset_invalid_params,
-    test_dataset_builtin_type_conversion,
-    test_dataset_compound_partial_io,
-    test_dataset_set_extent_chunked_unlimited,
-    test_dataset_set_extent_chunked_fixed,
-    test_dataset_set_extent_data,
-    test_dataset_set_extent_double_handles,
-    test_dataset_set_extent_invalid_params,
-    test_flush_dataset,
-    test_flush_dataset_invalid_params,
-    test_refresh_dataset,
-    test_refresh_dataset_invalid_params,
-    test_create_single_chunk_dataset,
-    test_write_single_chunk_dataset,
-    test_create_multi_chunk_dataset,
-    test_write_multi_chunk_dataset_same_shape_read,
-    test_write_multi_chunk_dataset_diff_shape_read,
-    test_overwrite_multi_chunk_dataset_same_shape_read,
-    test_overwrite_multi_chunk_dataset_diff_shape_read,
-    test_read_partial_chunk_all_selection,
-    test_read_partial_chunk_hyperslab_selection,
-    test_read_partial_chunk_point_selection,
-    test_get_vlen_buf_size,
-};
+MULTI_DECLARE(test_create_dataset_under_root)
+MULTI_DECLARE(test_create_dataset_under_existing_group)
+MULTI_DECLARE(test_create_dataset_invalid_params)
+MULTI_DECLARE(test_create_anonymous_dataset)
+MULTI_DECLARE(test_create_anonymous_dataset_invalid_params)
+MULTI_DECLARE(test_create_dataset_null_space)
+MULTI_DECLARE(test_create_dataset_scalar_space)
+MULTI_DECLARE(test_create_zero_dim_dset)
+MULTI_DECLARE(test_create_dataset_random_shapes)
+MULTI_DECLARE(test_create_dataset_predefined_types)
+MULTI_DECLARE(test_create_dataset_string_types)
+MULTI_DECLARE(test_create_dataset_compound_types)
+MULTI_DECLARE(test_create_dataset_enum_types)
+MULTI_DECLARE(test_create_dataset_array_types)
+MULTI_DECLARE(test_create_dataset_creation_properties)
+MULTI_DECLARE(test_create_many_dataset)
+MULTI_DECLARE(test_open_dataset)
+MULTI_DECLARE(test_open_dataset_invalid_params)
+MULTI_DECLARE(test_close_dataset_invalid_params)
+MULTI_DECLARE(test_get_dataset_space_and_type)
+MULTI_DECLARE(test_get_dataset_space_and_type_invalid_params)
+MULTI_DECLARE(test_get_dataset_space_status)
+MULTI_DECLARE(test_get_dataset_space_status_invalid_params)
+MULTI_DECLARE(test_dataset_property_lists)
+MULTI_DECLARE(test_get_dataset_storage_size)
+MULTI_DECLARE(test_get_dataset_storage_size_invalid_params)
+MULTI_DECLARE(test_get_dataset_chunk_storage_size)
+MULTI_DECLARE(test_get_dataset_chunk_storage_size_invalid_params)
+MULTI_DECLARE(test_get_dataset_offset)
+MULTI_DECLARE(test_get_dataset_offset_invalid_params)
+MULTI_DECLARE(test_read_dataset_small_all)
+MULTI_DECLARE(test_read_dataset_small_hyperslab)
+MULTI_DECLARE(test_read_dataset_small_point_selection)
+MULTI_DECLARE(test_read_multi_dataset_small_all)
+MULTI_DECLARE(test_read_multi_dataset_small_hyperslab)
+MULTI_DECLARE(test_read_multi_dataset_small_point_selection)
+MULTI_DECLARE(test_dataset_io_point_selections)
+MULTI_DECLARE(test_read_dataset_invalid_params)
+MULTI_DECLARE(test_write_dataset_small_all)
+MULTI_DECLARE(test_write_dataset_small_hyperslab)
+MULTI_DECLARE(test_write_dataset_small_point_selection)
+MULTI_DECLARE(test_write_dataset_data_verification)
+MULTI_DECLARE(test_write_multi_dataset_small_all)
+MULTI_DECLARE(test_write_multi_dataset_small_hyperslab)
+MULTI_DECLARE(test_write_multi_dataset_small_point_selection)
+MULTI_DECLARE(test_write_multi_dataset_data_verification)
+MULTI_DECLARE(test_write_dataset_invalid_params)
+MULTI_DECLARE(test_dataset_string_encodings)
+MULTI_DECLARE(test_dataset_builtin_type_conversion)
+MULTI_DECLARE(test_dataset_real_to_int_conversion)
+MULTI_DECLARE(test_dataset_compound_partial_io)
+MULTI_DECLARE(test_dataset_vlen_io)
+MULTI_DECLARE(test_dataset_set_extent_chunked_unlimited)
+MULTI_DECLARE(test_dataset_set_extent_chunked_fixed)
+MULTI_DECLARE(test_dataset_set_extent_data)
+MULTI_DECLARE(test_dataset_set_extent_double_handles)
+MULTI_DECLARE(test_dataset_set_extent_invalid_params)
+MULTI_DECLARE(test_flush_dataset)
+MULTI_DECLARE(test_flush_dataset_invalid_params)
+MULTI_DECLARE(test_refresh_dataset)
+MULTI_DECLARE(test_refresh_dataset_invalid_params)
+
+MULTI_DECLARE(test_create_single_chunk_dataset)
+MULTI_DECLARE(test_write_single_chunk_dataset)
+MULTI_DECLARE(test_create_multi_chunk_dataset)
+MULTI_DECLARE(test_write_multi_chunk_dataset_same_shape_read)
+MULTI_DECLARE(test_write_multi_chunk_dataset_diff_shape_read)
+MULTI_DECLARE(test_overwrite_multi_chunk_dataset_same_shape_read)
+MULTI_DECLARE(test_overwrite_multi_chunk_dataset_diff_shape_read)
+MULTI_DECLARE(test_read_partial_chunk_all_selection)
+MULTI_DECLARE(test_read_partial_chunk_hyperslab_selection)
+MULTI_DECLARE(test_read_partial_chunk_point_selection)
+
+MULTI_DECLARE(test_get_vlen_buf_size)
+
+static size_t filter(unsigned int flags, size_t H5_ATTR_UNUSED cd_nelmts,
+                     const unsigned int H5_ATTR_UNUSED cd_values[], size_t nbytes,
+                     size_t H5_ATTR_UNUSED *buf_size, void H5_ATTR_UNUSED **buf);
+
+static void
+print_dataset_test_header(void)
+{
+    printf("\n");
+    printf("**********************************************\n");
+    printf("*                                            *\n");
+    printf("*             API Dataset Tests              *\n");
+    printf("*                                            *\n");
+    printf("**********************************************\n\n");
+}
 
 /*
  * A test to check that a dataset can be
  * created under the root group.
  */
-static int
+static void
 test_create_dataset_under_root(void)
 {
     hid_t file_id    = H5I_INVALID_HID;
@@ -170,7 +203,7 @@ test_create_dataset_under_root(void)
     if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -179,10 +212,10 @@ test_create_dataset_under_root(void)
         goto error;
     }
 
-    if ((fspace_id = generate_random_dataspace(DATASET_CREATE_UNDER_ROOT_SPACE_RANK, NULL, NULL, FALSE)) < 0)
+    if ((fspace_id = generate_random_dataspace(DATASET_CREATE_UNDER_ROOT_SPACE_RANK, NULL, NULL, false)) < 0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     /* Create the Dataset under the root group of the file */
@@ -204,7 +237,7 @@ test_create_dataset_under_root(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -216,14 +249,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a dataset can be created
  * under a group that is not the root group.
  */
-static int
+static void
 test_create_dataset_under_existing_group(void)
 {
     hid_t file_id         = H5I_INVALID_HID;
@@ -239,7 +272,7 @@ test_create_dataset_under_existing_group(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -261,11 +294,11 @@ test_create_dataset_under_existing_group(void)
         goto error;
     }
 
-    if ((fspace_id = generate_random_dataspace(DATASET_CREATE_UNDER_EXISTING_SPACE_RANK, NULL, NULL, FALSE)) <
+    if ((fspace_id = generate_random_dataspace(DATASET_CREATE_UNDER_EXISTING_SPACE_RANK, NULL, NULL, false)) <
         0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dset_id = H5Dcreate2(group_id, DATASET_CREATE_UNDER_EXISTING_DSET_NAME, dset_dtype, fspace_id,
@@ -290,7 +323,7 @@ test_create_dataset_under_existing_group(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -304,14 +337,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a dataset can't be created
  * when H5Dcreate is passed invalid parameters.
  */
-static int
+static void
 test_create_dataset_invalid_params(void)
 {
     hid_t file_id         = H5I_INVALID_HID;
@@ -327,7 +360,7 @@ test_create_dataset_invalid_params(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -351,11 +384,11 @@ test_create_dataset_invalid_params(void)
         goto error;
     }
 
-    if ((fspace_id = generate_random_dataspace(DATASET_CREATE_INVALID_PARAMS_SPACE_RANK, NULL, NULL, FALSE)) <
+    if ((fspace_id = generate_random_dataspace(DATASET_CREATE_INVALID_PARAMS_SPACE_RANK, NULL, NULL, false)) <
         0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     PASSED();
@@ -547,7 +580,7 @@ test_create_dataset_invalid_params(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -561,13 +594,13 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that an anonymous dataset can be created.
  */
-static int
+static void
 test_create_anonymous_dataset(void)
 {
     hid_t file_id         = H5I_INVALID_HID;
@@ -583,7 +616,7 @@ test_create_anonymous_dataset(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -605,10 +638,10 @@ test_create_anonymous_dataset(void)
         goto error;
     }
 
-    if ((fspace_id = generate_random_dataspace(DATASET_CREATE_ANONYMOUS_SPACE_RANK, NULL, NULL, FALSE)) < 0)
+    if ((fspace_id = generate_random_dataspace(DATASET_CREATE_ANONYMOUS_SPACE_RANK, NULL, NULL, false)) < 0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dset_id = H5Dcreate_anon(group_id, dset_dtype, fspace_id, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
@@ -632,7 +665,7 @@ test_create_anonymous_dataset(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -646,7 +679,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
@@ -654,7 +687,7 @@ error:
  * be created when H5Dcreate_anon is passed invalid
  * parameters.
  */
-static int
+static void
 test_create_anonymous_dataset_invalid_params(void)
 {
     hid_t file_id         = H5I_INVALID_HID;
@@ -670,7 +703,7 @@ test_create_anonymous_dataset_invalid_params(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -696,10 +729,10 @@ test_create_anonymous_dataset_invalid_params(void)
     }
 
     if ((fspace_id = generate_random_dataspace(DATASET_CREATE_ANONYMOUS_INVALID_PARAMS_SPACE_RANK, NULL, NULL,
-                                               FALSE)) < 0)
+                                               false)) < 0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     PASSED();
@@ -828,7 +861,7 @@ test_create_anonymous_dataset_invalid_params(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -842,14 +875,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that creating a dataset with a NULL
  * dataspace is not problematic.
  */
-static int
+static void
 test_create_dataset_null_space(void)
 {
     hid_t file_id         = H5I_INVALID_HID;
@@ -865,7 +898,7 @@ test_create_dataset_null_space(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -891,7 +924,7 @@ test_create_dataset_null_space(void)
     if ((fspace_id = H5Screate(H5S_NULL)) < 0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dset_id = H5Dcreate2(group_id, DATASET_CREATE_NULL_DATASPACE_TEST_DSET_NAME, dset_dtype, fspace_id,
@@ -925,7 +958,7 @@ test_create_dataset_null_space(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -939,14 +972,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that creating a dataset with a scalar
  * dataspace is not problematic.
  */
-static int
+static void
 test_create_dataset_scalar_space(void)
 {
     hid_t file_id         = H5I_INVALID_HID;
@@ -962,7 +995,7 @@ test_create_dataset_scalar_space(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -988,7 +1021,7 @@ test_create_dataset_scalar_space(void)
     if ((fspace_id = H5Screate(H5S_SCALAR)) < 0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dset_id = H5Dcreate2(group_id, DATASET_CREATE_SCALAR_DATASPACE_TEST_DSET_NAME, dset_dtype, fspace_id,
@@ -1022,7 +1055,7 @@ test_create_dataset_scalar_space(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -1036,14 +1069,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that creating a dataset with a dataspace
  * which contains a 0-sized dimension is not problematic.
  */
-static int
+static void
 test_create_zero_dim_dset(void)
 {
     hsize_t dims[ZERO_DIM_DSET_TEST_SPACE_RANK] = {0};
@@ -1061,7 +1094,7 @@ test_create_zero_dim_dset(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -1126,7 +1159,7 @@ test_create_zero_dim_dset(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -1139,14 +1172,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a dataset can be created with
  * a variety of different dataspace shapes.
  */
-static int
+static void
 test_create_dataset_random_shapes(void)
 {
     size_t i;
@@ -1162,7 +1195,7 @@ test_create_dataset_random_shapes(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -1184,20 +1217,20 @@ test_create_dataset_random_shapes(void)
         goto error;
     }
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     for (i = 0; i < DATASET_SHAPE_TEST_NUM_ITERATIONS; i++) {
         char name[100];
         int  ndims = rand() % DATASET_SHAPE_TEST_MAX_DIMS + 1;
 
-        if ((space_id = generate_random_dataspace(ndims, NULL, NULL, FALSE)) < 0) {
+        if ((space_id = generate_random_dataspace(ndims, NULL, NULL, false)) < 0) {
             H5_FAILED();
             printf("    couldn't create dataspace\n");
             goto error;
         }
 
-        HDsprintf(name, "%s%zu", DATASET_SHAPE_TEST_DSET_BASE_NAME, i + 1);
+        snprintf(name, sizeof(name), "%s%zu", DATASET_SHAPE_TEST_DSET_BASE_NAME, i + 1);
 
         if ((dset_id = H5Dcreate2(group_id, name, dset_dtype, space_id, H5P_DEFAULT, H5P_DEFAULT,
                                   H5P_DEFAULT)) < 0) {
@@ -1223,7 +1256,7 @@ test_create_dataset_random_shapes(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -1237,7 +1270,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
@@ -1245,7 +1278,7 @@ error:
  * each of the predefined integer and floating-point
  * datatypes.
  */
-static int
+static void
 test_create_dataset_predefined_types(void)
 {
     size_t i;
@@ -1253,11 +1286,11 @@ test_create_dataset_predefined_types(void)
     hid_t  container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
     hid_t  fspace_id                    = H5I_INVALID_HID;
     hid_t  dset_id                      = H5I_INVALID_HID;
-    hid_t  predefined_type_test_table[] = {H5T_STD_U8LE,   H5T_STD_U8BE,   H5T_STD_I8LE,   H5T_STD_I8BE,
-                                          H5T_STD_U16LE,  H5T_STD_U16BE,  H5T_STD_I16LE,  H5T_STD_I16BE,
-                                          H5T_STD_U32LE,  H5T_STD_U32BE,  H5T_STD_I32LE,  H5T_STD_I32BE,
-                                          H5T_STD_U64LE,  H5T_STD_U64BE,  H5T_STD_I64LE,  H5T_STD_I64BE,
-                                          H5T_IEEE_F32LE, H5T_IEEE_F32BE, H5T_IEEE_F64LE, H5T_IEEE_F64BE};
+    hid_t  predefined_type_test_table[] = {
+        H5T_STD_U8LE,   H5T_STD_U8BE,   H5T_STD_I8LE,   H5T_STD_I8BE,  H5T_STD_U16LE,  H5T_STD_U16BE,
+        H5T_STD_I16LE,  H5T_STD_I16BE,  H5T_STD_U32LE,  H5T_STD_U32BE, H5T_STD_I32LE,  H5T_STD_I32BE,
+        H5T_STD_U64LE,  H5T_STD_U64BE,  H5T_STD_I64LE,  H5T_STD_I64BE, // H5T_IEEE_F16LE, H5T_IEEE_F16BE, Not present in 1.14.2
+        H5T_IEEE_F32LE, H5T_IEEE_F32BE, H5T_IEEE_F64LE, H5T_IEEE_F64BE};
 
     TESTING("dataset creation with predefined datatypes");
 
@@ -1266,7 +1299,7 @@ test_create_dataset_predefined_types(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -1292,10 +1325,10 @@ test_create_dataset_predefined_types(void)
         char name[100];
 
         if ((fspace_id =
-                 generate_random_dataspace(DATASET_PREDEFINED_TYPE_TEST_SPACE_RANK, NULL, NULL, FALSE)) < 0)
+                 generate_random_dataspace(DATASET_PREDEFINED_TYPE_TEST_SPACE_RANK, NULL, NULL, false)) < 0)
             TEST_ERROR;
 
-        HDsprintf(name, "%s%zu", DATASET_PREDEFINED_TYPE_TEST_BASE_NAME, i);
+        snprintf(name, sizeof(name), "%s%zu", DATASET_PREDEFINED_TYPE_TEST_BASE_NAME, i);
 
         if ((dset_id = H5Dcreate2(group_id, name, predefined_type_test_table[i], fspace_id, H5P_DEFAULT,
                                   H5P_DEFAULT, H5P_DEFAULT)) < 0) {
@@ -1328,7 +1361,7 @@ test_create_dataset_predefined_types(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -1341,14 +1374,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a dataset can be created using
  * string datatypes.
  */
-static int
+static void
 test_create_dataset_string_types(void)
 {
     hid_t file_id         = H5I_INVALID_HID;
@@ -1364,7 +1397,7 @@ test_create_dataset_string_types(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -1400,7 +1433,7 @@ test_create_dataset_string_types(void)
         goto error;
     }
 
-    if ((fspace_id = generate_random_dataspace(DATASET_STRING_TYPE_TEST_SPACE_RANK, NULL, NULL, FALSE)) < 0)
+    if ((fspace_id = generate_random_dataspace(DATASET_STRING_TYPE_TEST_SPACE_RANK, NULL, NULL, false)) < 0)
         TEST_ERROR;
 
     PASSED();
@@ -1494,7 +1527,7 @@ test_create_dataset_string_types(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -1510,14 +1543,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a dataset can be created using
  * a variety of compound datatypes.
  */
-static int
+static void
 test_create_dataset_compound_types(void)
 {
     size_t i, j;
@@ -1536,7 +1569,7 @@ test_create_dataset_compound_types(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     /*
@@ -1566,7 +1599,7 @@ test_create_dataset_compound_types(void)
         goto error;
     }
 
-    if ((fspace_id = generate_random_dataspace(DATASET_COMPOUND_TYPE_TEST_DSET_RANK, NULL, NULL, FALSE)) < 0)
+    if ((fspace_id = generate_random_dataspace(DATASET_COMPOUND_TYPE_TEST_DSET_RANK, NULL, NULL, false)) < 0)
         TEST_ERROR;
 
     num_passes = (rand() % DATASET_COMPOUND_TYPE_TEST_MAX_PASSES) + 1;
@@ -1598,9 +1631,9 @@ test_create_dataset_compound_types(void)
             size_t member_size;
             char   member_name[256];
 
-            HDsnprintf(member_name, 256, "member%zu", j);
+            snprintf(member_name, 256, "member%zu", j);
 
-            if ((type_pool[j] = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0) {
+            if ((type_pool[j] = generate_random_datatype(H5T_NO_CLASS, false)) < 0) {
                 H5_FAILED();
                 printf("    couldn't create compound datatype member %zu\n", j);
                 goto error;
@@ -1626,7 +1659,7 @@ test_create_dataset_compound_types(void)
         if (H5Tpack(compound_type) < 0)
             TEST_ERROR;
 
-        HDsnprintf(dset_name, sizeof(dset_name), "%s%zu", DATASET_COMPOUND_TYPE_TEST_DSET_NAME, i);
+        snprintf(dset_name, sizeof(dset_name), "%s%zu", DATASET_COMPOUND_TYPE_TEST_DSET_NAME, i);
 
         if ((dset_id = H5Dcreate2(group_id, dset_name, compound_type, fspace_id, H5P_DEFAULT, H5P_DEFAULT,
                                   H5P_DEFAULT)) < 0) {
@@ -1664,7 +1697,7 @@ test_create_dataset_compound_types(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -1680,14 +1713,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a dataset can be created with
  * enum datatypes.
  */
-static int
+static void
 test_create_dataset_enum_types(void)
 {
     size_t      i;
@@ -1706,7 +1739,7 @@ test_create_dataset_enum_types(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -1747,13 +1780,13 @@ test_create_dataset_enum_types(void)
     for (i = 0; i < DATASET_ENUM_TYPE_TEST_NUM_MEMBERS; i++) {
         char val_name[15];
 
-        HDsnprintf(val_name, 15, "%s%zu", DATASET_ENUM_TYPE_TEST_VAL_BASE_NAME, i);
+        snprintf(val_name, 15, "%s%zu", DATASET_ENUM_TYPE_TEST_VAL_BASE_NAME, i);
 
         if (H5Tenum_insert(enum_non_native, val_name, &i) < 0)
             TEST_ERROR;
     }
 
-    if ((fspace_id = generate_random_dataspace(DATASET_ENUM_TYPE_TEST_SPACE_RANK, NULL, NULL, FALSE)) < 0)
+    if ((fspace_id = generate_random_dataspace(DATASET_ENUM_TYPE_TEST_SPACE_RANK, NULL, NULL, false)) < 0)
         TEST_ERROR;
 
     if ((dset_id_native = H5Dcreate2(group_id, DATASET_ENUM_TYPE_TEST_DSET_NAME1, enum_native, fspace_id,
@@ -1806,7 +1839,7 @@ test_create_dataset_enum_types(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -1822,14 +1855,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a dataset can be created using
  * array datatypes.
  */
-static int
+static void
 test_create_dataset_array_types(void)
 {
     hsize_t array_dims1[DATASET_ARRAY_TYPE_TEST_RANK1];
@@ -1853,7 +1886,7 @@ test_create_dataset_array_types(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -1879,7 +1912,7 @@ test_create_dataset_array_types(void)
     for (i = 0; i < DATASET_ARRAY_TYPE_TEST_RANK1; i++)
         array_dims1[i] = (hsize_t)(rand() % MAX_DIM_SIZE + 1);
 
-    if ((array_base_type_id1 = generate_random_datatype(H5T_ARRAY, FALSE)) < 0)
+    if ((array_base_type_id1 = generate_random_datatype(H5T_ARRAY, false)) < 0)
         TEST_ERROR;
 
     if ((array_type_id1 = H5Tarray_create2(array_base_type_id1, DATASET_ARRAY_TYPE_TEST_RANK1, array_dims1)) <
@@ -1892,7 +1925,7 @@ test_create_dataset_array_types(void)
     for (i = 0; i < DATASET_ARRAY_TYPE_TEST_RANK2; i++)
         array_dims2[i] = (hsize_t)(rand() % MAX_DIM_SIZE + 1);
 
-    if ((array_base_type_id2 = generate_random_datatype(H5T_ARRAY, FALSE)) < 0)
+    if ((array_base_type_id2 = generate_random_datatype(H5T_ARRAY, false)) < 0)
         TEST_ERROR;
 
     if ((array_type_id2 = H5Tarray_create2(array_base_type_id2, DATASET_ARRAY_TYPE_TEST_RANK2, array_dims2)) <
@@ -1906,7 +1939,7 @@ test_create_dataset_array_types(void)
     for (i = 0; i < DATASET_ARRAY_TYPE_TEST_RANK3; i++)
         array_dims3[i] = (hsize_t)(rand() % MAX_DIM_SIZE + 1);
 
-    if ((array_base_type_id3 = generate_random_datatype(H5T_ARRAY, FALSE)) < 0)
+    if ((array_base_type_id3 = generate_random_datatype(H5T_ARRAY, false)) < 0)
         TEST_ERROR;
 
     if ((nested_type_id = H5Tarray_create2(array_base_type_id3, DATASET_ARRAY_TYPE_TEST_RANK3, array_dims3)) <
@@ -1922,7 +1955,7 @@ test_create_dataset_array_types(void)
         goto error;
     }
 
-    if ((fspace_id = generate_random_dataspace(DATASET_ARRAY_TYPE_TEST_SPACE_RANK, NULL, NULL, FALSE)) < 0)
+    if ((fspace_id = generate_random_dataspace(DATASET_ARRAY_TYPE_TEST_SPACE_RANK, NULL, NULL, false)) < 0)
         TEST_ERROR;
 
     if ((dset_id1 = H5Dcreate2(group_id, DATASET_ARRAY_TYPE_TEST_DSET_NAME1, array_type_id1, fspace_id,
@@ -2002,7 +2035,7 @@ test_create_dataset_array_types(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -2024,24 +2057,40 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
+}
+
+static size_t
+filter(unsigned int H5_ATTR_UNUSED flags, size_t H5_ATTR_UNUSED cd_nelmts,
+       const unsigned int H5_ATTR_UNUSED cd_values[], size_t nbytes, size_t H5_ATTR_UNUSED *buf_size,
+       void H5_ATTR_UNUSED **buf)
+{
+    *buf_size = 0;
+    return nbytes;
 }
 
 /*
  * A test to check the functionality of the different
  * dataset creation properties.
  */
-static int
+static void
 test_create_dataset_creation_properties(void)
 {
-    hsize_t dims[DATASET_CREATION_PROPERTIES_TEST_SHAPE_RANK];
-    hsize_t chunk_dims[DATASET_CREATION_PROPERTIES_TEST_SHAPE_RANK];
-    size_t  i;
-    hid_t   file_id         = H5I_INVALID_HID;
-    hid_t   container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
-    hid_t   dset_id = H5I_INVALID_HID, dcpl_id = H5I_INVALID_HID;
-    hid_t   dset_dtype = H5I_INVALID_HID, compact_dtype = H5I_INVALID_HID;
-    hid_t   fspace_id = H5I_INVALID_HID, compact_fspace_id = H5I_INVALID_HID;
+    hsize_t      dims[DATASET_CREATION_PROPERTIES_TEST_SHAPE_RANK];
+    hsize_t      chunk_dims[DATASET_CREATION_PROPERTIES_TEST_SHAPE_RANK];
+    size_t       i;
+    hid_t        file_id         = H5I_INVALID_HID;
+    hid_t        container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
+    hid_t        dset_id = H5I_INVALID_HID, dcpl_id = H5I_INVALID_HID;
+    hid_t        dset_dtype = H5I_INVALID_HID, compact_dtype = H5I_INVALID_HID;
+    hid_t        fspace_id = H5I_INVALID_HID, compact_fspace_id = H5I_INVALID_HID;
+    void        *read_buf                                                             = NULL;
+    unsigned int filter_params[DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_NUM_PARAMS] = {1, 2, 3};
+    unsigned int filter_params_out[DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_NUM_PARAMS];
+    char         ud_filter_name[sizeof(DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_NAME)];
+    int          nfilters            = 0;
+    H5Z_filter_t retrieved_filter_id = H5I_INVALID_HID;
+    size_t       num_filter_params   = DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_NUM_PARAMS;
 
     TESTING_MULTIPART("dataset creation properties");
 
@@ -2051,7 +2100,7 @@ test_create_dataset_creation_properties(void)
         SKIPPED();
         printf("    API functions for basic file, group, or dataset "
                "aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -2076,19 +2125,19 @@ test_create_dataset_creation_properties(void)
     }
 
     if ((fspace_id =
-             generate_random_dataspace(DATASET_CREATION_PROPERTIES_TEST_SHAPE_RANK, NULL, dims, FALSE)) < 0)
+             generate_random_dataspace(DATASET_CREATION_PROPERTIES_TEST_SHAPE_RANK, NULL, dims, false)) < 0)
         TEST_ERROR;
     if ((compact_fspace_id =
-             generate_random_dataspace(DATASET_CREATION_PROPERTIES_TEST_SHAPE_RANK, NULL, NULL, TRUE)) < 0)
+             generate_random_dataspace(DATASET_CREATION_PROPERTIES_TEST_SHAPE_RANK, NULL, NULL, true)) < 0)
         TEST_ERROR;
 
     /* Set chunk dims to be size of dataset - for filters test */
     for (i = 0; i < DATASET_CREATION_PROPERTIES_TEST_SHAPE_RANK; i++)
         chunk_dims[i] = dims[i];
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
-    if ((compact_dtype = generate_random_datatype(H5T_NO_CLASS, TRUE)) < 0)
+    if ((compact_dtype = generate_random_datatype(H5T_NO_CLASS, true)) < 0)
         TEST_ERROR;
 
     PASSED();
@@ -2118,7 +2167,8 @@ test_create_dataset_creation_properties(void)
                     PART_ERROR(DCPL_alloc_time_test);
                 }
 
-                HDsprintf(name, "%s%zu", DATASET_CREATION_PROPERTIES_TEST_ALLOC_TIMES_BASE_NAME, i);
+                snprintf(name, sizeof(name), "%s%zu", DATASET_CREATION_PROPERTIES_TEST_ALLOC_TIMES_BASE_NAME,
+                         i);
 
                 if ((dset_id = H5Dcreate2(group_id, name, dset_dtype, fspace_id, H5P_DEFAULT, dcpl_id,
                                           H5P_DEFAULT)) < 0) {
@@ -2194,7 +2244,8 @@ test_create_dataset_creation_properties(void)
                     PART_ERROR(DCPL_attr_crt_order_test);
                 }
 
-                HDsprintf(name, "%s%zu", DATASET_CREATION_PROPERTIES_TEST_CRT_ORDER_BASE_NAME, i);
+                snprintf(name, sizeof(name), "%s%zu", DATASET_CREATION_PROPERTIES_TEST_CRT_ORDER_BASE_NAME,
+                         i);
 
                 if ((dset_id = H5Dcreate2(group_id, name, dset_dtype, fspace_id, H5P_DEFAULT, dcpl_id,
                                           H5P_DEFAULT)) < 0) {
@@ -2327,7 +2378,8 @@ test_create_dataset_creation_properties(void)
                     PART_ERROR(DCPL_fill_time_property_test);
                 }
 
-                HDsprintf(name, "%s%zu", DATASET_CREATION_PROPERTIES_TEST_FILL_TIMES_BASE_NAME, i);
+                snprintf(name, sizeof(name), "%s%zu", DATASET_CREATION_PROPERTIES_TEST_FILL_TIMES_BASE_NAME,
+                         i);
 
                 if ((dset_id = H5Dcreate2(group_id, name, dset_dtype, fspace_id, H5P_DEFAULT, dcpl_id,
                                           H5P_DEFAULT)) < 0) {
@@ -2374,7 +2426,275 @@ test_create_dataset_creation_properties(void)
         }
         PART_END(DCPL_fill_time_property_test);
 
-        /* TODO: Test the fill value property */
+        PART_BEGIN(DCPL_fill_value_test)
+        {
+            TESTING_2("fill values");
+
+            int    int_fill_value    = DATASET_FILL_VALUE_TEST_INT_FILL_VALUE;
+            double double_fill_value = DATASET_FILL_VALUE_TEST_DOUBLE_FILL_VALUE;
+
+            void  *val       = NULL;
+            size_t num_elems = 1;
+            hid_t  type_id   = H5I_INVALID_HID;
+
+            if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILL_VALUES)) {
+                SKIPPED();
+                printf("    dataset fill values are not supported by this VOL connector\n");
+                PART_EMPTY(DCPL_fill_value_test);
+            }
+
+            /* Integer Fill Value */
+            if ((dcpl_id = H5Pcreate(H5P_DATASET_CREATE)) < 0) {
+                H5_FAILED();
+                printf("    couldn't create DCPL\n");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if (H5Pset_fill_value(dcpl_id, DATASET_FILL_VALUE_TEST_INT_TYPE, (const void *)&int_fill_value) <
+                0) {
+                H5_FAILED();
+                printf("    couldn't set integer fill value in property list");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if ((dset_id =
+                     H5Dcreate(group_id, DATASET_FILL_VALUE_TEST_DSET_NAME1, DATASET_FILL_VALUE_TEST_INT_TYPE,
+                               fspace_id, H5P_DEFAULT, dcpl_id, H5P_DEFAULT)) < 0) {
+                H5_FAILED();
+                printf("    couldn't create dataset with integer fill value");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if ((H5Sget_simple_extent_dims(fspace_id, dims, NULL)) < 0) {
+                H5_FAILED();
+                printf("    couldn't get dataspace dimensions");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            for (i = 0; i < DATASET_CREATION_PROPERTIES_TEST_SHAPE_RANK; i++)
+                num_elems *= (size_t)dims[i];
+
+            if ((read_buf = calloc(num_elems, sizeof(DATASET_FILL_VALUE_TEST_INT_TYPE))) == NULL) {
+                H5_FAILED();
+                printf("    couldn't allocate memory for read buffer");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if (H5Dread(dset_id, DATASET_FILL_VALUE_TEST_INT_TYPE, H5S_ALL, H5S_ALL, H5P_DEFAULT, read_buf) <
+                0) {
+                H5_FAILED();
+                printf("    couldn't read from dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            for (i = 0; i < num_elems; i++) {
+                val = (int *)(read_buf) + i;
+
+                if (*(int *)val != DATASET_FILL_VALUE_TEST_INT_FILL_VALUE) {
+                    H5_FAILED();
+                    printf("    incorrect value read from dataset");
+                    PART_ERROR(DCPL_fill_value_test);
+                }
+            }
+
+            if (H5Dclose(dset_id) < 0) {
+                H5_FAILED();
+                printf("    couldn't close integer fill value dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if (H5Pclose(dcpl_id) < 0) {
+                H5_FAILED();
+                printf("    couldn't close dcpl");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            /* Re-open integer dataset */
+            if ((dset_id = H5Dopen2(group_id, DATASET_FILL_VALUE_TEST_DSET_NAME1, H5P_DEFAULT)) < 0) {
+                H5_FAILED();
+                printf("    couldn't open integer fill value dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if (H5Dclose(dset_id) < 0) {
+                H5_FAILED();
+                printf("    couldn't close opened integer fill value dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            free(read_buf);
+            read_buf = NULL;
+
+            /* Double fill value */
+            if ((dcpl_id = H5Pcreate(H5P_DATASET_CREATE)) == H5I_INVALID_HID) {
+                H5_FAILED();
+                printf("    couldn't create dcpl");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if ((H5Pset_fill_value(dcpl_id, DATASET_FILL_VALUE_TEST_DOUBLE_TYPE,
+                                   (const void *)&double_fill_value)) < 0) {
+                H5_FAILED();
+                printf("    couldn't set double fill value in property list");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if ((dset_id = H5Dcreate2(group_id, DATASET_FILL_VALUE_TEST_DSET_NAME2,
+                                      DATASET_FILL_VALUE_TEST_DOUBLE_TYPE, fspace_id, H5P_DEFAULT, dcpl_id,
+                                      H5P_DEFAULT)) < 0) {
+                H5_FAILED();
+                printf("    couldn't create dataset with double fill value");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if ((read_buf = calloc(num_elems, sizeof(DATASET_FILL_VALUE_TEST_DOUBLE_TYPE))) == NULL) {
+                H5_FAILED();
+                printf("    couldn't allocate memory for read buffer");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if (H5Dread(dset_id, DATASET_FILL_VALUE_TEST_DOUBLE_TYPE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                        read_buf) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            for (i = 0; i < num_elems; i++) {
+                val = (double *)(read_buf) + i;
+
+                if (!(H5_DBL_REL_EQUAL(*(double *)val, DATASET_FILL_VALUE_TEST_DOUBLE_FILL_VALUE,
+                                       0.0000001))) {
+                    H5_FAILED();
+                    printf("    incorrect value read from dataset");
+                    PART_ERROR(DCPL_fill_value_test);
+                }
+            }
+
+            if (H5Dclose(dset_id) < 0) {
+                H5_FAILED();
+                printf("    couldn't close double fill value dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if (H5Pclose(dcpl_id) < 0) {
+                H5_FAILED();
+                printf("    couldn't close dcpl");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            /* Re-open double dataset */
+            if ((dset_id = H5Dopen2(group_id, DATASET_FILL_VALUE_TEST_DSET_NAME2, H5P_DEFAULT)) < 0) {
+                H5_FAILED();
+                printf("    couldn't open double fill value dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if (H5Dclose(dset_id) < 0) {
+                H5_FAILED();
+                printf("    couldn't close opened double fill value dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            free(read_buf);
+            read_buf = NULL;
+
+            /* Fixed-length string fill value */
+            if ((dcpl_id = H5Pcreate(H5P_DATASET_CREATE)) == H5I_INVALID_HID) {
+                H5_FAILED();
+                printf("    couldn't create dcpl");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if ((type_id = H5Tcopy(H5T_C_S1)) < 0) {
+                H5_FAILED();
+                printf("    couldn't copy string datatype");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if ((H5Tset_size(type_id, DATASET_FILL_VALUE_TEST_STRING_SIZE)) < 0) {
+                H5_FAILED();
+                printf("    couldn't set size of string datatype");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if ((H5Pset_fill_value(dcpl_id, type_id,
+                                   (const void *)DATASET_FILL_VALUE_TEST_STRING_FILL_VALUE)) < 0) {
+                H5_FAILED();
+                printf("    couldn't set string fill value in property list");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if ((dset_id = H5Dcreate2(group_id, DATASET_FILL_VALUE_TEST_DSET_NAME3, type_id, fspace_id,
+                                      H5P_DEFAULT, dcpl_id, H5P_DEFAULT)) < 0) {
+                H5_FAILED();
+                printf("    couldn't create dataset with string fill value");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if ((read_buf = calloc(num_elems, DATASET_FILL_VALUE_TEST_STRING_SIZE)) == NULL) {
+                H5_FAILED();
+                printf("    couldn't allocate memory for read buffer");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if (H5Dread(dset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, read_buf) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            for (i = 0; i < num_elems; i++) {
+                char val_str[DATASET_FILL_VALUE_TEST_STRING_SIZE + 1];
+
+                memcpy(val_str, ((char *)read_buf) + i * DATASET_FILL_VALUE_TEST_STRING_SIZE,
+                       DATASET_FILL_VALUE_TEST_STRING_SIZE);
+                val_str[DATASET_FILL_VALUE_TEST_STRING_SIZE] = '\0';
+
+                if (strcmp(val_str, DATASET_FILL_VALUE_TEST_STRING_FILL_VALUE)) {
+                    H5_FAILED();
+                    printf("    incorrect value read from string  dataset");
+                    PART_ERROR(DCPL_fill_value_test);
+                }
+            }
+
+            if (H5Dclose(dset_id) < 0) {
+                H5_FAILED();
+                printf("    couldn't close string fill value dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if (H5Pclose(dcpl_id) < 0) {
+                H5_FAILED();
+                printf("    couldn't close dcpl");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if (H5Tclose(type_id) < 0) {
+                H5_FAILED();
+                printf("    couldn't close string type");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            free(read_buf);
+            read_buf = NULL;
+
+            /* Re-open string dataset */
+            if ((dset_id = H5Dopen2(group_id, DATASET_FILL_VALUE_TEST_DSET_NAME3, H5P_DEFAULT)) < 0) {
+                H5_FAILED();
+                printf("    couldn't open string fill value dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            if (H5Dclose(dset_id) < 0) {
+                H5_FAILED();
+                printf("    couldn't close opened string fill value dataset");
+                PART_ERROR(DCPL_fill_value_test);
+            }
+
+            PASSED();
+        }
+        PART_END(DCPL_fill_value_test);
 
         /* Test filters */
         PART_BEGIN(DCPL_filters_test)
@@ -2476,6 +2796,120 @@ test_create_dataset_creation_properties(void)
         }
         PART_END(DCPL_filters_test);
 
+        /* Test a user-defined filter */
+        PART_BEGIN(DCPL_user_defined_filter_test)
+        {
+            TESTING_2("user-defined dataset filters");
+            /* Create user-defined filter and register with library */
+            const H5Z_class2_t filter_cls[1] = {
+                {H5Z_CLASS_T_VERS, DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_ID, 1, 1,
+                 DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_NAME, NULL, NULL, &filter}};
+
+            if (H5Zregister((const void *)&filter_cls) < 0) {
+                H5_FAILED();
+                printf("    couldn't register filter\n");
+                PART_ERROR(DCPL_user_defined_filter_test);
+            }
+
+            if ((dcpl_id = H5Pcreate(H5P_DATASET_CREATE)) < 0) {
+                H5_FAILED();
+                printf("    couldn't create DCPL\n");
+                PART_ERROR(DCPL_user_defined_filter_test);
+            }
+
+            if (H5Pset_chunk(dcpl_id, DATASET_CREATION_PROPERTIES_TEST_SHAPE_RANK, chunk_dims) < 0) {
+                H5_FAILED();
+                printf("    couldn't set chunking on DCPL\n");
+                PART_ERROR(DCPL_user_defined_filter_test);
+            }
+
+            /* Set user-defined filter on the DCPL */
+            if (H5Pset_filter(dcpl_id, (H5Z_filter_t)DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_ID,
+                              H5Z_FLAG_MANDATORY, 3, filter_params) < 0) {
+                H5_FAILED();
+                printf("    couldn't set user-defined filter on DCPL\n");
+                PART_ERROR(DCPL_user_defined_filter_test);
+            }
+
+            /* Use a simple datatype, as not all filters support all datatypes. */
+            if ((dset_id = H5Dcreate2(group_id, DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_DSET_NAME,
+                                      H5T_NATIVE_INT, fspace_id, H5P_DEFAULT, dcpl_id, H5P_DEFAULT)) < 0) {
+                H5_FAILED();
+                printf("    couldn't create dataset '%s'\n",
+                       DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_DSET_NAME);
+                PART_ERROR(DCPL_user_defined_filter_test);
+            }
+
+            if (dset_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Dclose(dset_id);
+                }
+                H5E_END_TRY;
+                dset_id = H5I_INVALID_HID;
+            }
+
+            if ((dset_id = H5Dopen2(group_id, DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_DSET_NAME,
+                                    H5P_DEFAULT)) < 0) {
+                H5_FAILED();
+                printf("    couldn't open dataset '%s'\n",
+                       DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_DSET_NAME);
+                PART_ERROR(DCPL_user_defined_filter_test);
+            }
+
+            if (dcpl_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Pclose(dcpl_id);
+                }
+                H5E_END_TRY;
+                dcpl_id = H5I_INVALID_HID;
+            }
+
+            /* Test that parameters are preserved in the DCPL */
+            memset(filter_params_out, 0,
+                   sizeof(unsigned int) * DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_NUM_PARAMS);
+
+            if ((dcpl_id = H5Dget_create_plist(dset_id)) < 0) {
+                H5_FAILED();
+                printf("    couldn't retrieve DCPL\n");
+                PART_ERROR(DCPL_user_defined_filter_test);
+            }
+
+            if ((nfilters = H5Pget_nfilters(dcpl_id)) != 1) {
+                H5_FAILED();
+                printf("    retrieved incorrect number of filters from DCPL\n");
+                PART_ERROR(DCPL_user_defined_filter_test);
+            }
+
+            if ((retrieved_filter_id = H5Pget_filter2(
+                     dcpl_id, 0, H5Z_FLAG_MANDATORY, &num_filter_params, filter_params_out,
+                     strlen(DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_NAME), ud_filter_name, NULL)) < 0) {
+                H5_FAILED();
+                printf("    retrieved incorrect user-defined filter ID\n");
+                PART_ERROR(DCPL_user_defined_filter_test);
+            }
+
+            for (i = 0; i < DATASET_CREATION_PROPERTIES_TEST_UD_FILTER_NUM_PARAMS; i++)
+                if (filter_params[i] != filter_params_out[i]) {
+                    H5_FAILED();
+                    printf("    retrieved incorrect parameter value from DCPL\n");
+                    PART_ERROR(DCPL_user_defined_filter_test);
+                }
+
+            if (dset_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Dclose(dset_id);
+                }
+                H5E_END_TRY;
+                dset_id = H5I_INVALID_HID;
+            }
+
+            PASSED();
+        }
+        PART_END(DCPL_user_defined_filter_test)
+
         /* Test the dataset storage layout property */
         PART_BEGIN(DCPL_storage_layout_test)
         {
@@ -2513,7 +2947,7 @@ test_create_dataset_creation_properties(void)
                     }
                 }
 
-                HDsprintf(name, "%s%zu", DATASET_CREATION_PROPERTIES_TEST_LAYOUTS_BASE_NAME, i);
+                snprintf(name, sizeof(name), "%s%zu", DATASET_CREATION_PROPERTIES_TEST_LAYOUTS_BASE_NAME, i);
 
                 if ((dset_id =
                          H5Dcreate2(group_id, name, (H5D_COMPACT == layouts[i]) ? compact_dtype : dset_dtype,
@@ -2675,6 +3109,11 @@ test_create_dataset_creation_properties(void)
 
     TESTING_2("test cleanup");
 
+    if (read_buf) {
+        free(read_buf);
+        read_buf = NULL;
+    }
+
     if (H5Sclose(compact_fspace_id) < 0)
         TEST_ERROR;
     if (H5Sclose(fspace_id) < 0)
@@ -2692,11 +3131,15 @@ test_create_dataset_creation_properties(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
     {
+        if (read_buf) {
+            free(read_buf);
+        }
+
         H5Sclose(compact_fspace_id);
         H5Sclose(fspace_id);
         H5Tclose(compact_dtype);
@@ -2706,16 +3149,17 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-    }
-    H5E_END_TRY
 
-    return 1;
+        H5E_END_TRY
+
+        return;
+    }
 }
 
 /*
  * A test to create many small datasets (100,000)
  */
-static int
+static void
 test_create_many_dataset(void)
 {
     hid_t         file_id         = H5I_INVALID_HID;
@@ -2733,7 +3177,7 @@ test_create_many_dataset(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -2764,7 +3208,7 @@ test_create_many_dataset(void)
     printf("\n");
     for (i = 0; i < DATASET_NUMB; i++) {
         printf("\r %u/%u", i + 1, DATASET_NUMB);
-        sprintf(dset_name, "dset_%02u", i);
+        snprintf(dset_name, sizeof(dset_name), "dset_%02u", i);
         data = i % 256;
 
         if ((dset_id = H5Dcreate2(group_id, dset_name, H5T_NATIVE_UCHAR, dataspace_id, H5P_DEFAULT,
@@ -2798,7 +3242,7 @@ test_create_many_dataset(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -2811,28 +3255,28 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that re-opening a dataset with
  * H5Dopen succeeds.
  */
-static int
+static void
 test_open_dataset(void)
 {
     TESTING("H5Dopen");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
  * A test to check that H5Dopen fails when it is
  * passed invalid parameters.
  */
-static int
+static void
 test_open_dataset_invalid_params(void)
 {
     hid_t file_id         = H5I_INVALID_HID;
@@ -2848,7 +3292,7 @@ test_open_dataset_invalid_params(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -2872,11 +3316,11 @@ test_open_dataset_invalid_params(void)
         goto error;
     }
 
-    if ((fspace_id = generate_random_dataspace(DATASET_OPEN_INVALID_PARAMS_SPACE_RANK, NULL, NULL, FALSE)) <
+    if ((fspace_id = generate_random_dataspace(DATASET_OPEN_INVALID_PARAMS_SPACE_RANK, NULL, NULL, false)) <
         0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dset_id = H5Dcreate2(group_id, DATASET_OPEN_INVALID_PARAMS_DSET_NAME, dset_dtype, fspace_id,
@@ -2986,7 +3430,7 @@ test_open_dataset_invalid_params(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -3000,14 +3444,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that H5Dclose fails when it is
  * passed an invalid dataset ID.
  */
-static int
+static void
 test_close_dataset_invalid_params(void)
 {
     herr_t err_ret = -1;
@@ -3019,7 +3463,7 @@ test_close_dataset_invalid_params(void)
     if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -3045,7 +3489,7 @@ test_close_dataset_invalid_params(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -3054,7 +3498,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
@@ -3062,7 +3506,7 @@ error:
  * and datatype can be retrieved with H5Dget_space and
  * H5Dget_type, respectively.
  */
-static int
+static void
 test_get_dataset_space_and_type(void)
 {
     hsize_t dset_dims[DATASET_GET_SPACE_TYPE_TEST_SPACE_RANK];
@@ -3083,7 +3527,7 @@ test_get_dataset_space_and_type(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_MORE)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -3108,10 +3552,10 @@ test_get_dataset_space_and_type(void)
     }
 
     if ((dset_space_id =
-             generate_random_dataspace(DATASET_GET_SPACE_TYPE_TEST_SPACE_RANK, NULL, dset_dims, FALSE)) < 0)
+             generate_random_dataspace(DATASET_GET_SPACE_TYPE_TEST_SPACE_RANK, NULL, dset_dims, false)) < 0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dset_id = H5Dcreate2(group_id, DATASET_GET_SPACE_TYPE_TEST_DSET_NAME, dset_dtype, dset_space_id,
@@ -3328,7 +3772,7 @@ test_get_dataset_space_and_type(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -3344,7 +3788,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
@@ -3352,7 +3796,7 @@ error:
  * can't be retrieved when H5Dget_space and H5Dget_type are passed
  * invalid parameters, respectively.
  */
-static int
+static void
 test_get_dataset_space_and_type_invalid_params(void)
 {
     hid_t file_id         = H5I_INVALID_HID;
@@ -3371,7 +3815,7 @@ test_get_dataset_space_and_type_invalid_params(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_MORE)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -3397,10 +3841,10 @@ test_get_dataset_space_and_type_invalid_params(void)
     }
 
     if ((dset_space_id = generate_random_dataspace(DATASET_GET_SPACE_TYPE_INVALID_PARAMS_TEST_SPACE_RANK,
-                                                   NULL, NULL, FALSE)) < 0)
+                                                   NULL, NULL, false)) < 0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dset_id = H5Dcreate2(group_id, DATASET_GET_SPACE_TYPE_INVALID_PARAMS_TEST_DSET_NAME, dset_dtype,
@@ -3473,7 +3917,7 @@ test_get_dataset_space_and_type_invalid_params(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -3489,20 +3933,20 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test for H5Dget_space_status.
  */
-static int
+static void
 test_get_dataset_space_status(void)
 {
     TESTING("H5Dget_space_status");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
@@ -3510,14 +3954,14 @@ test_get_dataset_space_status(void)
  * status can't be retrieved with H5Dget_space_status when
  * it is passed invalid parameters.
  */
-static int
+static void
 test_get_dataset_space_status_invalid_params(void)
 {
     TESTING("H5Dget_space_status with invalid parameters");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
@@ -3527,14 +3971,13 @@ test_get_dataset_space_status_invalid_params(void)
  * Also tests that a valid copy of a DAPL used for dataset
  * access can be retrieved with a call to H5Dget_access_plist.
  */
-static int
+static void
 test_dataset_property_lists(void)
 {
     const char *path_prefix = "/test_prefix";
     hsize_t     dims[DATASET_PROPERTY_LIST_TEST_SPACE_RANK];
     hsize_t     chunk_dims[DATASET_PROPERTY_LIST_TEST_SPACE_RANK];
     size_t      i;
-    herr_t      err_ret         = -1;
     hid_t       file_id         = H5I_INVALID_HID;
     hid_t       container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
     hid_t       dset_id1 = H5I_INVALID_HID, dset_id2 = H5I_INVALID_HID, dset_id3 = H5I_INVALID_HID,
@@ -3545,7 +3988,6 @@ test_dataset_property_lists(void)
           dset_dtype4 = H5I_INVALID_HID;
     hid_t space_id    = H5I_INVALID_HID;
     char *tmp_prefix  = NULL;
-    char  vol_name[5];
 
     TESTING_MULTIPART("dataset property list operations");
 
@@ -3555,7 +3997,7 @@ test_dataset_property_lists(void)
         SKIPPED();
         printf("    API functions for basic file, group, dataset, or get property list aren't supported "
                "with this connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -3563,13 +4005,6 @@ test_dataset_property_lists(void)
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
         printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
-        goto error;
-    }
-
-    /** for DAOS VOL, this test is problematic since auto chunking can be selected, so skip for now */
-    if (H5VLget_connector_name(file_id, vol_name, 5) < 0) {
-        H5_FAILED();
-        printf("    couldn't get VOL connector name\n");
         goto error;
     }
 
@@ -3586,19 +4021,19 @@ test_dataset_property_lists(void)
         goto error;
     }
 
-    if ((space_id = generate_random_dataspace(DATASET_PROPERTY_LIST_TEST_SPACE_RANK, NULL, dims, FALSE)) < 0)
+    if ((space_id = generate_random_dataspace(DATASET_PROPERTY_LIST_TEST_SPACE_RANK, NULL, dims, false)) < 0)
         TEST_ERROR;
 
     for (i = 0; i < DATASET_PROPERTY_LIST_TEST_SPACE_RANK; i++)
         chunk_dims[i] = (hsize_t)(rand() % (int)dims[i] + 1);
 
-    if ((dset_dtype1 = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype1 = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
-    if ((dset_dtype2 = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype2 = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
-    if ((dset_dtype3 = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype3 = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
-    if ((dset_dtype4 = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype4 = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dcpl_id1 = H5Pcreate(H5P_DATASET_CREATE)) < 0) {
@@ -3638,8 +4073,8 @@ test_dataset_property_lists(void)
         {
             TESTING_2("H5Dget_create_plist");
 
-            /* Try to receive copies of the two property lists, one which has the property set and one which
-             * does not */
+            /* Try to receive copies of the two property lists, one which has the property set and one
+             * which does not */
             if ((dcpl_id1 = H5Dget_create_plist(dset_id1)) < 0) {
                 H5_FAILED();
                 printf("    couldn't get property list\n");
@@ -3670,20 +4105,6 @@ test_dataset_property_lists(void)
                         printf("    DCPL property values were incorrect\n");
                         PART_ERROR(H5Dget_create_plist);
                     }
-
-                H5E_BEGIN_TRY
-                {
-                    err_ret = H5Pget_chunk(dcpl_id2, DATASET_PROPERTY_LIST_TEST_SPACE_RANK, tmp_chunk_dims);
-                }
-                H5E_END_TRY
-
-                /* DAOS VOL can auto chunk, so don't fail */
-                if (err_ret >= 0 && strcmp(vol_name, "daos") != 0) {
-                    H5_FAILED();
-                    printf("    property list 2 shouldn't have had chunk dimensionality set (not a chunked "
-                           "layout)\n");
-                    PART_ERROR(H5Dget_create_plist);
-                }
             }
 
             PASSED();
@@ -3729,8 +4150,8 @@ test_dataset_property_lists(void)
                 dapl_id1 = H5I_INVALID_HID;
             }
 
-            /* Try to receive copies of the two property lists, one which has the property set and one which
-             * does not */
+            /* Try to receive copies of the two property lists, one which has the property set and one
+             * which does not */
             if ((dapl_id1 = H5Dget_access_plist(dset_id3)) < 0) {
                 H5_FAILED();
                 printf("    couldn't get property list\n");
@@ -3765,7 +4186,7 @@ test_dataset_property_lists(void)
                     PART_ERROR(H5Dget_access_plist);
                 }
 
-                if (HDstrncmp(tmp_prefix, path_prefix, (size_t)buf_size + 1)) {
+                if (strncmp(tmp_prefix, path_prefix, (size_t)buf_size + 1)) {
                     H5_FAILED();
                     printf("    DAPL values were incorrect!\n");
                     PART_ERROR(H5Dget_access_plist);
@@ -3779,7 +4200,7 @@ test_dataset_property_lists(void)
                     PART_ERROR(H5Dget_access_plist);
                 }
 
-                if (!HDstrncmp(tmp_prefix, path_prefix, (size_t)buf_size + 1)) {
+                if (!strncmp(tmp_prefix, path_prefix, (size_t)buf_size + 1)) {
                     H5_FAILED();
                     printf("    DAPL property value was set!\n");
                     PART_ERROR(H5Dget_access_plist);
@@ -3872,20 +4293,6 @@ test_dataset_property_lists(void)
                         printf("    DCPL property values were incorrect\n");
                         PART_ERROR(H5Dget_create_plist_reopened);
                     }
-
-                H5E_BEGIN_TRY
-                {
-                    err_ret = H5Pget_chunk(dcpl_id2, DATASET_PROPERTY_LIST_TEST_SPACE_RANK, tmp_chunk_dims);
-                }
-                H5E_END_TRY
-
-                /* DAOS VOL can auto chunk, so don't fail */
-                if (err_ret >= 0 && strcmp(vol_name, "daos") != 0) {
-                    H5_FAILED();
-                    printf("    property list 2 shouldn't have had chunk dimensionality set (not a chunked "
-                           "layout)\n");
-                    PART_ERROR(H5Dget_create_plist_reopened);
-                }
             }
 
             PASSED();
@@ -3936,7 +4343,7 @@ test_dataset_property_lists(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -3962,20 +4369,20 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test for H5Dget_storage_size.
  */
-static int
+static void
 test_get_dataset_storage_size(void)
 {
     TESTING("H5Dget_storage_size");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
@@ -3983,27 +4390,27 @@ test_get_dataset_storage_size(void)
  * be retrieved when H5Dget_storage_size is passed
  * invalid parameters.
  */
-static int
+static void
 test_get_dataset_storage_size_invalid_params(void)
 {
     TESTING("H5Dget_storage_size with invalid parameters");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
  * A test for H5Dget_chunk_storage_size.
  */
-static int
+static void
 test_get_dataset_chunk_storage_size(void)
 {
     TESTING("H5Dget_chunk_storage_size");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
@@ -4011,27 +4418,27 @@ test_get_dataset_chunk_storage_size(void)
  * a dataset can't be retrieved when H5Dget_chunk_storage_size
  * is passed invalid parameters.
  */
-static int
+static void
 test_get_dataset_chunk_storage_size_invalid_params(void)
 {
     TESTING("H5Dget_chunk_storage_size with invalid parameters");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
  * A test for H5Dget_offset.
  */
-static int
+static void
 test_get_dataset_offset(void)
 {
     TESTING("H5Dget_offset");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
@@ -4039,21 +4446,21 @@ test_get_dataset_offset(void)
  * retrieved when H5Dget_offset is passed invalid
  * parameters.
  */
-static int
+static void
 test_get_dataset_offset_invalid_params(void)
 {
     TESTING("H5Dget_offset with invalid parameters");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
  * A test to check that a small amount of data can be
  * read back from a dataset using an H5S_ALL selection.
  */
-static int
+static void
 test_read_dataset_small_all(void)
 {
     hsize_t dims[DATASET_SMALL_READ_TEST_ALL_DSET_SPACE_RANK] = {10, 5, 3};
@@ -4071,7 +4478,7 @@ test_read_dataset_small_all(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -4136,7 +4543,7 @@ test_read_dataset_small_all(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -4151,14 +4558,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a small amount of data can be
  * read back from a dataset using a hyperslab selection.
  */
-static int
+static void
 test_read_dataset_small_hyperslab(void)
 {
     hsize_t start[DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_SPACE_RANK];
@@ -4180,7 +4587,7 @@ test_read_dataset_small_hyperslab(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -4262,7 +4669,7 @@ test_read_dataset_small_hyperslab(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -4278,14 +4685,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a small amount of data can be
  * read back from a dataset using a point selection.
  */
-static int
+static void
 test_read_dataset_small_point_selection(void)
 {
     hsize_t points[DATASET_SMALL_READ_TEST_POINT_SELECTION_NUM_POINTS *
@@ -4307,7 +4714,7 @@ test_read_dataset_small_point_selection(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -4391,7 +4798,7 @@ test_read_dataset_small_point_selection(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -4407,7 +4814,440 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
+}
+
+/*
+ * A test to check that a small amount of data can be
+ * read back from multiple datasets using H5S_ALL selections.
+ */
+static void
+test_read_multi_dataset_small_all(void)
+{
+
+    hsize_t dims[DATASET_SMALL_READ_TEST_ALL_DSET_SPACE_RANK] = {10, 5, 3};
+    size_t  i, data_size;
+    hid_t   file_id         = H5I_INVALID_HID;
+    hid_t   container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
+    hid_t   fspace_id = H5I_INVALID_HID;
+    hid_t   dset_id_arr[DATASET_MULTI_COUNT];
+    hid_t   fspace_id_arr[DATASET_MULTI_COUNT];
+    hid_t   dtype_id_arr[DATASET_MULTI_COUNT];
+    void   *read_buf_arr[DATASET_MULTI_COUNT];
+
+    TESTING("small multi read from datasets with H5S_ALL");
+
+    /* Make sure the connector supports the API functions being tested */
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
+        SKIPPED();
+        printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
+        return;
+    }
+
+    /* Prevent uninitialized memory usage on test failure */
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        read_buf_arr[i] = NULL;
+        dset_id_arr[i]  = H5I_INVALID_HID;
+    }
+
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
+        goto error;
+    }
+
+    if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open container group '%s'\n", DATASET_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((group_id = H5Gcreate2(container_group, DATASET_SMALL_READ_MULTI_TEST_ALL_GROUP_NAME, H5P_DEFAULT,
+                               H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create container sub-group '%s'\n", DATASET_SMALL_READ_TEST_ALL_GROUP_NAME);
+        goto error;
+    }
+
+    if ((fspace_id = H5Screate_simple(DATASET_SMALL_READ_TEST_ALL_DSET_SPACE_RANK, dims, NULL)) < 0)
+        TEST_ERROR;
+
+    for (i = 0, data_size = 1; i < DATASET_SMALL_READ_TEST_ALL_DSET_SPACE_RANK; i++)
+        data_size *= dims[i];
+    data_size *= DATASET_SMALL_READ_TEST_ALL_DSET_DTYPESIZE;
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        char dset_name[DSET_NAME_BUF_SIZE];
+
+        if (DSET_NAME_BUF_SIZE <= snprintf(dset_name, DSET_NAME_BUF_SIZE, "%s%zu%c",
+                                           DATASET_SMALL_READ_TEST_ALL_DSET_NAME, i, '\0'))
+            TEST_ERROR;
+
+        if ((dset_id_arr[i] = H5Dcreate2(group_id, dset_name, DATASET_SMALL_READ_TEST_ALL_DSET_DTYPE,
+                                         fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+            H5_FAILED();
+            printf("    couldn't create dataset '%s'\n", DATASET_SMALL_READ_TEST_ALL_DSET_NAME);
+            goto error;
+        }
+
+        fspace_id_arr[i] = fspace_id;
+        dtype_id_arr[i]  = DATASET_SMALL_READ_TEST_ALL_DSET_DTYPE;
+
+        if (NULL == (read_buf_arr[i] = malloc(data_size)))
+            TEST_ERROR;
+    }
+
+    if (H5Dread_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, fspace_id_arr, fspace_id_arr,
+                      H5P_DEFAULT, read_buf_arr) < 0) {
+        H5_FAILED();
+        printf("    couldn't read from dataset '%s'\n", DATASET_SMALL_READ_TEST_ALL_DSET_NAME);
+        goto error;
+    }
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        free(read_buf_arr[i]);
+        read_buf_arr[i] = NULL;
+    }
+    if (H5Sclose(fspace_id) < 0)
+        TEST_ERROR;
+    for (i = 0; i < DATASET_MULTI_COUNT; i++)
+        if (H5Dclose(dset_id_arr[i]) < 0)
+            TEST_ERROR;
+    if (H5Gclose(group_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(container_group) < 0)
+        TEST_ERROR;
+    if (H5Fclose(file_id) < 0)
+        TEST_ERROR;
+
+    PASSED();
+
+    return;
+
+error:
+    H5E_BEGIN_TRY
+    {
+        for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+            free(read_buf_arr[i]);
+            read_buf_arr[i] = NULL;
+            H5Dclose(dset_id_arr[i]);
+        }
+        H5Sclose(fspace_id);
+        H5Gclose(group_id);
+        H5Gclose(container_group);
+        H5Fclose(file_id);
+    }
+    H5E_END_TRY;
+
+    return;
+}
+
+/*
+ * A test to check that a small amount of data can be
+ * read back from datasets using hyperslab selections.
+ */
+static void
+test_read_multi_dataset_small_hyperslab(void)
+{
+    hsize_t start[DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_SPACE_RANK];
+    hsize_t stride[DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_SPACE_RANK];
+    hsize_t count[DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_SPACE_RANK];
+    hsize_t block[DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_SPACE_RANK];
+    hsize_t dims[DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_SPACE_RANK] = {10, 5, 3};
+    size_t  i, data_size;
+    hid_t   file_id         = H5I_INVALID_HID;
+    hid_t   container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
+    hid_t   dset_id_arr[DATASET_MULTI_COUNT];
+    hid_t   mspace_id = H5I_INVALID_HID, fspace_id = H5I_INVALID_HID;
+    hid_t   mspace_id_arr[DATASET_MULTI_COUNT];
+    hid_t   fspace_id_arr[DATASET_MULTI_COUNT];
+    hid_t   dtype_arr[DATASET_MULTI_COUNT];
+    void   *read_buf_arr[DATASET_MULTI_COUNT];
+
+    TESTING("small multi read from datasets with a hyperslab selection");
+
+    /* Make sure the connector supports the API functions being tested */
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
+        SKIPPED();
+        printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
+        return;
+    }
+
+    /* Prevent uninitialized memory usage on test failure */
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        read_buf_arr[i] = NULL;
+        dset_id_arr[i]  = H5I_INVALID_HID;
+    }
+
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
+        goto error;
+    }
+
+    if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open container group '%s'\n", DATASET_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((group_id = H5Gcreate2(container_group, DATASET_SMALL_READ_MULTI_TEST_HYPERSLAB_GROUP_NAME,
+                               H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create container sub-group '%s'\n",
+               DATASET_SMALL_READ_TEST_HYPERSLAB_GROUP_NAME);
+        goto error;
+    }
+
+    if ((fspace_id = H5Screate_simple(DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_SPACE_RANK, dims, NULL)) < 0)
+        TEST_ERROR;
+    if ((mspace_id = H5Screate_simple(DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_SPACE_RANK - 1, dims, NULL)) < 0)
+        TEST_ERROR;
+
+    for (i = 0; i < DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_SPACE_RANK; i++) {
+        start[i]  = 0;
+        stride[i] = 1;
+        count[i]  = dims[i];
+        block[i]  = 1;
+    }
+
+    count[2] = 1;
+
+    if (H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, stride, count, block) < 0)
+        TEST_ERROR;
+
+    for (i = 0, data_size = 1; i < DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_SPACE_RANK - 1; i++)
+        data_size *= dims[i];
+    data_size *= DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_DTYPESIZE;
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        char dset_name[DSET_NAME_BUF_SIZE];
+
+        if (DSET_NAME_BUF_SIZE <= snprintf(dset_name, DSET_NAME_BUF_SIZE, "%s%zu%c",
+                                           DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_NAME, i, '\0'))
+            TEST_ERROR;
+
+        if ((dset_id_arr[i] = H5Dcreate2(group_id, dset_name, DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_DTYPE,
+                                         fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+            H5_FAILED();
+            printf("    couldn't create dataset '%s'\n", DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_NAME);
+            goto error;
+        }
+
+        if (NULL == (read_buf_arr[i] = malloc(data_size)))
+            TEST_ERROR;
+
+        mspace_id_arr[i] = mspace_id;
+        fspace_id_arr[i] = fspace_id;
+        dtype_arr[i]     = DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_DTYPE;
+    }
+
+    if (H5Dread_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_arr, mspace_id_arr, fspace_id_arr, H5P_DEFAULT,
+                      read_buf_arr) < 0) {
+        H5_FAILED();
+        printf("    couldn't read from dataset '%s'\n", DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_NAME);
+        goto error;
+    }
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        if (read_buf_arr[i]) {
+            free(read_buf_arr[i]);
+            read_buf_arr[i] = NULL;
+        }
+        if (H5Dclose(dset_id_arr[i]) < 0)
+            TEST_ERROR;
+    }
+
+    if (H5Sclose(mspace_id) < 0)
+        TEST_ERROR;
+    if (H5Sclose(fspace_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(group_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(container_group) < 0)
+        TEST_ERROR;
+    if (H5Fclose(file_id) < 0)
+        TEST_ERROR;
+
+    PASSED();
+
+    return;
+
+error:
+    H5E_BEGIN_TRY
+    {
+        for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+            if (read_buf_arr[i]) {
+                free(read_buf_arr[i]);
+                read_buf_arr[i] = NULL;
+            }
+            H5Dclose(dset_id_arr[i]);
+        }
+        H5Sclose(mspace_id);
+        H5Sclose(fspace_id);
+        H5Gclose(group_id);
+        H5Gclose(container_group);
+        H5Fclose(file_id);
+    }
+    H5E_END_TRY;
+
+    return;
+}
+
+/*
+ * A test to check that a small amount of data can be
+ * read back from datasets using point selections.
+ */
+static void
+test_read_multi_dataset_small_point_selection(void)
+{
+    hsize_t points[DATASET_SMALL_READ_TEST_POINT_SELECTION_NUM_POINTS *
+                   DATASET_SMALL_READ_TEST_POINT_SELECTION_DSET_SPACE_RANK];
+    hsize_t dims[DATASET_SMALL_READ_TEST_POINT_SELECTION_DSET_SPACE_RANK] = {10, 10, 10};
+    hsize_t mspace_dims[] = {DATASET_SMALL_READ_TEST_POINT_SELECTION_NUM_POINTS};
+    size_t  i, data_size;
+    hid_t   file_id         = H5I_INVALID_HID;
+    hid_t   container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
+    hid_t   fspace_id = H5I_INVALID_HID, mspace_id = H5I_INVALID_HID;
+    hid_t   dset_id_arr[DATASET_MULTI_COUNT];
+    hid_t   mspace_id_arr[DATASET_MULTI_COUNT], fspace_id_arr[DATASET_MULTI_COUNT];
+    hid_t   dtype_arr[DATASET_MULTI_COUNT];
+    void   *read_buf[DATASET_MULTI_COUNT];
+
+    TESTING("small multi read from datasets with point selections");
+
+    /* Make sure the connector supports the API functions being tested */
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
+        SKIPPED();
+        printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
+        return;
+    }
+
+    /* Prevent uninitialized memory usage on test failure */
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        read_buf[i]    = NULL;
+        dset_id_arr[i] = H5I_INVALID_HID;
+    }
+
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
+        goto error;
+    }
+
+    if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open container group '%s'\n", DATASET_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((group_id = H5Gcreate2(container_group, DATASET_SMALL_READ_MULTI_TEST_POINT_SELECTION_GROUP_NAME,
+                               H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create container sub-group '%s'\n",
+               DATASET_SMALL_READ_TEST_POINT_SELECTION_GROUP_NAME);
+        goto error;
+    }
+
+    if ((fspace_id = H5Screate_simple(DATASET_SMALL_READ_TEST_POINT_SELECTION_DSET_SPACE_RANK, dims, NULL)) <
+        0)
+        TEST_ERROR;
+    if ((mspace_id = H5Screate_simple(1, mspace_dims, NULL)) < 0)
+        TEST_ERROR;
+
+    data_size = DATASET_SMALL_READ_TEST_POINT_SELECTION_NUM_POINTS *
+                DATASET_SMALL_READ_TEST_POINT_SELECTION_DSET_DTYPESIZE;
+
+    for (i = 0; i < DATASET_SMALL_READ_TEST_POINT_SELECTION_NUM_POINTS; i++) {
+        size_t j;
+
+        for (j = 0; j < DATASET_SMALL_READ_TEST_POINT_SELECTION_DSET_SPACE_RANK; j++)
+            points[(i * DATASET_SMALL_READ_TEST_POINT_SELECTION_DSET_SPACE_RANK) + j] = i;
+    }
+
+    if (H5Sselect_elements(fspace_id, H5S_SELECT_SET, DATASET_SMALL_READ_TEST_POINT_SELECTION_NUM_POINTS,
+                           points) < 0) {
+        H5_FAILED();
+        printf("    couldn't select points\n");
+        goto error;
+    }
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        char dset_name[DSET_NAME_BUF_SIZE];
+
+        if (DSET_NAME_BUF_SIZE <= snprintf(dset_name, DSET_NAME_BUF_SIZE, "%s%zu%c",
+                                           DATASET_SMALL_READ_TEST_HYPERSLAB_DSET_NAME, i, '\0'))
+            TEST_ERROR;
+
+        if ((dset_id_arr[i] =
+                 H5Dcreate2(group_id, dset_name, DATASET_SMALL_READ_TEST_POINT_SELECTION_DSET_DTYPE,
+                            fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+            H5_FAILED();
+            printf("    couldn't create dataset '%s'\n", DATASET_SMALL_READ_TEST_POINT_SELECTION_DSET_NAME);
+            goto error;
+        }
+
+        if (NULL == (read_buf[i] = malloc(data_size)))
+            TEST_ERROR;
+
+        dtype_arr[i]     = DATASET_SMALL_READ_TEST_POINT_SELECTION_DSET_DTYPE;
+        mspace_id_arr[i] = mspace_id;
+        fspace_id_arr[i] = fspace_id;
+    }
+
+    if (H5Dread_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_arr, mspace_id_arr, fspace_id_arr, H5P_DEFAULT,
+                      read_buf) < 0) {
+        H5_FAILED();
+        printf("    couldn't read from dataset '%s'\n", DATASET_SMALL_READ_TEST_POINT_SELECTION_DSET_NAME);
+        goto error;
+    }
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        if (read_buf[i]) {
+            free(read_buf[i]);
+            read_buf[i] = NULL;
+        }
+        if (H5Dclose(dset_id_arr[i]) < 0)
+            TEST_ERROR;
+    }
+
+    if (H5Sclose(mspace_id) < 0)
+        TEST_ERROR;
+    if (H5Sclose(fspace_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(group_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(container_group) < 0)
+        TEST_ERROR;
+    if (H5Fclose(file_id) < 0)
+        TEST_ERROR;
+
+    PASSED();
+
+    return;
+
+error:
+    H5E_BEGIN_TRY
+    {
+        for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+            if (read_buf[i]) {
+                free(read_buf[i]);
+                read_buf[i] = NULL;
+            }
+            H5Dclose(dset_id_arr[i]);
+        }
+        H5Sclose(mspace_id);
+        H5Sclose(fspace_id);
+        H5Gclose(group_id);
+        H5Gclose(container_group);
+        H5Fclose(file_id);
+    }
+    H5E_END_TRY;
+
+    return;
 }
 
 /*
@@ -4430,7 +5270,7 @@ error:
                     ;                                                                                        \
             } while ((J) < (I));                                                                             \
     }
-static int
+static void
 test_dataset_io_point_selections(void)
 {
     hid_t   file_id         = H5I_INVALID_HID;
@@ -4451,7 +5291,7 @@ test_dataset_io_point_selections(void)
     int     file_state[DATASET_IO_POINT_DIM_0][DATASET_IO_POINT_DIM_1];
     int     erbuf[DATASET_IO_POINT_DIM_0][DATASET_IO_POINT_DIM_1];
     int     buf_point[DATASET_IO_POINT_NPOINTS];
-    hbool_t do_chunk;
+    bool    do_chunk;
     int     i, j;
 
     TESTING("point selection I/O with all selection in memory and points in file");
@@ -4461,7 +5301,7 @@ test_dataset_io_point_selections(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     /* Create dataspaces and DCPL */
@@ -4492,7 +5332,7 @@ test_dataset_io_point_selections(void)
         TEST_ERROR;
 
     /* Perform with and without chunking */
-    for (do_chunk = FALSE;; do_chunk = TRUE) {
+    for (do_chunk = false;; do_chunk = true) {
         if (do_chunk) {
             TESTING("point selection I/O with all selection in memory and points in file with chunking");
 
@@ -4781,8 +5621,8 @@ test_dataset_io_point_selections(void)
         for (i = 0; i < DATASET_IO_POINT_DIM_0; i++)
             for (j = 0; j < DATASET_IO_POINT_DIM_1; j++)
                 if (buf_all[i][j] != file_state[i][j])
-                    FAIL_PUTS_ERROR(
-                        "Incorrect data found after writing from hyperslab in memory to points in dataset");
+                    FAIL_PUTS_ERROR("Incorrect data found after writing from hyperslab in memory to "
+                                    "points in dataset");
 
         PASSED();
 
@@ -4855,8 +5695,8 @@ test_dataset_io_point_selections(void)
         for (i = 0; i < DATASET_IO_POINT_DIM_0; i++)
             for (j = 0; j < DATASET_IO_POINT_DIM_1; j++)
                 if (buf_all[i][j] != file_state[i][j])
-                    FAIL_PUTS_ERROR(
-                        "Incorrect data found after writing from points in memory to hyperslab in dataset");
+                    FAIL_PUTS_ERROR("Incorrect data found after writing from points in memory to "
+                                    "hyperslab in dataset");
 
         if (!do_chunk)
             PASSED();
@@ -4888,7 +5728,7 @@ test_dataset_io_point_selections(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -4904,14 +5744,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 } /* end test_dataset_io_point_selections() */
 
 /*
  * A test to check that data can't be read from a
  * dataset when H5Dread is passed invalid parameters.
  */
-static int
+static void
 test_read_dataset_invalid_params(void)
 {
     hsize_t dims[DATASET_READ_INVALID_PARAMS_TEST_DSET_SPACE_RANK] = {10, 5, 3};
@@ -4930,7 +5770,7 @@ test_read_dataset_invalid_params(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -5123,7 +5963,7 @@ test_read_dataset_invalid_params(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -5138,14 +5978,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a small write can be
  * made to a dataset using an H5S_ALL selection.
  */
-static int
+static void
 test_write_dataset_small_all(void)
 {
     hssize_t space_npoints;
@@ -5164,7 +6004,7 @@ test_write_dataset_small_all(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_MORE)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -5251,7 +6091,7 @@ test_write_dataset_small_all(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -5266,14 +6106,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a small write can be made
  * to a dataset using a hyperslab selection.
  */
-static int
+static void
 test_write_dataset_small_hyperslab(void)
 {
     hsize_t start[DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_SPACE_RANK];
@@ -5295,7 +6135,7 @@ test_write_dataset_small_hyperslab(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -5381,7 +6221,7 @@ test_write_dataset_small_hyperslab(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -5397,14 +6237,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a small write can be made
  * to a dataset using a point selection.
  */
-static int
+static void
 test_write_dataset_small_point_selection(void)
 {
     hsize_t points[DATASET_SMALL_WRITE_TEST_POINT_SELECTION_NUM_POINTS *
@@ -5426,7 +6266,7 @@ test_write_dataset_small_point_selection(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -5513,7 +6353,7 @@ test_write_dataset_small_point_selection(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -5529,14 +6369,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to ensure that data is read back correctly from
  * a dataset after it has been written.
  */
-static int
+static void
 test_write_dataset_data_verification(void)
 {
     hssize_t space_npoints;
@@ -5565,7 +6405,7 @@ test_write_dataset_data_verification(void)
         SKIPPED();
         printf("    API functions for basic file, group, basic or more dataset aren't supported with this "
                "connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -6024,7 +6864,7 @@ test_write_dataset_data_verification(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -6044,14 +6884,1104 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
+}
+
+/*
+ * A test to check that a small multi write can be
+ * made to a dataset using an H5S_ALL selection.
+ */
+static void
+test_write_multi_dataset_small_all(void)
+{
+    hssize_t    space_npoints;
+    hsize_t     dims[DATASET_SMALL_WRITE_TEST_ALL_DSET_SPACE_RANK] = {10, 5, 3};
+    size_t      i;
+    hid_t       file_id         = H5I_INVALID_HID;
+    hid_t       container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
+    hid_t       dset_id_arr[DATASET_MULTI_COUNT];
+    hid_t       fspace_id = H5I_INVALID_HID, fspace_id_arr[DATASET_MULTI_COUNT];
+    hid_t       dtype_id_arr[DATASET_MULTI_COUNT];
+    const void *write_buf[DATASET_MULTI_COUNT];
+    void       *wbuf_temp[DATASET_MULTI_COUNT];
+
+    TESTING("small multi write to datasets with H5S_ALL");
+
+    /* Prevent uninitialized memory usage on test failure */
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        dset_id_arr[i] = H5I_INVALID_HID;
+        write_buf[i]   = NULL;
+        wbuf_temp[i]   = NULL;
+    }
+
+    /* Make sure the connector supports the API functions being tested */
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
+        SKIPPED();
+        printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
+        return;
+    }
+
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
+        goto error;
+    }
+
+    if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open container group '%s'\n", DATASET_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((group_id = H5Gcreate2(container_group, DATASET_SMALL_WRITE_MULTI_TEST_ALL_GROUP_NAME, H5P_DEFAULT,
+                               H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create container sub-group '%s'\n",
+               DATASET_SMALL_WRITE_MULTI_TEST_ALL_GROUP_NAME);
+        goto error;
+    }
+
+    if ((fspace_id = H5Screate_simple(DATASET_SMALL_WRITE_TEST_ALL_DSET_SPACE_RANK, dims, NULL)) < 0)
+        TEST_ERROR;
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        char dset_name[DSET_NAME_BUF_SIZE];
+
+        if (DSET_NAME_BUF_SIZE <= snprintf(dset_name, DSET_NAME_BUF_SIZE, "%s%zu%c",
+                                           DATASET_SMALL_WRITE_MULTI_TEST_ALL_DSET_NAME, i, '\0'))
+            TEST_ERROR;
+
+        if ((dset_id_arr[i] = H5Dcreate2(group_id, dset_name, DATASET_SMALL_WRITE_TEST_ALL_DSET_DTYPE,
+                                         fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+            H5_FAILED();
+            printf("    couldn't create dataset '%s'\n", DATASET_SMALL_WRITE_MULTI_TEST_ALL_DSET_NAME);
+            goto error;
+        }
+
+        /* Close the dataset and dataspace to ensure that writing works correctly in this manner */
+        if (H5Dclose(dset_id_arr[i]) < 0)
+            TEST_ERROR;
+    }
+
+    if (H5Sclose(fspace_id) < 0)
+        TEST_ERROR;
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        char dset_name[DSET_NAME_BUF_SIZE];
+
+        if (DSET_NAME_BUF_SIZE <= snprintf(dset_name, DSET_NAME_BUF_SIZE, "%s%zu%c",
+                                           DATASET_SMALL_WRITE_MULTI_TEST_ALL_DSET_NAME, i, '\0'))
+            TEST_ERROR;
+
+        if ((dset_id_arr[i] = H5Dopen2(group_id, dset_name, H5P_DEFAULT)) < 0) {
+            H5_FAILED();
+            printf("    couldn't open dataset '%s'\n", dset_name);
+            goto error;
+        }
+
+        if ((fspace_id = H5Dget_space(dset_id_arr[i])) < 0) {
+            H5_FAILED();
+            printf("    couldn't get dataset dataspace\n");
+            goto error;
+        }
+
+        if ((space_npoints = H5Sget_simple_extent_npoints(fspace_id)) < 0) {
+            H5_FAILED();
+            printf("    couldn't get dataspace num points\n");
+            goto error;
+        }
+
+        dtype_id_arr[i]  = DATASET_SMALL_WRITE_TEST_ALL_DSET_DTYPE;
+        fspace_id_arr[i] = H5S_ALL;
+
+        if (NULL ==
+            (wbuf_temp[i] = malloc((hsize_t)space_npoints * DATASET_SMALL_WRITE_TEST_ALL_DSET_DTYPESIZE)))
+            TEST_ERROR;
+
+        for (size_t j = 0; j < (size_t)space_npoints; j++)
+            ((int **)wbuf_temp)[i][j] = (int)i;
+
+        write_buf[i] = wbuf_temp[i];
+    }
+
+    if (H5Dwrite_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, fspace_id_arr, fspace_id_arr,
+                       H5P_DEFAULT, write_buf) < 0) {
+        H5_FAILED();
+        printf("    couldn't write to dataset '%s'\n", DATASET_SMALL_WRITE_MULTI_TEST_ALL_DSET_NAME);
+        goto error;
+    }
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        free(wbuf_temp[i]);
+        wbuf_temp[i] = NULL;
+        if (H5Dclose(dset_id_arr[i]) < 0)
+            TEST_ERROR;
+    }
+    if (H5Sclose(fspace_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(group_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(container_group) < 0)
+        TEST_ERROR;
+    if (H5Fclose(file_id) < 0)
+        TEST_ERROR;
+
+    PASSED();
+
+    return;
+
+error:
+    H5E_BEGIN_TRY
+    {
+        for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+            if (wbuf_temp[i])
+                free(wbuf_temp[i]);
+            H5Dclose(dset_id_arr[i]);
+        }
+
+        H5Sclose(fspace_id);
+        H5Gclose(group_id);
+        H5Gclose(container_group);
+        H5Fclose(file_id);
+    }
+    H5E_END_TRY;
+
+    return;
+}
+
+/*
+ * A test to check that a small multi write can be made
+ * to a dataset using a hyperslab selection.
+ */
+static void
+test_write_multi_dataset_small_hyperslab(void)
+{
+    hsize_t     start[DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_SPACE_RANK];
+    hsize_t     stride[DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_SPACE_RANK];
+    hsize_t     count[DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_SPACE_RANK];
+    hsize_t     block[DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_SPACE_RANK];
+    hsize_t     dims[DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_SPACE_RANK] = {10, 5, 3};
+    size_t      i, data_size;
+    hid_t       file_id         = H5I_INVALID_HID;
+    hid_t       container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
+    hid_t       dset_id_arr[DATASET_MULTI_COUNT];
+    hid_t       mspace_id = H5I_INVALID_HID, fspace_id = H5I_INVALID_HID;
+    hid_t       mspace_id_arr[DATASET_MULTI_COUNT], fspace_id_arr[DATASET_MULTI_COUNT];
+    hid_t       dtype_id_arr[DATASET_MULTI_COUNT];
+    const void *write_buf[DATASET_MULTI_COUNT];
+    void       *wbuf_temp[DATASET_MULTI_COUNT];
+
+    TESTING("small multi write to datasets with hyperslab selections");
+
+    /* Make sure the connector supports the API functions being tested */
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
+        SKIPPED();
+        printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
+        return;
+    }
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        dset_id_arr[i] = H5I_INVALID_HID;
+        write_buf[i]   = NULL;
+        wbuf_temp[i]   = NULL;
+    }
+
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
+        goto error;
+    }
+
+    if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open container group '%s'\n", DATASET_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((group_id = H5Gcreate2(container_group, DATASET_SMALL_WRITE_MULTI_TEST_HYPERSLAB_GROUP_NAME,
+                               H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create container sub-group '%s'\n",
+               DATASET_SMALL_WRITE_MULTI_TEST_HYPERSLAB_GROUP_NAME);
+        goto error;
+    }
+
+    if ((fspace_id = H5Screate_simple(DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_SPACE_RANK, dims, NULL)) < 0)
+        TEST_ERROR;
+    if ((mspace_id = H5Screate_simple(DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_SPACE_RANK - 1, dims, NULL)) <
+        0)
+        TEST_ERROR;
+
+    for (i = 0, data_size = 1; i < DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_SPACE_RANK - 1; i++)
+        data_size *= dims[i];
+    data_size *= DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_DTYPESIZE;
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        char dset_name[DSET_NAME_BUF_SIZE];
+
+        if (DSET_NAME_BUF_SIZE <= snprintf(dset_name, DSET_NAME_BUF_SIZE, "%s%zu%c",
+                                           DATASET_SMALL_WRITE_MULTI_TEST_HYPERSLAB_DSET_NAME, i, '\0'))
+            TEST_ERROR;
+
+        if ((dset_id_arr[i] = H5Dcreate2(group_id, dset_name, DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_DTYPE,
+                                         fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+            H5_FAILED();
+            printf("    couldn't create dataset '%s'\n", dset_name);
+            goto error;
+        }
+
+        if (NULL == (wbuf_temp[i] = malloc(data_size)))
+            TEST_ERROR;
+
+        for (size_t j = 0; j < data_size / DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_DTYPESIZE; j++)
+            ((int **)wbuf_temp)[i][j] = (int)i;
+
+        write_buf[i] = (const void *)wbuf_temp[i];
+    }
+
+    for (i = 0; i < DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_SPACE_RANK; i++) {
+        start[i]  = 0;
+        stride[i] = 1;
+        count[i]  = dims[i];
+        block[i]  = 1;
+    }
+
+    count[2] = 1;
+
+    if (H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, stride, count, block) < 0)
+        TEST_ERROR;
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        dtype_id_arr[i]  = DATASET_SMALL_WRITE_TEST_HYPERSLAB_DSET_DTYPE;
+        mspace_id_arr[i] = mspace_id;
+        fspace_id_arr[i] = fspace_id;
+    }
+
+    if (H5Dwrite_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, mspace_id_arr, fspace_id_arr,
+                       H5P_DEFAULT, (const void **)write_buf) < 0) {
+        H5_FAILED();
+        printf("    couldn't write to dataset '%s'\n", DATASET_SMALL_WRITE_MULTI_TEST_HYPERSLAB_DSET_NAME);
+        goto error;
+    }
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        if (wbuf_temp[i]) {
+            free(wbuf_temp[i]);
+            wbuf_temp[i] = NULL;
+        }
+        if (H5Dclose(dset_id_arr[i]) < 0)
+            TEST_ERROR;
+    }
+
+    if (H5Sclose(mspace_id) < 0)
+        TEST_ERROR;
+    if (H5Sclose(fspace_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(group_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(container_group) < 0)
+        TEST_ERROR;
+    if (H5Fclose(file_id) < 0)
+        TEST_ERROR;
+
+    PASSED();
+
+    return;
+
+error:
+    H5E_BEGIN_TRY
+    {
+        for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+            if (wbuf_temp[i]) {
+                free(wbuf_temp[i]);
+                wbuf_temp[i] = NULL;
+            }
+            H5Dclose(dset_id_arr[i]);
+        }
+        H5Sclose(mspace_id);
+        H5Sclose(fspace_id);
+        H5Gclose(group_id);
+        H5Gclose(container_group);
+        H5Fclose(file_id);
+    }
+    H5E_END_TRY;
+
+    return;
+}
+
+/*
+ * A test to check that a small multi write can be made
+ * to a dataset using a point selection.
+ */
+static void
+test_write_multi_dataset_small_point_selection(void)
+{
+    hsize_t     points[DATASET_SMALL_WRITE_TEST_POINT_SELECTION_NUM_POINTS *
+                   DATASET_SMALL_WRITE_TEST_POINT_SELECTION_DSET_SPACE_RANK];
+    hsize_t     dims[DATASET_SMALL_WRITE_TEST_POINT_SELECTION_DSET_SPACE_RANK] = {10, 10, 10};
+    hsize_t     mdims[] = {DATASET_SMALL_WRITE_TEST_POINT_SELECTION_NUM_POINTS};
+    size_t      i, data_size;
+    hid_t       file_id         = H5I_INVALID_HID;
+    hid_t       container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
+    hid_t       dset_id_arr[DATASET_MULTI_COUNT];
+    hid_t       fspace_id = H5I_INVALID_HID, fspace_id_arr[DATASET_MULTI_COUNT];
+    hid_t       mspace_id = H5I_INVALID_HID, mspace_id_arr[DATASET_MULTI_COUNT];
+    hid_t       dtype_id_arr[DATASET_MULTI_COUNT];
+    const void *write_buf[DATASET_MULTI_COUNT];
+    void       *wbuf_temp[DATASET_MULTI_COUNT];
+
+    TESTING("small multi write to datasets with point selections");
+
+    /* Make sure the connector supports the API functions being tested */
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
+        SKIPPED();
+        printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
+        return;
+    }
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        write_buf[i]   = NULL;
+        wbuf_temp[i]   = NULL;
+        dset_id_arr[i] = H5I_INVALID_HID;
+    }
+
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
+        goto error;
+    }
+
+    if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open container group '%s'\n", DATASET_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((group_id = H5Gcreate2(container_group, DATASET_SMALL_WRITE_MULTI_TEST_POINT_SELECTION_GROUP_NAME,
+                               H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create container sub-group '%s'\n",
+               DATASET_SMALL_WRITE_MULTI_TEST_POINT_SELECTION_GROUP_NAME);
+        goto error;
+    }
+
+    if ((fspace_id = H5Screate_simple(DATASET_SMALL_WRITE_TEST_POINT_SELECTION_DSET_SPACE_RANK, dims, NULL)) <
+        0)
+        TEST_ERROR;
+    if ((mspace_id = H5Screate_simple(1, mdims, NULL)) < 0)
+        TEST_ERROR;
+
+    data_size = DATASET_SMALL_WRITE_TEST_POINT_SELECTION_NUM_POINTS *
+                DATASET_SMALL_WRITE_TEST_POINT_SELECTION_DSET_DTYPESIZE;
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        char dset_name[DSET_NAME_BUF_SIZE];
+
+        if (DSET_NAME_BUF_SIZE <= snprintf(dset_name, DSET_NAME_BUF_SIZE, "%s%zu%c",
+                                           DATASET_SMALL_WRITE_MULTI_TEST_POINT_SELECTION_DSET_NAME, i, '\0'))
+            TEST_ERROR;
+
+        if ((dset_id_arr[i] =
+                 H5Dcreate2(group_id, dset_name, DATASET_SMALL_WRITE_TEST_POINT_SELECTION_DSET_DTYPE,
+                            fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+            H5_FAILED();
+            printf("    couldn't create dataset '%s'\n", dset_name);
+            goto error;
+        }
+
+        if (NULL == (wbuf_temp[i] = malloc(data_size)))
+            TEST_ERROR;
+
+        for (size_t j = 0; j < data_size / DATASET_SMALL_WRITE_TEST_POINT_SELECTION_DSET_DTYPESIZE; j++)
+            ((int **)wbuf_temp)[i][j] = (int)i;
+
+        write_buf[i] = (const void *)wbuf_temp[i];
+    }
+
+    for (i = 0; i < DATASET_SMALL_WRITE_TEST_POINT_SELECTION_NUM_POINTS; i++) {
+        size_t j;
+
+        for (j = 0; j < DATASET_SMALL_WRITE_TEST_POINT_SELECTION_DSET_SPACE_RANK; j++)
+            points[(i * DATASET_SMALL_WRITE_TEST_POINT_SELECTION_DSET_SPACE_RANK) + j] = i;
+    }
+
+    if (H5Sselect_elements(fspace_id, H5S_SELECT_SET, DATASET_SMALL_WRITE_TEST_POINT_SELECTION_NUM_POINTS,
+                           points) < 0) {
+        H5_FAILED();
+        printf("    couldn't select points\n");
+        goto error;
+    }
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        dtype_id_arr[i]  = DATASET_SMALL_WRITE_TEST_POINT_SELECTION_DSET_DTYPE;
+        mspace_id_arr[i] = mspace_id;
+        fspace_id_arr[i] = fspace_id;
+    }
+
+    if (H5Dwrite_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, mspace_id_arr, fspace_id_arr,
+                       H5P_DEFAULT, (const void **)write_buf) < 0) {
+        H5_FAILED();
+        printf("    couldn't write to multiple datasets\n");
+        goto error;
+    }
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        if (wbuf_temp[i]) {
+            free(wbuf_temp[i]);
+            wbuf_temp[i] = NULL;
+        }
+
+        if (H5Dclose(dset_id_arr[i]) < 0)
+            TEST_ERROR;
+    }
+
+    if (H5Sclose(mspace_id) < 0)
+        TEST_ERROR;
+    if (H5Sclose(fspace_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(group_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(container_group) < 0)
+        TEST_ERROR;
+    if (H5Fclose(file_id) < 0)
+        TEST_ERROR;
+
+    PASSED();
+
+    return;
+
+error:
+    H5E_BEGIN_TRY
+    {
+        for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+            if (wbuf_temp[i])
+                free(wbuf_temp[i]);
+
+            H5Dclose(dset_id_arr[i]);
+        }
+
+        H5Sclose(mspace_id);
+        H5Sclose(fspace_id);
+        H5Gclose(group_id);
+        H5Gclose(container_group);
+        H5Fclose(file_id);
+    }
+    H5E_END_TRY;
+
+    return;
+}
+
+/*
+ * A test to ensure that data is read back correctly from
+ * multiple datasets after it has been written.
+ */
+static void
+test_write_multi_dataset_data_verification(void)
+{
+    hssize_t space_npoints[DATASET_MULTI_COUNT];
+    hsize_t  dims[DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK] = {10, 10, 10};
+    hsize_t  start[DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK];
+    hsize_t  stride[DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK];
+    hsize_t  count[DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK];
+    hsize_t  block[DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK];
+    hsize_t
+           points[DATASET_DATA_VERIFY_WRITE_TEST_NUM_POINTS * DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK];
+    size_t i, data_size;
+    hid_t  file_id         = H5I_INVALID_HID;
+    hid_t  container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
+    hid_t  dset_id_arr[DATASET_MULTI_COUNT];
+    hid_t  dtype_id_arr[DATASET_MULTI_COUNT];
+    hid_t  fspace_id = H5I_INVALID_HID, fspace_id_arr[DATASET_MULTI_COUNT];
+    hid_t  mspace_id = H5I_INVALID_HID, mspace_id_arr[DATASET_MULTI_COUNT];
+    hid_t  select_all_arr[DATASET_MULTI_COUNT];
+    void  *data[DATASET_MULTI_COUNT];
+    const void *write_buf[DATASET_MULTI_COUNT];
+    void       *wbuf_temp[DATASET_MULTI_COUNT];
+    void       *read_buf[DATASET_MULTI_COUNT];
+    char        dset_names[DATASET_MULTI_COUNT][DSET_NAME_BUF_SIZE];
+
+    TESTING_MULTIPART("verification of datasets' data using H5Dwrite_multi then H5Dread_multi");
+
+    /* Make sure the connector supports the API functions being tested */
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
+        SKIPPED();
+        printf("    API functions for basic file, group, basic or more dataset aren't supported with this "
+               "connector\n");
+        return;
+    }
+
+    TESTING_2("test setup");
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        select_all_arr[i] = H5S_ALL;
+        read_buf[i]       = NULL;
+        write_buf[i]      = NULL;
+        wbuf_temp[i]      = NULL;
+        data[i]           = NULL;
+    }
+
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
+        goto error;
+    }
+
+    if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open container group '%s'\n", DATASET_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((group_id = H5Gcreate2(container_group, DATASET_DATA_VERIFY_WRITE_MULTI_TEST_GROUP_NAME, H5P_DEFAULT,
+                               H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create container sub-group '%s'\n",
+               DATASET_DATA_VERIFY_WRITE_MULTI_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((fspace_id = H5Screate_simple(DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK, dims, NULL)) < 0)
+        TEST_ERROR;
+
+    for (i = 0, data_size = 1; i < DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK; i++)
+        data_size *= dims[i];
+    data_size *= DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPESIZE;
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        if (DSET_NAME_BUF_SIZE <= snprintf(dset_names[i], DSET_NAME_BUF_SIZE, "%s%zu%c",
+                                           DATASET_DATA_VERIFY_WRITE_MULTI_TEST_DSET_NAME, i, '\0'))
+            TEST_ERROR;
+
+        if ((dset_id_arr[i] = H5Dcreate2(group_id, dset_names[i], DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPE,
+                                         fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+            H5_FAILED();
+            printf("    couldn't create dataset '%s'\n", dset_names[i]);
+            goto error;
+        }
+
+        if (NULL == (data[i] = malloc(data_size)))
+            TEST_ERROR;
+
+        dtype_id_arr[i] = DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPE;
+
+        for (size_t j = 0; j < data_size / DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPESIZE; j++)
+            ((int **)data)[i][j] = (int)j;
+
+        write_buf[i] = (const void *)data[i];
+    }
+
+    PASSED();
+
+    BEGIN_MULTIPART
+    {
+        PART_BEGIN(H5Dwrite_multi_all_read)
+        {
+            TESTING_2("H5Dwrite_multi using H5S_ALL then H5Dread_multi");
+
+            if (H5Dwrite_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, select_all_arr, select_all_arr,
+                               H5P_DEFAULT, (const void **)write_buf) < 0) {
+                H5_FAILED();
+                printf("    couldn't write to datasets");
+                PART_ERROR(H5Dwrite_multi_all_read);
+            }
+
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                if (data[i]) {
+                    free(data[i]);
+                    data[i] = NULL;
+                }
+
+                if (dset_id_arr[i] >= 0) {
+                    H5E_BEGIN_TRY
+                    {
+                        H5Dclose(dset_id_arr[i]);
+                    }
+                    H5E_END_TRY;
+                    dset_id_arr[i] = H5I_INVALID_HID;
+                }
+
+                if ((dset_id_arr[i] = H5Dopen2(group_id, dset_names[i], H5P_DEFAULT)) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't open dataset '%s'\n", dset_names[i]);
+                    PART_ERROR(H5Dwrite_multi_all_read);
+                }
+            }
+
+            if (fspace_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Sclose(fspace_id);
+                }
+                H5E_END_TRY;
+                fspace_id = H5I_INVALID_HID;
+            }
+
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                if ((fspace_id_arr[i] = H5Dget_space(dset_id_arr[i])) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't get dataset dataspace\n");
+                    PART_ERROR(H5Dwrite_multi_all_read);
+                }
+
+                if ((space_npoints[i] = H5Sget_simple_extent_npoints(fspace_id_arr[i])) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't get dataspace num points\n");
+                    PART_ERROR(H5Dwrite_multi_all_read);
+                }
+
+                if (NULL == (data[i] = malloc((hsize_t)space_npoints[i] *
+                                              DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPESIZE))) {
+                    H5_FAILED();
+                    printf("    couldn't allocate buffer for dataset read\n");
+                    PART_ERROR(H5Dwrite_multi_all_read);
+                }
+            }
+
+            if (H5Dread_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, select_all_arr, select_all_arr,
+                              H5P_DEFAULT, data) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from datasets\n");
+                PART_ERROR(H5Dwrite_multi_all_read);
+            }
+
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                for (size_t j = 0; j < (hsize_t)space_npoints[i]; j++)
+                    if (((int **)data)[i][j] != (int)j) {
+                        H5_FAILED();
+                        printf("    H5S_ALL selection data verification failed\n");
+                        PART_ERROR(H5Dwrite_multi_all_read);
+                    }
+
+                if (data[i]) {
+                    free(data[i]);
+                    data[i] = NULL;
+                }
+            }
+
+            PASSED();
+        }
+        PART_END(H5Dwrite_multi_all_read);
+
+        for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+            if (data[i]) {
+                free(data[i]);
+                data[i] = NULL;
+            }
+        }
+
+        PART_BEGIN(H5Dwrite_multi_hyperslab_read)
+        {
+            TESTING_2("H5Dwrite_multi using hyperslab selection then H5Dread_multi");
+
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                data_size = dims[1] * 2 * DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPESIZE;
+
+                if (NULL == (wbuf_temp[i] = malloc(data_size))) {
+                    H5_FAILED();
+                    printf("    couldn't allocate buffer for dataset write\n");
+                    PART_ERROR(H5Dwrite_multi_hyperslab_read);
+                }
+
+                for (size_t j = 0; j < data_size / DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPESIZE; j++) {
+                    ((int *)wbuf_temp[i])[j] = 56;
+                }
+
+                data_size = 1;
+                for (size_t j = 0; j < DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK; j++)
+                    data_size *= dims[j];
+                data_size *= DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPESIZE;
+
+                if (NULL == (data[i] = malloc(data_size))) {
+                    H5_FAILED();
+                    printf("    couldn't allocate buffer for datasets' data verification\n");
+                    PART_ERROR(H5Dwrite_multi_hyperslab_read);
+                }
+
+                write_buf[i] = (const void *)wbuf_temp[i];
+            }
+
+            if (H5Dread_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, select_all_arr, select_all_arr,
+                              H5P_DEFAULT, data) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from datasets\n");
+                PART_ERROR(H5Dwrite_multi_hyperslab_read);
+            }
+
+            /* Reference data for verification */
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                for (size_t j = 0; j < 2; j++) {
+                    size_t k;
+
+                    for (k = 0; k < dims[1]; k++) {
+                        size_t index             = (j * dims[1] * dims[2]) + (k * dims[2]);
+                        ((int **)data)[i][index] = (int)56;
+                    }
+                }
+            }
+
+            /* Write to first two rows of dataset */
+            start[0] = start[1] = start[2] = 0;
+            stride[0] = stride[1] = stride[2] = 1;
+            count[0]                          = 2;
+            count[1]                          = dims[1];
+            count[2]                          = 1;
+            block[0] = block[1] = block[2] = 1;
+
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                if (H5Sselect_hyperslab(fspace_id_arr[i], H5S_SELECT_SET, start, stride, count, block) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't select hyperslab for dataset write\n");
+                    PART_ERROR(H5Dwrite_multi_hyperslab_read);
+                }
+
+                {
+                    hsize_t mdims[] = {(hsize_t)2 * dims[1]};
+
+                    if ((mspace_id_arr[i] = H5Screate_simple(1, mdims, NULL)) < 0) {
+                        H5_FAILED();
+                        printf("    couldn't create memory dataspace\n");
+                        PART_ERROR(H5Dwrite_multi_hyperslab_read);
+                    }
+                }
+            }
+
+            if (H5Dwrite_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, mspace_id_arr, fspace_id_arr,
+                               H5P_DEFAULT, (const void **)write_buf) < 0) {
+                H5_FAILED();
+                printf("    couldn't write to datasets\n");
+                PART_ERROR(H5Dwrite_multi_hyperslab_read);
+            }
+
+            if (mspace_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Sclose(mspace_id);
+                }
+                H5E_END_TRY;
+                mspace_id = H5I_INVALID_HID;
+            }
+            if (fspace_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Sclose(fspace_id);
+                }
+                H5E_END_TRY;
+                fspace_id = H5I_INVALID_HID;
+            }
+
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                if (dset_id_arr[i] >= 0) {
+                    H5E_BEGIN_TRY
+                    {
+                        H5Dclose(dset_id_arr[i]);
+                    }
+                    H5E_END_TRY;
+                    dset_id_arr[i] = H5I_INVALID_HID;
+                }
+
+                if ((dset_id_arr[i] = H5Dopen2(group_id, dset_names[i], H5P_DEFAULT)) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't open dataset '%s'\n", dset_names[i]);
+                    PART_ERROR(H5Dwrite_multi_hyperslab_read);
+                }
+
+                if ((fspace_id_arr[i] = H5Dget_space(dset_id_arr[i])) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't get dataset dataspace\n");
+                    PART_ERROR(H5Dwrite_multi_hyperslab_read);
+                }
+
+                if ((space_npoints[i] = H5Sget_simple_extent_npoints(fspace_id_arr[i])) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't get dataspace num points\n");
+                    PART_ERROR(H5Dwrite_multi_hyperslab_read);
+                }
+
+                if (NULL == (read_buf[i] = malloc((hsize_t)space_npoints[i] *
+                                                  DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPESIZE))) {
+                    H5_FAILED();
+                    printf("    couldn't allocate buffer for dataset read\n");
+                    PART_ERROR(H5Dwrite_multi_hyperslab_read);
+                }
+            }
+
+            if (H5Dread_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, select_all_arr, select_all_arr,
+                              H5P_DEFAULT, read_buf) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from datasets\n");
+                PART_ERROR(H5Dwrite_multi_hyperslab_read);
+            }
+
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                if (memcmp(data[i], read_buf[i], data_size)) {
+                    H5_FAILED();
+                    printf("    hyperslab selection data verification failed\n");
+                    PART_ERROR(H5Dwrite_multi_hyperslab_read);
+                }
+
+                if (data[i]) {
+                    free(data[i]);
+                    data[i] = NULL;
+                }
+
+                if (wbuf_temp[i]) {
+                    free(wbuf_temp[i]);
+                    wbuf_temp[i] = NULL;
+                }
+
+                if (read_buf[i]) {
+                    free(read_buf[i]);
+                    read_buf[i] = NULL;
+                }
+            }
+
+            PASSED();
+        }
+        PART_END(H5Dwrite_multi_hyperslab_read);
+
+        for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+            if (wbuf_temp[i]) {
+                free(wbuf_temp[i]);
+                wbuf_temp[i] = NULL;
+            }
+
+            if (read_buf[i]) {
+                free(read_buf[i]);
+                read_buf[i] = NULL;
+            }
+        }
+
+        PART_BEGIN(H5Dwrite_multi_point_sel_read)
+        {
+            TESTING_2("H5Dwrite_multi using point selection then H5Dread_multi");
+
+            data_size =
+                DATASET_DATA_VERIFY_WRITE_TEST_NUM_POINTS * DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPESIZE;
+
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                if (NULL == (wbuf_temp[i] = malloc(data_size))) {
+                    H5_FAILED();
+                    printf("    couldn't allocate buffer for dataset write\n");
+                    PART_ERROR(H5Dwrite_multi_point_sel_read);
+                }
+
+                for (size_t j = 0; j < data_size / DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPESIZE; j++)
+                    ((int **)wbuf_temp)[i][j] = 13;
+
+                write_buf[i] = (const void *)wbuf_temp[i];
+
+                data_size = 1;
+
+                for (size_t j = 0; j < DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK; j++)
+                    data_size *= dims[j];
+                data_size *= DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPESIZE;
+
+                if (NULL == (data[i] = malloc(data_size))) {
+                    H5_FAILED();
+                    printf("    couldn't allocate buffer for dataset data verification\n");
+                    PART_ERROR(H5Dwrite_multi_point_sel_read);
+                }
+            }
+
+            if (H5Dread_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, select_all_arr, select_all_arr,
+                              H5P_DEFAULT, data) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from dataset '%s'\n",
+                       DATASET_DATA_VERIFY_WRITE_MULTI_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_multi_point_sel_read);
+            }
+
+            /* Select a series of 10 points in the dataset */
+            for (i = 0; i < DATASET_DATA_VERIFY_WRITE_TEST_NUM_POINTS; i++) {
+                size_t j;
+
+                for (j = 0; j < DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK; j++)
+                    points[(i * DATASET_DATA_VERIFY_WRITE_TEST_DSET_SPACE_RANK) + j] = i;
+            }
+
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                if (H5Sselect_elements(fspace_id_arr[i], H5S_SELECT_SET,
+                                       DATASET_DATA_VERIFY_WRITE_TEST_NUM_POINTS, points) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't select elements in dataspace\n");
+                    PART_ERROR(H5Dwrite_multi_point_sel_read);
+                }
+
+                {
+                    hsize_t mdims[] = {(hsize_t)DATASET_DATA_VERIFY_WRITE_TEST_NUM_POINTS};
+
+                    if ((mspace_id_arr[i] = H5Screate_simple(1, mdims, NULL)) < 0) {
+                        H5_FAILED();
+                        printf("    couldn't create memory dataspace\n");
+                        PART_ERROR(H5Dwrite_multi_point_sel_read);
+                    }
+                }
+            }
+
+            if (H5Dwrite_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, mspace_id_arr, fspace_id_arr,
+                               H5P_DEFAULT, (const void **)write_buf) < 0) {
+                H5_FAILED();
+                printf("    couldn't write to datasets\n");
+                PART_ERROR(H5Dwrite_multi_point_sel_read);
+            }
+
+            if (mspace_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Sclose(mspace_id);
+                }
+                H5E_END_TRY;
+                mspace_id = H5I_INVALID_HID;
+            }
+            if (fspace_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Sclose(fspace_id);
+                }
+                H5E_END_TRY;
+                fspace_id = H5I_INVALID_HID;
+            }
+
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                if (dset_id_arr[i] >= 0) {
+                    H5E_BEGIN_TRY
+                    {
+                        H5Dclose(dset_id_arr[i]);
+                    }
+                    H5E_END_TRY;
+                    dset_id_arr[i] = H5I_INVALID_HID;
+                }
+
+                if ((dset_id_arr[i] = H5Dopen2(group_id, dset_names[i], H5P_DEFAULT)) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't open dataset '%s'\n", dset_names[i]);
+                    PART_ERROR(H5Dwrite_multi_point_sel_read);
+                }
+
+                if ((fspace_id = H5Dget_space(dset_id_arr[i])) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't get dataset dataspace\n");
+                    PART_ERROR(H5Dwrite_multi_point_sel_read);
+                }
+
+                if ((space_npoints[i] = H5Sget_simple_extent_npoints(fspace_id)) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't get dataspace num points\n");
+                    PART_ERROR(H5Dwrite_multi_point_sel_read);
+                }
+
+                if (NULL == (read_buf[i] = malloc((hsize_t)space_npoints[i] *
+                                                  DATASET_DATA_VERIFY_WRITE_TEST_DSET_DTYPESIZE))) {
+                    H5_FAILED();
+                    printf("    couldn't allocate buffer for dataset read\n");
+                    PART_ERROR(H5Dwrite_multi_point_sel_read);
+                }
+            }
+
+            if (H5Dread_multi(DATASET_MULTI_COUNT, dset_id_arr, dtype_id_arr, select_all_arr, select_all_arr,
+                              H5P_DEFAULT, read_buf) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from dataset '%s'\n",
+                       DATASET_DATA_VERIFY_WRITE_MULTI_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_multi_point_sel_read);
+            }
+
+            for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+                for (size_t j = 0; j < dims[0]; j++) {
+                    size_t k;
+
+                    for (k = 0; k < dims[1]; k++) {
+                        size_t l;
+
+                        for (l = 0; l < dims[2]; l++) {
+                            if (j == k && k == l)
+                                ((int **)data)[i][(j * dims[1] * dims[2]) + (k * dims[2]) + l] = 13;
+                        }
+                    }
+                }
+
+                if (memcmp(data[i], read_buf[i], data_size)) {
+                    H5_FAILED();
+                    printf("    point selection data verification failed\n");
+                    PART_ERROR(H5Dwrite_multi_point_sel_read);
+                }
+            }
+
+            PASSED();
+        }
+        PART_END(H5Dwrite_multi_point_sel_read);
+    }
+    END_MULTIPART;
+
+    TESTING_2("test cleanup");
+
+    for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+        if (data[i]) {
+            free(data[i]);
+            data[i] = NULL;
+        }
+
+        if (wbuf_temp[i]) {
+            free(wbuf_temp[i]);
+            wbuf_temp[i] = NULL;
+        }
+
+        if (read_buf[i]) {
+            free(read_buf[i]);
+            read_buf[i] = NULL;
+        }
+
+        if (H5Dclose(dset_id_arr[i]) < 0)
+            TEST_ERROR;
+    }
+
+    if (H5Sclose(fspace_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(group_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(container_group) < 0)
+        TEST_ERROR;
+    if (H5Fclose(file_id) < 0)
+        TEST_ERROR;
+
+    PASSED();
+
+    return;
+
+error:
+    H5E_BEGIN_TRY
+    {
+        for (i = 0; i < DATASET_MULTI_COUNT; i++) {
+            if (data[i])
+                free(data[i]);
+            if (wbuf_temp[i])
+                free(wbuf_temp[i]);
+            if (read_buf[i])
+                free(read_buf[i]);
+
+            H5Dclose(dset_id_arr[i]);
+        }
+
+        H5Sclose(mspace_id);
+        H5Sclose(fspace_id);
+        H5Gclose(group_id);
+        H5Gclose(container_group);
+        H5Fclose(file_id);
+    }
+    H5E_END_TRY;
+
+    return;
 }
 
 /*
  * A test to check that a dataset can't be written to
  * when H5Dwrite is passed invalid parameters.
  */
-static int
+static void
 test_write_dataset_invalid_params(void)
 {
     hssize_t space_npoints;
@@ -6071,7 +8001,7 @@ test_write_dataset_invalid_params(void)
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -6270,7 +8200,7 @@ test_write_dataset_invalid_params(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -6285,14 +8215,259 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
+}
+
+/*
+ * A test to ensure that strings of any encoding
+ * can be written to and read from a dataset
+ */
+static void
+test_dataset_string_encodings(void)
+{
+    hid_t   file_id                             = H5I_INVALID_HID;
+    hid_t   container_group                     = H5I_INVALID_HID;
+    hid_t   dset_id1                            = H5I_INVALID_HID;
+    hid_t   dset_id2                            = H5I_INVALID_HID;
+    hid_t   type_id1                            = H5I_INVALID_HID;
+    hid_t   type_id2                            = H5I_INVALID_HID;
+    hid_t   space_id                            = H5I_INVALID_HID;
+    hsize_t dims[DATASET_STRING_ENCODINGS_RANK] = {DATASET_STRING_ENCODINGS_EXTENT};
+    size_t  ascii_str_size                      = 0;
+    size_t  utf8_str_size                       = 0;
+    char   *write_buf                           = NULL;
+    char   *read_buf                            = NULL;
+
+    TESTING_MULTIPART("string encoding read/write correctness on datasets");
+
+    /* Make sure the connector supports the API functions being tested */
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_ATTR_BASIC)) {
+        SKIPPED();
+        printf("    API functions for basic file, group, basic or more dataset aren't supported with this "
+               "connector\n");
+        return;
+    }
+
+    TESTING_2("test setup");
+
+    ascii_str_size = strlen(DATASET_STRING_ENCODINGS_ASCII_STRING);
+    utf8_str_size  = strlen(DATASET_STRING_ENCODINGS_UTF8_STRING);
+
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
+        goto error;
+    }
+
+    if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open container group '%s'\n", DATASET_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((space_id = H5Screate_simple(DATASET_STRING_ENCODINGS_RANK, dims, NULL)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create dataspace\n");
+        goto error;
+    }
+
+    if ((type_id1 = H5Tcopy(H5T_C_S1)) < 0) {
+        H5_FAILED();
+        printf("    couldn't copy builtin string datatype\n");
+        goto error;
+    }
+
+    if ((H5Tset_size(type_id1, ascii_str_size)) < 0) {
+        H5_FAILED();
+        printf("    couldn't set size of string datatype\n");
+        goto error;
+    }
+
+    if ((H5Tset_cset(type_id1, H5T_CSET_ASCII)) < 0) {
+        H5_FAILED();
+        printf("    couldn't set character set of string to ASCII\n");
+        goto error;
+    }
+
+    if ((dset_id1 = H5Dcreate(container_group, DATASET_STRING_ENCODINGS_DSET_NAME1, type_id1, space_id,
+                              H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create dataset with ascii string\n");
+        goto error;
+    }
+
+    if ((type_id2 = H5Tcopy(H5T_C_S1)) < 0) {
+        H5_FAILED();
+        printf("    couldn't copy builtin string datatype\n");
+        goto error;
+    }
+
+    if ((H5Tset_size(type_id2, utf8_str_size)) < 0) {
+        H5_FAILED();
+        printf("    couldn't set size of string datatype\n");
+        goto error;
+    }
+
+    if ((H5Tset_cset(type_id2, H5T_CSET_UTF8)) < 0) {
+        H5_FAILED();
+        printf("    couldn't set character set of string to UTF-8\n");
+        goto error;
+    }
+
+    if ((dset_id2 = H5Dcreate(container_group, DATASET_STRING_ENCODINGS_DSET_NAME2, type_id2, space_id,
+                              H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create dataset with UTF-8 string\n");
+        goto error;
+    }
+
+    PASSED();
+
+    BEGIN_MULTIPART
+    {
+        PART_BEGIN(ASCII_cset)
+        {
+            TESTING_2("ASCII character set");
+            /* Dataset with ASCII string datatype */
+            if ((write_buf = calloc(1, ascii_str_size + 1)) == NULL) {
+                H5_FAILED();
+                printf("    couldn't allocate memory for write buffer\n");
+                PART_ERROR(ASCII_cset);
+            }
+
+            memcpy(write_buf, DATASET_STRING_ENCODINGS_ASCII_STRING, ascii_str_size);
+
+            if ((H5Dwrite(dset_id1, type_id1, H5S_ALL, H5S_ALL, H5P_DEFAULT, write_buf)) < 0) {
+                H5_FAILED();
+                printf("    couldn't write to dataset with ASCII string\n");
+                PART_ERROR(ASCII_cset);
+            }
+
+            if ((read_buf = calloc(1, ascii_str_size + 1)) == NULL) {
+                H5_FAILED();
+                printf("    couldn't allocate memory for read buffer\n");
+                PART_ERROR(ASCII_cset);
+            }
+
+            if ((H5Dread(dset_id1, type_id1, H5S_ALL, H5S_ALL, H5P_DEFAULT, read_buf)) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from dataset with ASCII string\n");
+                PART_ERROR(ASCII_cset);
+            }
+
+            if (strncmp(write_buf, read_buf, ascii_str_size)) {
+                H5_FAILED();
+                printf("    incorrect data read from dataset with ASCII string\n");
+                PART_ERROR(ASCII_cset);
+            }
+
+            free(write_buf);
+            write_buf = NULL;
+
+            free(read_buf);
+            read_buf = NULL;
+
+            PASSED();
+        }
+        PART_END(ASCII_cset);
+
+        PART_BEGIN(UTF8_cset)
+        {
+            TESTING_2("UTF-8 character set");
+            /* Dataset with UTF-8 string datatype */
+            if ((write_buf = calloc(1, utf8_str_size + 1)) == NULL) {
+                H5_FAILED();
+                printf("    couldn't allocate memory for write buffer\n");
+                PART_ERROR(UTF8_cset);
+            }
+
+            memcpy(write_buf, DATASET_STRING_ENCODINGS_UTF8_STRING, utf8_str_size);
+
+            if ((H5Dwrite(dset_id2, type_id2, H5S_ALL, H5S_ALL, H5P_DEFAULT, write_buf)) < 0) {
+                H5_FAILED();
+                printf("    couldn't write to dataset with ASCII string\n");
+                PART_ERROR(UTF8_cset);
+            }
+
+            if ((read_buf = calloc(1, utf8_str_size + 1)) == NULL) {
+                H5_FAILED();
+                printf("    couldn't allocate memory for read buffer\n");
+                PART_ERROR(UTF8_cset);
+            }
+
+            if ((H5Dread(dset_id2, type_id2, H5S_ALL, H5S_ALL, H5P_DEFAULT, read_buf)) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from dataset with ASCII string\n");
+                PART_ERROR(UTF8_cset);
+            }
+
+            if (strncmp(write_buf, read_buf, utf8_str_size)) {
+                H5_FAILED();
+                printf("    incorrect data read from dataset with ASCII string\n");
+                PART_ERROR(UTF8_cset);
+            }
+
+            free(write_buf);
+            write_buf = NULL;
+
+            free(read_buf);
+            read_buf = NULL;
+
+            PASSED();
+        }
+        PART_END(UTF8_cset);
+
+        PASSED();
+    }
+    END_MULTIPART;
+
+    TESTING_2("test cleanup");
+
+    if (H5Fclose(file_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(container_group) < 0)
+        TEST_ERROR;
+    if (H5Dclose(dset_id1) < 0)
+        TEST_ERROR;
+    if (H5Dclose(dset_id2) < 0)
+        TEST_ERROR;
+    if (H5Tclose(type_id1) < 0)
+        TEST_ERROR;
+    if (H5Tclose(type_id2) < 0)
+        TEST_ERROR;
+    if (write_buf)
+        free(write_buf);
+    if (read_buf)
+        free(read_buf);
+    PASSED();
+
+    return;
+
+error:
+    H5E_BEGIN_TRY
+    {
+        H5Fclose(file_id);
+        H5Gclose(container_group);
+        H5Dclose(dset_id1);
+        H5Dclose(dset_id2);
+        H5Tclose(type_id1);
+        H5Tclose(type_id2);
+        if (write_buf)
+            free(write_buf);
+        if (read_buf)
+            free(read_buf);
+    }
+    H5E_END_TRY;
+
+    return;
 }
 
 /*
  * A test to ensure that data is read back correctly from a dataset after it has
  * been written, using type conversion with builtin types.
  */
-static int
+static void
 test_dataset_builtin_type_conversion(void)
 {
     hssize_t    space_npoints;
@@ -6324,7 +8499,7 @@ test_dataset_builtin_type_conversion(void)
         SKIPPED();
         printf("    API functions for basic file, group, basic or more dataset aren't supported with this "
                "connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -6803,7 +8978,7 @@ test_dataset_builtin_type_conversion(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -6823,7 +8998,549 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
+}
+
+static void
+test_dataset_real_to_int_conversion(void)
+{
+    hssize_t space_npoints;
+    hsize_t  dims[DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK] = {10, 10, 10};
+    hsize_t  start[DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK];
+    hsize_t  stride[DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK];
+    hsize_t  count[DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK];
+    hsize_t  block[DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK];
+    hsize_t  points[DATASET_DATA_REAL_CONVERSION_TEST_NUM_POINTS *
+                   DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK];
+    size_t   i, data_size;
+    hid_t    file_id         = H5I_INVALID_HID;
+    hid_t    container_group = H5I_INVALID_HID, group_id = H5I_INVALID_HID;
+    hid_t    dset_id      = H5I_INVALID_HID;
+    hid_t    fspace_id    = H5I_INVALID_HID;
+    hid_t    mspace_id    = H5I_INVALID_HID;
+    hid_t    real_type_id = DATASET_DATA_REAL_CONVERSION_TEST_REAL_TYPE;
+    void    *data         = NULL;
+    void    *write_buf    = NULL;
+    void    *read_buf     = NULL;
+
+    TESTING_MULTIPART(
+        "verification of dataset data using H5Dwrite then H5Dread with real <-> integer type conversion");
+
+    /* Make sure the connector supports the API functions being tested */
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
+        SKIPPED();
+        printf("    API functions for basic file, group, basic or more dataset aren't supported with this "
+               "connector\n");
+        return;
+    }
+
+    TESTING_2("test setup");
+
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
+        goto error;
+    }
+
+    if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open container group '%s'\n", DATASET_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((group_id = H5Gcreate2(container_group, DATASET_DATA_REAL_CONVERSION_TEST_GROUP_NAME, H5P_DEFAULT,
+                               H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create container sub-group '%s'\n",
+               DATASET_DATA_REAL_CONVERSION_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((fspace_id = H5Screate_simple(DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK, dims, NULL)) < 0)
+        TEST_ERROR;
+
+    if ((dset_id = H5Dcreate2(group_id, DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME, real_type_id, fspace_id,
+                              H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create dataset '%s'\n", DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME);
+        goto error;
+    }
+
+    for (i = 0, data_size = 1; i < DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK; i++)
+        data_size *= dims[i];
+    data_size *= DATASET_DATA_REAL_CONVERSION_TEST_INT_DTYPESIZE;
+
+    if (NULL == (data = malloc(data_size)))
+        TEST_ERROR;
+
+    for (i = 0; i < data_size / DATASET_DATA_REAL_CONVERSION_TEST_INT_DTYPESIZE; i++)
+        ((int *)data)[i] = (int)i;
+
+    PASSED();
+
+    BEGIN_MULTIPART
+    {
+        PART_BEGIN(H5Dwrite_all_read)
+        {
+            TESTING_2("write then read int from real dataset with H5S_ALL selection");
+
+            if (H5Dwrite(dset_id, DATASET_DATA_REAL_CONVERSION_TEST_INT_TYPE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                         data) < 0) {
+                H5_FAILED();
+                printf("    couldn't write to dataset '%s'\n", DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_all_read);
+            }
+
+            if (data) {
+                free(data);
+                data = NULL;
+            }
+
+            if (fspace_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Sclose(fspace_id);
+                }
+                H5E_END_TRY;
+                fspace_id = H5I_INVALID_HID;
+            }
+            if (dset_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Dclose(dset_id);
+                }
+                H5E_END_TRY;
+                dset_id = H5I_INVALID_HID;
+            }
+
+            if ((dset_id = H5Dopen2(group_id, DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME, H5P_DEFAULT)) <
+                0) {
+                H5_FAILED();
+                printf("    couldn't open dataset '%s'\n", DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_all_read);
+            }
+
+            if ((fspace_id = H5Dget_space(dset_id)) < 0) {
+                H5_FAILED();
+                printf("    couldn't get dataset dataspace\n");
+                PART_ERROR(H5Dwrite_all_read);
+            }
+
+            if ((space_npoints = H5Sget_simple_extent_npoints(fspace_id)) < 0) {
+                H5_FAILED();
+                printf("    couldn't get dataspace num points\n");
+                PART_ERROR(H5Dwrite_all_read);
+            }
+
+            if (NULL ==
+                (data = malloc((hsize_t)space_npoints * DATASET_DATA_REAL_CONVERSION_TEST_INT_DTYPESIZE))) {
+                H5_FAILED();
+                printf("    couldn't allocate buffer for dataset read\n");
+                PART_ERROR(H5Dwrite_all_read);
+            }
+
+            if (H5Dread(dset_id, DATASET_DATA_REAL_CONVERSION_TEST_INT_TYPE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                        data) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from dataset '%s'\n", DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_all_read);
+            }
+
+            for (i = 0; i < (hsize_t)space_npoints; i++)
+                if (((int *)data)[i] != (int)i) {
+                    H5_FAILED();
+                    printf("    H5S_ALL selection data verification failed\n");
+                    PART_ERROR(H5Dwrite_all_read);
+                }
+
+            if (data) {
+                free(data);
+                data = NULL;
+            }
+
+            PASSED();
+        }
+        PART_END(H5Dwrite_all_read);
+
+        if (data) {
+            free(data);
+            data = NULL;
+        }
+
+        if (write_buf) {
+            free(write_buf);
+            write_buf = NULL;
+        }
+
+        if (read_buf) {
+            free(read_buf);
+            read_buf = NULL;
+        }
+
+        PART_BEGIN(H5Dwrite_hyperslab_read)
+        {
+            TESTING_2("write then read int from real dataset with hyperslab selection");
+
+            data_size = dims[1] * 2 * DATASET_DATA_REAL_CONVERSION_TEST_INT_DTYPESIZE;
+
+            if (NULL == (write_buf = malloc(data_size))) {
+                H5_FAILED();
+                printf("    couldn't allocate buffer for dataset write\n");
+                PART_ERROR(H5Dwrite_hyperslab_read);
+            }
+
+            for (i = 0; i < data_size / DATASET_DATA_REAL_CONVERSION_TEST_INT_DTYPESIZE; i++)
+                ((int *)write_buf)[i] = 56;
+
+            for (i = 0, data_size = 1; i < DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK; i++)
+                data_size *= dims[i];
+            data_size *= DATASET_DATA_REAL_CONVERSION_TEST_INT_DTYPESIZE;
+
+            if (NULL == (data = calloc(1, data_size))) {
+                H5_FAILED();
+                printf("    couldn't allocate buffer for dataset data verification\n");
+                PART_ERROR(H5Dwrite_hyperslab_read);
+            }
+
+            for (i = 0; i < dims[0] * dims[1] * dims[2]; i++)
+                ((int *)data)[i] = (int)i;
+
+            for (i = 0; i < 2; i++) {
+                size_t j;
+
+                for (j = 0; j < dims[1]; j++)
+                    ((int *)data)[(i * dims[1] * dims[2]) + (j * dims[2])] = 56;
+            }
+
+            /* Write to first two rows of dataset */
+            start[0] = start[1] = start[2] = 0;
+            stride[0] = stride[1] = stride[2] = 1;
+            count[0]                          = 2;
+            count[1]                          = dims[1];
+            count[2]                          = 1;
+            block[0] = block[1] = block[2] = 1;
+
+            if (H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, stride, count, block) < 0) {
+                H5_FAILED();
+                printf("    couldn't select hyperslab for dataset write\n");
+                PART_ERROR(H5Dwrite_hyperslab_read);
+            }
+
+            {
+                hsize_t mdims[] = {(hsize_t)2 * dims[1]};
+
+                if ((mspace_id = H5Screate_simple(1, mdims, NULL)) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't create memory dataspace\n");
+                    PART_ERROR(H5Dwrite_hyperslab_read);
+                }
+            }
+
+            if (H5Dwrite(dset_id, DATASET_DATA_REAL_CONVERSION_TEST_INT_TYPE, mspace_id, fspace_id,
+                         H5P_DEFAULT, write_buf) < 0) {
+                H5_FAILED();
+                printf("    couldn't write to dataset '%s'\n", DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_hyperslab_read);
+            }
+
+            if (mspace_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Sclose(mspace_id);
+                }
+                H5E_END_TRY;
+                mspace_id = H5I_INVALID_HID;
+            }
+            if (fspace_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Sclose(fspace_id);
+                }
+                H5E_END_TRY;
+                fspace_id = H5I_INVALID_HID;
+            }
+            if (dset_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Dclose(dset_id);
+                }
+                H5E_END_TRY;
+                dset_id = H5I_INVALID_HID;
+            }
+
+            if ((dset_id = H5Dopen2(group_id, DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME, H5P_DEFAULT)) <
+                0) {
+                H5_FAILED();
+                printf("    couldn't open dataset '%s'\n", DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_hyperslab_read);
+            }
+
+            if ((fspace_id = H5Dget_space(dset_id)) < 0) {
+                H5_FAILED();
+                printf("    couldn't get dataset dataspace\n");
+                PART_ERROR(H5Dwrite_hyperslab_read);
+            }
+
+            if ((space_npoints = H5Sget_simple_extent_npoints(fspace_id)) < 0) {
+                H5_FAILED();
+                printf("    couldn't get dataspace num points\n");
+                PART_ERROR(H5Dwrite_hyperslab_read);
+            }
+
+            if (NULL == (read_buf = malloc((hsize_t)space_npoints *
+                                           DATASET_DATA_REAL_CONVERSION_TEST_INT_DTYPESIZE))) {
+                H5_FAILED();
+                printf("    couldn't allocate buffer for dataset read\n");
+                PART_ERROR(H5Dwrite_hyperslab_read);
+            }
+
+            if (H5Dread(dset_id, DATASET_DATA_REAL_CONVERSION_TEST_INT_TYPE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                        read_buf) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from dataset '%s'\n", DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_hyperslab_read);
+            }
+
+            if (memcmp(data, read_buf, data_size)) {
+                H5_FAILED();
+                printf("    hyperslab selection data verification failed\n");
+                PART_ERROR(H5Dwrite_hyperslab_read);
+            }
+
+            if (data) {
+                free(data);
+                data = NULL;
+            }
+
+            if (write_buf) {
+                free(write_buf);
+                write_buf = NULL;
+            }
+
+            if (read_buf) {
+                free(read_buf);
+                read_buf = NULL;
+            }
+
+            PASSED();
+        }
+        PART_END(H5Dwrite_hyperslab_read);
+
+        if (data) {
+            free(data);
+            data = NULL;
+        }
+
+        if (write_buf) {
+            free(write_buf);
+            write_buf = NULL;
+        }
+
+        if (read_buf) {
+            free(read_buf);
+            read_buf = NULL;
+        }
+
+        PART_BEGIN(H5Dwrite_point_sel_read)
+        {
+            TESTING_2("write then read int from real dataset with point selection");
+
+            data_size = DATASET_DATA_REAL_CONVERSION_TEST_NUM_POINTS *
+                        DATASET_DATA_REAL_CONVERSION_TEST_INT_DTYPESIZE;
+
+            if (NULL == (write_buf = malloc(data_size))) {
+                H5_FAILED();
+                printf("    couldn't allocate buffer for dataset write\n");
+                PART_ERROR(H5Dwrite_point_sel_read);
+            }
+
+            for (i = 0; i < data_size / DATASET_DATA_REAL_CONVERSION_TEST_INT_DTYPESIZE; i++)
+                ((int *)write_buf)[i] = 13;
+
+            for (i = 0, data_size = 1; i < DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK; i++)
+                data_size *= dims[i];
+            data_size *= DATASET_DATA_REAL_CONVERSION_TEST_INT_DTYPESIZE;
+
+            if (NULL == (data = malloc(data_size))) {
+                H5_FAILED();
+                printf("    couldn't allocate buffer for dataset data verification\n");
+                PART_ERROR(H5Dwrite_point_sel_read);
+            }
+
+            if (H5Dread(dset_id, DATASET_DATA_REAL_CONVERSION_TEST_INT_TYPE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                        data) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from dataset '%s'\n", DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_point_sel_read);
+            }
+
+            for (i = 0; i < dims[0]; i++) {
+                size_t j;
+
+                for (j = 0; j < dims[1]; j++) {
+                    size_t k;
+
+                    for (k = 0; k < dims[2]; k++) {
+                        if (i == j && j == k)
+                            ((int *)data)[(i * dims[1] * dims[2]) + (j * dims[2]) + k] = 13;
+                    }
+                }
+            }
+
+            /* Select a series of 10 points in the dataset */
+            for (i = 0; i < DATASET_DATA_REAL_CONVERSION_TEST_NUM_POINTS; i++) {
+                size_t j;
+
+                for (j = 0; j < DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK; j++)
+                    points[(i * DATASET_DATA_REAL_CONVERSION_TEST_DSET_SPACE_RANK) + j] = i;
+            }
+
+            if (H5Sselect_elements(fspace_id, H5S_SELECT_SET, DATASET_DATA_REAL_CONVERSION_TEST_NUM_POINTS,
+                                   points) < 0) {
+                H5_FAILED();
+                printf("    couldn't select elements in dataspace\n");
+                PART_ERROR(H5Dwrite_point_sel_read);
+            }
+
+            {
+                hsize_t mdims[] = {(hsize_t)DATASET_DATA_REAL_CONVERSION_TEST_NUM_POINTS};
+
+                if ((mspace_id = H5Screate_simple(1, mdims, NULL)) < 0) {
+                    H5_FAILED();
+                    printf("    couldn't create memory dataspace\n");
+                    PART_ERROR(H5Dwrite_point_sel_read);
+                }
+            }
+
+            if (H5Dwrite(dset_id, DATASET_DATA_REAL_CONVERSION_TEST_INT_TYPE, mspace_id, fspace_id,
+                         H5P_DEFAULT, write_buf) < 0) {
+                H5_FAILED();
+                printf("    couldn't write to dataset '%s'\n", DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_point_sel_read);
+            }
+
+            if (mspace_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Sclose(mspace_id);
+                }
+                H5E_END_TRY;
+                mspace_id = H5I_INVALID_HID;
+            }
+            if (fspace_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Sclose(fspace_id);
+                }
+                H5E_END_TRY;
+                fspace_id = H5I_INVALID_HID;
+            }
+            if (dset_id >= 0) {
+                H5E_BEGIN_TRY
+                {
+                    H5Dclose(dset_id);
+                }
+                H5E_END_TRY;
+                dset_id = H5I_INVALID_HID;
+            }
+
+            if ((dset_id = H5Dopen2(group_id, DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME, H5P_DEFAULT)) <
+                0) {
+                H5_FAILED();
+                printf("    couldn't open dataset '%s'\n", DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_point_sel_read);
+            }
+
+            if ((fspace_id = H5Dget_space(dset_id)) < 0) {
+                H5_FAILED();
+                printf("    couldn't get dataset dataspace\n");
+                PART_ERROR(H5Dwrite_point_sel_read);
+            }
+
+            if ((space_npoints = H5Sget_simple_extent_npoints(fspace_id)) < 0) {
+                H5_FAILED();
+                printf("    couldn't get dataspace num points\n");
+                PART_ERROR(H5Dwrite_point_sel_read);
+            }
+
+            if (NULL == (read_buf = malloc((hsize_t)space_npoints *
+                                           DATASET_DATA_REAL_CONVERSION_TEST_INT_DTYPESIZE))) {
+                H5_FAILED();
+                printf("    couldn't allocate buffer for dataset read\n");
+                PART_ERROR(H5Dwrite_point_sel_read);
+            }
+
+            if (H5Dread(dset_id, DATASET_DATA_REAL_CONVERSION_TEST_INT_TYPE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                        read_buf) < 0) {
+                H5_FAILED();
+                printf("    couldn't read from dataset '%s'\n", DATASET_DATA_REAL_CONVERSION_TEST_DSET_NAME);
+                PART_ERROR(H5Dwrite_point_sel_read);
+            }
+
+            if (memcmp(data, read_buf, data_size)) {
+                H5_FAILED();
+                printf("    point selection data verification failed\n");
+                PART_ERROR(H5Dwrite_point_sel_read);
+            }
+
+            PASSED();
+        }
+        PART_END(H5Dwrite_point_sel_read);
+    }
+    END_MULTIPART;
+
+    TESTING_2("test cleanup");
+
+    if (data) {
+        free(data);
+        data = NULL;
+    }
+
+    if (write_buf) {
+        free(write_buf);
+        write_buf = NULL;
+    }
+
+    if (read_buf) {
+        free(read_buf);
+        read_buf = NULL;
+    }
+
+    if (H5Sclose(fspace_id) < 0)
+        TEST_ERROR;
+    if (H5Dclose(dset_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(group_id) < 0)
+        TEST_ERROR;
+    if (H5Gclose(container_group) < 0)
+        TEST_ERROR;
+    if (H5Fclose(file_id) < 0)
+        TEST_ERROR;
+
+    PASSED();
+
+    return;
+
+error:
+    H5E_BEGIN_TRY
+    {
+        if (data)
+            free(data);
+        if (write_buf)
+            free(write_buf);
+        if (read_buf)
+            free(read_buf);
+        H5Sclose(mspace_id);
+        H5Sclose(fspace_id);
+        H5Dclose(dset_id);
+        H5Gclose(group_id);
+        H5Gclose(container_group);
+        H5Fclose(file_id);
+    }
+    H5E_END_TRY;
+
+    return;
 }
 
 /*
@@ -6835,7 +9552,7 @@ typedef struct dataset_compount_partial_io_t {
     int b;
 } dataset_compount_partial_io_t;
 
-static int
+static void
 test_dataset_compound_partial_io(void)
 {
     hsize_t                       dims[1] = {DATASET_COMPOUND_PARTIAL_IO_DSET_DIMS};
@@ -6852,15 +9569,15 @@ test_dataset_compound_partial_io(void)
     dataset_compount_partial_io_t fbuf[DATASET_COMPOUND_PARTIAL_IO_DSET_DIMS];
     dataset_compount_partial_io_t erbuf[DATASET_COMPOUND_PARTIAL_IO_DSET_DIMS];
 
-    TESTING_MULTIPART(
-        "verification of dataset data using H5Dwrite then H5Dread with partial element compound type I/O");
+    TESTING_MULTIPART("verification of dataset data using H5Dwrite then H5Dread with partial element "
+                      "compound type I/O");
 
     /* Make sure the connector supports the API functions being tested */
     if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
         !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC)) {
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -7010,7 +9727,7 @@ test_dataset_compound_partial_io(void)
 
             /* Write data */
             if (H5Dwrite(dset_id, b_type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, wbuf) < 0)
-                PART_TEST_ERROR(write_full_read_full);
+                PART_TEST_ERROR(write_b_read_full);
 
             /* Update fbuf to match file state - only element b was updated */
             for (i = 0; i < DATASET_COMPOUND_PARTIAL_IO_DSET_DIMS; i++) {
@@ -7069,7 +9786,7 @@ test_dataset_compound_partial_io(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -7085,7 +9802,666 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
+}
+
+/* A test to check that vlen sequences can be written and read back
+ * with basic parent types and selections */
+static void
+test_dataset_vlen_io(void)
+{
+    hid_t file_id         = H5I_INVALID_HID;
+    hid_t container_group = H5I_INVALID_HID;
+    hid_t space_id        = H5I_INVALID_HID;
+    hid_t dset_int        = H5I_INVALID_HID;
+    hid_t dset_float      = H5I_INVALID_HID;
+    hid_t dset_string     = H5I_INVALID_HID;
+    hid_t vlen_int        = H5I_INVALID_HID;
+    hid_t vlen_float      = H5I_INVALID_HID;
+    hid_t vlen_string     = H5I_INVALID_HID;
+    hid_t str_base_type   = H5I_INVALID_HID;
+
+    hsize_t dims[1] = {DATASET_VLEN_IO_DSET_DIMS};
+    hsize_t point_coords[DATASET_VLEN_IO_DSET_DIMS / 2];
+
+    hvl_t wbuf[DATASET_VLEN_IO_DSET_DIMS];
+    hvl_t rbuf[DATASET_VLEN_IO_DSET_DIMS];
+
+    memset(wbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+    memset(rbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+
+    TESTING_MULTIPART(
+        "verification of dataset data with H5Dwrite and then H5D read with variable length sequence data");
+
+    /* Make sure the connector supports the API functions being tested */
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_MORE)) {
+        SKIPPED();
+        printf("    API functions for basic file, group, or dataset aren't supported with this "
+               "connector\n");
+        return;
+    }
+
+    TESTING_2("test setup");
+
+    if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
+        goto error;
+    }
+
+    if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open container group '%s'\n", DATASET_TEST_GROUP_NAME);
+        goto error;
+    }
+
+    if ((space_id = H5Screate_simple(1, dims, NULL)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create dataspace");
+        goto error;
+    }
+
+    if ((vlen_int = H5Tvlen_create(H5T_NATIVE_INT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create vlen integer sequence");
+        goto error;
+    }
+
+    if ((vlen_float = H5Tvlen_create(H5T_NATIVE_FLOAT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create vlen float sequence");
+        goto error;
+    }
+
+    if ((str_base_type = H5Tcopy(H5T_C_S1)) < 0)
+        TEST_ERROR;
+
+    if ((H5Tset_size(str_base_type, DATASET_VLEN_IO_STR_LEN)) < 0)
+        TEST_ERROR;
+
+    if ((vlen_string = H5Tvlen_create(str_base_type)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create vlen string sequence");
+        goto error;
+    }
+
+    if ((dset_int = H5Dcreate2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", vlen_int, space_id,
+                               H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create dataset with vlen integer sequence datatype");
+        goto error;
+    }
+
+    if ((dset_float = H5Dcreate2(container_group, DATASET_VLEN_IO_DSET_NAME "_float", vlen_float, space_id,
+                                 H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create dataset with vlen float sequence datatype");
+        goto error;
+    }
+
+    if ((dset_string = H5Dcreate2(container_group, DATASET_VLEN_IO_DSET_NAME "_string", vlen_string, space_id,
+                                  H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't create dataset with vlen string sequence datatype");
+        goto error;
+    }
+
+    /* Close datasets until individual tests */
+    if (H5Dclose(dset_int) < 0) {
+        H5_FAILED();
+        printf("    couldn't close dataset with vlen integer sequence datatype");
+    }
+
+    dset_int = H5I_INVALID_HID;
+
+    if (H5Dclose(dset_float) < 0) {
+        H5_FAILED();
+        printf("    couldn't close dataset with vlen float sequence datatype");
+    }
+
+    dset_float = H5I_INVALID_HID;
+
+    if (H5Dclose(dset_string) < 0) {
+        H5_FAILED();
+        printf("    couldn't close dataset with vlen string sequence datatype");
+    }
+
+    dset_string = H5I_INVALID_HID;
+
+    PASSED();
+
+    BEGIN_MULTIPART
+    {
+        PART_BEGIN(rw_all_int)
+        {
+            TESTING_2("write and read entire dataspace with integer sequence");
+            /* Set up write buffer */
+            for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+                if ((wbuf[i].p = calloc(i + 1, sizeof(int) * (i + 1))) == NULL)
+                    PART_TEST_ERROR(rw_all_int);
+
+                for (size_t j = 0; j < i + 1; j++) {
+                    ((int *)wbuf[i].p)[j] = (int)(i * j + 1);
+                }
+
+                wbuf[i].len = i + 1;
+            }
+
+            /* Open dataset */
+            if ((dset_int = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            /* Perform write */
+            if ((H5Dwrite(dset_int, vlen_int, space_id, H5S_ALL, H5P_DEFAULT, (const void *)wbuf)) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            if (H5Dflush(dset_int) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            /* Close and reopen file objects to flush cache */
+            if (H5Dclose(dset_int) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            dset_int = H5I_INVALID_HID;
+
+            if (H5Gclose(container_group) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            container_group = H5I_INVALID_HID;
+
+            if (H5Fclose(file_id) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            file_id = H5I_INVALID_HID;
+
+            if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            if ((dset_int = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            /* Perform read */
+            if ((H5Dread(dset_int, vlen_int, space_id, H5S_ALL, H5P_DEFAULT, (void *)rbuf)) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            /* Close to finalize read */
+            if (H5Dclose(dset_int) < 0)
+                PART_TEST_ERROR(rw_all_int);
+            dset_int = H5I_INVALID_HID;
+
+            /* Verify data */
+            for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+                if (!rbuf[i].p)
+                    PART_TEST_ERROR(rw_all_int);
+
+                if (rbuf[i].len != wbuf[i].len)
+                    PART_TEST_ERROR(rw_all_int);
+
+                for (size_t j = 0; j < i + 1; j++)
+                    if (((int *)rbuf[i].p)[j] != ((int *)wbuf[i].p)[j])
+                        PART_TEST_ERROR(rw_all_int);
+            }
+
+            /* Reset buffers */
+            if (H5Treclaim(vlen_int, space_id, H5P_DEFAULT, rbuf) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            if (H5Treclaim(vlen_int, space_id, H5P_DEFAULT, wbuf) < 0)
+                PART_TEST_ERROR(rw_all_int);
+
+            memset(wbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+            memset(rbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+
+            PASSED();
+        }
+        PART_END(rw_all_int)
+        PART_BEGIN(rw_all_float)
+        {
+            TESTING_2("write and read entire dataspace with float sequence");
+            /* Set up write buffer */
+            for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+                if ((wbuf[i].p = calloc(i + 1, sizeof(float) * (i + 1))) == NULL)
+                    PART_TEST_ERROR(rw_all_float);
+
+                for (size_t j = 0; j < i + 1; j++) {
+                    ((float *)wbuf[i].p)[j] = (float)(i * j + 1);
+                }
+
+                wbuf[i].len = i + 1;
+            }
+
+            /* Open dataset */
+            if ((dset_float = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_float", H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            /* Perform write */
+            if ((H5Dwrite(dset_float, vlen_float, space_id, H5S_ALL, H5P_DEFAULT, (const void *)wbuf)) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            if (H5Dflush(dset_float) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            /* Close and reopen file objects to flush cache */
+            if (H5Dclose(dset_float) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            dset_float = H5I_INVALID_HID;
+
+            if (H5Gclose(container_group) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            container_group = H5I_INVALID_HID;
+
+            if (H5Fclose(file_id) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            file_id = H5I_INVALID_HID;
+
+            if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            if ((dset_float = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_float", H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            /* Perform read */
+            if ((H5Dread(dset_float, vlen_float, space_id, H5S_ALL, H5P_DEFAULT, (void *)rbuf)) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            /* Close to finalize read */
+            if (H5Dclose(dset_float) < 0)
+                PART_TEST_ERROR(rw_all_float);
+            dset_float = H5I_INVALID_HID;
+
+            /* Verify data */
+            for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+                if (!rbuf[i].p)
+                    PART_TEST_ERROR(rw_all_float);
+
+                if (rbuf[i].len != wbuf[i].len)
+                    PART_TEST_ERROR(rw_all_float);
+
+                for (size_t j = 0; j < i + 1; j++) {
+                    float expected = ((float *)wbuf[i].p)[j];
+                    float actual   = ((float *)rbuf[i].p)[j];
+
+                    if (!(H5_DBL_REL_EQUAL(expected, actual, 0.001)))
+                        PART_TEST_ERROR(rw_all_float);
+                }
+            }
+
+            /* Reset buffers */
+            if (H5Treclaim(vlen_float, space_id, H5P_DEFAULT, rbuf) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            if (H5Treclaim(vlen_float, space_id, H5P_DEFAULT, wbuf) < 0)
+                PART_TEST_ERROR(rw_all_float);
+
+            memset(wbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+            memset(rbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+
+            PASSED();
+        }
+        PART_END(rw_all_float);
+
+        PART_BEGIN(rw_all_string)
+        {
+            TESTING_2("write and read entire dataspace with string sequence");
+            /* Set up write buffer */
+            for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+                if ((wbuf[i].p = calloc(i + 1, DATASET_VLEN_IO_STR_LEN)) == NULL)
+                    PART_TEST_ERROR(rw_all_string);
+
+                for (size_t j = 0; j < i + 1; j++) {
+                    char *str_ptr = ((char *)wbuf[i].p) + DATASET_VLEN_IO_STR_LEN * j;
+                    memcpy(str_ptr, DATASET_VLEN_IO_STR_VALUE, DATASET_VLEN_IO_STR_LEN);
+                }
+
+                wbuf[i].len = i + 1;
+            }
+
+            /* Open the dataset */
+            if ((dset_string = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_string", H5P_DEFAULT)) <
+                0)
+                PART_TEST_ERROR(rw_all_string);
+
+            /* Perform write */
+            if ((H5Dwrite(dset_string, vlen_string, space_id, H5S_ALL, H5P_DEFAULT, (const void *)wbuf)) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            if (H5Dflush(dset_string) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            /* Close and reopen file objects to flush cache */
+            if (H5Dclose(dset_string) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            dset_string = H5I_INVALID_HID;
+
+            if (H5Gclose(container_group) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            container_group = H5I_INVALID_HID;
+
+            if (H5Fclose(file_id) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            file_id = H5I_INVALID_HID;
+
+            if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            if ((dset_string = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_string", H5P_DEFAULT)) <
+                0)
+                PART_TEST_ERROR(rw_all_string);
+
+            /* Perform read */
+            if ((H5Dread(dset_string, vlen_string, space_id, H5S_ALL, H5P_DEFAULT, (void *)rbuf)) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            /* Close to finalize read */
+            if (H5Dclose(dset_string) < 0)
+                PART_TEST_ERROR(rw_all_string);
+            dset_string = H5I_INVALID_HID;
+
+            /* Verify data */
+            for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+                if (!rbuf[i].p)
+                    PART_TEST_ERROR(rw_all_string);
+
+                if (rbuf[i].len != wbuf[i].len)
+                    PART_TEST_ERROR(rw_all_string);
+
+                for (size_t j = 0; j < i + 1; j++) {
+                    char  str_buf[DATASET_VLEN_IO_STR_LEN + 1];
+                    char *str_ptr = (char *)rbuf[i].p + DATASET_VLEN_IO_STR_LEN * j;
+                    memcpy(str_buf, str_ptr, DATASET_VLEN_IO_STR_LEN);
+                    str_buf[DATASET_VLEN_IO_STR_LEN] = '\0';
+
+                    if (strcmp(str_buf, DATASET_VLEN_IO_STR_VALUE))
+                        PART_TEST_ERROR(rw_all_string);
+                }
+            }
+
+            /* Reset buffers */
+            if (H5Treclaim(vlen_string, space_id, H5P_DEFAULT, rbuf) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            if (H5Treclaim(vlen_string, space_id, H5P_DEFAULT, wbuf) < 0)
+                PART_TEST_ERROR(rw_all_string);
+
+            memset(wbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+            memset(rbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+
+            PASSED();
+        }
+        PART_END(rw_all_string);
+
+        PART_BEGIN(rw_point_selection)
+        {
+            TESTING_2("write with point selection");
+            /* Select even-indexed points */
+            for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS / 2; i++)
+                point_coords[i] = i * 2;
+
+            /* Select points on dataspace */
+            if (H5Sselect_elements(space_id, H5S_SELECT_SET, DATASET_VLEN_IO_DSET_DIMS / 2,
+                                   (const hsize_t *)point_coords) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            /* Set up write buffer */
+            for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+                if ((wbuf[i].p = calloc(i + 1, sizeof(int) * (i + 1))) == NULL)
+                    PART_TEST_ERROR(rw_point_selection);
+
+                for (size_t j = 0; j < i + 1; j++) {
+                    ((int *)wbuf[i].p)[j] = (int)(i * j + 1);
+                }
+
+                wbuf[i].len = i + 1;
+            }
+
+            /* Open dataset */
+            if ((dset_int = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            /* Perform write */
+            if ((H5Dwrite(dset_int, vlen_int, space_id, space_id, H5P_DEFAULT, (const void *)wbuf)) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            if (H5Dflush(dset_int) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            /* Close and reopen file objects to flush cache */
+            if (H5Dclose(dset_int) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+            dset_int = H5I_INVALID_HID;
+
+            if (H5Gclose(container_group) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+            container_group = H5I_INVALID_HID;
+
+            if (H5Fclose(file_id) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+            file_id = H5I_INVALID_HID;
+
+            if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            if ((dset_int = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            /* Perform read */
+            if ((H5Dread(dset_int, vlen_int, space_id, space_id, H5P_DEFAULT, (void *)rbuf)) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            /* Close to finalize read */
+            if (H5Dclose(dset_int) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+            dset_int = H5I_INVALID_HID;
+
+            /* Verify data */
+            for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+                if (i % 2 == 0) {
+                    if (!rbuf[i].p)
+                        PART_TEST_ERROR(rw_point_selection);
+
+                    if (rbuf[i].len != wbuf[i].len)
+                        PART_TEST_ERROR(rw_point_selection);
+
+                    for (size_t j = 0; j < i + 1; j++)
+                        if (((int *)rbuf[i].p)[j] != ((int *)wbuf[i].p)[j])
+                            PART_TEST_ERROR(rw_point_selection);
+                }
+                else {
+                    /* Odd positions in buffer should still read 0 */
+                    if (rbuf[i].p)
+                        PART_TEST_ERROR(rw_point_selection);
+                    if (rbuf[i].len)
+                        PART_TEST_ERROR(rw_point_selection);
+                }
+            }
+
+            /* Reset buffers */
+            if (H5Treclaim(vlen_int, space_id, H5P_DEFAULT, rbuf) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            if (H5Treclaim(vlen_int, space_id, H5P_DEFAULT, wbuf) < 0)
+                PART_TEST_ERROR(rw_point_selection);
+
+            memset(wbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+            memset(rbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+
+            PASSED();
+        }
+        PART_END(rw_point_selection);
+
+        PART_BEGIN(rw_hyperslab_selection)
+        {
+            TESTING_2("write with hyperslab selection");
+            /* Select hyperslab of every 3rd element */
+            const hsize_t start[1]  = {0};
+            const hsize_t stride[1] = {3};
+            const hsize_t count[1]  = {1 + (DATASET_VLEN_IO_DSET_DIMS / stride[0])};
+            const hsize_t block[1]  = {1};
+
+            if ((H5Sselect_hyperslab(space_id, H5S_SELECT_SET, start, stride, count, block)) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            /* Set up write buffer */
+            for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+                if ((wbuf[i].p = calloc(i + 1, sizeof(int) * (i + 1))) == NULL)
+                    PART_TEST_ERROR(rw_hyperslab_selection);
+
+                for (size_t j = 0; j < i + 1; j++) {
+                    ((int *)wbuf[i].p)[j] = (int)(i * j + 1);
+                }
+
+                wbuf[i].len = i + 1;
+            }
+
+            /* Open dataset */
+            if ((dset_int = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            /* Perform write */
+            if ((H5Dwrite(dset_int, vlen_int, space_id, space_id, H5P_DEFAULT, (const void *)wbuf)) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            if (H5Dflush(dset_int) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            /* Close and reopen file objects to flush cache */
+            if (H5Dclose(dset_int) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+            dset_int = H5I_INVALID_HID;
+
+            if (H5Gclose(container_group) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+            container_group = H5I_INVALID_HID;
+
+            if (H5Fclose(file_id) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+            file_id = H5I_INVALID_HID;
+
+            if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            if ((dset_int = H5Dopen2(container_group, DATASET_VLEN_IO_DSET_NAME "_int", H5P_DEFAULT)) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            /* Perform read */
+            if ((H5Dread(dset_int, vlen_int, space_id, space_id, H5P_DEFAULT, (void *)rbuf)) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            /* Close to finalize read */
+            if (H5Dclose(dset_int) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+            dset_int = H5I_INVALID_HID;
+
+            /* Verify data */
+            for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+                if (i % stride[0] == 0) {
+                    if (!rbuf[i].p)
+                        PART_TEST_ERROR(rw_hyperslab_selection);
+
+                    if (rbuf[i].len != wbuf[i].len)
+                        PART_TEST_ERROR(rw_hyperslab_selection);
+
+                    for (size_t j = 0; j < i + 1; j++)
+                        if (((int *)rbuf[i].p)[j] != ((int *)wbuf[i].p)[j])
+                            PART_TEST_ERROR(rw_hyperslab_selection);
+                }
+                else {
+                    /* Unread positions should still be 0 */
+                    if (rbuf[i].p)
+                        PART_TEST_ERROR(rw_hyperslab_selection);
+                    if (rbuf[i].len)
+                        PART_TEST_ERROR(rw_hyperslab_selection);
+                }
+            }
+
+            /* Reset buffers */
+            if (H5Treclaim(vlen_int, space_id, H5P_DEFAULT, rbuf) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            if (H5Treclaim(vlen_int, space_id, H5P_DEFAULT, wbuf) < 0)
+                PART_TEST_ERROR(rw_hyperslab_selection);
+
+            memset(wbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+            memset(rbuf, 0, sizeof(hvl_t) * DATASET_VLEN_IO_DSET_DIMS);
+
+            PASSED();
+        }
+        PART_END(rw_hyperslab_selection);
+    }
+    END_MULTIPART;
+
+    TESTING_2("test cleanup");
+
+    if (H5Sclose(space_id) < 0)
+        TEST_ERROR;
+    if (H5Tclose(vlen_int) < 0)
+        TEST_ERROR;
+    if (H5Tclose(vlen_float) < 0)
+        TEST_ERROR;
+    if (H5Tclose(vlen_string) < 0)
+        TEST_ERROR;
+    if (H5Gclose(container_group) < 0)
+        TEST_ERROR;
+    if (H5Fclose(file_id) < 0)
+        TEST_ERROR;
+
+    PASSED();
+
+    return;
+
+error:
+    H5E_BEGIN_TRY
+    {
+        H5Dclose(dset_int);
+        H5Dclose(dset_float);
+        H5Dclose(dset_string);
+        H5Sclose(space_id);
+        /* In case of memory allocation error, not all hvl_t buffers in array may be allocated.
+         * Free one-by-one */
+        for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+            if (wbuf[i].p) {
+                free(wbuf[i].p);
+                wbuf[i].p = NULL;
+            }
+        }
+
+        for (size_t i = 0; i < DATASET_VLEN_IO_DSET_DIMS; i++) {
+            if (rbuf[i].p) {
+                free(rbuf[i].p);
+                rbuf[i].p = NULL;
+            }
+        }
+        H5Tclose(vlen_int);
+        H5Tclose(vlen_float);
+        H5Tclose(vlen_string);
+        H5Gclose(container_group);
+        H5Fclose(file_id);
+    }
+    H5E_END_TRY
+
+    return;
 }
 
 /*
@@ -7094,7 +10470,7 @@ error:
  * dimensions for the dataset, so the dimensionality of the
  * dataset may both shrink and grow.
  */
-static int
+static void
 test_dataset_set_extent_chunked_unlimited(void)
 {
     hsize_t dims[DATASET_SET_EXTENT_CHUNKED_UNLIMITED_TEST_SPACE_RANK];
@@ -7113,11 +10489,12 @@ test_dataset_set_extent_chunked_unlimited(void)
 
     /* Make sure the connector supports the API functions being tested */
     if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC) ||
-        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_MORE)) {
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_MORE) ||
+        !(vol_cap_flags_g & H5VL_CAP_FLAG_DATASET_MORE)) {
         SKIPPED();
         printf("    API functions for basic file, group, basic or more dataset aren't supported with this "
                "connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -7146,10 +10523,10 @@ test_dataset_set_extent_chunked_unlimited(void)
     }
 
     if ((fspace_id = generate_random_dataspace(DATASET_SET_EXTENT_CHUNKED_UNLIMITED_TEST_SPACE_RANK, max_dims,
-                                               dims, FALSE)) < 0)
+                                               dims, false)) < 0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dcpl_id = H5Pcreate(H5P_DATASET_CREATE)) < 0)
@@ -7302,7 +10679,7 @@ test_dataset_set_extent_chunked_unlimited(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -7317,7 +10694,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
@@ -7326,7 +10703,7 @@ error:
  * dimensions for the dataset, so the dimensionality of the
  * dataset may only shrink.
  */
-static int
+static void
 test_dataset_set_extent_chunked_fixed(void)
 {
     hsize_t dims[DATASET_SET_EXTENT_CHUNKED_FIXED_TEST_SPACE_RANK];
@@ -7349,7 +10726,7 @@ test_dataset_set_extent_chunked_fixed(void)
         SKIPPED();
         printf("    API functions for basic file, group, basic or more dataset aren't supported with this "
                "connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -7385,7 +10762,7 @@ test_dataset_set_extent_chunked_fixed(void)
     if ((fspace_id2 = H5Screate_simple(DATASET_SET_EXTENT_CHUNKED_FIXED_TEST_SPACE_RANK, dims2, NULL)) < 0)
         TEST_ERROR;
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dcpl_id = H5Pcreate(H5P_DATASET_CREATE)) < 0)
@@ -7417,14 +10794,14 @@ test_dataset_set_extent_chunked_fixed(void)
     }
 
     for (i = 0; i < DATASET_SET_EXTENT_CHUNKED_FIXED_TEST_NUM_PASSES; i++) {
-        hbool_t skip_iterations = FALSE;
-        size_t  j;
+        bool   skip_iterations = false;
+        size_t j;
 
         for (j = 0; j < DATASET_SET_EXTENT_CHUNKED_FIXED_TEST_SPACE_RANK; j++) {
             /* Ensure that the new dimensionality is less than the old dimensionality. */
             do {
                 if (dims[j] == 1) {
-                    skip_iterations = TRUE;
+                    skip_iterations = true;
                     break;
                 }
                 else
@@ -7486,14 +10863,14 @@ test_dataset_set_extent_chunked_fixed(void)
      * of the changes to the dataset's dimensionality.
      */
     for (i = 0; i < DATASET_SET_EXTENT_CHUNKED_FIXED_TEST_NUM_PASSES; i++) {
-        hbool_t skip_iterations = FALSE;
-        size_t  j;
+        bool   skip_iterations = false;
+        size_t j;
 
         for (j = 0; j < DATASET_SET_EXTENT_CHUNKED_FIXED_TEST_SPACE_RANK; j++) {
             /* Ensure that the new dimensionality is less than the old dimensionality. */
             do {
                 if (dims2[j] == 1) {
-                    skip_iterations = TRUE;
+                    skip_iterations = true;
                     break;
                 }
                 else
@@ -7580,7 +10957,7 @@ test_dataset_set_extent_chunked_fixed(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -7597,14 +10974,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check the data is correct after expanding
  * and shrinking the dataset with H5Dset_extent
  */
-static int
+static void
 test_dataset_set_extent_data(void)
 {
     hsize_t dims_origin[DATASET_SET_EXTENT_DATA_TEST_SPACE_RANK] = {DATASET_SET_EXTENT_DATA_TEST_SPACE_DIM,
@@ -7638,7 +11015,7 @@ test_dataset_set_extent_data(void)
         SKIPPED();
         printf("    API functions for basic file, group, basic or more dataset aren't supported with this "
                "connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -7921,7 +11298,7 @@ test_dataset_set_extent_data(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -7936,7 +11313,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 } /* test_dataset_set_extent_data */
 
 /*
@@ -7944,7 +11321,7 @@ error:
  * used to extend the dataset, then the other handle should
  * return the new size when queried.
  */
-static int
+static void
 test_dataset_set_extent_double_handles(void)
 {
     hsize_t dims_origin[DATASET_SET_EXTENT_DOUBLE_HANDLES_TEST_SPACE_RANK] = {
@@ -7972,7 +11349,7 @@ test_dataset_set_extent_double_handles(void)
         SKIPPED();
         printf("    API functions for basic file, group, basic or more dataset aren't supported with this "
                "connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -8062,7 +11439,7 @@ test_dataset_set_extent_double_handles(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -8078,14 +11455,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 } /* test_dataset_set_extent_double_handles */
 
 /*
  * A test to check that a dataset's extent can't be
  * changed when H5Dset_extent is passed invalid parameters.
  */
-static int
+static void
 test_dataset_set_extent_invalid_params(void)
 {
     hsize_t dims[DATASET_SET_EXTENT_INVALID_PARAMS_TEST_SPACE_RANK];
@@ -8102,7 +11479,6 @@ test_dataset_set_extent_invalid_params(void)
     hid_t chunked_dcpl_id = H5I_INVALID_HID, compact_dcpl_id = H5I_INVALID_HID,
           contiguous_dcpl_id = H5I_INVALID_HID;
     hid_t fspace_id = H5I_INVALID_HID, compact_fspace_id = H5I_INVALID_HID;
-    char  vol_name[5];
 
     TESTING_MULTIPART("H5Dset_extent with invalid parameters");
 
@@ -8112,7 +11488,7 @@ test_dataset_set_extent_invalid_params(void)
         SKIPPED();
         printf("    API functions for basic file, group, basic or more dataset aren't supported with this "
                "connector\n");
-        return 0;
+        return;
     }
 
     TESTING_2("test setup");
@@ -8121,19 +11497,6 @@ test_dataset_set_extent_invalid_params(void)
         H5_FAILED();
         printf("    couldn't open file '%s'\n", H5_API_TEST_FILENAME);
         goto error;
-    }
-
-    /** for DAOS VOL, this test is problematic since auto chunking can be selected, so skip for now */
-    if (H5VLget_connector_name(file_id, vol_name, 5) < 0) {
-        H5_FAILED();
-        printf("    couldn't get VOL connector name\n");
-        goto error;
-    }
-    if (strcmp(vol_name, "daos") == 0) {
-        if (H5Fclose(file_id) < 0)
-            TEST_ERROR;
-        SKIPPED();
-        return 0;
     }
 
     if ((container_group = H5Gopen2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT)) < 0) {
@@ -8151,7 +11514,7 @@ test_dataset_set_extent_invalid_params(void)
     }
 
     if ((fspace_id = generate_random_dataspace(DATASET_SET_EXTENT_INVALID_PARAMS_TEST_SPACE_RANK, NULL, dims,
-                                               FALSE)) < 0)
+                                               false)) < 0)
         TEST_ERROR;
 
     for (i = 0; i < DATASET_SET_EXTENT_INVALID_PARAMS_TEST_SPACE_RANK; i++) {
@@ -8163,7 +11526,7 @@ test_dataset_set_extent_invalid_params(void)
         } while (chunk_dims[i] > dims[i]);
     }
 
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     /* Create a compact dataset */
@@ -8335,7 +11698,7 @@ test_dataset_set_extent_invalid_params(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -8355,67 +11718,67 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 } /* test_dataset_set_extent_invalid_params */
 
 /*
  * A test for H5Dflush.
  */
-static int
+static void
 test_flush_dataset(void)
 {
     TESTING("H5Dflush");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
  * A test to check that H5Dflush fails when it is
  * passed invalid parameters.
  */
-static int
+static void
 test_flush_dataset_invalid_params(void)
 {
     TESTING("H5Dflush with invalid parameters");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
  * A test for H5Drefresh.
  */
-static int
+static void
 test_refresh_dataset(void)
 {
     TESTING("H5Drefresh");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
  * A test to check that H5Drefresh fails when it is
  * passed invalid parameters.
  */
-static int
+static void
 test_refresh_dataset_invalid_params(void)
 {
-    TESTING("H5Drefresh");
+    TESTING("H5Drefresh with invalid parameters");
 
     SKIPPED();
 
-    return 0;
+    return;
 }
 
 /*
  * A test to create a dataset composed of a single chunk.
  */
-static int
+static void
 test_create_single_chunk_dataset(void)
 {
     hsize_t dims[DATASET_SINGLE_CHUNK_TEST_SPACE_RANK];
@@ -8436,7 +11799,7 @@ test_create_single_chunk_dataset(void)
         SKIPPED();
         printf("    API functions for basic file, group, dataset, or get property list aren't supported "
                "with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -8458,9 +11821,9 @@ test_create_single_chunk_dataset(void)
         goto error;
     }
 
-    if ((fspace_id = generate_random_dataspace(DATASET_SINGLE_CHUNK_TEST_SPACE_RANK, NULL, dims, FALSE)) < 0)
+    if ((fspace_id = generate_random_dataspace(DATASET_SINGLE_CHUNK_TEST_SPACE_RANK, NULL, dims, false)) < 0)
         TEST_ERROR;
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dcpl_id = H5Pcreate(H5P_DATASET_CREATE)) < 0)
@@ -8571,7 +11934,7 @@ test_create_single_chunk_dataset(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -8586,14 +11949,14 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to check that a single-chunk dataset can be written
  * and read correctly.
  */
-static int
+static void
 test_write_single_chunk_dataset(void)
 {
     hssize_t space_npoints;
@@ -8617,7 +11980,7 @@ test_write_single_chunk_dataset(void)
         SKIPPED();
         printf("    API functions for basic file, group, dataset, or get property list aren't supported "
                "with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -8640,7 +12003,7 @@ test_write_single_chunk_dataset(void)
     }
 
     if ((fspace_id = generate_random_dataspace(DATASET_SINGLE_CHUNK_WRITE_TEST_DSET_SPACE_RANK, NULL, dims,
-                                               FALSE)) < 0)
+                                               false)) < 0)
         TEST_ERROR;
 
     if ((dcpl_id = H5Pcreate(H5P_DATASET_CREATE)) < 0)
@@ -8789,7 +12152,7 @@ test_write_single_chunk_dataset(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -8807,13 +12170,13 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
  * A test to create a dataset composed of multiple chunks.
  */
-static int
+static void
 test_create_multi_chunk_dataset(void)
 {
     hsize_t dims[DATASET_MULTI_CHUNK_TEST_SPACE_RANK]       = {100, 100};
@@ -8835,7 +12198,7 @@ test_create_multi_chunk_dataset(void)
         SKIPPED();
         printf("    API functions for basic file, group, dataset, or get property list aren't supported "
                "with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -8859,7 +12222,7 @@ test_create_multi_chunk_dataset(void)
 
     if ((fspace_id = H5Screate_simple(DATASET_MULTI_CHUNK_TEST_SPACE_RANK, dims, NULL)) < 0)
         TEST_ERROR;
-    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, FALSE)) < 0)
+    if ((dset_dtype = generate_random_datatype(H5T_NO_CLASS, false)) < 0)
         TEST_ERROR;
 
     if ((dcpl_id = H5Pcreate(H5P_DATASET_CREATE)) < 0)
@@ -8970,7 +12333,7 @@ test_create_multi_chunk_dataset(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -8985,7 +12348,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
@@ -8994,7 +12357,7 @@ error:
  * chunks of the dataset, the file dataspace and memory dataspace
  * used are the same shape.
  */
-static int
+static void
 test_write_multi_chunk_dataset_same_shape_read(void)
 {
     hsize_t dims[DATASET_MULTI_CHUNK_WRITE_SAME_SPACE_READ_TEST_DSET_SPACE_RANK]       = {100, 100};
@@ -9021,7 +12384,7 @@ test_write_multi_chunk_dataset_same_shape_read(void)
         SKIPPED();
         printf("    API functions for basic file, group, dataset, or get property list aren't supported "
                "with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -9230,9 +12593,13 @@ test_write_multi_chunk_dataset_same_shape_read(void)
     /*
      * Read every chunk in the dataset, checking the data for each one.
      */
-    printf("\n");
+    if (IS_MAIN_TEST_THREAD)
+        printf("\n");
     for (i = 0; i < data_size / chunk_size; i++) {
         size_t j, k;
+
+        if (IS_MAIN_TEST_THREAD)
+            printf("\r Reading chunk %zu", i);
 
         for (j = 0; j < DATASET_MULTI_CHUNK_WRITE_SAME_SPACE_READ_TEST_DSET_SPACE_RANK; j++) {
             if (dims[j] == chunk_dims[j])
@@ -9293,7 +12660,7 @@ test_write_multi_chunk_dataset_same_shape_read(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -9310,7 +12677,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
@@ -9319,7 +12686,7 @@ error:
  * chunks of the dataset, the file dataspace and memory dataspace
  * used are differently shaped.
  */
-static int
+static void
 test_write_multi_chunk_dataset_diff_shape_read(void)
 {
     hsize_t dims[DATASET_MULTI_CHUNK_WRITE_DIFF_SPACE_READ_TEST_DSET_SPACE_RANK]       = {100, 100};
@@ -9345,7 +12712,7 @@ test_write_multi_chunk_dataset_diff_shape_read(void)
         SKIPPED();
         printf("    API functions for basic file, group, dataset, or get property list aren't supported "
                "with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -9567,6 +12934,8 @@ test_write_multi_chunk_dataset_diff_shape_read(void)
     for (i = 0; i < data_size / chunk_size; i++) {
         size_t j;
 
+        printf("\r Reading chunk %zu", i);
+
         for (j = 0; j < DATASET_MULTI_CHUNK_WRITE_DIFF_SPACE_READ_TEST_DSET_SPACE_RANK; j++) {
             if (dims[j] == chunk_dims[j])
                 start[j] = 0;
@@ -9626,7 +12995,7 @@ test_write_multi_chunk_dataset_diff_shape_read(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -9645,7 +13014,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
@@ -9654,7 +13023,7 @@ error:
  * When reading back the chunks of the dataset, the file
  * dataspace and memory dataspace used are the same shape.
  */
-static int
+static void
 test_overwrite_multi_chunk_dataset_same_shape_read(void)
 {
     hsize_t dims[DATASET_MULTI_CHUNK_OVERWRITE_SAME_SPACE_READ_TEST_DSET_SPACE_RANK]       = {100, 100};
@@ -9681,7 +13050,7 @@ test_overwrite_multi_chunk_dataset_same_shape_read(void)
         SKIPPED();
         printf("    API functions for basic file, group, dataset, or get property list aren't supported "
                "with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -9896,6 +13265,7 @@ test_overwrite_multi_chunk_dataset_same_shape_read(void)
         for (i = 0; i < data_size / chunk_size; i++) {
             size_t j, k;
 
+            printf("\r Reading chunk %zu", i);
 
             for (j = 0; j < DATASET_MULTI_CHUNK_OVERWRITE_SAME_SPACE_READ_TEST_DSET_SPACE_RANK; j++) {
                 if (dims[j] == chunk_dims[j])
@@ -9962,7 +13332,7 @@ test_overwrite_multi_chunk_dataset_same_shape_read(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -9979,7 +13349,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
@@ -9988,7 +13358,7 @@ error:
  * When reading back the chunks of the dataset, the file
  * dataspace and memory dataspace used are differently shaped.
  */
-static int
+static void
 test_overwrite_multi_chunk_dataset_diff_shape_read(void)
 {
     hsize_t dims[DATASET_MULTI_CHUNK_OVERWRITE_DIFF_SPACE_READ_TEST_DSET_SPACE_RANK]       = {100, 100};
@@ -10015,7 +13385,7 @@ test_overwrite_multi_chunk_dataset_diff_shape_read(void)
         SKIPPED();
         printf("    API functions for basic file, group, dataset, or get property list aren't supported "
                "with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -10239,6 +13609,8 @@ test_overwrite_multi_chunk_dataset_diff_shape_read(void)
         for (i = 0; i < data_size / chunk_size; i++) {
             size_t j;
 
+            printf("\r Reading chunk %zu", i);
+
             for (j = 0; j < DATASET_MULTI_CHUNK_OVERWRITE_DIFF_SPACE_READ_TEST_DSET_SPACE_RANK; j++) {
                 if (dims[j] == chunk_dims[j])
                     start[j] = 0;
@@ -10305,7 +13677,7 @@ test_overwrite_multi_chunk_dataset_diff_shape_read(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -10324,7 +13696,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 
 /*
@@ -10334,7 +13706,7 @@ error:
  */
 #define FIXED_DIMSIZE       25
 #define FIXED_CHUNK_DIMSIZE 10
-static int
+static void
 test_read_partial_chunk_all_selection(void)
 {
     DATASET_PARTIAL_CHUNK_READ_ALL_SEL_TEST_DSET_CTYPE write_buf[FIXED_DIMSIZE][FIXED_DIMSIZE];
@@ -10358,7 +13730,7 @@ test_read_partial_chunk_all_selection(void)
         SKIPPED();
         printf("    API functions for basic file, group, dataset, or get property list aren't supported "
                "with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -10471,10 +13843,10 @@ test_read_partial_chunk_all_selection(void)
         for (j = 0; j < FIXED_DIMSIZE; j++)
             if (read_buf[i][j] != (int)((i * FIXED_DIMSIZE) + j)) {
                 H5_FAILED();
-                printf(
-                    "    data verification failed for read buffer element %lld: expected %lld but was %lld\n",
-                    (long long)((i * FIXED_DIMSIZE) + j), (long long)((i * FIXED_DIMSIZE) + j),
-                    (long long)read_buf[i][j]);
+                printf("    data verification failed for read buffer element %lld: expected %lld but was "
+                       "%lld\n",
+                       (long long)((i * FIXED_DIMSIZE) + j), (long long)((i * FIXED_DIMSIZE) + j),
+                       (long long)read_buf[i][j]);
                 goto error;
             }
 
@@ -10493,7 +13865,7 @@ test_read_partial_chunk_all_selection(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -10507,7 +13879,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 #undef FIXED_DIMSIZE
 #undef FIXED_CHUNK_DIMSIZE
@@ -10520,7 +13892,7 @@ error:
 #define FIXED_DIMSIZE       25
 #define FIXED_CHUNK_DIMSIZE 10
 #define FIXED_NCHUNKS       9 /* For convenience - make sure to adjust this as necessary */
-static int
+static void
 test_read_partial_chunk_hyperslab_selection(void)
 {
     DATASET_PARTIAL_CHUNK_READ_HYPER_SEL_TEST_DSET_CTYPE write_buf[FIXED_CHUNK_DIMSIZE][FIXED_CHUNK_DIMSIZE];
@@ -10545,7 +13917,7 @@ test_read_partial_chunk_hyperslab_selection(void)
         SKIPPED();
         printf("    API functions for basic file, group, dataset, or get property list aren't supported "
                "with this connector\n");
-        return 0;
+        return;
     }
 
     if ((file_id = H5Fopen(H5_API_TEST_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
@@ -10648,10 +14020,11 @@ test_read_partial_chunk_hyperslab_selection(void)
     /*
      * Write and read each chunk in the dataset.
      */
+    printf("\n");
     for (i = 0; i < FIXED_NCHUNKS; i++) {
         hsize_t start[DATASET_PARTIAL_CHUNK_READ_HYPER_SEL_TEST_DSET_SPACE_RANK];
         hsize_t count[DATASET_PARTIAL_CHUNK_READ_HYPER_SEL_TEST_DSET_SPACE_RANK];
-        hbool_t on_partial_edge_chunk = FALSE;
+        bool    on_partial_edge_chunk = false;
         size_t  n_chunks_per_dim      = (dims[1] / chunk_dims[1]) + (((dims[1] % chunk_dims[1]) > 0) ? 1 : 0);
 
         on_partial_edge_chunk =
@@ -10746,6 +14119,8 @@ test_read_partial_chunk_hyperslab_selection(void)
             goto error;
         }
 
+        printf("\r Reading chunk %zu", i);
+
         if (H5Dread(dset_id, DATASET_PARTIAL_CHUNK_READ_HYPER_SEL_TEST_DSET_DTYPE, mspace_id, fspace_id,
                     H5P_DEFAULT, read_buf) < 0) {
             H5_FAILED();
@@ -10782,7 +14157,7 @@ test_read_partial_chunk_hyperslab_selection(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -10797,7 +14172,7 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 }
 #undef FIXED_DIMSIZE
 #undef FIXED_CHUNK_DIMSIZE
@@ -10808,24 +14183,24 @@ error:
  * then read correctly when the selection used in a chunked
  * dataset's file dataspace is a point selection.
  */
-#define FIXED_DIMSIZE       25
-#define FIXED_CHUNK_DIMSIZE 10
-static int
+/* #define FIXED_DIMSIZE       25 */
+/* #define FIXED_CHUNK_DIMSIZE 10 */
+static void
 test_read_partial_chunk_point_selection(void)
 {
     TESTING("reading a partial chunk using a point selection in file dataspace");
     SKIPPED();
 
-    return 1;
+    return;
 }
-#undef FIXED_DIMSIZE
-#undef FIXED_CHUNK_DIMSIZE
+/* #undef FIXED_DIMSIZE */
+/* #undef FIXED_CHUNK_DIMSIZE */
 
 /*
  * A test to verify that H5Dvlen_get_buf_size returns
  * correct size
  */
-static int
+static void
 test_get_vlen_buf_size(void)
 {
     hvl_t    wdata[DATASET_GET_VLEN_BUF_SIZE_DSET_SPACE_DIM]; /* Information to write */
@@ -10835,7 +14210,7 @@ test_get_vlen_buf_size(void)
     hid_t    dataset         = H5I_INVALID_HID;
     hid_t    dspace_id       = H5I_INVALID_HID;
     hid_t    dtype_id        = H5I_INVALID_HID;
-    hbool_t  freed_wdata     = FALSE;
+    bool     freed_wdata     = false;
     hsize_t  dims1[]         = {DATASET_GET_VLEN_BUF_SIZE_DSET_SPACE_DIM};
     hsize_t  size; /* Number of bytes which will be used */
     unsigned i, j;
@@ -10848,7 +14223,7 @@ test_get_vlen_buf_size(void)
         SKIPPED();
         printf("    API functions for basic file, group, or dataset aren't supported with this "
                "connector\n");
-        return 0;
+        return;
     }
 
     /* Allocate and initialize VL data to write */
@@ -10915,7 +14290,7 @@ test_get_vlen_buf_size(void)
 
     if (H5Treclaim(dtype_id, dspace_id, H5P_DEFAULT, wdata) < 0)
         TEST_ERROR;
-    freed_wdata = TRUE;
+    freed_wdata = true;
 
     if (H5Dclose(dataset) < 0)
         TEST_ERROR;
@@ -10937,7 +14312,7 @@ test_get_vlen_buf_size(void)
 
     PASSED();
 
-    return 0;
+    return;
 
 error:
     H5E_BEGIN_TRY
@@ -10953,26 +14328,157 @@ error:
     }
     H5E_END_TRY
 
-    return 1;
+    return;
 } /* end test_get_vlen_buf_size() */
 
-int
-H5_api_dataset_test(void)
+void
+H5_api_dataset_test_add(void)
 {
-    size_t i;
-    int    nerrors;
-
-    printf("**********************************************\n");
-    printf("*                                            *\n");
-    printf("*             API Dataset Tests              *\n");
-    printf("*                                            *\n");
-    printf("**********************************************\n\n");
-
-    for (i = 0, nerrors = 0; i < ARRAY_LENGTH(dataset_tests); i++) {
-        nerrors += (*dataset_tests[i])() ? 1 : 0;
-    }
-
-    printf("\n");
-
-    return nerrors;
+    /* Add a fake test to print out a header to distinguish different test interfaces */
+    AddTest("print_dataset_test_header", print_dataset_test_header, NULL, "Prints header for dataset tests", NULL);
+    AddTest("test_create_dataset_under_root", MT_API_TEST_FUNC_OUTER(test_create_dataset_under_root), NULL,
+            "dataset creation under root group", NULL);
+    AddTest("test_create_dataset_under_existing_group", MT_API_TEST_FUNC_OUTER(test_create_dataset_under_existing_group), NULL,
+            "dataset creation under an existing group", NULL);
+    AddTest("test_create_dataset_invalid_params", MT_API_TEST_FUNC_OUTER(test_create_dataset_invalid_params), NULL,
+            "H5Dcreate with invalid parameters", NULL);
+    AddTest("test_create_anonymous_dataset", MT_API_TEST_FUNC_OUTER(test_create_anonymous_dataset), NULL,
+            "anonymous dataset creation", NULL);
+    AddTest("test_create_anonymous_dataset_invalid_params", MT_API_TEST_FUNC_OUTER(test_create_anonymous_dataset_invalid_params),
+            NULL, "anonymous dataset creation with invalid parameters", NULL);
+    AddTest("test_create_dataset_null_space", MT_API_TEST_FUNC_OUTER(test_create_dataset_null_space), NULL,
+            "dataset creation with a NULL dataspace", NULL);
+    AddTest("test_create_dataset_scalar_space", MT_API_TEST_FUNC_OUTER(test_create_dataset_scalar_space), NULL,
+            "dataset creation with a SCALAR dataspace", NULL);
+    AddTest("test_create_zero_dim_dset", MT_API_TEST_FUNC_OUTER(test_create_zero_dim_dset), NULL, "creation of 0-sized dataset",
+            NULL);
+    AddTest("test_create_dataset_random_shapes", MT_API_TEST_FUNC_OUTER(test_create_dataset_random_shapes), NULL,
+            "dataset creation with random dimension sizes", NULL);
+    AddTest("test_create_dataset_predefined_types", MT_API_TEST_FUNC_OUTER(test_create_dataset_predefined_types), NULL,
+            "dataset creation with predefined datatypes", NULL);
+    AddTest("test_create_dataset_string_types", MT_API_TEST_FUNC_OUTER(test_create_dataset_string_types), NULL,
+            "dataset creation with string types", NULL);
+    AddTest("test_create_dataset_compound_types", MT_API_TEST_FUNC_OUTER(test_create_dataset_compound_types), NULL,
+            "dataset creation with compound datatypes", NULL);
+    AddTest("test_create_dataset_enum_types", MT_API_TEST_FUNC_OUTER(test_create_dataset_enum_types), NULL,
+            "dataset creation with enum types", NULL);
+    AddTest("test_create_dataset_array_types", MT_API_TEST_FUNC_OUTER(test_create_dataset_array_types), NULL,
+            "dataset creation with array types", NULL);
+    AddTest("test_create_dataset_creation_properties", MT_API_TEST_FUNC_OUTER(test_create_dataset_creation_properties), NULL,
+            "dataset creation properties", NULL);
+    AddTest("test_create_many_dataset", MT_API_TEST_FUNC_OUTER(test_create_many_dataset), NULL, "creating many datasets", NULL);
+    AddTest("test_open_dataset", MT_API_TEST_FUNC_OUTER(test_open_dataset), NULL, "H5Dopen", NULL);
+    AddTest("test_open_dataset_invalid_params", MT_API_TEST_FUNC_OUTER(test_open_dataset_invalid_params), NULL,
+            "H5Dopen with invalid parameters", NULL);
+    AddTest("test_close_dataset_invalid_params", MT_API_TEST_FUNC_OUTER(test_close_dataset_invalid_params), NULL,
+            "H5Dclose with an invalid dataset ID", NULL);
+    AddTest("test_get_dataset_space_and_type", MT_API_TEST_FUNC_OUTER(test_get_dataset_space_and_type), NULL,
+            "retrieval of a dataset's dataspace and datatype", NULL);
+    AddTest("test_get_dataset_space_and_type_invalid_params", MT_API_TEST_FUNC_OUTER(test_get_dataset_space_and_type_invalid_params),
+            NULL, "H5Dget_type/H5Dget_space with invalid parameters", NULL);
+    AddTest("test_get_dataset_space_status", MT_API_TEST_FUNC_OUTER(test_get_dataset_space_status), NULL, "H5Dget_space_status",
+            NULL);
+    AddTest("test_get_dataset_space_status_invalid_params", MT_API_TEST_FUNC_OUTER(test_get_dataset_space_status_invalid_params),
+            NULL, "H5Dget_space_status with invalid parameters", NULL);
+    AddTest("test_dataset_property_lists", MT_API_TEST_FUNC_OUTER(test_dataset_property_lists), NULL,
+            "dataset property list operations", NULL);
+    AddTest("test_get_dataset_storage_size", MT_API_TEST_FUNC_OUTER(test_get_dataset_storage_size), NULL, "H5Dget_storage_size",
+            NULL);
+    AddTest("test_get_dataset_storage_size_invalid_params", MT_API_TEST_FUNC_OUTER(test_get_dataset_storage_size_invalid_params),
+            NULL, "H5Dget_storage_size with invalid parameters", NULL);
+    AddTest("test_get_dataset_chunk_storage_size", MT_API_TEST_FUNC_OUTER(test_get_dataset_chunk_storage_size), NULL,
+            "H5Dget_chunk_storage_size", NULL);
+    AddTest("test_get_dataset_chunk_storage_size_invalid_params",
+            test_get_dataset_chunk_storage_size_invalid_params, NULL,
+            "H5Dget_chunk_storage_size with invalid parameters", NULL);
+    AddTest("test_get_dataset_offset", MT_API_TEST_FUNC_OUTER(test_get_dataset_offset), NULL, "H5Dget_offset", NULL);
+    AddTest("test_get_dataset_offset_invalid_params", MT_API_TEST_FUNC_OUTER(test_get_dataset_offset_invalid_params), NULL,
+            "H5Dget_offset with invalid parameters", NULL);
+    AddTest("test_read_dataset_small_all", MT_API_TEST_FUNC_OUTER(test_read_dataset_small_all), NULL,
+            "small read from dataset with H5S_ALL", NULL);
+    AddTest("test_read_dataset_small_hyperslab", MT_API_TEST_FUNC_OUTER(test_read_dataset_small_hyperslab), NULL,
+            "small read from dataset with a hyperslab selection", NULL);
+    AddTest("test_read_dataset_small_point_selection", MT_API_TEST_FUNC_OUTER(test_read_dataset_small_point_selection), NULL,
+            "small read from dataset with a point selection", NULL);
+    AddTest("test_read_multi_dataset_small_all", MT_API_TEST_FUNC_OUTER(test_read_multi_dataset_small_all), NULL,
+            "small multi read from datasets with H5S_ALL", NULL);
+    AddTest("test_read_multi_dataset_small_hyperslab", MT_API_TEST_FUNC_OUTER(test_read_multi_dataset_small_hyperslab), NULL,
+            "small multi read from datasets with a hyperslab selection", NULL);
+    AddTest("test_read_multi_dataset_small_point_selection", MT_API_TEST_FUNC_OUTER(test_read_multi_dataset_small_point_selection),
+            NULL, "small multi read from datasets with point selections", NULL);
+    AddTest("test_dataset_io_point_selections", MT_API_TEST_FUNC_OUTER(test_dataset_io_point_selections), NULL,
+            "point selection I/O with all selection in memory and points in file", NULL);
+    AddTest("test_read_dataset_invalid_params", MT_API_TEST_FUNC_OUTER(test_read_dataset_invalid_params), NULL,
+            "H5Dread with invalid parameters", NULL);
+    AddTest("test_dataset_string_encodings", MT_API_TEST_FUNC_OUTER(test_dataset_string_encodings), NULL,
+            "string encoding read/write correctness on datasets", NULL);
+    AddTest("test_write_dataset_small_all", MT_API_TEST_FUNC_OUTER(test_write_dataset_small_all), NULL,
+            "small write to dataset with H5S_ALL", NULL);
+    AddTest("test_write_dataset_small_hyperslab", MT_API_TEST_FUNC_OUTER(test_write_dataset_small_hyperslab), NULL,
+            "small write to dataset with a hyperslab selection", NULL);
+    AddTest("test_write_dataset_small_point_selection", MT_API_TEST_FUNC_OUTER(test_write_dataset_small_point_selection), NULL,
+            "small write to dataset with a point selection", NULL);
+    AddTest("test_write_dataset_data_verification", MT_API_TEST_FUNC_OUTER(test_write_dataset_data_verification), NULL,
+            "verification of dataset data using H5Dwrite then H5Dread", NULL);
+    AddTest("test_write_multi_dataset_small_all", MT_API_TEST_FUNC_OUTER(test_write_multi_dataset_small_all), NULL,
+            "small multi write to datasets with H5S_ALL", NULL);
+    AddTest("test_write_multi_dataset_small_hyperslab", MT_API_TEST_FUNC_OUTER(test_write_multi_dataset_small_hyperslab), NULL,
+            "small multi write to datasets with hyperslab selections", NULL);
+    AddTest("test_write_multi_dataset_small_point_selection", MT_API_TEST_FUNC_OUTER(test_write_multi_dataset_small_point_selection),
+            NULL, "small multi write to datasets with point selections", NULL);
+    AddTest("test_write_multi_dataset_data_verification", MT_API_TEST_FUNC_OUTER(test_write_multi_dataset_data_verification), NULL,
+            "verification of datasets' data using H5Dwrite_multi then H5Dread_multi", NULL);
+    AddTest("test_write_dataset_invalid_params", MT_API_TEST_FUNC_OUTER(test_write_dataset_invalid_params), NULL,
+            "H5Dwrite with invalid parameters", NULL);
+    AddTest("test_dataset_builtin_type_conversion", MT_API_TEST_FUNC_OUTER(test_dataset_builtin_type_conversion), NULL,
+            "verification of dataset data using H5Dwrite then H5Dread with type conversion of builtin types",
+            NULL);
+    AddTest("test_dataset_real_to_int_conversion", MT_API_TEST_FUNC_OUTER(test_dataset_real_to_int_conversion), NULL,
+            "verification of dataset data using H5Dwrite then H5Dread with real <-> integer type conversion",
+            NULL);
+    AddTest("test_dataset_compound_partial_io", MT_API_TEST_FUNC_OUTER(test_dataset_compound_partial_io), NULL,
+            "verification of dataset data using H5Dwrite then H5Dread with partial element compound type I/O",
+            NULL);
+    AddTest("test_dataset_vlen_io", MT_API_TEST_FUNC_OUTER(test_dataset_vlen_io), NULL,
+            "verification of dataset data with H5Dwrite and then H5D read with variable length sequence data",
+            NULL);
+    AddTest("test_dataset_set_extent_chunked_unlimited", MT_API_TEST_FUNC_OUTER(test_dataset_set_extent_chunked_unlimited), NULL,
+            "H5Dset_extent on chunked dataset with unlimited dimensions", NULL);
+    AddTest("test_dataset_set_extent_chunked_fixed", MT_API_TEST_FUNC_OUTER(test_dataset_set_extent_chunked_fixed), NULL,
+            "H5Dset_extent on chunked dataset with fixed dimensions", NULL);
+    AddTest("test_dataset_set_extent_data", MT_API_TEST_FUNC_OUTER(test_dataset_set_extent_data), NULL,
+            "H5Dset_extent on data correctness", NULL);
+    AddTest("test_dataset_set_extent_double_handles", MT_API_TEST_FUNC_OUTER(test_dataset_set_extent_double_handles), NULL,
+            "H5Dset_extent on double dataset handles", NULL);
+    AddTest("test_dataset_set_extent_invalid_params", MT_API_TEST_FUNC_OUTER(test_dataset_set_extent_invalid_params), NULL,
+            "H5Dset_extent with invalid parameters", NULL);
+    AddTest("test_flush_dataset", MT_API_TEST_FUNC_OUTER(test_flush_dataset), NULL, "H5Dflush", NULL);
+    AddTest("test_flush_dataset_invalid_params", MT_API_TEST_FUNC_OUTER(test_flush_dataset_invalid_params), NULL,
+            "H5Dflush with invalid parameters", NULL);
+    AddTest("test_refresh_dataset", MT_API_TEST_FUNC_OUTER(test_refresh_dataset), NULL, "H5Drefresh", NULL);
+    AddTest("test_refresh_dataset_invalid_params", MT_API_TEST_FUNC_OUTER(test_refresh_dataset_invalid_params), NULL,
+            "H5Drefresh with invalid parameters", NULL);
+    AddTest("test_create_single_chunk_dataset", MT_API_TEST_FUNC_OUTER(test_create_single_chunk_dataset), NULL,
+            "creation of dataset with single chunk", NULL);
+    AddTest("test_write_single_chunk_dataset", MT_API_TEST_FUNC_OUTER(test_write_single_chunk_dataset), NULL,
+            "write to dataset with single chunk", NULL);
+    AddTest("test_create_multi_chunk_dataset", MT_API_TEST_FUNC_OUTER(test_create_multi_chunk_dataset), NULL,
+            "creation of dataset with multiple chunks", NULL);
+    AddTest("test_write_multi_chunk_dataset_same_shape_read", MT_API_TEST_FUNC_OUTER(test_write_multi_chunk_dataset_same_shape_read),
+            NULL, "write to dataset with multiple chunks using same shaped dataspaces", NULL);
+    AddTest("test_write_multi_chunk_dataset_diff_shape_read", MT_API_TEST_FUNC_OUTER(test_write_multi_chunk_dataset_diff_shape_read),
+            NULL, "write to dataset with multiple chunks using differently shaped dataspaces", NULL);
+    AddTest("test_overwrite_multi_chunk_dataset_same_shape_read",
+            MT_API_TEST_FUNC_OUTER(test_overwrite_multi_chunk_dataset_same_shape_read), NULL,
+            "several overwrites to dataset with multiple chunks using same shaped dataspaces", NULL);
+    AddTest("test_overwrite_multi_chunk_dataset_diff_shape_read",
+            MT_API_TEST_FUNC_OUTER(test_overwrite_multi_chunk_dataset_diff_shape_read), NULL,
+            "several overwrites to dataset with multiple chunks using differently shaped dataspaces", NULL);
+    AddTest("test_read_partial_chunk_all_selection", MT_API_TEST_FUNC_OUTER(test_read_partial_chunk_all_selection), NULL,
+            "reading a partial chunk using H5S_ALL for file dataspace", NULL);
+    AddTest("test_read_partial_chunk_hyperslab_selection", MT_API_TEST_FUNC_OUTER(test_read_partial_chunk_hyperslab_selection), NULL,
+            "reading a partial chunk using a hyperslab selection in file dataspace", NULL);
+    AddTest("test_read_partial_chunk_point_selection", MT_API_TEST_FUNC_OUTER(test_read_partial_chunk_point_selection), NULL,
+            "reading a partial chunk using a point selection in file dataspace", NULL);
+    AddTest("test_get_vlen_buf_size", MT_API_TEST_FUNC_OUTER(test_get_vlen_buf_size), NULL, "H5Dvlen_get_buf_size", NULL);
 }
