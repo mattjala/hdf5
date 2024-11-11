@@ -93,7 +93,7 @@ enum H5_api_test_type { H5_API_TESTS };
 static const char *const H5_api_test_name[] = {H5_API_TESTS};
 #undef X
 #define X(a, b, c, d) c,
-static void (*H5_api_test_add_func[])() = {H5_API_TESTS};
+static void (*H5_api_test_add_func[])(void) = {H5_API_TESTS};
 #undef X
 #define X(a, b, c, d) d,
 static int H5_api_test_enabled[] = {H5_API_TESTS};
@@ -158,12 +158,7 @@ main(int argc, char **argv)
     void       *default_err_data          = NULL;
     bool        err_occurred              = false;
 
-    unsigned runtime = 0;           /* Maximum run-time for test (in seconds) */
-    unsigned num_subtests = 8;
-    unsigned subtest_timeout = 0;
-
     int testExpress = 0;
-    int num_errs_occurred = 0;
 
     H5open();
 
@@ -187,21 +182,8 @@ main(int argc, char **argv)
     
     testExpress = GetTestExpress();
 
-    if (testExpress == 0) {
-        runtime = 0; /* Run with no timeout  */
-    } else if (testExpress == 1) {
-        runtime = 1800; /* 30 minute timeout */
-    } else if (testExpress == 2) {
-        runtime = 600; /* 10 minute timeout */
-    } else {
-        runtime = 60; /* 1 minute timeout */
-    }
-
-    if (testExpress > 0) {
-        subtest_timeout = (runtime - API_TEST_MARGIN) / num_subtests;
-    } else {
-        subtest_timeout = 0;
-    }
+    // TODO
+    UNUSED(testExpress);
 
     /* Parse command line arguments */
     TestParseCmdLine(argc, argv);
@@ -222,7 +204,13 @@ main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    /* Display testing information */
+    /* Display VOL information */
+    if (H5_api_test_display_information() < 0) {
+        fprintf(stderr, "Error displaying VOL information\n");
+        return EXIT_FAILURE;
+    }
+
+    /* Display generic testing information */
     TestInfo(argv[0]);
 
     /* TODO: Refactor TestAlarmOn to accept specific timeout */
@@ -252,22 +240,30 @@ main(int argc, char **argv)
     /* Clean up test files, if allowed */
     if (GetTestCleanup() && !HDgetenv(HDF5_NOCLEANUP))
         TestCleanup();
-    
+
+    printf("Deleting container file for tests\n\n");
+
+    if (H5_api_test_destroy_container_files() < 0) {
+        fprintf(stderr, "Error cleaning up global API test info\n");
+        err_occurred = true;
+        goto done;
+    }
+
+    if (n_tests_run_g > 0)
+        H5_api_test_display_results();
+
+done:
     TestAlarmOff();
 
-    num_errs_occurred = GetTestNumErrs();
+    if (GetTestNumErrs() > 0)
+        n_tests_failed_g += GetTestNumErrs();
 
     /* Release test infrastructure */
     TestShutdown();
 
     H5close();
 
-    if (H5_api_test_global_cleanup() < 0) {
-        fprintf(stderr, "Error cleaning up global API test info\n");
-        return EXIT_FAILURE;
-    }
-
-    if (num_errs_occurred > 0) {
+    if (err_occurred || n_tests_failed_g > 0) {
         exit(EXIT_FAILURE);
     } else {
         exit(EXIT_SUCCESS);

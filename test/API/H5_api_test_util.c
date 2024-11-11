@@ -96,8 +96,10 @@ static hid_t generate_random_datatype_array(H5T_class_t parent_class, hbool_t is
 static void H5_api_test_tl_key_destructor(void *value);
 #endif
 
-static int H5_api_test_display_information(void);
-static int create_test_container_internal(const char *filename, uint64_t vol_cap_flags);
+static int H5_api_test_create_containers_internal(const char *filename, uint64_t vol_cap_flags);
+static int H5_api_test_create_containers(const char *filename, uint64_t vol_cap_flags);
+static int destroy_test_container_internal(const char *filename, uint64_t vol_cap_flags);
+
 /*
  * Helper function to generate a random HDF5 datatype in order to thoroughly
  * test support for datatypes. The parent_class parameter is to support
@@ -657,7 +659,7 @@ error:
 }
 
 static int
-create_test_container_internal(const char *filename, uint64_t vol_cap_flags) {
+H5_api_test_create_containers_internal(const char *filename, uint64_t vol_cap_flags) {
     hid_t file_id  = H5I_INVALID_HID;
     hid_t group_id = H5I_INVALID_HID;
 
@@ -726,8 +728,8 @@ error:
 
 
 
-int
-create_test_container(const char *filename, uint64_t vol_cap_flags)
+static int
+H5_api_test_create_containers(const char *filename, uint64_t vol_cap_flags)
 {
     char *tl_filename = NULL;
 
@@ -763,7 +765,7 @@ create_test_container(const char *filename, uint64_t vol_cap_flags)
             goto error;
         }
 
-        if (create_test_container_internal((const char *)tl_filename, vol_cap_flags) < 0) {
+        if (H5_api_test_create_containers_internal((const char *)tl_filename, vol_cap_flags) < 0) {
             printf("    failed to create thread-local API test container");
         }
 
@@ -773,7 +775,7 @@ create_test_container(const char *filename, uint64_t vol_cap_flags)
 
 #else
     (void) tl_filename;
-    if (create_test_container_internal((const char *)filename, vol_cap_flags) < 0) {
+    if (H5_api_test_create_containers_internal((const char *)filename, vol_cap_flags) < 0) {
         printf("    failed to create test container\n");
         goto error;
     }
@@ -786,8 +788,8 @@ error:
     return -1;
 }
 
-int destroy_test_container(const char *filename, uint64_t vol_cap_flags) {
-    char *tl_filename = NULL;
+static int
+destroy_test_container_internal(const char *filename, uint64_t vol_cap_flags) {
 
     if (!(vol_cap_flags & H5VL_CAP_FLAG_FILE_BASIC)) {
         printf("   container should not have been created\n");
@@ -795,6 +797,7 @@ int destroy_test_container(const char *filename, uint64_t vol_cap_flags) {
     }
 
 #ifdef H5_HAVE_MULTITHREAD
+    char *tl_filename = NULL;
     size_t tl_filename_len = strlen(filename) + API_THREAD_IDX_LEN + 1;
     int chars_written = 0;
     int max_threads = GetTestMaxNumThreads();
@@ -821,21 +824,31 @@ int destroy_test_container(const char *filename, uint64_t vol_cap_flags) {
             goto error;
         }
     
-        if (H5Fdelete(tl_filename, H5P_DEFAULT) < 0) {
-            printf("    failed to destroy thread-local API test container");
-            goto error;
+        H5E_BEGIN_TRY {
+            if (H5Fis_accessible(tl_filename, H5P_DEFAULT) > 0) {
+                if (H5Fdelete(tl_filename, H5P_DEFAULT) < 0) {
+                    printf("    failed to destroy thread-local API test container");
+                    goto error;
+                }
+            }
         }
+        H5E_END_TRY
+    
     }
 
     free(tl_filename);
 
 
 #else
-    (void) tl_filename;
-    if (H5Fdelete(filename, H5P_DEFAULT) < 0) {
-        printf("    failed to destroy thread-local API test container");
-        goto error;
+    H5E_BEGIN_TRY {
+        if (H5Fis_accessible(filename, H5P_DEFAULT) > 0) {
+            if (H5Fdelete(filename, H5P_DEFAULT) < 0) {
+                printf("    failed to destroy thread-local API test container");
+                goto error;
+            }
+        }
     }
+    H5E_END_TRY
 #endif
 
     return 0;
@@ -1012,7 +1025,7 @@ done:
     return ret_value;
 }
 
-static int H5_api_test_display_information(void) {
+int H5_api_test_display_information(void) {
     unsigned seed = 0;
     const char *vol_connector_name = NULL;
     char *vol_connector_name_copy = NULL;
@@ -1103,9 +1116,6 @@ int H5_api_test_global_setup(void) {
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-    if (H5_api_test_display_information() < 0)
-        goto error;
-
     /* Retrieve the VOL cap flags - work around an HDF5
      * library issue by creating a FAPL
      */
@@ -1124,7 +1134,7 @@ int H5_api_test_global_setup(void) {
      * Create the file(s) that will be used for all of the tests,
      * except for those which test file creation.
      */
-    if (create_test_container(TEST_FILE_NAME, vol_cap_flags_g) < 0) {
+    if (H5_api_test_create_containers(TEST_FILE_NAME, vol_cap_flags_g) < 0) {
         printf("    unable to create testing container file with basename '%s'\n", TEST_FILE_NAME);
         goto error;
     }
@@ -1141,7 +1151,8 @@ error:
     return -1;
 }
 
-int H5_api_test_global_cleanup(void) {
+int
+H5_api_test_destroy_container_files(void) {
     hid_t fapl_id = H5I_INVALID_HID;
 
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
@@ -1154,7 +1165,7 @@ int H5_api_test_global_cleanup(void) {
         goto error;
     }
 
-    if (destroy_test_container(TEST_FILE_NAME, vol_cap_flags_g) < 0) {
+    if (destroy_test_container_internal(TEST_FILE_NAME, vol_cap_flags_g) < 0) {
         printf("    unable to destroy testing container file with basename '%s'\n", TEST_FILE_NAME);
         goto error;
     }
@@ -1270,6 +1281,22 @@ error:
 
     return -1;
 }
+
+void H5_api_test_display_results(void) {
+    const char *vol_connector_name = NULL;
+
+    if (NULL == (vol_connector_name = HDgetenv(HDF5_VOL_CONNECTOR)))
+        vol_connector_name = "native";
+    
+    printf("%zu/%zu (%.2f%%) API tests passed with VOL connector '%s'\n", n_tests_passed_g, n_tests_run_g,
+            ((double)n_tests_passed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
+    printf("%zu/%zu (%.2f%%) API tests did not pass with VOL connector '%s'\n", n_tests_failed_g,
+            n_tests_run_g, ((double)n_tests_failed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
+    printf("%zu/%zu (%.2f%%) API tests were skipped with VOL connector '%s'\n", n_tests_skipped_g,
+            n_tests_run_g, ((double)n_tests_skipped_g / (double)n_tests_run_g * 100.0),
+            vol_connector_name);
+}
+
 #ifdef H5_HAVE_MULTITHREAD
 /* Destructor for the API-test managed threadlocal value */
 static void H5_api_test_tl_key_destructor(void *value) {

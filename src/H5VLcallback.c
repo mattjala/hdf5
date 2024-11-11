@@ -543,7 +543,7 @@ H5VLcmp_connector_info(int *cmp, hid_t connector_id, const void *info1, const vo
     H5VL_class_t *cls = NULL;                 /* VOL connector's class struct */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE4("e", "*Isi*x*x", cmp, connector_id, info1, info2);
 
     /* Check args and get class pointer */
@@ -555,7 +555,7 @@ H5VLcmp_connector_info(int *cmp, hid_t connector_id, const void *info1, const vo
         H5VL_cmp_connector_info(cls, cmp, info1, info2);
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* H5VLcmp_connector_info() */
 
 /*-------------------------------------------------------------------------
@@ -1742,7 +1742,7 @@ H5VLattr_optional_op(const char *app_file, const char *app_func, unsigned app_li
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "*s*sIui*!ii", app_file, app_func, app_line, attr_id, args, dxpl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -1763,7 +1763,7 @@ H5VLattr_optional_op(const char *app_file, const char *app_func, unsigned app_li
             HGOTO_ERROR(H5E_VOL, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5VLattr_optional_op() */
 
 /*-------------------------------------------------------------------------
@@ -2787,7 +2787,7 @@ H5VLdataset_optional_op(const char *app_file, const char *app_func, unsigned app
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "*s*sIui*!ii", app_file, app_func, app_line, dset_id, args, dxpl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -2808,7 +2808,7 @@ H5VLdataset_optional_op(const char *app_file, const char *app_func, unsigned app
             HGOTO_ERROR(H5E_VOL, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5VLdataset_optional_op() */
 
 /*-------------------------------------------------------------------------
@@ -3499,7 +3499,7 @@ H5VLdatatype_optional_op(const char *app_file, const char *app_func, unsigned ap
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "*s*sIui*!ii", app_file, app_func, app_line, type_id, args, dxpl_id, es_id);
 
     /* Check args */
@@ -3523,7 +3523,7 @@ H5VLdatatype_optional_op(const char *app_file, const char *app_func, unsigned ap
             HGOTO_ERROR(H5E_VOL, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5VLdatatype_optional_op() */
 
 /*-------------------------------------------------------------------------
@@ -4359,7 +4359,7 @@ H5VLfile_optional_op(const char *app_file, const char *app_func, unsigned app_li
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "*s*sIui*!ii", app_file, app_func, app_line, file_id, args, dxpl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -4380,7 +4380,7 @@ H5VLfile_optional_op(const char *app_file, const char *app_func, unsigned app_li
             HGOTO_ERROR(H5E_VOL, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5VLfile_optional_op() */
 
 /*-------------------------------------------------------------------------
@@ -5018,7 +5018,7 @@ H5VLgroup_optional_op(const char *app_file, const char *app_func, unsigned app_l
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE7("e", "*s*sIui*!ii", app_file, app_func, app_line, group_id, args, dxpl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -5039,7 +5039,7 @@ H5VLgroup_optional_op(const char *app_file, const char *app_func, unsigned app_l
             HGOTO_ERROR(H5E_VOL, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5VLgroup_optional_op() */
 
 /*-------------------------------------------------------------------------
@@ -5809,7 +5809,7 @@ H5VLlink_optional_op(const char *app_file, const char *app_func, unsigned app_li
     hbool_t           vol_wrapper_set = FALSE;     /* Whether the VOL object wrapping context was set up */
     herr_t            ret_value       = SUCCEED;   /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE9("e", "*s*sIui*si*!ii", app_file, app_func, app_line, loc_id, name, lapl_id, args, dxpl_id,
              es_id);
 
@@ -5846,7 +5846,7 @@ done:
     if (vol_wrapper_set && H5VL_reset_vol_wrapper() < 0)
         HDONE_ERROR(H5E_VOL, H5E_CANTRESET, FAIL, "can't reset VOL wrapper info");
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5VLlink_optional_op() */
 
 /*-------------------------------------------------------------------------
@@ -6400,7 +6400,7 @@ H5VLobject_optional_op(const char *app_file, const char *app_func, unsigned app_
     hbool_t           vol_wrapper_set = FALSE;     /* Whether the VOL object wrapping context was set up */
     herr_t            ret_value       = SUCCEED;   /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE9("e", "*s*sIui*si*!ii", app_file, app_func, app_line, loc_id, name, lapl_id, args, dxpl_id,
              es_id);
 
@@ -6437,7 +6437,7 @@ done:
     if (vol_wrapper_set && H5VL_reset_vol_wrapper() < 0)
         HDONE_ERROR(H5E_VOL, H5E_CANTRESET, FAIL, "can't reset VOL wrapper info");
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5VLobject_optional_op() */
 
 /*-------------------------------------------------------------------------
@@ -7275,7 +7275,7 @@ H5VLrequest_optional_op(void *req, hid_t connector_id, H5VL_optional_args_t *arg
     H5VL_class_t *cls = NULL;                 /* VOL connector's class struct */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, H5I_INVALID_HID)
     H5TRACE3("e", "*xi*!", req, connector_id, args);
 
     /* Check arguments */
@@ -7293,7 +7293,7 @@ H5VLrequest_optional_op(void *req, hid_t connector_id, H5VL_optional_args_t *arg
         HGOTO_ERROR(H5E_VOL, H5E_CANTOPERATE, FAIL, "unable to execute request optional callback");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, H5I_INVALID_HID)
 } /* end H5VLrequest_optional_op() */
 
 /*-------------------------------------------------------------------------
