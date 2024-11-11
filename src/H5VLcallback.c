@@ -2238,9 +2238,7 @@ H5VLdataset_read(size_t count, void *obj[], hid_t connector_id, hid_t mem_type_i
     size_t        i;                   /* Local index variable */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    for (i = 0; i < count; i++)
-        FUNC_ENTER_VIRTUAL_LOCK(mem_type_id[i], mem_space_id[i], file_space_id[i])
-    FUNC_ENTER_API_NOINIT(connector_id, dxpl_id)
+    FUNC_ENTER_API_NOINIT(FAIL)
     H5TRACE9("e", "z**xi*i*i*ii**xx", count, obj, connector_id, mem_type_id, mem_space_id, file_space_id,
              dxpl_id, buf, req);
 
@@ -2266,9 +2264,7 @@ H5VLdataset_read(size_t count, void *obj[], hid_t connector_id, hid_t mem_type_i
         HGOTO_ERROR(H5E_VOL, H5E_CANTINIT, FAIL, "unable to read dataset");
 
 done:
-    for (i = 0; i < count; i++)
-        FUNC_LEAVE_VIRTUAL_LOCK(mem_type_id[i], mem_space_id[i], file_space_id[i])
-    FUNC_LEAVE_API_NOINIT(ret_value, connector_id, dxpl_id)
+    FUNC_LEAVE_API_NOINIT(ret_value)
 } /* end H5VLdataset_read() */
 
 /*-------------------------------------------------------------------------
@@ -2439,9 +2435,7 @@ H5VLdataset_write(size_t count, void *obj[], hid_t connector_id, hid_t mem_type_
     size_t        i;                   /* Local index variable */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    for (i = 0; i < count; i++)
-        FUNC_ENTER_VIRTUAL_LOCK(mem_type_id[i], mem_space_id[i], file_space_id[i])
-    FUNC_ENTER_API_NOINIT(connector_id, dxpl_id)
+    FUNC_ENTER_API_NOINIT(FAIL)
     H5TRACE9("e", "z**xi*i*i*ii**xx", count, obj, connector_id, mem_type_id, mem_space_id, file_space_id,
              dxpl_id, buf, req);
 
@@ -2467,9 +2461,7 @@ H5VLdataset_write(size_t count, void *obj[], hid_t connector_id, hid_t mem_type_
         HGOTO_ERROR(H5E_VOL, H5E_CANTINIT, FAIL, "unable to write dataset");
 
 done:
-    for (i = 0; i < count; i++)
-        FUNC_LEAVE_VIRTUAL_LOCK(mem_type_id[i], mem_space_id[i], file_space_id[i])
-    FUNC_LEAVE_API_NOINIT(ret_value, connector_id, dxpl_id)
+    FUNC_LEAVE_API_NOINIT(ret_value)
 } /* end H5VLdataset_write() */
 
 /*-------------------------------------------------------------------------
