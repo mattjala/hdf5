@@ -11,8 +11,8 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /* Purpose:     A virtual object layer (VOL) connector used for testing
- *              multi-threaded access to the HDF5 library. Does not actually
- *              interact with a real storage layer.
+ *              multi-threaded access to the HDF5 library. Just invokes
+ *              the corresponding native VOL connector routines under a lock.
  */
 
 /* For HDF5 plugin functionality */
@@ -26,14 +26,11 @@
 
 #include <pthread.h>
 
-herr_t generate_filename(const char *original_filename, char *out_filename);
-herr_t recover_filename(const char *new_filename, char *original_filename);
-
 /* Attribute callbacks */
 H5_DLL void  *mt_test_attr_create(void *obj, const H5VL_loc_params_t *loc_params, const char *attr_name,
                                        hid_t type_id, hid_t space_id, hid_t acpl_id, hid_t aapl_id,
                                        hid_t dxpl_id, void **req);
-void         *mt_test_attr_open(void *obj, const H5VL_loc_params_t *loc_params, const char *attr_name,
+H5_DLL void *mt_test_attr_open(void *obj, const H5VL_loc_params_t *loc_params, const char *attr_name,
                                      hid_t aapl_id, hid_t dxpl_id, void **req);
 H5_DLL herr_t mt_test_attr_read(void *attr, hid_t dtype_id, void *buf, hid_t dxpl_id, void **req);
 H5_DLL herr_t mt_test_attr_write(void *attr, hid_t dtype_id, const void *buf, hid_t dxpl_id, void **req);
@@ -266,64 +263,6 @@ static const H5VL_class_t mt_test_vol_g = {
     },
     NULL /* optional     */
 };
-
-
-#define MT_TEST_FILENAME_PREFIX "mt_terminal_test_vol_"
-#define MT_TEST_FILENAME_BUF_SIZE 128
-#define MAX_THREAD_ID_LEN 15
-#define MT_TEST_PREFIX_LENGTH (MAX_THREAD_ID_LEN + strlen(MT_TEST_FILENAME_PREFIX))
-
-// out filename must already be allocated
-herr_t generate_filename(const char *original_filename, char *out_filename) {
-    int chars_written = 0;
-    pthread_t thread_id = pthread_self();
-    char pthread_buf[MAX_THREAD_ID_LEN + 1];
-
-    /* Make sure thread ID has expected length, to allow for filename recovery later */
-    if ((chars_written = snprintf(pthread_buf, MAX_THREAD_ID_LEN + 1, "%ld", thread_id)) < 0) {
-        printf("Failed to create thread ID\n");
-        return -1;
-    }
-
-    if (chars_written > MAX_THREAD_ID_LEN) {
-        printf("Thread ID %ld has unexpected length\n", (long int) thread_id);
-        return -1;
-    }
-
-    if (chars_written < MAX_THREAD_ID_LEN) {
-        /* Pad with right zeros */
-        memset(pthread_buf + chars_written, '0', MAX_THREAD_ID_LEN - (size_t) chars_written);
-    }
-
-    pthread_buf[MAX_THREAD_ID_LEN] = '\0';
-
-    if ((chars_written = snprintf(out_filename, MT_TEST_FILENAME_BUF_SIZE, "%s%s%s", MT_TEST_FILENAME_PREFIX,pthread_buf, original_filename)) < 0) {
-        printf("Failed to create new file name\n");
-        return -1;
-    }
-
-    return 0;
-}
-
-// original_filename must already be allocated
-herr_t recover_filename(const char *new_filename, char *original_filename) {
-    if (strlen(new_filename) <= MT_TEST_PREFIX_LENGTH) {
-        printf("Filename is too short\n");
-        return -1;
-    }
-
-    if (strncmp(new_filename, MT_TEST_FILENAME_PREFIX, strlen(MT_TEST_FILENAME_PREFIX)) != 0) {
-        printf("Filename does not have expected prefix\n");
-        return -1;
-    }
-
-    if (strcpy(original_filename, new_filename + MT_TEST_PREFIX_LENGTH) == NULL) {
-        printf("Failed to copy original filename\n");
-        return -1;
-    }
-
-    return 0;
-}
 
 void *
 mt_test_attr_create(void *obj, const H5VL_loc_params_t *loc_params, const char *attr_name, hid_t type_id, hid_t space_id, hid_t acpl_id, hid_t aapl_id, hid_t dxpl_id, void **req) {
@@ -561,15 +500,9 @@ mt_test_datatype_close(void *dt, hid_t dxpl_id, void **req) {
 void *
 mt_test_file_create(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id, hid_t dxpl_id, void **req) {
     void *ret_value = NULL;
-    char new_name[MT_TEST_FILENAME_BUF_SIZE];
-
-    if (generate_filename(name, new_name) < 0) {
-        printf("Failed to generate new file name\n");
-        return NULL;
-    }
-
+    
     H5_API_LOCK;
-    ret_value = H5VL__native_file_create(new_name, flags, fcpl_id, fapl_id, dxpl_id, req);
+    ret_value = H5VL__native_file_create(name, flags, fcpl_id, fapl_id, dxpl_id, req);
     H5_API_UNLOCK;
 
     return ret_value;
@@ -578,15 +511,9 @@ mt_test_file_create(const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_
 void *
 mt_test_file_open(const char *name, unsigned flags, hid_t fapl_id, hid_t dxpl_id, void **req) {
     void *ret_value = NULL;
-    char new_name[MT_TEST_FILENAME_BUF_SIZE];
-
-    if (generate_filename(name, new_name) < 0) {
-        printf("Failed to generate new file name\n");
-        return (void*) -1;
-    }
 
     H5_API_LOCK;
-    ret_value = H5VL__native_file_open(new_name, flags, fapl_id, dxpl_id, req);
+    ret_value = H5VL__native_file_open(name, flags, fapl_id, dxpl_id, req);
     H5_API_UNLOCK;
 
     return ret_value;
@@ -595,46 +522,10 @@ mt_test_file_open(const char *name, unsigned flags, hid_t fapl_id, hid_t dxpl_id
 herr_t
 mt_test_file_get(void *file, H5VL_file_get_args_t *args, hid_t dxpl_id, void **req) {
     herr_t ret_value = SUCCEED;
-    char *filename_buf = NULL;
 
     H5_API_LOCK;
     ret_value = H5VL__native_file_get(file, args, dxpl_id, req);
     H5_API_UNLOCK;
-
-    switch (args->op_type) {
-        case H5VL_FILE_GET_NAME: {
-            if (args->args.get_name.buf == NULL) {
-                /* This is preliminary call to determine necessary buffer length */
-                args->args.get_name.buf_size += (MT_TEST_PREFIX_LENGTH + MAX_THREAD_ID_LEN);
-            } else {
-                /* Populate filename buffer */
-                if ((filename_buf = strdup(args->args.get_name.buf)) == NULL) {
-                    printf("Failed to copy filename\n");
-                    ret_value = -1;
-                    goto error;
-                }
-
-                if (recover_filename(filename_buf, args->args.get_name.buf) < 0) {
-                    printf("Failed to recover filename\n");
-                    ret_value = -1;
-                    goto error;
-                }
-
-                free(filename_buf);\
-                filename_buf = NULL;
-            }
-           
-        }
-            break;
-
-        default:
-            break;
-    }
-
-error:
-    if (filename_buf != NULL) {
-        free(filename_buf);
-    }
 
     return ret_value;
 }
@@ -642,54 +533,10 @@ error:
 herr_t
 mt_test_file_specific(void *file, H5VL_file_specific_args_t *args, hid_t dxpl_id, void **req) {
     herr_t ret_value = SUCCEED;
-    char new_name[MT_TEST_FILENAME_BUF_SIZE];
-    const char *original_name = NULL;
 
-    /* Set up modified filename */
-    switch (args->op_type) {
-        case H5VL_FILE_IS_ACCESSIBLE:
-            {
-
-                if (generate_filename(args->args.is_accessible.filename, new_name) < 0) {
-                    printf("Failed to generate new file name\n");
-                    return -1;
-                }
-
-                original_name = args->args.is_accessible.filename;
-                args->args.is_accessible.filename = new_name;
-            }
-            break;
-        case H5VL_FILE_DELETE:
-            {
-                if (generate_filename(args->args.del.filename, new_name) < 0) {
-                    printf("Failed to generate new file name\n");
-                    return -1;
-                }
-
-                original_name = args->args.del.filename;
-                args->args.del.filename = new_name;
-            }
-            break;
-        default:
-            break;
-    }
-
-    /* Perform operation */
     H5_API_LOCK;
     ret_value = H5VL__native_file_specific(file, args, dxpl_id, req);
     H5_API_UNLOCK;
-
-    /* Undo filename modification */
-    switch (args->op_type) {
-        case H5VL_FILE_IS_ACCESSIBLE:
-            args->args.is_accessible.filename = original_name;
-            break;
-        case H5VL_FILE_DELETE:
-            args->args.del.filename = original_name;
-            break;
-        default:
-            break;
-    }
 
     return ret_value;
 }
@@ -787,86 +634,10 @@ mt_test_group_close(void *grp, hid_t dxpl_id, void **req) {
 herr_t
 mt_test_link_create(H5VL_link_create_args_t *args, void *obj, const H5VL_loc_params_t *loc_params, hid_t lcpl_id, hid_t lapl_id, hid_t dxpl_id, void **req) {
     herr_t ret_value = SUCCEED;
-    char new_name[MT_TEST_FILENAME_BUF_SIZE];
-    void *new_buf = NULL;
-    const char *original_name = NULL;
-    const char *original_buf = NULL;
-    size_t original_size = 0;
-
-    memset(new_name, 0, MT_TEST_FILENAME_BUF_SIZE);
-
-    switch (args->op_type) {
-        case H5VL_LINK_CREATE_UD: {
-            if (args->args.ud.type != H5L_TYPE_EXTERNAL) {
-                break;
-            }
-
-            size_t name_len = 0;
-            size_t new_buf_size = 0;
-            uint8_t *p = NULL;
-            const char *norm_obj_buf = NULL;
-
-            /* Skip external link flags */
-            original_buf = (const char *) args->args.ud.buf;
-            original_size = args->args.ud.buf_size;
-            original_name = original_buf + 1;
-            name_len = strlen(original_name);
-
-            norm_obj_buf = original_name + name_len + 1;
-            if (generate_filename(original_name, new_name) < 0) {
-                printf("Failed to generate new file name\n");
-                ret_value = FAIL;
-                goto error;
-            }
-
-            assert(original_size = 1 + name_len + 1 + strlen(norm_obj_buf) + 1);
-
-            new_buf_size = 1 + strlen(new_name) + 1 +  strlen(norm_obj_buf) + 1;
-
-            if ((new_buf = (char *) malloc(new_buf_size)) == NULL) {
-                printf("Failed to allocate new buffer\n");
-                ret_value = FAIL;
-                goto error;
-            }
-
-            p = (uint8_t*) new_buf;
-            *p = ((const uint8_t*)original_buf)[0];
-            p++;
-
-            strncpy((char*) p, new_name, strlen(new_name) + 1);
-            p += strlen(new_name) + 1;
-
-            strncpy((char*) p, norm_obj_buf, strlen(norm_obj_buf) + 1);
-            p += strlen(norm_obj_buf) + 1;
-
-            args->args.ud.buf_size = new_buf_size;
-            args->args.ud.buf = new_buf;
-
-
-        }
-            break;
-        default:
-            break;
-    }
 
     H5_API_LOCK;
     ret_value = H5VL__native_link_create(args, obj, loc_params, lcpl_id, lapl_id, dxpl_id, req);
     H5_API_UNLOCK;
-
-    switch (args->op_type) {
-        case H5VL_LINK_CREATE_UD:
-            if (args->args.ud.type == H5L_TYPE_EXTERNAL) {
-                args->args.ud.buf = original_buf;
-                args->args.ud.buf_size = original_size;
-            }
-            break;
-        default:
-            break;
-    }
-error:
-    if (new_buf) {
-        free(new_buf);
-    }
 
     return ret_value;
 }
@@ -896,114 +667,10 @@ mt_test_link_move(void *src_obj, const H5VL_loc_params_t *loc_params1, void *dst
 herr_t
 mt_test_link_get(void *obj, const H5VL_loc_params_t *loc_params, H5VL_link_get_args_t *args, hid_t dxpl_id, void **req) {
     herr_t ret_value = SUCCEED;
-    char *temp_link_value = NULL;
-    H5L_type_t type = H5L_TYPE_ERROR;
-
-    /* Sanity Check */
-    assert(obj);
 
     H5_API_LOCK;
     ret_value = H5VL__native_link_get(obj, loc_params, args, dxpl_id, req);
     H5_API_UNLOCK;
-
-    if (ret_value < 0) {
-        printf("Failed to get link\n");
-        goto done;
-    }
-
-    switch (args->op_type) {
-        case H5VL_LINK_GET_INFO: {
-            if (args->args.get_info.linfo->type == H5L_TYPE_EXTERNAL) {
-                /* Actual size on disk will exceed expected size; report the size the user provided */
-                args->args.get_info.linfo->u.val_size -= MT_TEST_PREFIX_LENGTH;
-            }
-        }
-            break;
-
-        case H5VL_LINK_GET_VAL: {
-            if (args->args.get_val.buf == NULL) {
-                printf("Buffer is NULL\n");
-                ret_value = -1;
-                goto done;
-            }
-
-            if ((args->args.get_val.buf_size >= (MT_TEST_PREFIX_LENGTH + 1)) && 
-                (strncmp((char*)args->args.get_val.buf + 1, MT_TEST_FILENAME_PREFIX, strlen(MT_TEST_FILENAME_PREFIX)) == 0)) {
-                type = H5L_TYPE_EXTERNAL;
-            } else {
-                /* Native callback throws an error if called on hard links, so this is the only possibility */
-                type = H5L_TYPE_SOFT;
-            }
-
-            switch (type) {
-                case H5L_TYPE_SOFT: 
-                    break;
-
-                case H5L_TYPE_EXTERNAL: {
-                    /* Returned value is link flags + modified filename + \0 + norm obj buf + \0 + \0 */
-                    uint8_t *p = NULL;
-                    const char *modified_filename = ((char*) args->args.get_val.buf) + 1;
-                    size_t name_len = strlen(modified_filename);
-                    const char *norm_obj_buf = modified_filename + name_len + 1;
-                    size_t norm_obj_len = strlen(norm_obj_buf);
-                    size_t new_name_len = 0;
-
-                    assert(name_len > MT_TEST_PREFIX_LENGTH);
-                    new_name_len = name_len - MT_TEST_PREFIX_LENGTH;
-
-                    if ((temp_link_value = (char *) malloc(new_name_len + 1)) == NULL) {
-                        printf("Failed to allocate new buffer\n");
-                        ret_value = -1;
-                        goto done;
-                    }
-
-                    if (recover_filename(modified_filename, temp_link_value) < 0) {
-                        printf("Failed to recover filename\n");
-                        ret_value = -1;
-                        goto done;
-                    }
-
-                    /* Assemble output buffer */
-                    
-                    p = (uint8_t*) args->args.get_val.buf;
-                    /* Flags are unchanged */
-                    p++;
-
-                    strncpy((char*) p, temp_link_value, new_name_len + 1);
-                    p += new_name_len + 1;
-
-
-                    strncpy((char*) p, norm_obj_buf, norm_obj_len + 1);
-                    p += norm_obj_len + 1;
-
-                    *p = '\0';
-
-                    free(temp_link_value);
-                    temp_link_value = NULL;
-
-                }
-                break;
-
-                default: {
-                    printf("Unknown link type\n");
-                    ret_value = -1;
-                    goto done;
-                }
-                break;
-            }
-
-        }
-            break;
-
-        default:
-            break;
-
-    }
-
-done:
-    if (temp_link_value) {
-        free(temp_link_value);
-    }
 
     return ret_value;
 }
