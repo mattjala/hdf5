@@ -20,29 +20,29 @@
 #include "H5PLextern.h"
 
 /* This connector's header */
-#include "thread_test_vol_connector.h"
+#include "mt_vl_test_vol_connector.h"
 
 #include <pthread.h>
 #include <stdatomic.h>
 
 #ifdef H5_HAVE_MULTITHREAD 
 
-void *thread_test_file_open(const char *name, unsigned flags, hid_t fapl_id,
+void *mt_vl_test_file_open(const char *name, unsigned flags, hid_t fapl_id,
                           hid_t dxpl_id, void **req);
 
-herr_t thread_test_file_close(void *file, hid_t dxpl_id, void **req);
+herr_t mt_vl_test_file_close(void *file, hid_t dxpl_id, void **req);
 
-herr_t thread_test_file_specific(void *obj, H5VL_file_specific_args_t *args,
+herr_t mt_vl_test_file_specific(void *obj, H5VL_file_specific_args_t *args,
                                hid_t dxpl_id, void **req);
 
-herr_t thread_test_introspect_opt_query(void *obj, H5VL_subclass_t subcls,
+herr_t mt_vl_test_introspect_opt_query(void *obj, H5VL_subclass_t subcls,
                                       int opt_type, uint64_t *flags);
 
 /* The VOL class struct */
-static const H5VL_class_t thread_test_vol_g = {
+static const H5VL_class_t mt_vl_test_vol_g = {
     H5VL_VERSION,                  /* VOL class struct version */
-    THREAD_TEST_VOL_CONNECTOR_VALUE, /* value            */
-    THREAD_TEST_VOL_CONNECTOR_NAME,  /* name             */
+    MT_VL_TEST_VOL_CONNECTOR_VALUE, /* value            */
+    MT_VL_TEST_VOL_CONNECTOR_NAME,  /* name             */
     0,                             /* connector version */
     H5VL_CAP_FLAG_FILE_BASIC | H5VL_CAP_FLAG_THREADSAFE, /* capability flags */
     NULL,                                                /* initialize       */
@@ -98,11 +98,11 @@ static const H5VL_class_t thread_test_vol_g = {
     {
         /* file_cls */
         NULL,                    /* create           */
-        thread_test_file_open,     /* open             */
+        mt_vl_test_file_open,     /* open             */
         NULL,                    /* get              */
-        thread_test_file_specific, /* specific         */
+        mt_vl_test_file_specific, /* specific         */
         NULL, /* optional         */
-        thread_test_file_close     /* close            */
+        mt_vl_test_file_close     /* close            */
     },
     {
         /* group_cls */
@@ -134,7 +134,7 @@ static const H5VL_class_t thread_test_vol_g = {
         /* introspect_cls */
         NULL,                           /* get_conn_cls     */
         NULL,                           /* get_cap_flags    */
-        thread_test_introspect_opt_query, /* opt_query        */
+        mt_vl_test_introspect_opt_query, /* opt_query        */
     },
     {
         /* request_cls */
@@ -162,14 +162,14 @@ static const H5VL_class_t thread_test_vol_g = {
 };
 
 /*--------------------------------------------------------------------------
- * Function: thread_test_file_open
+ * Function: mt_vl_test_file_open
  *
  * Purpose: Always return success to pretend to open a file
  *
  * Return: (void*)1
  *-------------------------------------------------------------------------
  */
-void *thread_test_file_open(const char *name, unsigned flags, hid_t fapl_id,
+void *mt_vl_test_file_open(const char *name, unsigned flags, hid_t fapl_id,
                           hid_t dxpl_id, void **req) {
   /* Silence warnings */
   (void)name;
@@ -179,30 +179,35 @@ void *thread_test_file_open(const char *name, unsigned flags, hid_t fapl_id,
   (void)req;
 
   return (void *)1;
-} /* end thread_test_file_open() */
+} /* end mt_vl_test_file_open() */
 
-herr_t thread_test_file_close(void *file, hid_t dxpl_id, void **req) {
+/*--------------------------------------------------------------------------
+ * Function: mt_vl_test_file_close
+ *
+ * Purpose: Always return success to 'close' a fake file object
+ *
+ * Return: 0 on success, -1 on failure
+ *-------------------------------------------------------------------------
+ */
+herr_t mt_vl_test_file_close(void *file, hid_t dxpl_id, void **req) {
   /* Silence warnings */
   (void)file;
   (void)dxpl_id;
   (void)req;
 
   return 0;
-} /* end thread_test_file_close() */
+} /* end mt_vl_test_file_close() */
 
 /*--------------------------------------------------------------------------
- * Function: thread_test_file_specific
+ * Function: mt_vl_test_file_specific
  *
- * Purpose: Implement H5Fis_accessible() to pretend to check file accessibility
- *    to satisfy the check when loading a connector during file open failure.
+ * Purpose: Implement H5Fis_accessible() to always indicate file is accessible,
+ *          to facilitate testing file open failure.
  * 
- *    Other operations are overloaded for specific thread-related tests with no
- *    relation to the original intended operation.
- *
  * Return: 0 on success, -1 on failure
  *-------------------------------------------------------------------------
  */
-herr_t thread_test_file_specific(void *obj, H5VL_file_specific_args_t *args,
+herr_t mt_vl_test_file_specific(void *obj, H5VL_file_specific_args_t *args,
                                hid_t dxpl_id, void **req) {
   herr_t ret_value = 0;
 
@@ -222,9 +227,10 @@ herr_t thread_test_file_specific(void *obj, H5VL_file_specific_args_t *args,
   }
 
   return ret_value;
-} /* end thread_test_file_specific() */
+} /* end mt_vl_test_file_specific() */
 
-herr_t thread_test_introspect_opt_query(void *obj, H5VL_subclass_t subcls,
+/* Return 'success' to indicate that this VOL implements expected operations. */
+herr_t mt_vl_test_introspect_opt_query(void *obj, H5VL_subclass_t subcls,
                                       int opt_type, uint64_t *flags) {
   herr_t ret_value = 0;
 
@@ -235,13 +241,13 @@ herr_t thread_test_introspect_opt_query(void *obj, H5VL_subclass_t subcls,
   (void)flags;
 
   return ret_value;
-} /* end thread_test_introspect_opt_query() */
+} /* end mt_vl_test_introspect_opt_query() */
 
 /* These two functions are necessary to load this plugin using
  * the HDF5 library.
  */
 
 H5PL_type_t H5PLget_plugin_type(void) { return H5PL_TYPE_VOL; }
-const void *H5PLget_plugin_info(void) { return &thread_test_vol_g; }
+const void *H5PLget_plugin_info(void) { return &mt_vl_test_vol_g; }
 
 #endif /* H5_HAVE_MULTITHREAD */

@@ -1,8 +1,8 @@
 /* VOL connectors used for testing */
 #include "H5VLpassthru.c"
 #include "H5VLpassthru.h"
-#include "thread_test_vol_connector.c"
-#include "thread_test_vol_connector.h"
+#include "mt_vl_test_vol_connector.c"
+#include "mt_vl_test_vol_connector.h"
 #include "null_vol_connector.h"
 #include <pthread.h>
 

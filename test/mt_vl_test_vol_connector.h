@@ -17,10 +17,10 @@
  * open failure.
  */
 
-#ifndef H5VL_fake_open_H
-#define H5VL_fake_open_H
+#ifndef H5VL_MT_VL_TEST_VOL_H
+#define H5VL_MT_VL_TEST_VOL_H
 
-#define THREAD_TEST_VOL_CONNECTOR_VALUE ((H5VL_class_value_t)161)
-#define THREAD_TEST_VOL_CONNECTOR_NAME "thread_test_vol_connector"
+#define MT_VL_TEST_VOL_CONNECTOR_VALUE ((H5VL_class_value_t)161)
+#define MT_VL_TEST_VOL_CONNECTOR_NAME "mt_vl_test_vol_connector"
 
-#endif /* H5VL_fake_open_H */
+#endif /* H5VL_MT_VL_TEST_VOL_H */
