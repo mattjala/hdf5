@@ -10,9 +10,10 @@
  * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* Purpose:     A virtual object layer (VOL) connector used for testing
- *              multi-threaded access to the HDF5 library. Does not actually
- *              interact with a real storage layer.
+/* Purpose:     A virtual object layer (VOL) connector used for the 
+ *               multithreaded H5VL tests. Does not actually
+ *              interact with a real storage layer or implemenet
+ *              the expected API.
  */
 
 /* For HDF5 plugin functionality */
@@ -21,12 +22,10 @@
 /* This connector's header */
 #include "thread_test_vol_connector.h"
 
-#include <time.h>
 #include <pthread.h>
 #include <stdatomic.h>
 
 #ifdef H5_HAVE_MULTITHREAD 
-const struct timespec sleep_time_g = {0L, (1000 * 1000 * 100)};
 
 void *thread_test_file_open(const char *name, unsigned flags, hid_t fapl_id,
                           hid_t dxpl_id, void **req);
@@ -36,15 +35,8 @@ herr_t thread_test_file_close(void *file, hid_t dxpl_id, void **req);
 herr_t thread_test_file_specific(void *obj, H5VL_file_specific_args_t *args,
                                hid_t dxpl_id, void **req);
 
-herr_t thread_test_file_optional(void *obj, H5VL_optional_args_t *args, hid_t dxpl_id, void **req);
-
 herr_t thread_test_introspect_opt_query(void *obj, H5VL_subclass_t subcls,
                                       int opt_type, uint64_t *flags);
-
-typedef struct vlock_test_args_t {
-    hid_t file_id;
-    _Atomic int *vlock_test_flag;
-} vlock_test_args_t;
 
 /* The VOL class struct */
 static const H5VL_class_t thread_test_vol_g = {
@@ -109,7 +101,7 @@ static const H5VL_class_t thread_test_vol_g = {
         thread_test_file_open,     /* open             */
         NULL,                    /* get              */
         thread_test_file_specific, /* specific         */
-        thread_test_file_optional, /* optional         */
+        NULL, /* optional         */
         thread_test_file_close     /* close            */
     },
     {
@@ -198,45 +190,6 @@ herr_t thread_test_file_close(void *file, hid_t dxpl_id, void **req) {
   return 0;
 } /* end thread_test_file_close() */
 
-herr_t thread_test_file_optional(void *obj, H5VL_optional_args_t *args, hid_t dxpl_id, void **req) {
-    H5VL_native_file_optional_args_t *opt_args = NULL;
-    size_t sleep_count = 0;
-    herr_t ret_value = 0;
-
-    /* Silence compiler warnings */
-    (void)obj;
-    (void)dxpl_id;
-    (void)req;
-
-    switch (args->op_type) {
-        /* Used for invalid API usage test */
-        case H5VL_NATIVE_FILE_GET_FILE_IMAGE: {
-            opt_args = (H5VL_native_file_optional_args_t *)args->args;
-            vlock_test_args_t *vlock_test_args = (vlock_test_args_t *)opt_args->get_file_image.buf;
-            _Atomic int *vlock_test_flag = vlock_test_args->vlock_test_flag;
-
-            /* Wait until another thread raises the flag or timeout */
-            do {
-                nanosleep(&sleep_time_g, NULL);
-                sleep_count++;
-
-                if (sleep_count > 100) {
-                    ret_value = -1;
-                    goto error;
-                }
-
-            } while(atomic_load(vlock_test_flag) == 0);
-
-            break;
-        }
-
-        default:
-            break;
-    }
-
-error:
-    return ret_value;
-}
 /*--------------------------------------------------------------------------
  * Function: thread_test_file_specific
  *
