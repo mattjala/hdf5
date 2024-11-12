@@ -439,7 +439,7 @@ static H5CX_node_t *H5CX__pop_common(hbool_t update_dxpl_props);
 
 #if !defined(H5_HAVE_THREADSAFE) && !defined(H5_HAVE_MULTITHREAD)
 static H5CX_node_t *H5CX_head_g = NULL; /* Pointer to head of context stack */
-#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
+#endif                                  /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 /* Define a "default" dataset transfer property list cache structure to use for default DXPLs */
 static H5CX_dxpl_cache_t H5CX_def_dxpl_cache;
@@ -954,21 +954,34 @@ H5CX_retrieve_state(H5CX_state_t **api_state)
                 H5VL_class_t *connector;                 /* Pointer to connector */
                 void         *new_connector_info = NULL; /* Copy of connector info */
 
+                /* Increment the refcount on the connector ID before duplication */
+                if (H5I_inc_ref((*api_state)->vol_connector_prop.connector_id, FALSE) < 0)
+                    HGOTO_ERROR(H5E_CONTEXT, H5E_CANTINC, FAIL, "incrementing VOL connector ID failed");
+
                 /* Retrieve the connector for the ID */
                 if (NULL ==
-                    (connector = (H5VL_class_t *)H5I_object((*api_state)->vol_connector_prop.connector_id)))
+                    (connector = (H5VL_class_t *)H5I_object((*api_state)->vol_connector_prop.connector_id))) {
+                    /* If failure occurs between incrementing ref count and attaching it to API state,
+                     * directly decrement ref count */
+                    if (H5I_dec_ref((*api_state)->vol_connector_prop.connector_id) < 0)
+                        HGOTO_ERROR(H5E_CONTEXT, H5E_CANTDEC, FAIL,
+                                    "can't decrement refcount on VOL connector ID");
                     HGOTO_ERROR(H5E_CONTEXT, H5E_BADTYPE, FAIL, "not a VOL connector ID");
+                }
 
                 /* Allocate and copy connector info */
                 if (H5VL_copy_connector_info(connector, &new_connector_info,
-                                             (*api_state)->vol_connector_prop.connector_info) < 0)
-                    HGOTO_ERROR(H5E_CONTEXT, H5E_CANTCOPY, FAIL, "connector info copy failed");
+                                             (*api_state)->vol_connector_prop.connector_info) < 0) {
+
+                    if (H5I_dec_ref((*api_state)->vol_connector_prop.connector_id) < 0)
+                        HGOTO_ERROR(H5E_CONTEXT, H5E_CANTDEC, FAIL,
+                                    "can't decrement refcount on VOL connector ID");
+                }
+                HGOTO_ERROR(H5E_CONTEXT, H5E_CANTCOPY, FAIL, "connector info copy failed");
+
                 (*api_state)->vol_connector_prop.connector_info = new_connector_info;
             } /* end if */
 
-            /* Increment the refcount on the connector ID */
-            if (H5I_inc_ref((*api_state)->vol_connector_prop.connector_id, FALSE) < 0)
-                HGOTO_ERROR(H5E_CONTEXT, H5E_CANTINC, FAIL, "incrementing VOL connector ID failed");
         } /* end if */
     }     /* end if */
 
