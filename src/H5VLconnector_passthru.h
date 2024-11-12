@@ -101,9 +101,9 @@ H5_DLL herr_t H5VLget_cap_flags(hid_t connector_id, uint64_t *cap_flags);
 H5_DLL herr_t H5VLget_value(hid_t connector_id, H5VL_class_value_t *conn_value);
 
 /* Public wrappers for info fields and callbacks */
-H5_DLL herr_t H5VLcopy_connector_info(hid_t connector_id, void **dst_vol_info, void *src_vol_info);
+H5_DLL herr_t H5VLcopy_connector_info(hid_t connector_id, void **dst_vol_info, const void *src_vol_info);
 H5_DLL herr_t H5VLcmp_connector_info(int *cmp, hid_t connector_id, const void *info1, const void *info2);
-H5_DLL herr_t H5VLfree_connector_info(hid_t connector_id, void *vol_info);
+H5_DLL herr_t H5VLfree_connector_info(hid_t connector_id, const void *vol_info);
 H5_DLL herr_t H5VLconnector_info_to_str(const void *info, hid_t connector_id, char **str);
 H5_DLL herr_t H5VLconnector_str_to_info(const char *str, hid_t connector_id, void **info);
 
