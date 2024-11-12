@@ -271,7 +271,7 @@ H5F__set_vol_conn(H5F_t *file)
     H5VL_connector_prop_t connector_prop;               /* Property for VOL connector ID & info */
     void                 *new_connector_info = NULL;    /* Copy of connector info */
     herr_t                ret_value          = SUCCEED; /* Return value */
-    hbool_t               conn_id_incr       = FALSE;   /* Whether the connector ID was incremented */
+    bool                  conn_id_incr       = FALSE;   /* Whether the connector ID was incremented */
 
     FUNC_ENTER_PACKAGE
 
