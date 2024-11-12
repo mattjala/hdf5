@@ -120,7 +120,7 @@ main(int argc, char *argv[])
 #endif /* H5_HAVE_PTHREAD_H */
     AddTest("acreate", tts_acreate, NULL, cleanup_acreate, NULL, 0, 0, "multi-attribute creation");
     AddTest("attr_vlen", tts_attr_vlen, NULL, cleanup_attr_vlen, NULL, 0, 0, "multi-file-attribute-vlen read");
-
+    AddTest("mutex", tts_mutex, NULL, cleanup_mutex, NULL, 0, 0, "mutex operations");
 #else /* H5_HAVE_THREADSAFE */
 
     printf("Most thread-safety tests skipped because THREADSAFE not enabled\n");

@@ -346,6 +346,7 @@ set (ttsafe_SOURCES
     ${HDF5_TEST_SOURCE_DIR}/ttsafe_acreate.c
     ${HDF5_TEST_SOURCE_DIR}/ttsafe_attr_vlen.c
     ${HDF5_TEST_SOURCE_DIR}/ttsafe_error_stacks.c
+    ${HDF5_TEST_SOURCE_DIR}/ttsafe_mutex.c
 )
 
 set (H5_TESTS

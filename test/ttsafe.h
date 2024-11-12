@@ -39,6 +39,7 @@ herr_t tts_error(TestParams_t *);
 herr_t tts_cancel(TestParams_t *);
 herr_t tts_acreate(TestParams_t *);
 herr_t tts_attr_vlen(TestParams_t *);
+herr_t tts_mutex(TestParams_t *);
 
 /* Prototypes for the cleanup routines */
 herr_t cleanup_dcreate(TestParams_t *);
@@ -46,6 +47,7 @@ herr_t cleanup_error(TestParams_t *);
 herr_t cleanup_cancel(TestParams_t *);
 herr_t cleanup_acreate(TestParams_t *);
 herr_t cleanup_attr_vlen(TestParams_t *);
+herr_t cleanup_mutex(TestParams_t *);
 
 #endif /* H5_HAVE_THREADSAFE */
 #endif /* TTSAFE_H */
