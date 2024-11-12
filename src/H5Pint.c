@@ -917,6 +917,7 @@ H5P_copy_plist(const H5P_genplist_t *old_plist, hbool_t app_ref)
     hid_t           ret_value = H5I_INVALID_HID; /* return value */
 
     FUNC_ENTER_NOAPI(H5I_INVALID_HID)
+    H5_API_LOCK
 
     assert(old_plist);
 
@@ -1104,6 +1105,7 @@ done:
     if (H5I_INVALID_HID == ret_value && new_plist)
         H5P_close(new_plist);
 
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5P_copy_plist() */
 
@@ -4050,6 +4052,7 @@ H5P_isa_class(hid_t plist_id, hid_t pclass_id)
     htri_t          ret_value = FAIL; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
+    H5_API_LOCK
 
     /* Check arguments. */
     if (NULL == (plist = (H5P_genplist_t *)H5I_object_verify(plist_id, H5I_GENPROP_LST)))
@@ -4062,6 +4065,7 @@ H5P_isa_class(hid_t plist_id, hid_t pclass_id)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTREGISTER, FAIL, "unable to compare property list classes");
 
 done:
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5P_isa_class() */
 
@@ -4533,6 +4537,7 @@ H5P_peek(H5P_genplist_t *plist, const char *name, void *value)
     herr_t            ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
+    H5_API_LOCK
 
     /* Sanity check */
     assert(plist);
@@ -4545,6 +4550,7 @@ H5P_peek(H5P_genplist_t *plist, const char *name, void *value)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTOPERATE, FAIL, "can't operate on plist to peek at value");
 
 done:
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* H5P_peek() */
 
