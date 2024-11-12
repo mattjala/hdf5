@@ -84,17 +84,17 @@ typedef struct {
 /* Local Prototypes */
 /********************/
 static herr_t         H5VL__free_cls(H5VL_class_t *cls, void **request);
-static int            H5VL__get_connector_cb(void *obj, hid_t id, void *_op_data);
 static void          *H5VL__wrap_obj(void *obj, H5I_type_t obj_type);
 static H5VL_object_t *H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *vol_connector,
                                         hbool_t wrap_obj);
 static void          *H5VL__object(hid_t id, H5I_type_t obj_type);
 static herr_t         H5VL__free_vol_wrapper(H5VL_wrap_ctx_t *vol_wrap_ctx);
 
-static herr_t H5VL__get_registered_connector_st(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
-
 #ifdef H5_HAVE_MULTITHREAD
 static herr_t H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
+#else
+static int            H5VL__get_connector_cb(void *obj, hid_t id, void *_op_data);
+static herr_t H5VL__get_registered_connector_st(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
 #endif
 
 static herr_t H5VL__get_registered_connector(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
@@ -219,6 +219,10 @@ H5VL_init_phase2(void)
     if (H5VL__set_def_conn() < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "unable to set default VOL connector");
 
+#ifdef H5_HAVE_MULTITHREAD
+    /* Initialize the atomic dynamic optional operation table */
+    H5VL__init_opt_operation_table();
+#endif
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5VL_init_phase2() */
@@ -303,44 +307,6 @@ H5VL__free_cls(H5VL_class_t *cls, void H5_ATTR_UNUSED **request)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5VL__free_cls() */
-
-/*-------------------------------------------------------------------------
- * Function:    H5VL__get_connector_cb
- *
- * Purpose:     Callback routine to search through registered VOLs.
- *              If a connector is found, its reference count is incremented.
- *
- * Return:      Success:    H5_ITER_STOP if the class and op_data name
- *                          members match. H5_ITER_CONT otherwise.
- *              Failure:    Can't fail
- *
- *-------------------------------------------------------------------------
- */
-static int
-H5VL__get_connector_cb(void *obj, hid_t id, void *_op_data)
-{
-    H5VL_get_connector_ud_t *op_data   = (H5VL_get_connector_ud_t *)_op_data; /* User data for callback */
-    H5VL_class_t            *cls       = (H5VL_class_t *)obj;
-    int                      ret_value = H5_ITER_CONT; /* Callback return value */
-
-    FUNC_ENTER_PACKAGE_NOERR
-
-    if (H5VL_GET_CONNECTOR_BY_NAME == op_data->key.kind) {
-        if (0 == HDstrcmp(cls->name, op_data->key.u.name)) {
-            op_data->found_id = id;
-            ret_value         = H5_ITER_STOP;
-        } /* end if */
-    }     /* end if */
-    else {
-        assert(H5VL_GET_CONNECTOR_BY_VALUE == op_data->key.kind);
-        if (cls->value == op_data->key.u.value) {
-            op_data->found_id = id;
-            ret_value         = H5_ITER_STOP;
-        } /* end if */
-    }     /* end else */
-
-    FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5VL__get_connector_cb() */
 
 /*-------------------------------------------------------------------------
  * Function:    H5VL__set_def_conn
@@ -1304,52 +1270,7 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5VL__register_connector() */
 
-/*-------------------------------------------------------------------------
- * Function:    H5VL__get_registered_connector_st
- *
- * Purpose:     Retrieves a VOL connector by name or value, if it is
- *              already registered. This function should only be invoked
- *              through H5VL__get_registered_connector().
- *
- * Parameters:  H5VL_get_connector_ud_t *op_data: IN/OUT: Pointer to the
- *              operation data for the search. Controls whether search is by
- *              name/value, holds the key to search for, and the return
- *              pointer op_data->found_id.
- *
- *              bool inc_ref: IN: Whether to increment the ref count of the
- *              returned connector ID, if any.
- *
- *              bool app_ref: IN: Whether to increment the application ref count of the
- *              returned connector ID, if any. Has no effect if inc_ref is false.
- *
- *              This function is the non-multi-threaded implementation of H5VL__get_registered_connector().
- *
- * Return:      Success:    Non-negative
- *              Failure:    Negative
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-H5VL__get_registered_connector_st(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref)
-{
-    herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
-
-    /* Check if connector is already registered */
-    if (H5I_iterate(H5I_VOL, H5VL__get_connector_cb, op_data, app_ref) < 0)
-        HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't iterate over VOL IDs");
-
-    /* Increment the ref count on the existing VOL connector ID, if any */
-    if ((op_data->found_id != H5I_INVALID_HID) && inc_ref) {
-        if (H5I_inc_ref(op_data->found_id, app_ref) < 0)
-            HGOTO_ERROR(H5E_VOL, H5E_CANTINC, H5I_INVALID_HID,
-                        "unable to increment ref count on VOL connector");
-    }
-
-done:
-    FUNC_LEAVE_NOAPI(ret_value);
-}
 
 #ifdef H5_HAVE_MULTITHREAD
 /*-------------------------------------------------------------------------
@@ -1485,6 +1406,92 @@ H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref
 done:
     FUNC_LEAVE_NOAPI(ret_value);
 } /* end H5VL__get_registered_connector_mt */
+#else
+/*-------------------------------------------------------------------------
+ * Function:    H5VL__get_connector_cb
+ *
+ * Purpose:     Callback routine to search through registered VOLs.
+ *              If a connector is found, its reference count is incremented.
+ *
+ * Return:      Success:    H5_ITER_STOP if the class and op_data name
+ *                          members match. H5_ITER_CONT otherwise.
+ *              Failure:    Can't fail
+ *
+ *-------------------------------------------------------------------------
+ */
+static int
+H5VL__get_connector_cb(void *obj, hid_t id, void *_op_data)
+{
+    H5VL_get_connector_ud_t *op_data   = (H5VL_get_connector_ud_t *)_op_data; /* User data for callback */
+    H5VL_class_t            *cls       = (H5VL_class_t *)obj;
+    int                      ret_value = H5_ITER_CONT; /* Callback return value */
+
+    FUNC_ENTER_PACKAGE_NOERR
+
+    if (H5VL_GET_CONNECTOR_BY_NAME == op_data->key.kind) {
+        if (0 == HDstrcmp(cls->name, op_data->key.u.name)) {
+            op_data->found_id = id;
+            ret_value         = H5_ITER_STOP;
+        } /* end if */
+    }     /* end if */
+    else {
+        assert(H5VL_GET_CONNECTOR_BY_VALUE == op_data->key.kind);
+        if (cls->value == op_data->key.u.value) {
+            op_data->found_id = id;
+            ret_value         = H5_ITER_STOP;
+        } /* end if */
+    }     /* end else */
+
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5VL__get_connector_cb() */
+
+/*-------------------------------------------------------------------------
+ * Function:    H5VL__get_registered_connector_st
+ *
+ * Purpose:     Retrieves a VOL connector by name or value, if it is
+ *              already registered. This function should only be invoked
+ *              through H5VL__get_registered_connector().
+ *
+ * Parameters:  H5VL_get_connector_ud_t *op_data: IN/OUT: Pointer to the
+ *              operation data for the search. Controls whether search is by
+ *              name/value, holds the key to search for, and the return
+ *              pointer op_data->found_id.
+ *
+ *              bool inc_ref: IN: Whether to increment the ref count of the
+ *              returned connector ID, if any.
+ *
+ *              bool app_ref: IN: Whether to increment the application ref count of the
+ *              returned connector ID, if any. Has no effect if inc_ref is false.
+ *
+ *              This function is the non-multi-threaded implementation of H5VL__get_registered_connector().
+ *
+ * Return:      Success:    Non-negative
+ *              Failure:    Negative
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5VL__get_registered_connector_st(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref)
+{
+    herr_t ret_value = SUCCEED;
+
+    FUNC_ENTER_PACKAGE
+
+    /* Check if connector is already registered */
+    if (H5I_iterate(H5I_VOL, H5VL__get_connector_cb, op_data, app_ref) < 0)
+        HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't iterate over VOL IDs");
+
+    /* Increment the ref count on the existing VOL connector ID, if any */
+    if ((op_data->found_id != H5I_INVALID_HID) && inc_ref) {
+        if (H5I_inc_ref(op_data->found_id, app_ref) < 0)
+            HGOTO_ERROR(H5E_VOL, H5E_CANTINC, H5I_INVALID_HID,
+                        "unable to increment ref count on VOL connector");
+    }
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value);
+}
+
 #endif
 
 /*-------------------------------------------------------------------------
