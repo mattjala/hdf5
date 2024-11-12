@@ -1054,6 +1054,8 @@ done:
  * Function:    H5VLunregister_opt_operation
  *
  * Purpose:     Unregister a optional operation for a VOL object subclass, by name.
+ *              The provided operation name buffer must not be modified or freed
+ *              while this call is in progress.
  *
  * Return:      Success:    Non-negative
  *              Failure:    Negative
