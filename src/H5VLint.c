@@ -91,6 +91,13 @@ static H5VL_object_t *H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *v
 static void          *H5VL__object(hid_t id, H5I_type_t obj_type);
 static herr_t         H5VL__free_vol_wrapper(H5VL_wrap_ctx_t *vol_wrap_ctx);
 
+static herr_t H5VL__get_registered_connector_st(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
+
+#ifdef H5_HAVE_MULTITHREAD
+static herr_t H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
+#endif
+
+static herr_t H5VL__get_registered_connector(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
 /*********************/
 /* Package Variables */
 /*********************/
@@ -300,7 +307,8 @@ done:
 /*-------------------------------------------------------------------------
  * Function:    H5VL__get_connector_cb
  *
- * Purpose:     Callback routine to search through registered VOLs
+ * Purpose:     Callback routine to search through registered VOLs.
+ *              If a connector is found, its reference count is incremented.
  *
  * Return:      Success:    H5_ITER_STOP if the class and op_data name
  *                          members match. H5_ITER_CONT otherwise.
@@ -1291,6 +1299,221 @@ done:
 } /* end H5VL__register_connector() */
 
 /*-------------------------------------------------------------------------
+ * Function:    H5VL__get_registered_connector_st
+ *
+ * Purpose:     Retrieves a VOL connector by name or value, if it is
+ *              already registered. This function should only be invoked
+ *              through H5VL__get_registered_connector().
+ *
+ * Parameters:  H5VL_get_connector_ud_t *op_data: IN/OUT: Pointer to the
+ *              operation data for the search. Controls whether search is by
+ *              name/value, holds the key to search for, and the return
+ *              pointer op_data->found_id.
+ *
+ *              bool inc_ref: IN: Whether to increment the ref count of the
+ *              returned connector ID, if any.
+ *
+ *              bool app_ref: IN: Whether to increment the application ref count of the
+ *              returned connector ID, if any. Has no effect if inc_ref is false.
+ *
+ *              This function is the non-multi-threaded implementation of H5VL__get_registered_connector().
+ *
+ * Return:      Success:    Non-negative
+ *              Failure:    Negative
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5VL__get_registered_connector_st(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref)
+{
+    herr_t ret_value = SUCCEED;
+
+    FUNC_ENTER_PACKAGE
+
+    /* Check if connector is already registered */
+    if (H5I_iterate(H5I_VOL, H5VL__get_connector_cb, op_data, app_ref) < 0)
+        HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't iterate over VOL IDs");
+
+    /* Increment the ref count on the existing VOL connector ID, if any */
+    if ((op_data->found_id != H5I_INVALID_HID) && inc_ref) {
+        if (H5I_inc_ref(op_data->found_id, app_ref) < 0)
+            HGOTO_ERROR(H5E_VOL, H5E_CANTINC, H5I_INVALID_HID,
+                        "unable to increment ref count on VOL connector");
+    }
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value);
+}
+
+#ifdef H5_HAVE_MULTITHREAD
+/*-------------------------------------------------------------------------
+ * Function:    H5VL__get_registered_connector_mt
+ *
+ * Purpose:     Retrieves a VOL connector by name or value, if it is
+ *              already registered. This function should only be invoked
+ *              through H5VL__get_registered_connector().
+ *
+ * Parameters:  H5VL_get_connector_ud_t *op_data: IN/OUT: Pointer to the
+ *              operation data for the search. Controls whether search is by
+ *              name/value, holds the key to search for, and the return
+ *              pointer op_data->found_id.
+ *
+ *              bool inc_ref: IN: Whether to increment the ref count of the
+ *              returned connector ID, if any.
+ *
+ *              bool app_ref: IN: Whether to increment the application ref count of the
+ *              returned connector ID, if any. Has no effect if inc_ref is false.
+ *
+ *              This is the multi-threaded implementation of H5VL__get_registered_connector().
+ *
+ * Return:      Success:    Non-negative
+ *              Failure:    Negative
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref)
+{
+    herr_t        ret_value = SUCCEED;
+    hid_t         vol_id_1 = H5I_INVALID_HID, vol_id_2 = H5I_INVALID_HID;
+    H5VL_class_t *vol_class_1 = NULL, *vol_class_2 = NULL;
+    size_t        retry_limit = 100;   /* Maximum number of retries */
+    size_t        retry_count = 0;     /* Number of retries */
+    bool          retry       = false; /* Whether to restart the search */
+
+    FUNC_ENTER_PACKAGE
+
+    /* If another thread frees an ID between its retrieval and ref count modification, this
+     * routine must restart the search from the beginning, since it has no way of knowing
+     * whether the released ID was the target or not.
+     *
+     * Throwing an error on inc/dec ref error could prematurely end a search.
+     *
+     * Ignoring inc/dec failures and continuing with the iteration will generally not be possible,
+     * since the ID that H5I_get_next() would need has been freed. */
+    do {
+        retry = false;
+        retry_count++;
+
+        if (retry_count > retry_limit)
+            HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "maximum number of retries on search reached");
+
+        /* Check if connector is already registered */
+        if (H5I_get_first(H5I_VOL, &vol_id_1, (void **)&vol_class_1, false) < 0)
+            HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't retrieve first VOL ID for iteration");
+
+        /* Don't search if no connectors are registered */
+        if (vol_class_1 == NULL || vol_id_1 == 0) {
+            op_data->found_id = H5I_INVALID_HID;
+            HGOTO_DONE(SUCCEED);
+        }
+
+        if (H5I_inc_ref(vol_id_1, app_ref) < 0) {
+            retry = true;
+            continue;
+        }
+
+        /* If the first ID is the target, return */
+        if (((op_data->key.kind == H5VL_GET_CONNECTOR_BY_NAME) &&
+             (HDstrcmp(vol_class_1->name, op_data->key.u.name) == 0)) ||
+            ((op_data->key.kind == H5VL_GET_CONNECTOR_BY_VALUE) &&
+             (vol_class_1->value == op_data->key.u.value))) {
+
+            if (!inc_ref)
+                /* Don't restart search on failure here, since this should not be possible */
+                if (H5I_dec_ref(vol_id_1) < 0)
+                    HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, H5I_INVALID_HID,
+                                "can't decrement reference count for found VOL ID");
+            op_data->found_id = vol_id_1;
+            HGOTO_DONE(SUCCEED);
+        }
+
+        /* Iterate through connector IDs */
+        while (true) {
+            /* Get next ID and release current ID */
+            if (H5I_get_next(H5I_VOL, vol_id_1, &vol_id_2, (void **)&vol_class_2, false) < 0) {
+                if (H5I_dec_ref(vol_id_1) < 0)
+                    HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, H5I_INVALID_HID,
+                                "can't decrement reference count for VOL ID");
+                HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID,
+                            "can't retrieve next VOL ID for iteration");
+            }
+
+            /* Don't restart search on failure here, since this should not be possible */
+            if (H5I_dec_ref(vol_id_1) < 0)
+                HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, H5I_INVALID_HID,
+                            "can't decrement reference count for VOL ID");
+
+            /* Check if we've reached the end of the list */
+            if (vol_class_2 == NULL || vol_id_2 == 0) {
+                op_data->found_id = H5I_INVALID_HID;
+                HGOTO_DONE(SUCCEED);
+            }
+
+            if (H5I_inc_ref(vol_id_2, app_ref) < 0) {
+                retry = true;
+                break;
+            }
+
+            /* Check if current ID is the target */
+            if ((op_data->key.kind == H5VL_GET_CONNECTOR_BY_NAME &&
+                 HDstrcmp(vol_class_2->name, op_data->key.u.name) == 0) ||
+                (op_data->key.kind == H5VL_GET_CONNECTOR_BY_VALUE &&
+                 vol_class_2->value == op_data->key.u.value)) {
+
+                if (!inc_ref)
+                    /* Don't restart search on failure here, since this should not be possible */
+                    if (H5I_dec_ref(vol_id_2) < 0)
+                        HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, H5I_INVALID_HID,
+                                    "can't decrement reference count for VOL ID");
+                op_data->found_id = vol_id_2;
+                HGOTO_DONE(SUCCEED);
+            }
+
+            /* Move to next entry */
+            vol_id_1    = vol_id_2;
+            vol_class_1 = vol_class_2;
+        }
+    } while (retry);
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value);
+} /* end H5VL__get_registered_connector_mt */
+#endif
+
+/*-------------------------------------------------------------------------
+ * Function:    H5VL__get_registered_connector
+ *
+ * Purpose:     Retrieves a VOL connector by name or value, if it is
+ *              already registered.
+ *
+ * Parameters:  H5VL_get_connector_ud_t *op_data: IN/OUT: Pointer to the
+ *              operation data for the search. Controls whether search is by
+ *              name/value, holds the key to search for, and the return
+ *              pointer op_data->found_id.
+ *
+ *              bool inc_ref: IN: Whether to increment the ref count of the
+ *              returned connector ID, if any.
+ *
+ *              bool app_ref: IN: Whether to increment the application ref count of the
+ *              returned connector ID, if any. Has no effect if inc_ref is false.
+ *
+ * Return:      Success:    Non-negative
+ *              Failure:    Negative
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5VL__get_registered_connector(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref)
+{
+#ifdef H5_HAVE_MULTITHREAD
+    return H5VL__get_registered_connector_mt(op_data, inc_ref, app_ref);
+#else
+    return H5VL__get_registered_connector_st(op_data, inc_ref, app_ref);
+#endif
+}
+
+/*-------------------------------------------------------------------------
  * Function:    H5VL__register_connector_by_class
  *
  * Purpose:     Registers a new VOL connector as a member of the virtual object
@@ -1338,22 +1561,17 @@ H5VL__register_connector_by_class(const H5VL_class_t *cls, hbool_t app_ref, hid_
     op_data.key.u.name = cls->name;
     op_data.found_id   = H5I_INVALID_HID;
 
-    /* Check if connector is already registered */
-    if (H5I_iterate(H5I_VOL, H5VL__get_connector_cb, &op_data, TRUE) < 0)
-        HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't iterate over VOL IDs");
+    if (H5VL__get_registered_connector(&op_data, true, app_ref) < 0)
+        HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't search for registered VOL ID");
 
-    /* Increment the ref count on the existing VOL connector ID, if it's already registered */
-    if (op_data.found_id != H5I_INVALID_HID) {
-        if (H5I_inc_ref(op_data.found_id, app_ref) < 0)
-            HGOTO_ERROR(H5E_VOL, H5E_CANTINC, H5I_INVALID_HID,
-                        "unable to increment ref count on VOL connector");
-        ret_value = op_data.found_id;
-    } /* end if */
-    else {
-        /* Create a new class ID */
+    if (op_data.found_id == H5I_INVALID_HID) {
+        /* No existing ID, create a new class ID */
         if ((ret_value = H5VL__register_connector(cls, app_ref, vipl_id)) < 0)
             HGOTO_ERROR(H5E_VOL, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register VOL connector");
-    } /* end else */
+    }
+    else {
+        ret_value = op_data.found_id;
+    }
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1387,14 +1605,11 @@ H5VL__register_connector_by_name(const char *name, hbool_t app_ref, hid_t vipl_i
     op_data.found_id   = H5I_INVALID_HID;
 
     /* Check if connector is already registered */
-    if (H5I_iterate(H5I_VOL, H5VL__get_connector_cb, &op_data, app_ref) < 0)
-        HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't iterate over VOL ids");
+    if (H5VL__get_registered_connector(&op_data, true, app_ref) < 0)
+        HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't check if VOL is registered");
 
     /* If connector already registered, increment ref count on ID and return ID */
     if (op_data.found_id != H5I_INVALID_HID) {
-        if (H5I_inc_ref(op_data.found_id, app_ref) < 0)
-            HGOTO_ERROR(H5E_VOL, H5E_CANTINC, H5I_INVALID_HID,
-                        "unable to increment ref count on VOL connector");
         ret_value = op_data.found_id;
     } /* end if */
     else {
@@ -1444,14 +1659,11 @@ H5VL__register_connector_by_value(H5VL_class_value_t value, hbool_t app_ref, hid
     op_data.found_id    = H5I_INVALID_HID;
 
     /* Check if connector is already registered */
-    if (H5I_iterate(H5I_VOL, H5VL__get_connector_cb, &op_data, app_ref) < 0)
-        HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't iterate over VOL ids");
+    if (H5VL__get_registered_connector(&op_data, true, app_ref) < 0)
+        HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't check if VOL is registered");
 
     /* If connector already registered, increment ref count on ID and return ID */
     if (op_data.found_id != H5I_INVALID_HID) {
-        if (H5I_inc_ref(op_data.found_id, app_ref) < 0)
-            HGOTO_ERROR(H5E_VOL, H5E_CANTINC, H5I_INVALID_HID,
-                        "unable to increment ref count on VOL connector");
         ret_value = op_data.found_id;
     } /* end if */
     else {
@@ -1498,10 +1710,10 @@ H5VL__is_connector_registered_by_name(const char *name)
     op_data.found_id   = H5I_INVALID_HID;
 
     /* Find connector with name */
-    if (H5I_iterate(H5I_VOL, H5VL__get_connector_cb, &op_data, TRUE) < 0)
-        HGOTO_ERROR(H5E_VOL, H5E_BADITER, FAIL, "can't iterate over VOL connectors");
+    if (H5VL__get_registered_connector(&op_data, false, true) < 0)
+        HGOTO_ERROR(H5E_VOL, H5E_BADITER, FAIL, "can't check if VOL is registered");
 
-    /* Found a connector with that name */
+    /* Set return value */
     if (op_data.found_id != H5I_INVALID_HID)
         ret_value = TRUE;
 
@@ -1535,10 +1747,10 @@ H5VL__is_connector_registered_by_value(H5VL_class_value_t value)
     op_data.found_id    = H5I_INVALID_HID;
 
     /* Find connector with value */
-    if (H5I_iterate(H5I_VOL, H5VL__get_connector_cb, &op_data, TRUE) < 0)
-        HGOTO_ERROR(H5E_VOL, H5E_BADITER, FAIL, "can't iterate over VOL connectors");
+    if (H5VL__get_registered_connector(&op_data, false, true) < 0)
+        HGOTO_ERROR(H5E_VOL, H5E_BADITER, FAIL, "can't check if VOL is registered");
 
-    /* Found a connector with that name */
+    /* Set return value */
     if (op_data.found_id != H5I_INVALID_HID)
         ret_value = TRUE;
 
@@ -1590,17 +1802,22 @@ done:
 hid_t
 H5VL__get_connector_id_by_name(const char *name, hbool_t is_api)
 {
-    hid_t ret_value = H5I_INVALID_HID; /* Return value */
+    hid_t                   ret_value = H5I_INVALID_HID; /* Return value */
+    H5VL_get_connector_ud_t op_data;                     /* Callback info for connector search */
 
     FUNC_ENTER_PACKAGE
 
-    /* Find connector with name */
-    if ((ret_value = H5VL__peek_connector_id_by_name(name)) < 0)
-        HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't find VOL connector");
+    /* Set up op data for iteration */
+    op_data.key.kind   = H5VL_GET_CONNECTOR_BY_NAME;
+    op_data.key.u.name = name;
+    op_data.found_id   = H5I_INVALID_HID;
 
-    /* Found a connector with that name */
-    if (H5I_inc_ref(ret_value, is_api) < 0)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTINC, H5I_INVALID_HID, "unable to increment ref count on VOL connector");
+    /* Find connector with name */
+    if (H5VL__get_registered_connector(&op_data, true, is_api) < 0)
+        HGOTO_ERROR(H5E_VOL, H5E_BADITER, FAIL, "can't iterate over VOL connectors");
+
+    /* Set return value */
+    ret_value = op_data.found_id;
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1620,17 +1837,22 @@ done:
 hid_t
 H5VL__get_connector_id_by_value(H5VL_class_value_t value, hbool_t is_api)
 {
-    hid_t ret_value = H5I_INVALID_HID; /* Return value */
+    hid_t                   ret_value = H5I_INVALID_HID; /* Return value */
+    H5VL_get_connector_ud_t op_data;                     /* Callback info for connector search */
 
     FUNC_ENTER_PACKAGE
 
-    /* Find connector with value */
-    if ((ret_value = H5VL__peek_connector_id_by_value(value)) < 0)
-        HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't find VOL connector");
+    /* Set up op data for iteration */
+    op_data.key.kind    = H5VL_GET_CONNECTOR_BY_VALUE;
+    op_data.key.u.value = value;
+    op_data.found_id    = H5I_INVALID_HID;
 
-    /* Found a connector with that value */
-    if (H5I_inc_ref(ret_value, is_api) < 0)
-        HGOTO_ERROR(H5E_FILE, H5E_CANTINC, H5I_INVALID_HID, "unable to increment ref count on VOL connector");
+    /* Find connector by value */
+    if (H5VL__get_registered_connector(&op_data, true, is_api) < 0)
+        HGOTO_ERROR(H5E_VOL, H5E_BADITER, FAIL, "can't iterate over VOL connectors");
+
+    /* Set return value */
+    ret_value = op_data.found_id;
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1662,7 +1884,7 @@ H5VL__peek_connector_id_by_name(const char *name)
     op_data.found_id   = H5I_INVALID_HID;
 
     /* Find connector with name */
-    if (H5I_iterate(H5I_VOL, H5VL__get_connector_cb, &op_data, TRUE) < 0)
+    if (H5VL__get_registered_connector(&op_data, false, true) < 0)
         HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't iterate over VOL connectors");
 
     /* Set return value */
@@ -1698,7 +1920,7 @@ H5VL__peek_connector_id_by_value(H5VL_class_value_t value)
     op_data.found_id    = H5I_INVALID_HID;
 
     /* Find connector with value */
-    if (H5I_iterate(H5I_VOL, H5VL__get_connector_cb, &op_data, TRUE) < 0)
+    if (H5VL__get_registered_connector(&op_data, false, true) < 0)
         HGOTO_ERROR(H5E_VOL, H5E_BADITER, H5I_INVALID_HID, "can't iterate over VOL connectors");
 
     /* Set return value */
