@@ -49,7 +49,7 @@ jobs:
               working-directory: ${{github.workspace}}
               env:
                 HDF5_PLUGIN_PATH: ${{github.workspace}}/test/.libs
-                HDF5_VOL_CONNECTOR: "mt_test_vol_connector"
+                HDF5_VOL_CONNECTOR: "mt_native_wrapper_vol_connector"
               run: |
                 valgrind ./test/API/api_tests
             
@@ -58,7 +58,7 @@ jobs:
               working-directory: ${{github.workspace}}
               env:
                 HDF5_PLUGIN_PATH: ${{github.workspace}}/test/.libs
-                HDF5_VOL_CONNECTOR: "mt_test_passthru_vol_connector under_vol=0\\;under_info={}"
+                HDF5_VOL_CONNECTOR: "mt_native_wrapper_passthru_vol_connector under_vol=0\\;under_info={}"
               run: |
                 valgrind ./test/API/api_tests
 

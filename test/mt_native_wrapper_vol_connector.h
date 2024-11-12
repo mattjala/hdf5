@@ -16,10 +16,10 @@
  *           to test the multi-thread safety of the H5VL module.
  */
 
-#ifndef H5VL_mt_test_H
-#define H5VL_mt_test_H
+#ifndef H5VL_MT_NATIVE_WRAPPER_H
+#define H5VL_MT_NATIVE_WRAPPER_H
 
-#define MT_TEST_VOL_CONNECTOR_VALUE ((H5VL_class_value_t)162)
-#define MT_TEST_VOL_CONNECTOR_NAME "mt_test_vol_connector"
+#define MT_NATIVE_WRAPPER_VOL_CONNECTOR_VALUE ((H5VL_class_value_t)162)
+#define MT_NATIVE_WRAPPER_VOL_CONNECTOR_NAME "mt_native_wrapper_vol_connector"
 
-#endif /* H5VL_mt_test_H */
+#endif /* H5VL_MT_NATIVE_WRAPPER_H */
