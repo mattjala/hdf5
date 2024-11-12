@@ -2081,7 +2081,12 @@ H5VL_dataset_read_direct(size_t count, void *obj[], H5VL_t *connector, hid_t mem
     /* Set wrapper info in API context */
     tmp_vol_obj.data      = obj[0];
     tmp_vol_obj.connector = connector;
+#ifdef H5_HAVE_MULTITHREAD
+    atomic_init(&tmp_vol_obj.rc, 1);
+#else
     tmp_vol_obj.rc        = 1;
+#endif
+
     if (H5VL_set_vol_wrapper(&tmp_vol_obj) < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't set VOL wrapper info");
     vol_wrapper_set = TRUE;
@@ -2271,7 +2276,12 @@ H5VL_dataset_write_direct(size_t count, void *obj[], H5VL_t *connector, hid_t me
     /* Set wrapper info in API context */
     tmp_vol_obj.data      = obj[0];
     tmp_vol_obj.connector = connector;
+#ifdef H5_HAVE_MULTITHREAD
+    atomic_init(&tmp_vol_obj.rc, 1);
+#else
     tmp_vol_obj.rc        = 1;
+#endif
+
     if (H5VL_set_vol_wrapper(&tmp_vol_obj) < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't set VOL wrapper info");
     vol_wrapper_set = TRUE;
