@@ -604,8 +604,8 @@ done:
 herr_t
 H5VL_conn_copy(H5VL_connector_prop_t *connector_prop)
 {
-    herr_t ret_value = SUCCEED; /* Return value */
-
+    herr_t ret_value    = SUCCEED; /* Return value */
+    bool   conn_id_incr = false;   /* Whether the connector has had its ref count incremented */
     FUNC_ENTER_NOAPI(FAIL)
 
     if (connector_prop) {
@@ -615,6 +615,8 @@ H5VL_conn_copy(H5VL_connector_prop_t *connector_prop)
             if (H5I_inc_ref(connector_prop->connector_id, FALSE) < 0)
                 HGOTO_ERROR(H5E_PLIST, H5E_CANTINC, FAIL,
                             "unable to increment ref count on VOL connector ID");
+
+            conn_id_incr = true;
 
             /* Copy connector info, if it exists */
             if (connector_prop->connector_info) {
@@ -637,6 +639,10 @@ H5VL_conn_copy(H5VL_connector_prop_t *connector_prop)
     }         /* end if */
 
 done:
+    if (ret_value < 0 && conn_id_incr)
+        if (H5I_dec_ref(connector_prop->connector_id) < 0)
+            HDONE_ERROR(H5E_PLIST, H5E_CANTDEC, FAIL, "unable to decrement ref count on VOL connector ID");
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5VL_conn_copy() */
 
