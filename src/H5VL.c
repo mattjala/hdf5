@@ -700,6 +700,9 @@ H5VLget_file_type(void *file_obj, hid_t connector_id, hid_t dtype_id)
 
     FUNC_ENTER_API(FAIL)
     H5TRACE3("i", "*xii", file_obj, connector_id, dtype_id);
+    
+    /* Several H5T routines used; keep lock for duration */
+    H5_API_LOCK
 
     /* Check args */
     if (!file_obj)
@@ -738,6 +741,8 @@ H5VLget_file_type(void *file_obj, hid_t connector_id, hid_t dtype_id)
     ret_value = file_type_id;
 
 done:
+    H5_API_UNLOCK
+
     /* Cleanup on error */
     if (ret_value < 0) {
         if (file_vol_obj && H5VL_free_object(file_vol_obj) < 0)
