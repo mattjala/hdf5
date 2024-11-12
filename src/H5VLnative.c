@@ -40,6 +40,7 @@
 #include "H5VLnative_private.h" /* Native VOL connector                     */
 
 /* The VOL connector identification number */
+
 static hid_t H5VL_NATIVE_ID_g = H5I_INVALID_HID;
 
 /* Prototypes */
@@ -199,12 +200,17 @@ H5VL_native_register(void)
     FUNC_ENTER_NOAPI(H5I_INVALID_HID)
 
     /* Register the native VOL connector, if it isn't already */
-    if (H5I_INVALID_HID == H5VL_NATIVE_ID_g)
+    if (H5I_INVALID_HID == H5VL_NATIVE_ID_g) {
+        /* Lock to prevent concurrent modification attempts */
+        H5_API_LOCK
+
         if ((H5VL_NATIVE_ID_g =
                  H5VL__register_connector(&H5VL_native_cls_g, TRUE, H5P_VOL_INITIALIZE_DEFAULT)) < 0)
             HGOTO_ERROR(H5E_VOL, H5E_CANTINSERT, H5I_INVALID_HID, "can't create ID for native VOL connector");
 
-    /* Set return value */
+        H5_API_UNLOCK
+    }
+
     ret_value = H5VL_NATIVE_ID_g;
 
 done:
@@ -226,7 +232,9 @@ H5VL__native_term(void)
     FUNC_ENTER_PACKAGE_NOERR
 
     /* Reset VOL ID */
+    H5_API_LOCK
     H5VL_NATIVE_ID_g = H5I_INVALID_HID;
+    H5_API_UNLOCK
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5VL__native_term() */
