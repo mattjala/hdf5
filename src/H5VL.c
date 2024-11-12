@@ -447,6 +447,7 @@ herr_t
 H5VLclose(hid_t vol_id)
 {
     herr_t ret_value = SUCCEED; /* Return value */
+    int dec_ref_ret = 0;        /* Return value from H5I_dec_(app_)ref */
 
     FUNC_ENTER_API_NO_MUTEX(FAIL)
     H5TRACE1("e", "i", vol_id);
@@ -456,7 +457,12 @@ H5VLclose(hid_t vol_id)
         HGOTO_ERROR(H5E_VOL, H5E_BADTYPE, FAIL, "not a VOL connector");
 
     /* Decrement the ref count on the ID, possibly releasing the VOL connector */
-    if (H5I_dec_app_ref(vol_id) < 0)
+    /* TBD: Retain lock to protect ID iteration */
+    H5_API_LOCK
+    dec_ref_ret = H5I_dec_app_ref(vol_id);
+    H5_API_UNLOCK
+
+    if (dec_ref_ret < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "unable to close VOL connector ID");
 
 done:
@@ -752,7 +758,6 @@ H5VLget_file_type(void *file_obj, hid_t connector_id, hid_t dtype_id)
     ret_value = file_type_id;
 
 done:
-    H5_API_UNLOCK
 
     /* Cleanup on error */
     if (ret_value < 0) {
@@ -761,6 +766,8 @@ done:
         if (file_type_id >= 0 && H5I_dec_ref(file_type_id) < 0)
             HDONE_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "unable to close file datatype");
     } /* end if */
+
+    H5_API_UNLOCK
 
     FUNC_LEAVE_API_NO_MUTEX(ret_value, connector_id, dtype_id)
 } /* end H5VLget_file_type() */

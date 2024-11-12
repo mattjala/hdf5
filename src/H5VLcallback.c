@@ -3797,7 +3797,7 @@ H5VL__file_open_find_connector_cb(H5PL_type_t plugin_type, const void *plugin_in
     hid_t                            connector_id = H5I_INVALID_HID;
     hid_t                            fapl_id      = H5I_INVALID_HID;
     herr_t                           ret_value    = H5_ITER_CONT;
-
+    int dec_ref_ret = 0; /* Return value from H5I_dec_(app_)ref */
     FUNC_ENTER_PACKAGE
 
     assert(udata);
@@ -3870,10 +3870,21 @@ H5VL__file_open_find_connector_cb(H5PL_type_t plugin_type, const void *plugin_in
 
 done:
     if (ret_value != H5_ITER_STOP) {
-        if (fapl_id >= 0 && H5I_dec_app_ref(fapl_id) < 0)
-            HDONE_ERROR(H5E_PLIST, H5E_CANTCLOSEOBJ, H5_ITER_ERROR, "can't close fapl");
-        if (connector_id >= 0 && H5I_dec_app_ref(connector_id) < 0)
-            HDONE_ERROR(H5E_ID, H5E_CANTCLOSEOBJ, H5_ITER_ERROR, "can't close VOL connector ID");
+        /* TBD: Retain lock to protect ID iteration */
+        if (fapl_id >= 0) {
+            H5_API_LOCK
+            dec_ref_ret = H5I_dec_app_ref(fapl_id);
+            H5_API_UNLOCK
+            if (dec_ref_ret < 0)
+                HDONE_ERROR(H5E_PLIST, H5E_CANTCLOSEOBJ, H5_ITER_ERROR, "can't close fapl");
+        }
+        if (connector_id >= 0) {
+            H5_API_LOCK
+            dec_ref_ret = H5I_dec_app_ref(connector_id);
+            H5_API_UNLOCK
+            if (dec_ref_ret < 0)
+                HDONE_ERROR(H5E_PLIST, H5E_CANTCLOSEOBJ, H5_ITER_ERROR, "can't close VOL connector ID");
+        }
     } /* end if */
 
     FUNC_LEAVE_NOAPI(ret_value)
