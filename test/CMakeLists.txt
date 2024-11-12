@@ -258,6 +258,7 @@ if (BUILD_SHARED_LIBS)
   #-----------------------------------------------------------------------------
   set (VOL_PLUGIN_LIBS
       null_vol_connector
+      mt_vl_test_vol_connector # TBD: Place in different directory?
   )
 
   foreach (vol_lib ${VOL_PLUGIN_LIBS})
