@@ -692,13 +692,16 @@ H5VL_register(H5I_type_t type, void *object, H5VL_t *vol_connector, hbool_t app_
     /* Set up VOL object for the passed-in data */
     /* (Does not wrap object, since it's from a VOL callback) */
     if (NULL == (vol_obj = H5VL__new_vol_obj(type, object, vol_connector, FALSE)))
-        HGOTO_ERROR(H5E_VOL, H5E_CANTCREATE, FAIL, "can't create VOL object");
+        HGOTO_ERROR(H5E_VOL, H5E_CANTCREATE, H5I_INVALID_HID, "can't create VOL object");
 
     /* Register VOL object as _object_ type, for future object API calls */
     if ((ret_value = H5I_register(type, vol_obj, app_ref)) < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register handle");
 
 done:
+    if (ret_value < 0 && vol_obj)
+        vol_obj = H5FL_FREE(H5VL_object_t, vol_obj);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5VL_register() */
 
@@ -743,6 +746,9 @@ H5VL_register_using_existing_id(H5I_type_t type, void *object, H5VL_t *vol_conne
         HGOTO_ERROR(H5E_VOL, H5E_CANTREGISTER, FAIL, "can't register object under existing ID");
 
 done:
+    if (ret_value < 0 && new_vol_obj)
+        new_vol_obj = H5FL_FREE(H5VL_object_t, new_vol_obj);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5VL_register_using_existing_id() */
 
@@ -798,7 +804,7 @@ done:
             HDONE_ERROR(H5E_VOL, H5E_CANTDEC, NULL, "unable to decrement ref count on VOL connector");
 
         /* Free VOL connector struct */
-        if (NULL != connector)
+        if (connector)
             connector = H5FL_FREE(H5VL_t, connector);
     } /* end if */
 
@@ -945,7 +951,7 @@ done:
             HDONE_ERROR(H5E_VOL, H5E_CANTDEC, NULL, "unable to decrement ref count on VOL connector");
 
         /* Free VOL connector struct */
-        if (NULL != connector)
+        if (connector)
             connector = H5FL_FREE(H5VL_t, connector);
     } /* end if */
 
@@ -1062,6 +1068,7 @@ hsize_t
 H5VL_object_inc_rc(H5VL_object_t *vol_obj)
 {
     size_t new_rc = 0;
+    size_t prev_rc = 0;
 
     FUNC_ENTER_NOAPI_NOERR
 
@@ -1070,7 +1077,10 @@ H5VL_object_inc_rc(H5VL_object_t *vol_obj)
 
     /* Increment refcount for object and return */
 #ifdef H5_HAVE_MULTITHREAD
-    new_rc = atomic_fetch_add(&vol_obj->rc, 1) + 1;
+    prev_rc = atomic_fetch_add(&vol_obj->rc, 1);
+    assert(prev_rc > 0);
+    /* Detect any concurrent modifications to rc */
+    new_rc = atomic_load(&vol_obj->rc);
 #else
     new_rc = ++vol_obj->rc;
 #endif
@@ -1093,6 +1103,7 @@ herr_t
 H5VL_free_object(H5VL_object_t *vol_obj)
 {
     herr_t ret_value = SUCCEED; /* Return value */
+    size_t prev_rc = 0;
 
     FUNC_ENTER_NOAPI(FAIL)
 
@@ -1104,25 +1115,38 @@ H5VL_free_object(H5VL_object_t *vol_obj)
      * which would result in another thread holding a pointer to invalid memory after these free operations.
      * However, any thread that can decrement the ref count should hold a reference itself, so it
      * should be impossible for that to happen. */
-    atomic_fetch_sub(&vol_obj->rc, 1);
+    prev_rc = atomic_fetch_sub(&vol_obj->rc, 1);
+
+    assert(prev_rc > 0);
+
+    if (prev_rc == 1) {
+        /* Decrement refcount on connector */
+        if (H5VL_conn_dec_rc(vol_obj->connector) < 0)
+            HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "unable to decrement ref count on VOL connector");  
+
+        /* Sanity Check */
+        assert(atomic_load(&vol_obj->rc) == 0);
+
+        vol_obj = H5FL_FREE(H5VL_object_t, vol_obj); 
+    }
+
 #else
+    assert(vol_obj->rc > 0);
+
     --vol_obj->rc;
-#endif
 
     if (vol_obj->rc == 0) {
         /* Decrement refcount on connector */
         if (H5VL_conn_dec_rc(vol_obj->connector) < 0)
             HGOTO_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "unable to decrement ref count on VOL connector");
 
-            /* Sanity Check */
-#ifdef H5_HAVE_MULTITHREAD
-        assert(atomic_load(&vol_obj->rc) == 0);
-#else
+        /* Sanity Check */
         assert(vol_obj->rc == 0);
-#endif
 
         vol_obj = H5FL_FREE(H5VL_object_t, vol_obj);
     } /* end if */
+
+#endif
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
