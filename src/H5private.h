@@ -1558,6 +1558,14 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
     /* Block thread cancelations */                                                                          \
     H5_API_UNSET_CANCEL
 
+/* Version of FUNC_ENTER_API_THREADSAFE_NO_MUTEX which does not increment virtual lock counts. */
+#define FUNC_ENTER_API_THREADSAFE_NO_MUTEX_NOINIT                                                            \
+    /* Initialize the thread-safe code */                                                                    \
+    H5_FIRST_THREAD_INIT                                                                                     \
+                                                                                                             \
+    /* Block thread cancelations */                                                                          \
+    H5_API_UNSET_CANCEL
+
 /* Local variables for API routines */
 #define FUNC_ENTER_API_VARS H5TRACE_DECL
 
@@ -1715,6 +1723,18 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
                 H5_PUSH_FUNC                                                                                 \
                 {
 #endif /* modified version */
+
+/* version of the FUNC_ENTER_API_NOINIT macro that does not attempt to gain the global mutex.  This 
+ * version is used on API calls into packages that have been modified to support multi-thread.
+ */
+#define FUNC_ENTER_API_NO_MUTEX_NOINIT                                                                       \
+    {                                                                                                        \
+        {                                                                                                    \
+            {                                                                                                \
+                FUNC_ENTER_API_COMMON                                                                        \
+                FUNC_ENTER_API_THREADSAFE_NO_MUTEX_NOINIT                                                    \
+                H5_PUSH_FUNC                                                                                 \
+                {
 
 /*
  * Use this macro for API functions that shouldn't perform _any_ initialization
@@ -1989,7 +2009,25 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
     H5_POP_FUNC                                                                                              \
     if (err_occurred)                                                                                        \
         (void)H5E_dump_api_stack(TRUE);                                                                      \
-    FUNC_LEAVE_API_THREADSAFE                                                                                \
+    return (ret_value);                                                                                      \
+    }                                                                                                        \
+    }                                                                                                        \
+    } /*end scope from beginning of FUNC_ENTER*/
+
+/* Version of FUNC_LEAVE_API_THREADSAFE which neither drops the API lock nor decrements the virtual lock(s) */
+#define FUNC_LEAVE_API_THREADSAFE_NO_MUTEX_NOINIT H5_API_SET_CANCEL
+
+/* version of the FUNC_LEAVE_API_NOINIT macro that does not attempt to release the global mutex.  This 
+ * version is used on API calls into packages that have been modified to support multi-thread.
+ */
+#define FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value)                                                            \
+    ;                                                                                                        \
+    } /*end scope from end of FUNC_ENTER*/                                                                   \
+    FUNC_LEAVE_API_COMMON(ret_value);                                                                        \
+    H5_POP_FUNC                                                                                              \
+    if (err_occurred)                                                                                        \
+        (void)H5E_dump_api_stack(TRUE);                                                                      \
+    FUNC_LEAVE_API_THREADSAFE_NO_MUTEX_NOINIT                                                                \
     return (ret_value);                                                                                      \
     }                                                                                                        \
     }                                                                                                        \

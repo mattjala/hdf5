@@ -225,7 +225,7 @@ H5Fget_obj_count(hid_t file_id, unsigned types)
 {
     ssize_t ret_value = 0; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(-1)
     H5TRACE2("Zs", "iIu", file_id, types);
 
     /* Check arguments */
@@ -345,7 +345,7 @@ H5Fget_obj_ids(hid_t file_id, unsigned types, size_t max_objs, hid_t *oid_list /
 {
     ssize_t ret_value = 0; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(-1)
     H5TRACE4("Zs", "iIuzx", file_id, types, max_objs, oid_list);
 
     /* Check arguments */
@@ -1687,7 +1687,7 @@ H5Fget_freespace(hid_t file_id)
     hsize_t                          file_freespace = 0; /* Size of freespace in the file */
     hssize_t                         ret_value;          /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(-1)
     H5TRACE1("Hs", "i", file_id);
 
     /* Get the file object */
@@ -1797,7 +1797,7 @@ H5Fget_file_image(hid_t file_id, void *buf /*out*/, size_t buf_len)
     size_t                           image_len = 0; /* Size of image buffer */
     ssize_t                          ret_value;     /* Return value             */
 
-    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(-1)
     H5TRACE3("Zs", "ixz", file_id, buf, buf_len);
 
     /* Check args */
@@ -2069,7 +2069,7 @@ H5Fget_name(hid_t obj_id, char *name /*out*/, size_t size)
     size_t               file_name_len = 0;  /* Length of file name */
     ssize_t              ret_value     = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(-1)
     H5TRACE3("Zs", "ixz", obj_id, name, size);
 
     /* Check the type */
@@ -2216,7 +2216,7 @@ H5Fget_free_sections(hid_t file_id, H5F_mem_t type, size_t nsects, H5F_sect_info
     size_t                           sect_count = 0;  /* Number of sections */
     ssize_t                          ret_value  = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(-1)
     H5TRACE4("Zs", "iFmzx", file_id, type, nsects, sect_info);
 
     /* Check args */
