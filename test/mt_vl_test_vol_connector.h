@@ -11,10 +11,8 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- * Purpose: The header file for the 'fake open' testing VOL connector.
- * The 'fake open' connector is a VOL connector that always returns 'succeed'
- * from its file open callback in order to test VOL registration during file
- * open failure.
+ * Purpose: The header file for the MT VL testing VOL connector.
+ * This connector has almost no functionality and is used to test basic plugin handling.
  */
 
 #ifndef H5VL_MT_VL_TEST_VOL_H
