@@ -548,7 +548,7 @@ H5VLcmp_connector_cls(int *cmp, hid_t connector_id1, hid_t connector_id2)
     H5VL_class_t *cls1, *cls2;         /* connectors for IDs */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL, connector_id1, connector_id2)
+    FUNC_ENTER_API_NO_MUTEX(FAIL)
     H5TRACE3("e", "*Isii", cmp, connector_id1, connector_id2);
 
     /* Check args and get class pointers */
@@ -562,7 +562,7 @@ H5VLcmp_connector_cls(int *cmp, hid_t connector_id1, hid_t connector_id2)
         HGOTO_ERROR(H5E_VOL, H5E_CANTCOMPARE, FAIL, "can't compare connector classes");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value, connector_id1, connector_id2)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value)
 } /* H5VLcmp_connector_cls() */
 
 /*---------------------------------------------------------------------------
@@ -589,7 +589,7 @@ H5VLwrap_register(void *obj, H5I_type_t type)
     hid_t ret_value; /* Return value */
 
     /* Use FUNC_ENTER_API_NO_MUTEX_NOINIT here, so the API context doesn't get reset */
-    FUNC_ENTER_API_NO_MUTEX_NOINIT(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX_NOINIT
     H5TRACE2("i", "*xIt", obj, type);
 
     /* Check args */
@@ -630,7 +630,7 @@ H5VLwrap_register(void *obj, H5I_type_t type)
         HGOTO_ERROR(H5E_VOL, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to wrap object");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value, H5I_INVALID_HID)
+    FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value)
 } /* H5VLwrap_register() */
 
 /*---------------------------------------------------------------------------
@@ -715,7 +715,7 @@ H5VLget_file_type(void *file_obj, hid_t connector_id, hid_t dtype_id)
     H5VL_object_t *file_vol_obj = NULL; /* VOL object for file     */
     hid_t          ret_value    = -1;   /* Return value            */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL, connector_id, dtype_id)
+    FUNC_ENTER_API_NO_MUTEX(FAIL)
     H5TRACE3("i", "*xii", file_obj, connector_id, dtype_id);
     
     /* Several H5T routines used; keep lock for duration */
@@ -769,7 +769,7 @@ done:
 
     H5_API_UNLOCK
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value, connector_id, dtype_id)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value)
 } /* end H5VLget_file_type() */
 
 /*---------------------------------------------------------------------------
@@ -792,7 +792,7 @@ H5VLretrieve_lib_state(void **state /*out*/)
     herr_t ret_value = SUCCEED; /* Return value */
 
     /* Must use this, to avoid modifying the API context stack in FUNC_ENTER */
-    FUNC_ENTER_API_NO_MUTEX_NOINIT(FAIL)
+    FUNC_ENTER_API_NO_MUTEX_NOINIT
     H5TRACE1("e", "x", state);
 
     /* Check args */
@@ -804,7 +804,7 @@ H5VLretrieve_lib_state(void **state /*out*/)
         HGOTO_ERROR(H5E_VOL, H5E_CANTGET, FAIL, "can't retrieve library state");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value, H5I_INVALID_HID)
+    FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value)
 } /* H5VLretrieve_lib_state() */
 
 /*---------------------------------------------------------------------------
@@ -826,7 +826,7 @@ H5VLstart_lib_state(void)
     herr_t ret_value = SUCCEED; /* Return value */
 
     /* Must use this, to avoid modifying the API context stack in FUNC_ENTER */
-    FUNC_ENTER_API_NO_MUTEX_NOINIT(FAIL)
+    FUNC_ENTER_API_NO_MUTEX_NOINIT
     H5TRACE0("e", "");
 
     /* Start a new library state */
@@ -834,7 +834,7 @@ H5VLstart_lib_state(void)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't start new library state");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value, H5I_INVALID_HID)
+    FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value)
 } /* H5VLstart_lib_state() */
 
 /*---------------------------------------------------------------------------
@@ -856,7 +856,7 @@ H5VLrestore_lib_state(const void *state)
     herr_t ret_value = SUCCEED; /* Return value */
 
     /* Must use this, to avoid modifying the API context stack in FUNC_ENTER */
-    FUNC_ENTER_API_NO_MUTEX_NOINIT(FAIL)
+    FUNC_ENTER_API_NO_MUTEX_NOINIT
     H5TRACE1("e", "*x", state);
 
     /* Check args */
@@ -868,7 +868,7 @@ H5VLrestore_lib_state(const void *state)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't restore library state");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value, H5I_INVALID_HID)
+    FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value)
 } /* H5VLrestore_lib_state() */
 
 /*---------------------------------------------------------------------------
@@ -895,7 +895,7 @@ H5VLfinish_lib_state(void)
     herr_t ret_value = SUCCEED; /* Return value */
 
     /* Must use this, to avoid modifying the API context stack in FUNC_ENTER */
-    FUNC_ENTER_API_NO_MUTEX_NOINIT(FAIL)
+    FUNC_ENTER_API_NO_MUTEX_NOINIT
     H5TRACE0("e", "");
 
     /* Reset the library state */
@@ -903,7 +903,7 @@ H5VLfinish_lib_state(void)
         HGOTO_ERROR(H5E_VOL, H5E_CANTRESET, FAIL, "can't reset library state");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value, H5I_INVALID_HID)
+    FUNC_LEAVE_API_NO_MUTEX_NOINIT(ret_value)
 } /* H5VLfinish_lib_state() */
 
 /*---------------------------------------------------------------------------

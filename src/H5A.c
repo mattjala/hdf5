@@ -1291,7 +1291,7 @@ H5Aget_name(hid_t attr_id, size_t buf_size, char *buf /*out*/)
     size_t               attr_name_len = 0;  /* Length of attribute name */
     ssize_t              ret_value     = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(-1)
     H5TRACE3("Zs", "izx", attr_id, buf_size, buf);
 
     /* check arguments */
