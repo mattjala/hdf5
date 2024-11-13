@@ -11,8 +11,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /* Purpose:     A simple virtual object layer (VOL) connector with almost no
- *              functionality that is used for testing basic plugin handling
- *              (registration, etc.).
+ *              functionality that is used for testing basic plugin handling.
  */
 
 /* For HDF5 plugin functionality */
