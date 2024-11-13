@@ -394,26 +394,57 @@ void mt_test_file_open_failure_registration(void) {
 
 void *mt_test_file_open_failure_registration_helper(void H5_ATTR_UNUSED *arg) {
   hid_t file_id = H5I_INVALID_HID;
+  hid_t fapl_id = H5I_INVALID_HID;
+  hid_t curr_vol_id = H5I_INVALID_HID;
   herr_t ret = 0;
+
+  fapl_id = H5Pcreate(H5P_FILE_ACCESS);
+  CHECK(fapl_id, H5I_INVALID_HID, "H5Pcreate");
+
+  /* Dynamic VOL loading on file open failure only occurs when using the Native VOL, 
+   * so skip this test otherwise */
+  ret = H5Pget_vol_id(fapl_id, &curr_vol_id);
+  CHECK(ret, FAIL, "H5Pget_vol_id");
+
+  if (curr_vol_id != H5VL_NATIVE) {
+    goto done;
+  }
 
   /* Make the NULL VOL connector available via H5PL */
   ret = H5PLprepend(VOL_LIB_PATH);
   CHECK(ret, FAIL, "H5PLprepend");
 
-  /* Attempt to open an unopenable file with Native VOL, triggering use of the
-   * fake open VOL, which "succeeds" */
+  /* Attempt to open an unopenable file with Native VOL, triggering dynamic load and usage of the
+   * mt vl test VOL, which "succeeds" */
   H5E_BEGIN_TRY { /* Don't display error from the Native VOL's failure to open */
     file_id = H5Fopen(NONEXISTENT_FILENAME, H5F_ACC_RDWR, H5P_DEFAULT);
-
-    if (file_id < 0)
-      TestErrPrintf("Failed to load and use dynamic VOL connector (Make sure test is run from 'test' directory)\n");
   }
   H5E_END_TRY;
+
+  if (file_id < 0) {
+    TestErrPrintf("Failed to load and use dynamic VOL connector (Make sure test is run from 'test' directory)\n");
+  }
 
   /* Clean up library-internal state for fake file */
   ret = H5Fclose(file_id);
   CHECK(ret, FAIL, "H5Fclose");
+  file_id = H5I_INVALID_HID;
 
+  ret = H5Pclose(fapl_id);
+  CHECK(ret, FAIL, "H5Pclose");
+  fapl_id = H5I_INVALID_HID;
+
+  ret = H5VLclose(curr_vol_id);
+  CHECK(ret, FAIL, "H5VLclose");
+  curr_vol_id = H5I_INVALID_HID;
+
+done:
+  if (file_id != H5I_INVALID_HID)
+    H5Fclose(file_id);
+  if (fapl_id != H5I_INVALID_HID)
+    H5Pclose(fapl_id);
+  if (curr_vol_id != H5I_INVALID_HID)
+    H5VLclose(curr_vol_id);
   return NULL;
 }
 
