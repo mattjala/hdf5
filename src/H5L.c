@@ -1514,7 +1514,7 @@ H5Lget_name_by_idx(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5
     size_t               link_name_len = 0;  /* Length of the link name string */
     ssize_t              ret_value     = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(-1)
     H5TRACE8("Zs", "i*sIiIohxzi", loc_id, group_name, idx_type, order, n, name, size, lapl_id);
 
     /* Check arguments */

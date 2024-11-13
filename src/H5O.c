@@ -1615,7 +1615,7 @@ H5Oget_comment(hid_t obj_id, char *comment /*out*/, size_t bufsize)
     size_t                             comment_len = 0;  /* Length of comment string */
     ssize_t                            ret_value   = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(-1)
     H5TRACE3("Zs", "ixz", obj_id, comment, bufsize);
 
     /* Get the object */
@@ -1668,7 +1668,7 @@ H5Oget_comment_by_name(hid_t loc_id, const char *name, char *comment /*out*/, si
     size_t                             comment_len = 0;  /* Length of comment string */
     ssize_t                            ret_value   = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1, H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(-1)
     H5TRACE5("Zs", "i*sxzi", loc_id, name, comment, bufsize, lapl_id);
 
     /* Check args */

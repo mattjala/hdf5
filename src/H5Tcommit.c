@@ -1418,7 +1418,7 @@ H5T_invoke_vol_optional(H5T_t *dt, H5VL_optional_args_t *args, hid_t dxpl_id, vo
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
-
+    H5_API_LOCK
     /* Check that datatype is committed */
     if (!H5T_is_named(dt))
         HGOTO_ERROR(H5E_DATATYPE, H5E_BADTYPE, FAIL, "not a committed datatype");
@@ -1429,5 +1429,6 @@ H5T_invoke_vol_optional(H5T_t *dt, H5VL_optional_args_t *args, hid_t dxpl_id, vo
             HGOTO_ERROR(H5E_DATATYPE, H5E_CANTOPERATE, FAIL, "unable to execute datatype optional callback");
 
 done:
+    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T_invoke_vol_optional() */
