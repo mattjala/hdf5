@@ -106,7 +106,7 @@ void *mt_test_registration_helper(void H5_ATTR_UNUSED *arg) {
   vol_ids = (hid_t *)calloc(params->num_repetitions, sizeof(hid_t));
   assert(vol_ids != NULL);
 
-  vol_class = &reg_opt_vol_g;
+  vol_class = &mt_vl_test_vol_g;
 
   for (size_t i = 0; i < params->num_repetitions; i++) {
     vol_ids[i] = H5VLregister_connector(vol_class, H5P_DEFAULT);
