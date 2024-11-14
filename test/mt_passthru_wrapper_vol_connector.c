@@ -35,8 +35,6 @@
 /* Public HDF5 file */
 #include "hdf5.h"
 
-#include <stdatomic.h>
-
 /* This connector's header */
 #include "mt_passthru_wrapper_vol_connector.h"
 
