@@ -24,8 +24,6 @@
 /* This connector eventually routes its operations back to the Native VOL */
 #include "H5VLnative_private.h"
 
-#include <pthread.h>
-
 /* Attribute callbacks */
 H5_DLL void  *mt_native_wrapper_attr_create(void *obj, const H5VL_loc_params_t *loc_params, const char *attr_name,
                                        hid_t type_id, hid_t space_id, hid_t acpl_id, hid_t aapl_id,
