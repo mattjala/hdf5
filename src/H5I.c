@@ -2138,8 +2138,8 @@ herr_t H5I_vlock_exit(hid_t id) {
             continue;
         }
 
-        if (info_k.lock_count == 0) {
-            /* Lock count is already 0, no need to decrement */
+        if (info_k.lock_count == 0 && info_k.app_unlocks == 0) {
+            /* ID was fully released by this operation, so no more work is necessary */
             HGOTO_DONE(SUCCEED);
         }
 
