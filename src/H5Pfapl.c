@@ -1604,7 +1604,7 @@ H5Pget_driver_config_str(hid_t fapl_id, char *config_buf, size_t buf_size)
     const char     *config_str = NULL;
     ssize_t         ret_value  = -1;
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1)
     H5TRACE3("Zs", "i*sz", fapl_id, config_buf, buf_size);
 
     /* Check arguments */

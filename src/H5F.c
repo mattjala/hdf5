@@ -115,7 +115,7 @@ H5Fget_create_plist(hid_t file_id)
     H5VL_file_get_args_t vol_cb_args;                 /* Arguments to VOL callback */
     hid_t                ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, file_id)
     H5TRACE1("i", "i", file_id);
 
     /* check args */
@@ -134,7 +134,7 @@ H5Fget_create_plist(hid_t file_id)
     ret_value = vol_cb_args.args.get_fcpl.fcpl_id;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fget_create_plist() */
 
 /*-------------------------------------------------------------------------
@@ -162,7 +162,7 @@ H5Fget_access_plist(hid_t file_id)
     H5VL_file_get_args_t vol_cb_args;                 /* Arguments to VOL callback */
     hid_t                ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, file_id)
     H5TRACE1("i", "i", file_id);
 
     /* Check args */
@@ -181,7 +181,7 @@ H5Fget_access_plist(hid_t file_id)
     ret_value = vol_cb_args.args.get_fapl.fapl_id;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fget_access_plist() */
 
 /*-------------------------------------------------------------------------
@@ -225,7 +225,7 @@ H5Fget_obj_count(hid_t file_id, unsigned types)
 {
     ssize_t ret_value = 0; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1)
+    FUNC_ENTER_API_NO_MUTEX(-1, file_id)
     H5TRACE2("Zs", "iIu", file_id, types);
 
     /* Check arguments */
@@ -290,7 +290,7 @@ H5Fget_obj_count(hid_t file_id, unsigned types)
     } /* end else */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fget_obj_count() */
 
 /*-------------------------------------------------------------------------
@@ -345,7 +345,7 @@ H5Fget_obj_ids(hid_t file_id, unsigned types, size_t max_objs, hid_t *oid_list /
 {
     ssize_t ret_value = 0; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1)
+    FUNC_ENTER_API_NO_MUTEX(-1, file_id)
     H5TRACE4("Zs", "iIuzx", file_id, types, max_objs, oid_list);
 
     /* Check arguments */
@@ -419,7 +419,7 @@ H5Fget_obj_ids(hid_t file_id, unsigned types, size_t max_objs, hid_t *oid_list /
     } /* end else */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fget_obj_ids() */
 
 /*-------------------------------------------------------------------------
@@ -440,7 +440,7 @@ H5Fget_vfd_handle(hid_t file_id, hid_t fapl_id, void **file_handle /*out*/)
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id, fapl_id)
     H5TRACE3("e", "iix", file_id, fapl_id, file_handle);
 
     /* Check args */
@@ -462,7 +462,7 @@ H5Fget_vfd_handle(hid_t file_id, hid_t fapl_id, void **file_handle /*out*/)
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to get VFD handle");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id, fapl_id)
 } /* end H5Fget_vfd_handle() */
 
 /*-------------------------------------------------------------------------
@@ -482,7 +482,7 @@ H5Fis_accessible(const char *filename, hid_t fapl_id)
     hbool_t                   is_accessible = FALSE; /* Whether file is accessible */
     htri_t                    ret_value;             /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, fapl_id)
     H5TRACE2("t", "*si", filename, fapl_id);
 
     /* Check args */
@@ -515,7 +515,7 @@ H5Fis_accessible(const char *filename, hid_t fapl_id)
     ret_value = (htri_t)is_accessible;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, fapl_id)
 } /* end H5Fis_accessible() */
 
 /*-------------------------------------------------------------------------
@@ -680,7 +680,7 @@ H5Fcreate(const char *filename, unsigned flags, hid_t fcpl_id, hid_t fapl_id)
     H5VL_object_t *vol_obj   = NULL;            /* File object */
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, fcpl_id, fapl_id)
     H5TRACE4("i", "*sIuii", filename, flags, fcpl_id, fapl_id);
 
     /* Create the file synchronously */
@@ -696,7 +696,7 @@ H5Fcreate(const char *filename, unsigned flags, hid_t fcpl_id, hid_t fapl_id)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, H5I_INVALID_HID, "'post open' operation failed");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, fcpl_id, fapl_id)
 } /* end H5Fcreate() */
 
 /*-------------------------------------------------------------------------
@@ -720,7 +720,7 @@ H5Fcreate_async(const char *app_file, const char *app_func, unsigned app_line, c
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
     int dec_ref_ret = 0;                        /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, fcpl_id, fapl_id, es_id)
     H5TRACE8("i", "*s*sIu*sIuiii", app_file, app_func, app_line, filename, flags, fcpl_id, fapl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -769,7 +769,7 @@ H5Fcreate_async(const char *app_file, const char *app_func, unsigned app_line, c
             HGOTO_ERROR(H5E_FILE, H5E_CANTINSERT, H5I_INVALID_HID, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, fcpl_id, fapl_id, es_id)
 } /* end H5Fcreate_async() */
 
 /*-------------------------------------------------------------------------
@@ -875,7 +875,7 @@ H5Fopen(const char *filename, unsigned flags, hid_t fapl_id)
     H5VL_object_t *vol_obj   = NULL;            /* File object */
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, fapl_id)
     H5TRACE3("i", "*sIui", filename, flags, fapl_id);
 
     /* Open the file synchronously */
@@ -891,7 +891,7 @@ H5Fopen(const char *filename, unsigned flags, hid_t fapl_id)
         HGOTO_ERROR(H5E_FILE, H5E_CANTINIT, H5I_INVALID_HID, "'post open' operation failed");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, fapl_id)
 } /* end H5Fopen() */
 
 /*-------------------------------------------------------------------------
@@ -916,7 +916,7 @@ H5Fopen_async(const char *app_file, const char *app_func, unsigned app_line, con
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
     int dec_ref_ret = 0;                        /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, fapl_id, es_id)
     H5TRACE7("i", "*s*sIu*sIuii", app_file, app_func, app_line, filename, flags, fapl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -965,7 +965,7 @@ H5Fopen_async(const char *app_file, const char *app_func, unsigned app_line, con
             HGOTO_ERROR(H5E_FILE, H5E_CANTINSERT, H5I_INVALID_HID, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, fapl_id, es_id)
 } /* end H5Fopen_async() */
 
 /*-------------------------------------------------------------------------
@@ -1028,7 +1028,7 @@ H5Fflush(hid_t object_id, H5F_scope_t scope)
 {
     herr_t ret_value = SUCCEED; /* Return value     */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, object_id)
     H5TRACE2("e", "iFs", object_id, scope);
 
     /* Flush the file synchronously */
@@ -1036,7 +1036,7 @@ H5Fflush(hid_t object_id, H5F_scope_t scope)
         HGOTO_ERROR(H5E_FILE, H5E_CANTFLUSH, FAIL, "unable to synchronously flush file");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, object_id)
 } /* end H5Fflush() */
 
 /*-------------------------------------------------------------------------
@@ -1058,7 +1058,7 @@ H5Fflush_async(const char *app_file, const char *app_func, unsigned app_line, hi
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value     */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, object_id, es_id)
     H5TRACE6("e", "*s*sIuiFsi", app_file, app_func, app_line, object_id, scope, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -1078,7 +1078,7 @@ H5Fflush_async(const char *app_file, const char *app_func, unsigned app_line, hi
             HGOTO_ERROR(H5E_FILE, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, object_id, es_id)
 } /* end H5Fflush_async() */
 
 /*-------------------------------------------------------------------------
@@ -1101,7 +1101,7 @@ H5Fclose(hid_t file_id)
     herr_t ret_value = SUCCEED; /* Return value */
     int dec_ref_ret = 0;        /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE1("e", "i", file_id);
 
     /* Check arguments */
@@ -1121,7 +1121,7 @@ H5Fclose(hid_t file_id)
         HGOTO_ERROR(H5E_FILE, H5E_CANTCLOSEFILE, FAIL, "decrementing file ID failed");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fclose() */
 
 /*-------------------------------------------------------------------------
@@ -1143,7 +1143,7 @@ H5Fclose_async(const char *app_file, const char *app_func, unsigned app_line, hi
     herr_t         ret_value = SUCCEED;         /* Return value */
     int dec_ref_ret = 0;                        /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id, es_id)
     H5TRACE5("e", "*s*sIuii", app_file, app_func, app_line, file_id, es_id);
 
     /* Check arguments */
@@ -1188,7 +1188,7 @@ done:
     if (connector && H5VL_conn_dec_rc(connector) < 0)
         HDONE_ERROR(H5E_FILE, H5E_CANTDEC, FAIL, "can't decrement ref count on connector");
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id, es_id)
 } /* end H5Fclose_async() */
 
 /*-------------------------------------------------------------------------
@@ -1209,7 +1209,7 @@ H5Fdelete(const char *filename, hid_t fapl_id)
     hbool_t                   is_accessible = FALSE; /* Whether file is accessible */
     herr_t                    ret_value     = SUCCEED;
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, fapl_id)
     H5TRACE2("e", "*si", filename, fapl_id);
 
     /* Check args */
@@ -1266,7 +1266,7 @@ H5Fdelete(const char *filename, hid_t fapl_id)
         HGOTO_ERROR(H5E_FILE, H5E_CANTDELETEFILE, FAIL, "unable to delete the file");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, fapl_id)
 } /* end H5Fdelete() */
 
 /*-------------------------------------------------------------------------
@@ -1291,7 +1291,7 @@ H5Fmount(hid_t loc_id, const char *name, hid_t child_id, hid_t plist_id)
     herr_t                     ret_value      = SUCCEED; /* Return value         */
     htri_t                     ret           = FALSE;    /* Returns value from H5P comparisons */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, loc_id, child_id, plist_id)
     H5TRACE4("e", "i*sii", loc_id, name, child_id, plist_id);
 
     /* Check arguments */
@@ -1390,7 +1390,7 @@ done:
             HDONE_ERROR(H5E_FILE, H5E_CANTDEC, FAIL, "unable to free VOL object");
     } /* end if */
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, child_id, plist_id)
 } /* end H5Fmount() */
 
 /*-------------------------------------------------------------------------
@@ -1418,7 +1418,7 @@ H5Funmount(hid_t loc_id, const char *name)
     H5I_type_t                 loc_type;            /* ID type of location  */
     herr_t                     ret_value = SUCCEED; /* Return value         */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, loc_id)
     H5TRACE2("e", "i*s", loc_id, name);
 
     /* Check arguments */
@@ -1490,7 +1490,7 @@ done:
             HDONE_ERROR(H5E_FILE, H5E_CANTDEC, FAIL, "unable to free VOL object");
     } /* end if */
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id)
 } /* end H5Funmount() */
 
 /*-------------------------------------------------------------------------
@@ -1559,7 +1559,7 @@ H5Freopen(hid_t file_id)
     H5VL_object_t *vol_obj   = NULL;            /* File object */
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, file_id)
     H5TRACE1("i", "i", file_id);
 
     /* Reopen the file synchronously */
@@ -1576,7 +1576,7 @@ H5Freopen(hid_t file_id)
 
 done:
     /* XXX (VOL MERGE): If registration fails, file will not be closed */
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Freopen() */
 
 /*-------------------------------------------------------------------------
@@ -1600,7 +1600,7 @@ H5Freopen_async(const char *app_file, const char *app_func, unsigned app_line, h
     hid_t          ret_value;                   /* Return value */
     int dec_ref_ret = 0;                        /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, file_id, es_id)
     H5TRACE5("i", "*s*sIuii", app_file, app_func, app_line, file_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -1649,7 +1649,7 @@ H5Freopen_async(const char *app_file, const char *app_func, unsigned app_line, h
             HGOTO_ERROR(H5E_FILE, H5E_CANTINSERT, H5I_INVALID_HID, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id, es_id)
 } /* end H5Freopen_async() */
 
 /*-------------------------------------------------------------------------
@@ -1667,7 +1667,7 @@ H5Fget_intent(hid_t file_id, unsigned *intent_flags /*out*/)
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE2("e", "ix", file_id, intent_flags);
 
     /* If no intent flags were passed in, exit quietly */
@@ -1689,7 +1689,7 @@ H5Fget_intent(hid_t file_id, unsigned *intent_flags /*out*/)
     } /* end if */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fget_intent() */
 
 /*-------------------------------------------------------------------------
@@ -1707,7 +1707,7 @@ H5Fget_fileno(hid_t file_id, unsigned long *fnumber /*out*/)
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE2("e", "ix", file_id, fnumber);
 
     /* If no fnumber pointer was passed in, exit quietly */
@@ -1729,7 +1729,7 @@ H5Fget_fileno(hid_t file_id, unsigned long *fnumber /*out*/)
     } /* end if */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fget_fileno() */
 
 /*-------------------------------------------------------------------------
@@ -1750,7 +1750,7 @@ H5Fget_freespace(hid_t file_id)
     hsize_t                          file_freespace = 0; /* Size of freespace in the file */
     hssize_t                         ret_value;          /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1)
+    FUNC_ENTER_API_NO_MUTEX(-1, file_id)
     H5TRACE1("Hs", "i", file_id);
 
     /* Get the file object */
@@ -1770,7 +1770,7 @@ H5Fget_freespace(hid_t file_id)
     ret_value = (hssize_t)file_freespace;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fget_freespace() */
 
 /*-------------------------------------------------------------------------
@@ -1792,7 +1792,7 @@ H5Fget_filesize(hid_t file_id, hsize_t *size /*out*/)
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE2("e", "ix", file_id, size);
 
     /* Check args */
@@ -1811,7 +1811,7 @@ H5Fget_filesize(hid_t file_id, hsize_t *size /*out*/)
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to get file size");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fget_filesize() */
 
 /*-------------------------------------------------------------------------
@@ -1860,7 +1860,7 @@ H5Fget_file_image(hid_t file_id, void *buf /*out*/, size_t buf_len)
     size_t                           image_len = 0; /* Size of image buffer */
     ssize_t                          ret_value;     /* Return value             */
 
-    FUNC_ENTER_API_NO_MUTEX(-1)
+    FUNC_ENTER_API_NO_MUTEX(-1, file_id)
     H5TRACE3("Zs", "ixz", file_id, buf, buf_len);
 
     /* Check args */
@@ -1882,7 +1882,7 @@ H5Fget_file_image(hid_t file_id, void *buf /*out*/, size_t buf_len)
     ret_value = (ssize_t)image_len;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fget_file_image() */
 
 /*-------------------------------------------------------------------------
@@ -1907,7 +1907,7 @@ H5Fget_mdc_config(hid_t file_id, H5AC_cache_config_t *config /*out*/)
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE2("e", "ix", file_id, config);
 
     /* Check args */
@@ -1928,7 +1928,7 @@ H5Fget_mdc_config(hid_t file_id, H5AC_cache_config_t *config /*out*/)
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to get metadata cache configuration");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fget_mdc_config() */
 
 /*-------------------------------------------------------------------------
@@ -1950,7 +1950,7 @@ H5Fset_mdc_config(hid_t file_id, const H5AC_cache_config_t *config_ptr)
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE2("e", "i*Cc", file_id, config_ptr);
 
     /* Get the file object */
@@ -1967,7 +1967,7 @@ H5Fset_mdc_config(hid_t file_id, const H5AC_cache_config_t *config_ptr)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set metadata cache configuration");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fset_mdc_config() */
 
 /*-------------------------------------------------------------------------
@@ -1990,7 +1990,7 @@ H5Fget_mdc_hit_rate(hid_t file_id, double *hit_rate /*out*/)
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE2("e", "ix", file_id, hit_rate);
 
     /* Check args */
@@ -2009,7 +2009,7 @@ H5Fget_mdc_hit_rate(hid_t file_id, double *hit_rate /*out*/)
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to get MDC hit rate");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fget_mdc_hit_rate() */
 
 /*-------------------------------------------------------------------------
@@ -2035,7 +2035,7 @@ H5Fget_mdc_size(hid_t file_id, size_t *max_size /*out*/, size_t *min_clean_size 
     uint32_t                         index_len = 0;       /* Size of cache index */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE5("e", "ixxxx", file_id, max_size, min_clean_size, cur_size, cur_num_entries);
 
     /* Check args */
@@ -2059,7 +2059,7 @@ H5Fget_mdc_size(hid_t file_id, size_t *max_size /*out*/, size_t *min_clean_size 
         *cur_num_entries = (int)index_len;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fget_mdc_size() */
 
 /*-------------------------------------------------------------------------
@@ -2085,7 +2085,7 @@ H5Freset_mdc_hit_rate_stats(hid_t file_id)
     H5VL_optional_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE1("e", "i", file_id);
 
     /* Get the file object */
@@ -2101,7 +2101,7 @@ H5Freset_mdc_hit_rate_stats(hid_t file_id)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't reset cache hit rate");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Freset_mdc_hit_rate_stats() */
 
 /*-------------------------------------------------------------------------
@@ -2132,7 +2132,7 @@ H5Fget_name(hid_t obj_id, char *name /*out*/, size_t size)
     size_t               file_name_len = 0;  /* Length of file name */
     ssize_t              ret_value     = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1)
+    FUNC_ENTER_API_NO_MUTEX(-1, obj_id)
     H5TRACE3("Zs", "ixz", obj_id, name, size);
 
     /* Check the type */
@@ -2160,7 +2160,7 @@ H5Fget_name(hid_t obj_id, char *name /*out*/, size_t size)
     ret_value = (ssize_t)file_name_len;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, obj_id)
 } /* end H5Fget_name() */
 
 /*-------------------------------------------------------------------------
@@ -2185,7 +2185,7 @@ H5Fget_info2(hid_t obj_id, H5F_info2_t *finfo /*out*/)
     H5I_type_t                       type;
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, obj_id)
     H5TRACE2("e", "ix", obj_id, finfo);
 
     /* Check args */
@@ -2213,7 +2213,7 @@ H5Fget_info2(hid_t obj_id, H5F_info2_t *finfo /*out*/)
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "unable to retrieve file info");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, obj_id)
 } /* end H5Fget_info2() */
 
 /*-------------------------------------------------------------------------
@@ -2234,7 +2234,7 @@ H5Fget_metadata_read_retry_info(hid_t file_id, H5F_retry_info_t *info /*out*/)
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE2("e", "ix", file_id, info);
 
     /* Check args */
@@ -2255,7 +2255,7 @@ H5Fget_metadata_read_retry_info(hid_t file_id, H5F_retry_info_t *info /*out*/)
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "can't get metadata read retry info");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fget_metadata_read_retry_info() */
 
 /*-------------------------------------------------------------------------
@@ -2279,7 +2279,7 @@ H5Fget_free_sections(hid_t file_id, H5F_mem_t type, size_t nsects, H5F_sect_info
     size_t                           sect_count = 0;  /* Number of sections */
     ssize_t                          ret_value  = -1; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(-1)
+    FUNC_ENTER_API_NO_MUTEX(-1, file_id)
     H5TRACE4("Zs", "iFmzx", file_id, type, nsects, sect_info);
 
     /* Check args */
@@ -2304,7 +2304,7 @@ H5Fget_free_sections(hid_t file_id, H5F_mem_t type, size_t nsects, H5F_sect_info
     ret_value = (ssize_t)sect_count;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fget_free_sections() */
 
 /*-------------------------------------------------------------------------
@@ -2325,7 +2325,7 @@ H5Fclear_elink_file_cache(hid_t file_id)
     H5VL_optional_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE1("e", "i", file_id);
 
     /* Check args */
@@ -2341,7 +2341,7 @@ H5Fclear_elink_file_cache(hid_t file_id)
         HGOTO_ERROR(H5E_FILE, H5E_CANTRELEASE, FAIL, "can't release external file cache");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fclear_elink_file_cache() */
 
 /*-------------------------------------------------------------------------
@@ -2385,7 +2385,7 @@ H5Fstart_swmr_write(hid_t file_id)
     H5VL_optional_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE1("e", "i", file_id);
 
     /* Check args */
@@ -2409,7 +2409,7 @@ H5Fstart_swmr_write(hid_t file_id)
         HGOTO_ERROR(H5E_FILE, H5E_SYSTEM, FAIL, "unable to start SWMR writing");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fstart_swmr_write() */
 
 /*-------------------------------------------------------------------------
@@ -2429,7 +2429,7 @@ H5Fstart_mdc_logging(hid_t file_id)
     H5VL_optional_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE1("e", "i", file_id);
 
     /* Sanity check */
@@ -2445,7 +2445,7 @@ H5Fstart_mdc_logging(hid_t file_id)
         HGOTO_ERROR(H5E_FILE, H5E_LOGGING, FAIL, "unable to start mdc logging");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fstart_mdc_logging() */
 
 /*-------------------------------------------------------------------------
@@ -2466,7 +2466,7 @@ H5Fstop_mdc_logging(hid_t file_id)
     H5VL_optional_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE1("e", "i", file_id);
 
     /* Sanity check */
@@ -2482,7 +2482,7 @@ H5Fstop_mdc_logging(hid_t file_id)
         HGOTO_ERROR(H5E_FILE, H5E_LOGGING, FAIL, "unable to stop mdc logging");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fstop_mdc_logging() */
 
 /*-------------------------------------------------------------------------
@@ -2504,7 +2504,7 @@ H5Fget_mdc_logging_status(hid_t file_id, hbool_t *is_enabled /*out*/, hbool_t *i
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE3("e", "ixx", file_id, is_enabled, is_currently_logging);
 
     /* Sanity check */
@@ -2522,7 +2522,7 @@ H5Fget_mdc_logging_status(hid_t file_id, hbool_t *is_enabled /*out*/, hbool_t *i
         HGOTO_ERROR(H5E_FILE, H5E_LOGGING, FAIL, "unable to get logging status");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fget_mdc_logging_status() */
 
 /*-------------------------------------------------------------------------
@@ -2545,7 +2545,7 @@ H5Fset_libver_bounds(hid_t file_id, H5F_libver_t low, H5F_libver_t high)
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value 				*/
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE3("e", "iFvFv", file_id, low, high);
 
     /* Check args */
@@ -2571,7 +2571,7 @@ H5Fset_libver_bounds(hid_t file_id, H5F_libver_t low, H5F_libver_t high)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set library version bounds");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fset_libver_bounds() */
 
 /*-------------------------------------------------------------------------
@@ -2592,7 +2592,7 @@ H5Fformat_convert(hid_t file_id)
     H5VL_optional_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE1("e", "i", file_id);
 
     /* Check args */
@@ -2616,7 +2616,7 @@ H5Fformat_convert(hid_t file_id)
         HGOTO_ERROR(H5E_FILE, H5E_CANTCONVERT, FAIL, "can't convert file format");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* end H5Fformat_convert() */
 
 /*-------------------------------------------------------------------------
@@ -2635,7 +2635,7 @@ H5Freset_page_buffering_stats(hid_t file_id)
     H5VL_optional_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE1("e", "i", file_id);
 
     /* Check args */
@@ -2651,7 +2651,7 @@ H5Freset_page_buffering_stats(hid_t file_id)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't reset stats for page buffering");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Freset_page_buffering_stats() */
 
 /*-------------------------------------------------------------------------
@@ -2673,7 +2673,7 @@ H5Fget_page_buffering_stats(hid_t file_id, unsigned accesses[2] /*out*/, unsigne
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE6("e", "ixxxxx", file_id, accesses, hits, misses, evictions, bypasses);
 
     /* Check args */
@@ -2696,7 +2696,7 @@ H5Fget_page_buffering_stats(hid_t file_id, unsigned accesses[2] /*out*/, unsigne
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "can't retrieve stats for page buffering");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fget_page_buffering_stats() */
 
 /*-------------------------------------------------------------------------
@@ -2720,7 +2720,7 @@ H5Fget_mdc_image_info(hid_t file_id, haddr_t *image_addr /*out*/, hsize_t *image
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE3("e", "ixx", file_id, image_addr, image_len);
 
     /* Check args */
@@ -2738,7 +2738,7 @@ H5Fget_mdc_image_info(hid_t file_id, haddr_t *image_addr /*out*/, hsize_t *image
         HGOTO_ERROR(H5E_FILE, H5E_CANTGET, FAIL, "can't retrieve cache image info");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fget_mdc_image_info() */
 
 /*-------------------------------------------------------------------------
@@ -2758,7 +2758,7 @@ H5Fget_eoa(hid_t file_id, haddr_t *eoa /*out*/)
     H5VL_object_t *vol_obj;             /* File info */
     herr_t         ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE2("e", "ix", file_id, eoa);
 
     /* Check args */
@@ -2781,7 +2781,7 @@ H5Fget_eoa(hid_t file_id, haddr_t *eoa /*out*/)
     } /* end if */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fget_eoa() */
 
 /*-------------------------------------------------------------------------
@@ -2801,7 +2801,7 @@ H5Fincrement_filesize(hid_t file_id, hsize_t increment)
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE2("e", "ih", file_id, increment);
 
     /* Check args */
@@ -2818,7 +2818,7 @@ H5Fincrement_filesize(hid_t file_id, hsize_t increment)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to increment file size");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fincrement_filesize() */
 
 /*-------------------------------------------------------------------------
@@ -2839,7 +2839,7 @@ H5Fget_dset_no_attrs_hint(hid_t file_id, hbool_t *minimize /*out*/)
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE2("e", "ix", file_id, minimize);
 
     /* Check args */
@@ -2858,7 +2858,7 @@ H5Fget_dset_no_attrs_hint(hid_t file_id, hbool_t *minimize /*out*/)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set file's dataset header minimization flag");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fget_dset_no_attrs_hint */
 
 /*-------------------------------------------------------------------------
@@ -2879,7 +2879,7 @@ H5Fset_dset_no_attrs_hint(hid_t file_id, hbool_t minimize)
     H5VL_native_file_optional_args_t file_opt_args;       /* Arguments for optional operation */
     herr_t                           ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, file_id)
     H5TRACE2("e", "ib", file_id, minimize);
 
     /* Check args */
@@ -2896,5 +2896,5 @@ H5Fset_dset_no_attrs_hint(hid_t file_id, hbool_t minimize)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "unable to set file's dataset header minimization flag");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, file_id)
 } /* H5Fset_dset_no_attrs_hint */

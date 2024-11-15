@@ -149,7 +149,7 @@ H5Fis_hdf5(const char *name)
     hbool_t                   is_accessible = FALSE; /* Whether file is accessible */
     htri_t                    ret_value;             /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1)
     H5TRACE1("t", "*s", name);
 
     /* Check args and all the boring stuff. */

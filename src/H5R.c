@@ -1038,7 +1038,7 @@ H5Rget_file_name(const H5R_ref_t *ref_ptr, char *buf /*out*/, size_t size)
     hid_t   loc_id;    /* Reference location ID */
     ssize_t ret_value; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1)
     H5TRACE3("Zs", "*Rrxz", ref_ptr, buf, size);
 
     /* Check args */
@@ -1104,7 +1104,7 @@ H5Rget_obj_name(H5R_ref_t *ref_ptr, hid_t rapl_id, char *buf /*out*/, size_t siz
     size_t                 obj_name_len = 0;   /* Length of object's name */
     ssize_t                ret_value    = 0;   /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1)
     H5TRACE4("Zs", "*Rrixz", ref_ptr, rapl_id, buf, size);
 
     /* Check args */
@@ -1166,7 +1166,7 @@ H5Rget_attr_name(const H5R_ref_t *ref_ptr, char *buf /*out*/, size_t size)
 {
     ssize_t ret_value; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1)
     H5TRACE3("Zs", "*Rrxz", ref_ptr, buf, size);
 
     /* Check args */

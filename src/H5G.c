@@ -237,7 +237,7 @@ H5Gcreate2(hid_t loc_id, const char *name, hid_t lcpl_id, hid_t gcpl_id, hid_t g
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, lcpl_id, gcpl_id, gapl_id)
     H5TRACE5("i", "i*siii", loc_id, name, lcpl_id, gcpl_id, gapl_id);
 
     /* Create the group synchronously */
@@ -245,7 +245,7 @@ H5Gcreate2(hid_t loc_id, const char *name, hid_t lcpl_id, hid_t gcpl_id, hid_t g
         HGOTO_ERROR(H5E_SYM, H5E_CANTCREATE, H5I_INVALID_HID, "unable to synchronously create group");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, lcpl_id, gcpl_id, gapl_id)
 } /* end H5Gcreate2() */
 
 /*-------------------------------------------------------------------------
@@ -268,7 +268,7 @@ H5Gcreate_async(const char *app_file, const char *app_func, unsigned app_line, h
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
     int dec_ref_ret = 0;                        /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, lcpl_id, gcpl_id, gapl_id, es_id)
     H5TRACE9("i", "*s*sIui*siiii", app_file, app_func, app_line, loc_id, name, lcpl_id, gcpl_id, gapl_id,
              es_id);
 
@@ -299,7 +299,7 @@ H5Gcreate_async(const char *app_file, const char *app_func, unsigned app_line, h
         } /* end if */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, lcpl_id, gcpl_id, gapl_id, es_id)
 } /* end H5Gcreate_async() */
 
 /*-------------------------------------------------------------------------
@@ -343,7 +343,7 @@ H5Gcreate_anon(hid_t loc_id, hid_t gcpl_id, hid_t gapl_id)
     hid_t             ret_value = H5I_INVALID_HID; /* Return value */
     htri_t            ret = FALSE;                 /* Return value from H5P comparisons */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, gcpl_id, gapl_id)
     H5TRACE3("i", "iii", loc_id, gcpl_id, gapl_id);
 
     /* Check group property list */
@@ -400,7 +400,7 @@ done:
         if (grp && H5VL_group_close(vol_obj, H5P_DATASET_XFER_DEFAULT, H5_REQUEST_NULL) < 0)
             HDONE_ERROR(H5E_SYM, H5E_CLOSEERROR, H5I_INVALID_HID, "unable to release group");
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, gcpl_id, gapl_id)
 } /* end H5Gcreate_anon() */
 
 /*-------------------------------------------------------------------------
@@ -472,7 +472,7 @@ H5Gopen2(hid_t loc_id, const char *name, hid_t gapl_id)
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, gapl_id)
     H5TRACE3("i", "i*si", loc_id, name, gapl_id);
 
     /* Open the group synchronously */
@@ -480,7 +480,7 @@ H5Gopen2(hid_t loc_id, const char *name, hid_t gapl_id)
         HGOTO_ERROR(H5E_SYM, H5E_CANTCREATE, H5I_INVALID_HID, "unable to synchronously open group");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, gapl_id)
 } /* end H5Gopen2() */
 
 /*-------------------------------------------------------------------------
@@ -503,7 +503,7 @@ H5Gopen_async(const char *app_file, const char *app_func, unsigned app_line, hid
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
     int            dec_ref_ret = 0;             /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, gapl_id, es_id)
     H5TRACE7("i", "*s*sIui*sii", app_file, app_func, app_line, loc_id, name, gapl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -532,7 +532,7 @@ H5Gopen_async(const char *app_file, const char *app_func, unsigned app_line, hid
         } /* end if */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, gapl_id, es_id)
 } /* end H5Gopen_async() */
 
 /*-------------------------------------------------------------------------
@@ -555,7 +555,7 @@ H5Gget_create_plist(hid_t group_id)
     H5VL_group_get_args_t vol_cb_args; /* Arguments to VOL callback */
     hid_t                 ret_value = H5I_INVALID_HID;
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, group_id)
     H5TRACE1("i", "i", group_id);
 
     /* Check args */
@@ -574,7 +574,7 @@ H5Gget_create_plist(hid_t group_id)
     ret_value = vol_cb_args.args.get_gcpl.gcpl_id;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, group_id)
 } /* end H5Gget_create_plist() */
 
 /*-------------------------------------------------------------------------
@@ -635,7 +635,7 @@ H5Gget_info(hid_t loc_id, H5G_info_t *group_info /*out*/)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, loc_id)
     H5TRACE2("e", "ix", loc_id, group_info);
 
     /* Retrieve group information synchronously */
@@ -643,7 +643,7 @@ H5Gget_info(hid_t loc_id, H5G_info_t *group_info /*out*/)
         HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "unable to synchronously get group info");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id)
 } /* end H5Gget_info() */
 
 /*-------------------------------------------------------------------------
@@ -664,7 +664,7 @@ H5Gget_info_async(const char *app_file, const char *app_func, unsigned app_line,
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, loc_id, es_id)
     H5TRACE6("e", "*s*sIuixi", app_file, app_func, app_line, loc_id, group_info, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -684,7 +684,7 @@ H5Gget_info_async(const char *app_file, const char *app_func, unsigned app_line,
             HGOTO_ERROR(H5E_SYM, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, es_id)
 } /* H5Gget_info_async() */
 
 /*-------------------------------------------------------------------------
@@ -743,7 +743,7 @@ H5Gget_info_by_name(hid_t loc_id, const char *name, H5G_info_t *group_info /*out
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, loc_id, lapl_id)
     H5TRACE4("e", "i*sxi", loc_id, name, group_info, lapl_id);
 
     /* Retrieve group information synchronously */
@@ -751,7 +751,7 @@ H5Gget_info_by_name(hid_t loc_id, const char *name, H5G_info_t *group_info /*out
         HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't synchronously retrieve group info");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, lapl_id)
 } /* end H5Gget_info_by_name() */
 
 /*-------------------------------------------------------------------------
@@ -772,7 +772,7 @@ H5Gget_info_by_name_async(const char *app_file, const char *app_func, unsigned a
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, loc_id, lapl_id, es_id)
     H5TRACE8("e", "*s*sIui*sxii", app_file, app_func, app_line, loc_id, name, group_info, lapl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -792,7 +792,7 @@ H5Gget_info_by_name_async(const char *app_file, const char *app_func, unsigned a
             HGOTO_ERROR(H5E_SYM, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, lapl_id, es_id)
 } /* H5Gget_info_by_name_async() */
 
 /*-------------------------------------------------------------------------
@@ -853,7 +853,7 @@ H5Gget_info_by_idx(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, loc_id, lapl_id)
     H5TRACE7("e", "i*sIiIohxi", loc_id, group_name, idx_type, order, n, group_info, lapl_id);
 
     /* Retrieve group information synchronously */
@@ -862,7 +862,7 @@ H5Gget_info_by_idx(hid_t loc_id, const char *group_name, H5_index_t idx_type, H5
         HGOTO_ERROR(H5E_SYM, H5E_CANTGET, FAIL, "can't synchronously retrieve group info");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, lapl_id)
 } /* end H5Gget_info_by_idx() */
 
 /*-------------------------------------------------------------------------
@@ -884,7 +884,7 @@ H5Gget_info_by_idx_async(const char *app_file, const char *app_func, unsigned ap
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, loc_id, lapl_id, es_id)
     H5TRACE11("e", "*s*sIui*sIiIohxii", app_file, app_func, app_line, loc_id, group_name, idx_type, order, n,
               group_info, lapl_id, es_id);
 
@@ -906,7 +906,7 @@ H5Gget_info_by_idx_async(const char *app_file, const char *app_func, unsigned ap
             HGOTO_ERROR(H5E_SYM, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, lapl_id, es_id)
 } /* H5Gget_info_by_idx_async() */
 
 /*-------------------------------------------------------------------------
@@ -925,7 +925,7 @@ H5Gclose(hid_t group_id)
     herr_t ret_value = SUCCEED; /* Return value                     */
     int    dec_ref_ret = 0;         /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, group_id)
     H5TRACE1("e", "i", group_id);
 
     /* Check arguments */
@@ -945,7 +945,7 @@ H5Gclose(hid_t group_id)
         HGOTO_ERROR(H5E_SYM, H5E_CANTDEC, FAIL, "decrementing group ID failed");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, group_id)
 } /* end H5Gclose() */
 
 /*-------------------------------------------------------------------------
@@ -967,7 +967,7 @@ H5Gclose_async(const char *app_file, const char *app_func, unsigned app_line, hi
     herr_t         ret_value = SUCCEED;         /* Return value                     */
     int            dec_ref_ret = 0;                 /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, group_id, es_id)
     H5TRACE5("e", "*s*sIuii", app_file, app_func, app_line, group_id, es_id);
 
     /* Check arguments */
@@ -1013,7 +1013,7 @@ done:
     if (connector && H5VL_conn_dec_rc(connector) < 0)
         HDONE_ERROR(H5E_SYM, H5E_CANTDEC, FAIL, "can't decrement ref count on connector");
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, group_id, es_id)
 } /* end H5Gclose_async() */
 
 /*-------------------------------------------------------------------------
@@ -1032,7 +1032,7 @@ H5Gflush(hid_t group_id)
     H5VL_group_specific_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t                     ret_value = SUCCEED; /* Return value                 */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, group_id)
     H5TRACE1("e", "i", group_id);
 
     /* Check args */
@@ -1056,7 +1056,7 @@ H5Gflush(hid_t group_id)
         HGOTO_ERROR(H5E_SYM, H5E_CANTFLUSH, FAIL, "unable to flush group");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, group_id)
 } /* H5Gflush */
 
 /*-------------------------------------------------------------------------
@@ -1075,7 +1075,7 @@ H5Grefresh(hid_t group_id)
     H5VL_group_specific_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t                     ret_value = SUCCEED; /* Return value                 */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, group_id)
     H5TRACE1("e", "i", group_id);
 
     /* Check args */
@@ -1099,5 +1099,5 @@ H5Grefresh(hid_t group_id)
         HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, FAIL, "unable to refresh group");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, group_id)
 } /* H5Grefresh */

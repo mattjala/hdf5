@@ -756,7 +756,7 @@ H5Eget_class_name(hid_t class_id, char *name /*out*/, size_t size)
     H5E_cls_t *cls;            /* Pointer to error class */
     ssize_t    ret_value = -1; /* Return value */
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1)
     H5TRACE3("Zs", "ixz", class_id, name, size);
 
     /* Get the error class */
@@ -1045,7 +1045,7 @@ H5Eget_msg(hid_t msg_id, H5E_type_t *type /*out*/, char *msg_str /*out*/, size_t
     H5E_msg_t *msg;            /* Pointer to error message */
     ssize_t    ret_value = -1; /* Return value */
 
-    FUNC_ENTER_API_NOCLEAR((-1))
+    FUNC_ENTER_API_NOCLEAR(-1)
     H5TRACE4("Zs", "ixxz", msg_id, type, msg_str, size);
 
     /* Get the message object */
@@ -1451,7 +1451,7 @@ H5Eget_num(hid_t error_stack_id)
     ssize_t ret_value; /* Return value */
 
     /* Don't clear the error stack! :-) */
-    FUNC_ENTER_API_NOCLEAR((-1))
+    FUNC_ENTER_API_NOCLEAR(-1)
     H5TRACE1("Zs", "i", error_stack_id);
 
     /* Need to check for errors */

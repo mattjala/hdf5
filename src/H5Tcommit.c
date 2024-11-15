@@ -183,7 +183,7 @@ H5Tcommit2(hid_t loc_id, const char *name, hid_t type_id, hid_t lcpl_id, hid_t t
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, loc_id, type_id, lcpl_id, tcpl_id, tapl_id)
     H5TRACE6("e", "i*siiii", loc_id, name, type_id, lcpl_id, tcpl_id, tapl_id);
 
     /* Commit the dataset synchronously */
@@ -192,7 +192,7 @@ H5Tcommit2(hid_t loc_id, const char *name, hid_t type_id, hid_t lcpl_id, hid_t t
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTOPENOBJ, FAIL, "unable to commit datatype synchronously");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, type_id, lcpl_id, tcpl_id, tapl_id)
 } /* end H5Tcommit2() */
 
 /*-------------------------------------------------------------------------
@@ -213,7 +213,7 @@ H5Tcommit_async(const char *app_file, const char *app_func, unsigned app_line, h
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, loc_id, type_id, lcpl_id, tcpl_id, tapl_id, es_id)
     H5TRACE10("e", "*s*sIui*siiiii", app_file, app_func, app_line, loc_id, name, type_id, lcpl_id, tcpl_id,
               tapl_id, es_id);
 
@@ -235,7 +235,7 @@ H5Tcommit_async(const char *app_file, const char *app_func, unsigned app_line, h
             HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, type_id, lcpl_id, tcpl_id, tapl_id, es_id)
 } /* end H5Tcommit_async() */
 
 /*-------------------------------------------------------------------------
@@ -341,7 +341,7 @@ H5Tcommit_anon(hid_t loc_id, hid_t type_id, hid_t tcpl_id, hid_t tapl_id)
     herr_t            ret_value = SUCCEED; /* Return value */
     htri_t            ret      = FALSE;   /* Generic return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, loc_id, type_id, tcpl_id, tapl_id)
     H5TRACE4("e", "iiii", loc_id, type_id, tcpl_id, tapl_id);
 
     /* Check arguments */
@@ -402,7 +402,7 @@ H5Tcommit_anon(hid_t loc_id, hid_t type_id, hid_t tcpl_id, hid_t tapl_id)
     type->vol_obj = new_obj;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, type_id, tcpl_id, tapl_id)
 } /* end H5Tcommit_anon() */
 
 /*-------------------------------------------------------------------------
@@ -580,7 +580,7 @@ H5Tcommitted(hid_t type_id)
     H5T_t *type;      /* Datatype to query */
     htri_t ret_value; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, type_id)
     H5TRACE1("t", "i", type_id);
 
     /* Check arguments */
@@ -591,7 +591,7 @@ H5Tcommitted(hid_t type_id)
     ret_value = H5T_is_named(type);
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, type_id)
 } /* end H5Tcommitted() */
 
 /*-------------------------------------------------------------------------
@@ -692,7 +692,7 @@ H5Topen2(hid_t loc_id, const char *name, hid_t tapl_id)
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, tapl_id)
     H5TRACE3("i", "i*si", loc_id, name, tapl_id);
 
     /* Open the datatype synchronously */
@@ -700,7 +700,7 @@ H5Topen2(hid_t loc_id, const char *name, hid_t tapl_id)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTOPENOBJ, H5I_INVALID_HID,
                     "unable to open named datatype synchronously");
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, tapl_id)
 } /* end H5Topen2() */
 
 /*-------------------------------------------------------------------------
@@ -724,7 +724,7 @@ H5Topen_async(const char *app_file, const char *app_func, unsigned app_line, hid
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
     int            dec_ref_ret = 0;             /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, tapl_id, es_id)
     H5TRACE7("i", "*s*sIui*sii", app_file, app_func, app_line, loc_id, name, tapl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -755,7 +755,7 @@ H5Topen_async(const char *app_file, const char *app_func, unsigned app_line, hid
         } /* end if */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, tapl_id, es_id)
 } /* end H5Topen_async() */
 
 /*-------------------------------------------------------------------------
@@ -781,7 +781,7 @@ H5Tget_create_plist(hid_t dtype_id)
     htri_t is_named  = FAIL;            /* Is the datatype named? */
     hid_t  ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, dtype_id)
     H5TRACE1("i", "i", dtype_id);
 
     /* Check arguments */
@@ -828,7 +828,7 @@ H5Tget_create_plist(hid_t dtype_id)
     } /* end else */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dtype_id)
 } /* end H5Tget_create_plist() */
 
 /*-------------------------------------------------------------------------
@@ -846,7 +846,7 @@ H5Tflush(hid_t type_id)
     H5T_t *dt;                  /* Datatype for this operation */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, type_id)
     H5TRACE1("e", "i", type_id);
 
     /* Check args */
@@ -876,7 +876,7 @@ H5Tflush(hid_t type_id)
     }
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, type_id)
 } /* H5Tflush */
 
 /*-------------------------------------------------------------------------
@@ -894,7 +894,7 @@ H5Trefresh(hid_t type_id)
     H5T_t *dt;                  /* Datatype for this operation */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, type_id)
     H5TRACE1("e", "i", type_id);
 
     /* Check args */
@@ -924,7 +924,7 @@ H5Trefresh(hid_t type_id)
     }
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, type_id)
 } /* H5Trefresh */
 
 /*-------------------------------------------------------------------------
@@ -1468,7 +1468,7 @@ H5T_invoke_vol_optional(H5T_t *dt, H5VL_optional_args_t *args, hid_t dxpl_id, vo
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
-    H5_API_LOCK
+
     /* Check that datatype is committed */
     if (!H5T_is_named(dt))
         HGOTO_ERROR(H5E_DATATYPE, H5E_BADTYPE, FAIL, "not a committed datatype");
@@ -1479,6 +1479,5 @@ H5T_invoke_vol_optional(H5T_t *dt, H5VL_optional_args_t *args, hid_t dxpl_id, vo
             HGOTO_ERROR(H5E_DATATYPE, H5E_CANTOPERATE, FAIL, "unable to execute datatype optional callback");
 
 done:
-    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T_invoke_vol_optional() */
