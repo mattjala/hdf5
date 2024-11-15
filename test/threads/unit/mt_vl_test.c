@@ -633,6 +633,7 @@ void mt_test_vol_wrap_ctx(void) {
   hid_t file_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
   hid_t fapl_id = H5I_INVALID_HID;
+  int max_num_threads = GetTestMaxNumThreads();
 
   H5VL_pass_through_info_t passthru_info = {H5VL_NATIVE, NULL};
   hid_t passthru_id = H5I_INVALID_HID;
@@ -641,6 +642,10 @@ void mt_test_vol_wrap_ctx(void) {
   assert(params != NULL);
   alarm(params->subtest_timeout);
 
+  if (max_num_threads <= 0) {
+    printf("No threadcount specified with -maxthreads; skipping test\n");
+    return;
+  }
   /* Register the passthrough connector */
   passthru_id = H5VLregister_connector(&H5VL_pass_through_g, H5P_DEFAULT);
   CHECK(passthru_id, H5I_INVALID_HID, "H5VLregister_connector");
@@ -648,15 +653,30 @@ void mt_test_vol_wrap_ctx(void) {
   fapl_id = H5Pcreate(H5P_FILE_ACCESS);
   CHECK(fapl_id, H5I_INVALID_HID, "H5Pcreate");
 
+  /* To avoid dealing with concurrent registration in this test, we register the VOL
+   * a single time and pass a shared FAPL to the helper threads. 
+   * To comply with the API, the ref count of the FAPL must be incremented
+   * for each new thread it will be passed to. */
+  for (int i = 0; i < max_num_threads; i++) {
+    ret = H5Iinc_ref(fapl_id);
+    VERIFY(ret, i + 2, "H5Iinc_ref");
+  }
+
   ret = H5Pset_vol(fapl_id, passthru_id, (const void*) &passthru_info);
   CHECK(ret, FAIL, "H5Pset_vol");
 
+  /* File will be used by each helper thread */
   file_id = H5Fcreate(MT_TEST_VOL_WRAP_CTX_FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
   CHECK(file_id, H5I_INVALID_HID, "H5Fcreate");
 
   mt_test_run_helper_in_parallel(mt_test_vol_wrap_ctx_helper, (void*) fapl_id);
 
   /* Clean up */
+  for (int i = 0; i < max_num_threads; i++) {
+    ret = H5Idec_ref(fapl_id);
+    VERIFY(ret, max_num_threads - i, "H5Idec_ref");
+  }
+
   ret = H5Fclose(file_id);
   CHECK(ret, FAIL, "H5Fclose");
 
@@ -675,7 +695,7 @@ void *mt_test_vol_wrap_ctx_helper(void H5_ATTR_UNUSED *arg) {
 
   hid_t fapl_id = H5I_INVALID_HID;
   hid_t file_id = H5I_INVALID_HID;
-  hid_t passthru_id = H5I_INVALID_HID;
+  hid_t vol_id = H5I_INVALID_HID;
 
   herr_t ret = SUCCEED;
 
@@ -691,16 +711,16 @@ void *mt_test_vol_wrap_ctx_helper(void H5_ATTR_UNUSED *arg) {
   CHECK(vol_object->data, NULL, "H5I_object_verify");
 
   /* Retrieve ID of VOL connector */
-  ret = H5Pget_vol_id(fapl_id, &passthru_id);
+  ret = H5Pget_vol_id(fapl_id, &vol_id);
   CHECK(ret, FAIL, "H5Pget_vol_id");
 
   /* Retrieve & subsequently free VOL wrap context */
-  ret = H5VLget_wrap_ctx((void*) (vol_object->data), passthru_id, &wrap_ctx);
+  ret = H5VLget_wrap_ctx((void*) (vol_object->data), vol_id, &wrap_ctx);
   CHECK(ret, FAIL, "H5VLget_wrap_ctx");
 
   CHECK(wrap_ctx, NULL, "H5VLget_wrap_ctx");
 
-  ret = H5VLfree_wrap_ctx(wrap_ctx, passthru_id);
+  ret = H5VLfree_wrap_ctx(wrap_ctx, vol_id);
   CHECK(ret, FAIL, "H5VLfree_wrap_ctx");
 
 
