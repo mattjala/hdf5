@@ -178,7 +178,7 @@ H5Dcreate2(hid_t loc_id, const char *name, hid_t type_id, hid_t space_id, hid_t 
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, type_id, space_id, lcpl_id, dcpl_id, dapl_id)
     H5TRACE7("i", "i*siiiii", loc_id, name, type_id, space_id, lcpl_id, dcpl_id, dapl_id);
 
     /* Create the dataset synchronously */
@@ -187,7 +187,7 @@ H5Dcreate2(hid_t loc_id, const char *name, hid_t type_id, hid_t space_id, hid_t 
         HGOTO_ERROR(H5E_DATASET, H5E_CANTCREATE, H5I_INVALID_HID, "unable to synchronously create dataset");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, type_id, space_id, lcpl_id, dcpl_id, dapl_id)
 } /* end H5Dcreate2() */
 
 /*-------------------------------------------------------------------------
@@ -210,7 +210,7 @@ H5Dcreate_async(const char *app_file, const char *app_func, unsigned app_line, h
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
     int            dec_ref_ret = 0;             /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, type_id, space_id, lcpl_id, dcpl_id, dapl_id, es_id)
     H5TRACE11("i", "*s*sIui*siiiiii", app_file, app_func, app_line, loc_id, name, type_id, space_id, lcpl_id,
               dcpl_id, dapl_id, es_id);
 
@@ -241,7 +241,7 @@ H5Dcreate_async(const char *app_file, const char *app_func, unsigned app_line, h
         } /* end if */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, type_id, space_id, lcpl_id, dcpl_id, dapl_id, es_id)
 } /* end H5Dcreate_async() */
 
 /*-------------------------------------------------------------------------
@@ -284,7 +284,7 @@ H5Dcreate_anon(hid_t loc_id, hid_t type_id, hid_t space_id, hid_t dcpl_id, hid_t
     H5VL_loc_params_t loc_params;                  /* Location parameters for object access */
     hid_t             ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, type_id, space_id, dcpl_id, dapl_id)
     H5TRACE5("i", "iiiii", loc_id, type_id, space_id, dcpl_id, dapl_id);
 
     /* Check arguments */
@@ -329,7 +329,7 @@ done:
         if (dset && H5VL_dataset_close(vol_obj, H5P_DATASET_XFER_DEFAULT, H5_REQUEST_NULL) < 0)
             HDONE_ERROR(H5E_DATASET, H5E_CLOSEERROR, H5I_INVALID_HID, "unable to release dataset");
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, type_id, space_id, dcpl_id, dapl_id)
 } /* end H5Dcreate_anon() */
 
 /*-------------------------------------------------------------------------
@@ -402,7 +402,7 @@ H5Dopen2(hid_t loc_id, const char *name, hid_t dapl_id)
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, dapl_id)
     H5TRACE3("i", "i*si", loc_id, name, dapl_id);
 
     /* Open the dataset synchronously */
@@ -410,7 +410,7 @@ H5Dopen2(hid_t loc_id, const char *name, hid_t dapl_id)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTOPENOBJ, H5I_INVALID_HID, "unable to synchronously open dataset");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, dapl_id)
 } /* end H5Dopen2() */
 
 /*-------------------------------------------------------------------------
@@ -433,7 +433,7 @@ H5Dopen_async(const char *app_file, const char *app_func, unsigned app_line, hid
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
     int            dec_ref_ret = 0;             /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, loc_id, dapl_id, es_id)
     H5TRACE7("i", "*s*sIui*sii", app_file, app_func, app_line, loc_id, name, dapl_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -462,7 +462,7 @@ H5Dopen_async(const char *app_file, const char *app_func, unsigned app_line, hid
         } /* end if */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, loc_id, dapl_id, es_id)
 } /* end H5Dopen_async() */
 
 /*-------------------------------------------------------------------------
@@ -482,7 +482,7 @@ H5Dclose(hid_t dset_id)
     herr_t ret_value = SUCCEED; /* Return value                     */
     int    dec_ref_ret;         /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id)
     H5TRACE1("e", "i", dset_id);
 
     /* Check args */
@@ -501,7 +501,7 @@ H5Dclose(hid_t dset_id)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTDEC, FAIL, "can't decrement count on dataset ID");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* end H5Dclose() */
 
 /*-------------------------------------------------------------------------
@@ -523,7 +523,7 @@ H5Dclose_async(const char *app_file, const char *app_func, unsigned app_line, hi
     herr_t         ret_value = SUCCEED;         /* Return value */
     int            dec_ref_ret;                 /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id, es_id)
     H5TRACE5("e", "*s*sIuii", app_file, app_func, app_line, dset_id, es_id);
 
     /* Check args */
@@ -568,7 +568,7 @@ done:
     if (connector && H5VL_conn_dec_rc(connector) < 0)
         HDONE_ERROR(H5E_DATASET, H5E_CANTDEC, FAIL, "can't decrement ref count on connector");
 
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id, es_id)
 } /* end H5Dclose_async() */
 
 /*-------------------------------------------------------------------------
@@ -629,7 +629,7 @@ H5Dget_space(hid_t dset_id)
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, dset_id)
     H5TRACE1("i", "i", dset_id);
 
     /* Get the dataset's dataspace synchronously */
@@ -637,7 +637,7 @@ H5Dget_space(hid_t dset_id)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, H5I_INVALID_HID, "unable to synchronously get dataspace");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* end H5Dget_space() */
 
 /*-------------------------------------------------------------------------
@@ -662,7 +662,7 @@ H5Dget_space_async(const char *app_file, const char *app_func, unsigned app_line
     hid_t          ret_value = H5I_INVALID_HID; /* Return value */
     int            dec_ref_ret;                 /* Ref count decrement return value */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, dset_id, es_id)
     H5TRACE5("i", "*s*sIuii", app_file, app_func, app_line, dset_id, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -692,7 +692,7 @@ H5Dget_space_async(const char *app_file, const char *app_func, unsigned app_line
         } /* end if */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id, es_id)
 } /* end H5Dget_space_async() */
 
 /*-------------------------------------------------------------------------
@@ -711,7 +711,7 @@ H5Dget_space_status(hid_t dset_id, H5D_space_status_t *allocation /*out*/)
     H5VL_dataset_get_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t                  ret_value = SUCCEED; /* Return value         */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id)
     H5TRACE2("e", "ix", dset_id, allocation);
 
     /* Check args */
@@ -727,7 +727,7 @@ H5Dget_space_status(hid_t dset_id, H5D_space_status_t *allocation /*out*/)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "unable to get space status");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* H5Dget_space_status() */
 
 /*-------------------------------------------------------------------------
@@ -750,7 +750,7 @@ H5Dget_type(hid_t dset_id)
     H5VL_dataset_get_args_t vol_cb_args;                 /* Arguments to VOL callback */
     hid_t                   ret_value = H5I_INVALID_HID; /* Return value         */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, dset_id)
     H5TRACE1("i", "i", dset_id);
 
     /* Check args */
@@ -769,7 +769,7 @@ H5Dget_type(hid_t dset_id)
     ret_value = vol_cb_args.args.get_type.type_id;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* end H5Dget_type() */
 
 /*-------------------------------------------------------------------------
@@ -792,7 +792,7 @@ H5Dget_create_plist(hid_t dset_id)
     H5VL_dataset_get_args_t vol_cb_args;                 /* Arguments to VOL callback */
     hid_t                   ret_value = H5I_INVALID_HID; /* Return value         */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, dset_id)
     H5TRACE1("i", "i", dset_id);
 
     /* Check args */
@@ -811,7 +811,7 @@ H5Dget_create_plist(hid_t dset_id)
     ret_value = vol_cb_args.args.get_dcpl.dcpl_id;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* end H5Dget_create_plist() */
 
 /*-------------------------------------------------------------------------
@@ -851,7 +851,7 @@ H5Dget_access_plist(hid_t dset_id)
     H5VL_dataset_get_args_t vol_cb_args;                 /* Arguments to VOL callback */
     hid_t                   ret_value = H5I_INVALID_HID; /* Return value         */
 
-    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
+    FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID, dset_id)
     H5TRACE1("i", "i", dset_id);
 
     /* Check args */
@@ -870,7 +870,7 @@ H5Dget_access_plist(hid_t dset_id)
     ret_value = vol_cb_args.args.get_dapl.dapl_id;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* end H5Dget_access_plist() */
 
 /*-------------------------------------------------------------------------
@@ -896,7 +896,7 @@ H5Dget_storage_size(hid_t dset_id)
     hsize_t                 storage_size = 0; /* Storage size of dataset */
     hsize_t                 ret_value    = 0; /* Return value                 */
 
-    FUNC_ENTER_API_NO_MUTEX(0)
+    FUNC_ENTER_API_NO_MUTEX(0, dset_id)
     H5TRACE1("h", "i", dset_id);
 
     /* Check args */
@@ -915,7 +915,7 @@ H5Dget_storage_size(hid_t dset_id)
     ret_value = storage_size;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* end H5Dget_storage_size() */
 
 /*-------------------------------------------------------------------------
@@ -938,7 +938,7 @@ H5Dget_offset(hid_t dset_id)
     haddr_t                             dset_offset = HADDR_UNDEF; /* Dataset's offset */
     haddr_t                             ret_value   = HADDR_UNDEF; /* Return value                 */
 
-    FUNC_ENTER_API_NO_MUTEX(HADDR_UNDEF)
+    FUNC_ENTER_API_NO_MUTEX(HADDR_UNDEF, dset_id)
     H5TRACE1("a", "i", dset_id);
 
     /* Check args */
@@ -958,7 +958,7 @@ H5Dget_offset(hid_t dset_id)
     ret_value = dset_offset;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* end H5Dget_offset() */
 
 /*-------------------------------------------------------------------------
@@ -1085,7 +1085,7 @@ H5Dread(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_i
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id)
     H5TRACE6("e", "iiiiix", dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id, buf);
 
     /* Read the data */
@@ -1094,7 +1094,7 @@ H5Dread(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_i
         HGOTO_ERROR(H5E_DATASET, H5E_READERROR, FAIL, "can't synchronously read data");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id)
 } /* end H5Dread() */
 
 /*-------------------------------------------------------------------------
@@ -1115,7 +1115,7 @@ H5Dread_async(const char *app_file, const char *app_func, unsigned app_line, hid
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id)
     H5TRACE10("e", "*s*sIuiiiiixi", app_file, app_func, app_line, dset_id, mem_type_id, mem_space_id,
               file_space_id, dxpl_id, buf, es_id);
 
@@ -1137,7 +1137,7 @@ H5Dread_async(const char *app_file, const char *app_func, unsigned app_line, hid
             HGOTO_ERROR(H5E_DATASET, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id)
 } /* end H5Dread_async() */
 
 /*-------------------------------------------------------------------------
@@ -1156,7 +1156,9 @@ H5Dread_multi(size_t count, hid_t dset_id[], hid_t mem_type_id[], hid_t mem_spac
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    // TBD: Only the first ID in each array is submitted to the virtual locks
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id[0], mem_type_id[0], mem_space_id[0], file_space_id[0], dxpl_id)
+
     H5TRACE7("e", "z*i*i*i*iix", count, dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id, buf);
 
     if (count == 0)
@@ -1168,7 +1170,8 @@ H5Dread_multi(size_t count, hid_t dset_id[], hid_t mem_type_id[], hid_t mem_spac
         HGOTO_ERROR(H5E_DATASET, H5E_READERROR, FAIL, "can't synchronously read data");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    // TBD: Only the first ID in each array is submitted to the virtual locks
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id[0], mem_type_id[0], mem_space_id[0], file_space_id[0], dxpl_id)
 } /* end H5Dread_multi() */
 
 /*-------------------------------------------------------------------------
@@ -1191,7 +1194,8 @@ H5Dread_multi_async(const char *app_file, const char *app_func, unsigned app_lin
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    // TBD: Only the first ID in each array is submitted to the virtual locks
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id[0], mem_type_id[0], mem_space_id[0], file_space_id[0], dxpl_id, es_id)
     H5TRACE11("e", "*s*sIuz*i*i*i*iixi", app_file, app_func, app_line, count, dset_id, mem_type_id,
               mem_space_id, file_space_id, dxpl_id, buf, es_id);
 
@@ -1213,7 +1217,7 @@ H5Dread_multi_async(const char *app_file, const char *app_func, unsigned app_lin
             HGOTO_ERROR(H5E_DATASET, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id[0], mem_type_id[0], mem_space_id[0], file_space_id[0], dxpl_id, es_id)
 } /* end H5Dread_multi_async() */
 
 /*-------------------------------------------------------------------------
@@ -1233,7 +1237,7 @@ H5Dread_chunk(hid_t dset_id, hid_t dxpl_id, const hsize_t *offset, uint32_t *fil
     H5VL_native_dataset_optional_args_t dset_opt_args;       /* Arguments for optional operation */
     herr_t                              ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id, dxpl_id)
     H5TRACE5("e", "ii*h*Iux", dset_id, dxpl_id, offset, filters, buf);
 
     /* Check arguments */
@@ -1267,7 +1271,7 @@ H5Dread_chunk(hid_t dset_id, hid_t dxpl_id, const hsize_t *offset, uint32_t *fil
     *filters = dset_opt_args.chunk_read.filters;
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id, dxpl_id)
 } /* end H5Dread_chunk() */
 
 /*-------------------------------------------------------------------------
@@ -1395,7 +1399,7 @@ H5Dwrite(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id)
     H5TRACE6("e", "iiiii*x", dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id, buf);
 
     /* Write the data */
@@ -1404,7 +1408,7 @@ H5Dwrite(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_
         HGOTO_ERROR(H5E_DATASET, H5E_WRITEERROR, FAIL, "can't synchronously write data");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id)
 } /* end H5Dwrite() */
 
 /*-------------------------------------------------------------------------
@@ -1426,7 +1430,7 @@ H5Dwrite_async(const char *app_file, const char *app_func, unsigned app_line, hi
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id, es_id)
     H5TRACE10("e", "*s*sIuiiiii*xi", app_file, app_func, app_line, dset_id, mem_type_id, mem_space_id,
               file_space_id, dxpl_id, buf, es_id);
 
@@ -1448,7 +1452,7 @@ H5Dwrite_async(const char *app_file, const char *app_func, unsigned app_line, hi
             HGOTO_ERROR(H5E_DATASET, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id, es_id)
 } /* end H5Dwrite_async() */
 
 /*-------------------------------------------------------------------------
@@ -1467,7 +1471,8 @@ H5Dwrite_multi(size_t count, hid_t dset_id[], hid_t mem_type_id[], hid_t mem_spa
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    // TBD: Only the first ID in each array is submitted to the virtual locks
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id[0], mem_type_id[0], mem_space_id[0], file_space_id[0], dxpl_id)
     H5TRACE7("e", "z*i*i*i*ii**x", count, dset_id, mem_type_id, mem_space_id, file_space_id, dxpl_id, buf);
 
     if (count == 0)
@@ -1479,7 +1484,8 @@ H5Dwrite_multi(size_t count, hid_t dset_id[], hid_t mem_type_id[], hid_t mem_spa
         HGOTO_ERROR(H5E_DATASET, H5E_WRITEERROR, FAIL, "can't synchronously write data");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    // TBD: Only the first ID in each array is submitted to the virtual locks
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id[0], mem_type_id[0], mem_space_id[0], file_space_id[0], dxpl_id)
 } /* end H5Dwrite_multi() */
 
 /*-------------------------------------------------------------------------
@@ -1502,7 +1508,8 @@ H5Dwrite_multi_async(const char *app_file, const char *app_func, unsigned app_li
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    // TBD: Only the first ID in each array is submitted to the virtual locks
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id[0], mem_type_id[0], mem_space_id[0], file_space_id[0], dxpl_id, es_id)
     H5TRACE11("e", "*s*sIuz*i*i*i*ii**xi", app_file, app_func, app_line, count, dset_id, mem_type_id,
               mem_space_id, file_space_id, dxpl_id, buf, es_id);
 
@@ -1524,7 +1531,8 @@ H5Dwrite_multi_async(const char *app_file, const char *app_func, unsigned app_li
             HGOTO_ERROR(H5E_DATASET, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    // TBD: Only the first ID in each array is submitted to the virtual locks
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id[0], mem_type_id[0], mem_space_id[0], file_space_id[0], dxpl_id, es_id)
 } /* end H5Dwrite_multi_async() */
 
 /*-------------------------------------------------------------------------
@@ -1546,7 +1554,7 @@ H5Dwrite_chunk(hid_t dset_id, hid_t dxpl_id, uint32_t filters, const hsize_t *of
     uint32_t                            data_size_32;  /* Chunk data size (limited to 32-bits currently) */
     herr_t                              ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id, dxpl_id)
     H5TRACE6("e", "iiIu*hz*x", dset_id, dxpl_id, filters, offset, data_size, buf);
 
     /* Check arguments */
@@ -1583,7 +1591,7 @@ H5Dwrite_chunk(hid_t dset_id, hid_t dxpl_id, uint32_t filters, const hsize_t *of
         HGOTO_ERROR(H5E_DATASET, H5E_WRITEERROR, FAIL, "can't write unprocessed chunk data");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id, dxpl_id)
 } /* end H5Dwrite_chunk() */
 
 /*-------------------------------------------------------------------------
@@ -1938,7 +1946,7 @@ H5Dvlen_get_buf_size(hid_t dataset_id, hid_t type_id, hid_t space_id, hsize_t *s
     uint64_t       supported; /* Whether 'get vlen buf size' operation is supported by VOL connector */
     herr_t         ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dataset_id, type_id, space_id)
     H5TRACE4("e", "iiix", dataset_id, type_id, space_id, size);
 
     /* Check args */
@@ -1984,7 +1992,7 @@ H5Dvlen_get_buf_size(hid_t dataset_id, hid_t type_id, hid_t space_id, hsize_t *s
     } /* end else */
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dataset_id, type_id, space_id)
 } /* end H5Dvlen_get_buf_size() */
 
 /*-------------------------------------------------------------------------
@@ -2045,7 +2053,7 @@ H5Dset_extent(hid_t dset_id, const hsize_t size[])
 {
     herr_t ret_value = SUCCEED; /* Return value                 */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id)
     H5TRACE2("e", "i*h", dset_id, size);
 
     /* Change a datset's dimensions synchronously */
@@ -2053,7 +2061,7 @@ H5Dset_extent(hid_t dset_id, const hsize_t size[])
         HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, FAIL, "unable to synchronously change a dataset's dimensions");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* end H5Dset_extent() */
 
 /*-------------------------------------------------------------------------
@@ -2074,7 +2082,7 @@ H5Dset_extent_async(const char *app_file, const char *app_func, unsigned app_lin
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     herr_t         ret_value = SUCCEED;         /* Return value */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id, es_id)
     H5TRACE6("e", "*s*sIui*hi", app_file, app_func, app_line, dset_id, size, es_id);
 
     /* Set up request token pointer for asynchronous operation */
@@ -2094,7 +2102,7 @@ H5Dset_extent_async(const char *app_file, const char *app_func, unsigned app_lin
             HGOTO_ERROR(H5E_DATASET, H5E_CANTINSERT, FAIL, "can't insert token into event set");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id, es_id)
 } /* H5Dset_extent_async() */
 
 /*-------------------------------------------------------------------------
@@ -2113,7 +2121,7 @@ H5Dflush(hid_t dset_id)
     H5VL_dataset_specific_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t                       ret_value = SUCCEED; /* Return value                 */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id)
     H5TRACE1("e", "i", dset_id);
 
     /* Check args */
@@ -2136,7 +2144,7 @@ H5Dflush(hid_t dset_id)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTFLUSH, FAIL, "unable to flush dataset");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* H5Dflush */
 
 /*-------------------------------------------------------------------------
@@ -2155,7 +2163,7 @@ H5Drefresh(hid_t dset_id)
     H5VL_dataset_specific_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t                       ret_value = SUCCEED; /* Return value                 */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id)
     H5TRACE1("e", "i", dset_id);
 
     /* Check args */
@@ -2175,7 +2183,7 @@ H5Drefresh(hid_t dset_id)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTLOAD, FAIL, "unable to refresh dataset");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* end H5Drefresh() */
 
 /*-------------------------------------------------------------------------
@@ -2199,7 +2207,7 @@ H5Dformat_convert(hid_t dset_id)
     H5VL_optional_args_t vol_cb_args;         /* Arguments to VOL callback */
     herr_t               ret_value = SUCCEED; /* Return value                 */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id)
     H5TRACE1("e", "i", dset_id);
 
     /* Check args */
@@ -2219,7 +2227,7 @@ H5Dformat_convert(hid_t dset_id)
         HGOTO_ERROR(H5E_DATASET, H5E_INTERNAL, FAIL, "can't convert dataset format");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* H5Dformat_convert */
 
 /*-------------------------------------------------------------------------
@@ -2239,7 +2247,7 @@ H5Dget_chunk_index_type(hid_t dset_id, H5D_chunk_index_t *idx_type /*out*/)
     H5VL_native_dataset_optional_args_t dset_opt_args;       /* Arguments for optional operation */
     herr_t                              ret_value = SUCCEED; /* Return value                 */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id)
     H5TRACE2("e", "ix", dset_id, idx_type);
 
     /* Check args */
@@ -2258,7 +2266,7 @@ H5Dget_chunk_index_type(hid_t dset_id, H5D_chunk_index_t *idx_type /*out*/)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't get chunk index type");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* H5Dget_chunk_index_type() */
 
 /*-------------------------------------------------------------------------
@@ -2281,7 +2289,7 @@ H5Dget_chunk_storage_size(hid_t dset_id, const hsize_t *offset, hsize_t *chunk_n
     H5VL_native_dataset_optional_args_t dset_opt_args;       /* Arguments for optional operation */
     herr_t                              ret_value = SUCCEED; /* Return value                 */
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id)
     H5TRACE3("e", "i*hx", dset_id, offset, chunk_nbytes);
 
     /* Check arguments */
@@ -2303,7 +2311,7 @@ H5Dget_chunk_storage_size(hid_t dset_id, const hsize_t *offset, hsize_t *chunk_n
         HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't get storage size of chunk");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* H5Dget_chunk_storage_size() */
 
 /*-------------------------------------------------------------------------
@@ -2332,7 +2340,7 @@ H5Dget_num_chunks(hid_t dset_id, hid_t fspace_id, hsize_t *nchunks /*out*/)
     H5VL_native_dataset_optional_args_t dset_opt_args;  /* Arguments for optional operation */
     herr_t                              ret_value = SUCCEED;
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id, fspace_id)
     H5TRACE3("e", "iix", dset_id, fspace_id, nchunks);
 
     /* Check arguments */
@@ -2352,7 +2360,7 @@ H5Dget_num_chunks(hid_t dset_id, hid_t fspace_id, hsize_t *nchunks /*out*/)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't get number of chunks");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id, fspace_id)
 } /* H5Dget_num_chunks() */
 
 /*-------------------------------------------------------------------------
@@ -2384,7 +2392,7 @@ H5Dget_chunk_info(hid_t dset_id, hid_t fspace_id, hsize_t chk_index, hsize_t *of
     hsize_t                             nchunks   = 0;  /* Number of chunks */
     herr_t                              ret_value = SUCCEED;
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id, fspace_id)
     H5TRACE7("e", "iihxxxx", dset_id, fspace_id, chk_index, offset, filter_mask, addr, size);
 
     /* Check arguments */
@@ -2423,7 +2431,7 @@ H5Dget_chunk_info(hid_t dset_id, hid_t fspace_id, hsize_t chk_index, hsize_t *of
         HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't get chunk info by index");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id, fspace_id)
 } /* H5Dget_chunk_info() */
 
 /*-------------------------------------------------------------------------
@@ -2453,7 +2461,7 @@ H5Dget_chunk_info_by_coord(hid_t dset_id, const hsize_t *offset, unsigned *filte
     H5VL_native_dataset_optional_args_t dset_opt_args;  /* Arguments for optional operation */
     herr_t                              ret_value = SUCCEED;
 
-    FUNC_ENTER_API_NO_MUTEX(FAIL)
+    FUNC_ENTER_API_NO_MUTEX(FAIL, dset_id)
     H5TRACE5("e", "i*hxxx", dset_id, offset, filter_mask, addr, size);
 
     /* Check arguments */
@@ -2478,7 +2486,7 @@ H5Dget_chunk_info_by_coord(hid_t dset_id, const hsize_t *offset, unsigned *filte
         HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't get chunk info by its logical coordinates");
 
 done:
-    FUNC_LEAVE_API_NO_MUTEX(ret_value)
+    FUNC_LEAVE_API_NO_MUTEX(ret_value, dset_id)
 } /* end H5Dget_chunk_info_by_coord() */
 
 /*-------------------------------------------------------------------------

@@ -312,7 +312,7 @@ H5Aget_num_attrs(hid_t loc_id)
     H5O_info2_t            oinfo;
     int                    ret_value = -1;
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1)
     H5TRACE1("Is", "i", loc_id);
 
     loc_params.type     = H5VL_OBJECT_BY_SELF;

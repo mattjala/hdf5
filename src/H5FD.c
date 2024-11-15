@@ -973,7 +973,7 @@ H5FDquery(const H5FD_t *file, unsigned long *flags /*out*/)
 {
     int ret_value = 0;
 
-    FUNC_ENTER_API((-1))
+    FUNC_ENTER_API(-1)
     H5TRACE2("Is", "*#x", file, flags);
 
     /* Check arguments */

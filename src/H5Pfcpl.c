@@ -289,7 +289,7 @@ H5P__fcrt_reg_prop(H5P_genclass_t *pclass)
                            NULL, NULL) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class");
 
-    /* Register the file space page size */
+    /* Rcpace page size */
     if (H5P__register_real(pclass, H5F_CRT_FILE_SPACE_PAGE_SIZE_NAME, H5F_CRT_FILE_SPACE_PAGE_SIZE_SIZE,
                            &H5F_def_file_space_page_size_g, NULL, NULL, NULL,
                            H5F_CRT_FILE_SPACE_PAGE_SIZE_ENC, H5F_CRT_FILE_SPACE_PAGE_SIZE_DEC, NULL, NULL,

@@ -79,8 +79,15 @@ H5_DLL int        H5I_dec_app_ref_always_close(hid_t id);
 H5_DLL int        H5I_dec_app_ref_always_close_async(hid_t id, void **token);
 H5_DLL int        H5I_dec_type_ref(H5I_type_t type);
 H5_DLL herr_t     H5I_find_id(const void *object, H5I_type_t type, hid_t *id /*out*/);
-
 #ifdef H5_HAVE_MULTITHREAD
+
+#if H5_HAVE_VIRTUAL_LOCK
+H5_DLL herr_t H5I_vlock_enter(hid_t id);
+H5_DLL herr_t H5I_vlock_exit(hid_t id);
+H5_DLL bool H5I_is_default_plist(hid_t id);
+H5_DLL bool H5I_is_default_id(hid_t id);
+#endif /* H5_HAVE_VIRTUAL_LOCK */
+
 /* External iterator for use in the multi-thread case */
 H5_DLL herr_t H5I_get_first(H5I_type_t type, hid_t *id_ptr, void ** object_ptr, 
                             hbool_t called_from_H5I);
