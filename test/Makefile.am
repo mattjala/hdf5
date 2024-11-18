@@ -70,7 +70,7 @@ TEST_PROG= testhdf5 \
            enc_dec_plist_cross_platform getname vfd ros3 s3comms hdfs ntypes \
            dangle dtransform reserved cross_read freespace mf vds file_image \
            unregister cache_logging cork swmr thread_id vol timer event_set \
-           onion mt_id_test threads/testmthdf5
+           onion mt_id_test
 
 # List programs to be built when testing here
 #
@@ -170,7 +170,6 @@ LDADD=libh5test.la $(LIBHDF5)
 # List the source files for tests that have more than one
 ttsafe_SOURCES=ttsafe.c ttsafe_dcreate.c ttsafe_error.c ttsafe_cancel.c       \
                ttsafe_acreate.c ttsafe_attr_vlen.c ttsafe_error_stacks.c
-threads_testmthdf5_SOURCES=threads/testmthdf5.c threads/unit/mt_vl_test.c
 cache_image_SOURCES=cache_image.c genall5.c
 mirror_vfd_SOURCES=mirror_vfd.c genall5.c
 
@@ -256,9 +255,14 @@ if MIRROR_VFD_CONDITIONAL
   DISTCLEANFILES+= test_mirror.sh
 endif
 
+# Set up SUBDIRS, working around the fact that it must be defined all at once
 if BUILD_API_TESTS
-  SUBDIRS= . API
+  API_TESTS_DIR = API
 endif
+
+THREADS_TESTS_DIR = threads
+
+SUBDIRS = . $(THREADS_TESTS_DIR) $(API_TESTS_DIR)
 
 include $(top_srcdir)/config/conclude.am
 
