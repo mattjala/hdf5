@@ -4157,7 +4157,6 @@ AM_CONDITIONAL([BUILD_TOOLS_CONDITIONAL], [test "X$HDF5_TOOLS" = "Xyes"])
 AM_CONDITIONAL([BUILD_TOOLS_HL_GIF_CONDITIONAL], [test "X$HDF5_HL_GIF_TOOLS" = "Xyes"])
 AM_CONDITIONAL([BUILD_DOXYGEN_CONDITIONAL], [test "X$HDF5_DOXYGEN" = "Xyes"])
 AM_CONDITIONAL([BUILD_API_TESTS], [test "x$enable_api_tests" = "xyes"])
-
 ## ----------------------------------------------------------------------
 ## Build the Makefiles.
 ##
@@ -4279,6 +4278,8 @@ AC_CONFIG_FILES([Makefile
                  test/test_use_cases.sh
                  test/test_vds_env.sh
                  test/test_vds_swmr.sh
+                 test/threads/Makefile
+                 test/threads/unit/Makefile
                  test/API/Makefile
                  testpar/Makefile
                  testpar/testpflush.sh
