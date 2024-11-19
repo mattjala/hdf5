@@ -57,11 +57,7 @@
 
 /* Object wrapping context info */
 typedef struct H5VL_wrap_ctx_t {
-#ifdef H5_HAVE_MULTITHREAD
-    _Atomic unsigned rc;
-#else
-    unsigned rc;           /* Ref. count for the # of times the context was set / reset */
-#endif
+    H5_ATOMIC(unsigned) rc; /* Ref. count for the # of times the context was set / reset */
     H5VL_t  *connector;    /* VOL connector for "outermost" class to start wrap */
     void    *obj_wrap_ctx; /* "wrap context" for outermost connector */
 } H5VL_wrap_ctx_t;
@@ -1124,6 +1120,9 @@ H5VL_object_inc_rc(H5VL_object_t *vol_obj)
 
     FUNC_ENTER_NOAPI_NOERR
 
+    /* Silence compiler warnings */
+    (void) prev_rc;
+
     /* Check arguments */
     assert(vol_obj);
 
@@ -1158,6 +1157,9 @@ H5VL_free_object(H5VL_object_t *vol_obj)
     size_t prev_rc = 0;
 
     FUNC_ENTER_NOAPI(FAIL)
+
+    /* Silence compiler warnings */
+    (void) prev_rc;
 
     /* Check arguments */
     assert(vol_obj);
