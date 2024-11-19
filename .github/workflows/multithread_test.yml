@@ -1,0 +1,135 @@
+name: Build and Test Multithreaded HDF5
+
+on:
+    push:
+        branches:
+            - '*'
+
+env:
+  HDF5TestExpress: 1
+
+jobs:
+    build-and-test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                api_tests: ["--enable-api-tests", "--disable-api-tests"]
+                multi_thread: ["--enable-multithread --disable-hl", "--disable-multithread --enable-threadsafe --disable-hl", "--disable-multithread --disable-threadsafe"]
+                build_mode: ["production", "debug"]
+                include:
+                    # Non-multi thread library builds should only run non-threaded
+                    - multi_thread: "--disable-multithread --enable-threadsafe --disable-hl"
+                      test_thread_counts: 0
+                      connector_stacks: 
+                        - ""
+                        - "pass_through under_vol=0\\;under_info={}"
+
+                    - multi_thread: "--disable-multithread --disable-threadsafe"
+                      test_thread_counts: 0
+                      connector_stacks: 
+                        - ""
+                        - "pass_through under_vol=0\\;under_info={}"
+
+                    # Only multi-threaded builds should run with -maxthreads (>0) or the MT wrapper connectors
+                    - multi_thread: "--enable-multithread --disable-hl"
+                      test_thread_counts: 0 1 16
+                      connector_stacks: 
+                        - ""                                                                        # Native
+                        - "mt_native_wrapper_vol_connector"                                         # MT Native Wrapper
+                        - "pass_through under_vol=0\\;under_info={}"                                # Passthru -> Native
+                        - "pass_through under_vol=162\\;under_info={}"                              # Passthru -> MT Native Wrapper
+                        - "mt_passthru_wrapper_vol_connector under_vol=0\\;under_info={}"           # MT Passthru -> Native
+                        - "mt_passthru_wrapper_vol_connector under_vol=162\\;under_info={}"         # MT Passthru -> MT Native Wrapper
+                        - "pass_through under_vol=163\\;under_info={under_vol=0\\;under_info={}}"   # Passthru -> MT Passthru -> Native
+                        - "pass_through under_vol=163\\;under_info={under_vol=162\\;under_info={}}" # Passthru -> MT Passthru -> MT Native Wrapper
+                        - "mt_passthru_wrapper_vol_connector under_vol=1\\;under_info={under_vol=0\\;under_info={}}" # MT Passthru -> Passthru -> Native
+                        - "mt_passthru_wrapper_vol_connector under_vol=1\\;under_info={under_vol=162\\;under_info={}}" # MT Passthru -> Passthru -> MT Native Wrapper
+
+            fail-fast: false
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up autotools
+              run: |
+                  sudo apt install automake autoconf libtool libtool-bin
+                  sudo apt install libaec0 libaec-dev valgrind
+
+            - name: Configure HDF5
+              working-directory: ${{github.workspace}}
+              run: |
+                    sh ./autogen.sh
+                    ./configure --enable-shared --enable-tests ${{ matrix.multi_thread }} ${{ matrix.api_tests }} --enable-build-mode=${{ matrix.build_mode }}
+
+            - name: Build HDF5
+              working-directory: ${{github.workspace}}
+              run: |
+                    make -j
+        
+            - name: API Tests
+              if: matrix.api_tests == '--enable-api-tests'
+              working-directory: ${{github.workspace}}
+              run: |
+                failure=0
+                CONNECTOR_STACKS='${{ toJson(matrix.connector_stacks) }}'
+
+                echo "$CONNECTOR_STACKS" | jq -r '.[]' | while IFS= read -r connector_stack; do
+                  for num_threads in ${{ matrix.test_thread_counts }}; do
+                    echo "::group:: API Tests with $num_threads threads, HDF5_VOL_CONNECTOR=$connector_stack"
+                    if [ -n "$connector_stack" ]; then
+                      HDF5_PLUGIN_PATH=${{github.workspace}}/test/.libs
+                      HDF5_VOL_CONNECTOR=$connector_stack
+                    fi
+
+                    if [ "$num_threads" == "0" ]; then
+                      valgrind ./test/API/h5_api_test || failure=1
+                    else
+                      valgrind ./test/API/h5_api_test -maxthreads $num_threads || failure=1
+                    fi
+                    echo "::endgroup::"
+                  done
+                done
+                
+                # Fail the step if any test failed
+                if [ $failure -ne 0 ]; then
+                  echo "Some tests failed. Exiting with error."
+                  exit 1
+                fi
+
+            - name: MT VL Tests
+              if: matrix.multi_thread == '--enable-multithread --disable-hl'
+              working-directory: ${{github.workspace}}/test/
+              run: |
+                failure=0
+                CONNECTOR_STACKS='${{ toJson(matrix.connector_stacks) }}'
+
+                echo "$CONNECTOR_STACKS" | jq -r '.[]' | while IFS= read -r connector_stack; do
+                  for num_threads in ${{ matrix.test_thread_counts }}; do
+                    echo "::group:: MT HDF5 Tests with $num_threads, HDF5_VOL_CONNECTOR=$connector_stack"
+                    if [ -n "$connector_stack" ]; then
+                      HDF5_PLUGIN_PATH=${{github.workspace}}/test/.libs
+                      HDF5_VOL_CONNECTOR=$connector_stack
+                    fi
+
+                    if [ "$num_threads" == "0" ]; then
+                      valgrind ./threads/testmthdf5 || failure=1
+                    else
+                      valgrind ./threads/testmthdf5 -maxthreads $num_threads || failure=1
+                    fi
+                    echo "::endgroup::"
+                  done
+                done
+
+                # Fail the step if any test failed
+                if [ $failure -ne 0 ]; then
+                  echo "Some tests failed. Exiting with error."
+                  exit 1
+                fi
+
+            - name: Other HDF5 Tests (Native Only)
+              working-directory: ${{github.workspace}}
+              env:
+                HDF5_VOL_CONNECTOR: ""
+              run: |
+                make check
