@@ -35,11 +35,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* TODO: H5_HAVE_MULTITHREAD seems not to be exposed to this module, always import */
-#include <stdatomic.h>
-
 /* Public HDF5 file */
 #include "hdf5.h"
+
+#ifdef H5_HAVE_MULTITHREAD
+#include <stdatomic.h>
+#endif
 
 /* This connector's headers */
 #include "H5VLpassthru.h"
@@ -188,12 +189,7 @@ static const H5VL_class_t H5VL_pass_through_g = {
 };
 
 /* The connector identification number, initialized at runtime */
-#ifdef H5_HAVE_MULTITHREAD
-static _Atomic(hid_t) H5VL_PASSTHRU_ID_g = ATOMIC_VAR_INIT(H5I_INVALID_HID);
-#else
-static hid_t H5VL_PASSTHRU_ID_g = H5I_INVALID_HID;
-#endif
-
+static H5_ATOMIC_SPECIFIER(hid_t) H5VL_PASSTHRU_ID_g = H5_ATOMIC_VAR_INIT(H5I_INVALID_HID);
 /*-------------------------------------------------------------------------
  * Function:    H5VL__pass_through_new_obj
  *
