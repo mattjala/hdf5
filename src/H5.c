@@ -148,6 +148,9 @@ H5_init_library(void)
     if (H5_INIT_GLOBAL || H5_TERM_GLOBAL)
         HGOTO_DONE(SUCCEED);
 
+    /* Detect attempted double-initialization due to concurrency */
+    assert(!H5_INIT_GLOBAL && !H5_TERM_GLOBAL);
+
     /* Set the 'library initialized' flag as early as possible, to avoid
      * possible re-entrancy.
      */
@@ -317,6 +320,9 @@ H5_term_library(void)
     /* Don't do anything if the library is already closed */
     if (!(H5_INIT_GLOBAL))
         goto done;
+
+    /* Detect attempted double-initialization due to concurrency */
+    assert(H5_INIT_GLOBAL && !(H5_TERM_GLOBAL));
 
     /* Indicate that the library is being shut down */
     H5_TERM_GLOBAL = TRUE;

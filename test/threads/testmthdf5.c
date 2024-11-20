@@ -47,6 +47,9 @@ int main(int argc, char *argv[])
     int num_errs_occurred = 0;
     mt_test_params params;
 
+    /* Silence compiler warnings */
+    (void) params;
+
     /* Initialize testing framework */
     TestInit(argv[0], NULL, NULL);
 
@@ -106,9 +109,10 @@ int main(int argc, char *argv[])
     AddTest("mt_reg_search", mt_test_register_and_search,
         NULL, "MT reg/unreg of connectors while searching for connector", &params, 0);
 
-#else /* H5_HAVE_MULTITHREAD */
-    /* Silence compiler warning */
-    (void)params;
+    /* Misc MT tests */
+    AddTest("mt_library_init", mt_test_library_init,
+        NULL, "MT usage of H5open/H5close", &params, 0);
+
 #endif /* H5_HAVE_MULTITHREAD */
     /* Display testing information */
     TestInfo(argv[0]);
