@@ -42,5 +42,6 @@ void mt_test_registration_operation_cleanup(void);
 void mt_test_vol_wrap_ctx(void);
 void mt_test_vol_wrap_ctx_cleanup(void);
 
+void mt_test_library_init(void);
 #endif /* H5_HAVE_MULTITHREAD */
 #endif /* MTSAFE_H */
