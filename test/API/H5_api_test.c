@@ -46,9 +46,14 @@
 
 char H5_api_test_filename_g[H5_TEST_FILENAME_MAX_LENGTH];
 
+static int H5_api_check_vol_registration(void);
+static int H5_api_test_display_information(unsigned seed);
+static int H5_api_test_get_vol_cap_flags(uint64_t *vol_cap_flags);
 static int H5_api_test_create_containers(const char *filename, uint64_t vol_cap_flags);
 static int H5_api_test_create_single_container(const char *filename, uint64_t vol_cap_flags);
 static int H5_api_test_destroy_container_files(void);
+
+static void H5_api_test_display_results(void);
 
 /* Margin of runtime for each subtest allocated to cleanup */
 #define API_TEST_MARGIN 1
@@ -154,20 +159,12 @@ int
 main(int argc, char **argv)
 {
     H5E_auto2_t default_err_func;
-    const char *vol_connector_string;
-    const char *vol_connector_name;
-    unsigned    seed;
     hid_t       fapl_id                   = H5I_INVALID_HID;
-    hid_t       default_con_id            = H5I_INVALID_HID;
-    hid_t       registered_con_id         = H5I_INVALID_HID;
-    char       *vol_connector_string_copy = NULL;
-    char       *vol_connector_info        = NULL;
     void       *default_err_data          = NULL;
     bool        err_occurred              = false;
-    int         chars_written              = 0;
-    int         testExpress                = 0;
-
-    /* TBD */
+    int chars_written = 0;
+    int testExpress = 0;
+    unsigned seed;
     UNUSED(testExpress);
 
     H5open();
@@ -236,91 +233,50 @@ main(int argc, char **argv)
         }
     }
 
-    if (NULL == (vol_connector_string = HDgetenv(HDF5_VOL_CONNECTOR))) {
-        printf("No VOL connector selected; using native VOL connector\n");
-        vol_connector_name = "native";
-        vol_connector_info = NULL;
-    }
-    else {
-        char *token;
-
-        if (NULL == (vol_connector_string_copy = HDstrdup(vol_connector_string))) {
-            fprintf(stderr, "Unable to copy VOL connector string\n");
-            err_occurred = TRUE;
-            goto done;
-        }
-
-        if (NULL == (token = HDstrtok(vol_connector_string_copy, " "))) {
-            fprintf(stderr, "Error while parsing VOL connector string\n");
-            err_occurred = TRUE;
-            goto done;
-        }
-
-        vol_connector_name = token;
-
-        if (NULL != (token = HDstrtok(NULL, " "))) {
-            vol_connector_info = token;
-        }
-    }
-
-    printf("Running API tests with VOL connector '%s' and info string '%s'\n\n", vol_connector_name,
-           vol_connector_info ? vol_connector_info : "");
-    printf("Test parameters:\n");
-    printf("  - Test file name: '%s'\n", TEST_FILE_NAME);
-    printf("  - Test seed: %u\n", seed);
-    printf("\n");
-
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
         fprintf(stderr, "Unable to create FAPL\n");
         err_occurred = TRUE;
         goto done;
     }
 
-    /*
-     * If using a VOL connector other than the native
-     * connector, check whether the VOL connector was
-     * successfully registered before running the tests.
-     * Otherwise, HDF5 will default to running the tests
-     * with the native connector, which could be misleading.
-     */
-    if (0 != HDstrcmp(vol_connector_name, "native")) {
-        htri_t is_registered;
+#ifndef H5_HAVE_MULTITHREAD
+    if (GetTestMaxNumThreads() > 1) {
+        fprintf(stderr, "HDF5 must be built with multi-thread support to run multi-threaded API tests\n");
+        exit(EXIT_FAILURE);
+    }
+#endif
 
-        if ((is_registered = H5VLis_connector_registered_by_name(vol_connector_name)) < 0) {
-            fprintf(stderr, "Unable to determine if VOL connector is registered\n");
-            err_occurred = TRUE;
-            goto done;
-        }
+    seed = (unsigned)HDtime(NULL);
+    srand(seed);
 
-        if (!is_registered) {
-            fprintf(stderr, "Specified VOL connector '%s' wasn't correctly registered!\n",
-                    vol_connector_name);
-            err_occurred = TRUE;
-            goto done;
-        }
-        else {
-            /*
-             * If the connector was successfully registered, check that
-             * the connector ID set on the default FAPL matches the ID
-             * for the registered connector before running the tests.
-             */
-            if (H5Pget_vol_id(fapl_id, &default_con_id) < 0) {
-                fprintf(stderr, "Couldn't retrieve ID of VOL connector set on default FAPL\n");
-                err_occurred = TRUE;
-                goto done;
-            }
+    /* Display VOL information */
+    if (H5_api_test_display_information(seed) < 0) {
+        fprintf(stderr, "Error displaying VOL information\n");
+        return EXIT_FAILURE;
+    }
 
-            if ((registered_con_id = H5VLget_connector_id_by_name(vol_connector_name)) < 0) {
-                fprintf(stderr, "Couldn't retrieve ID of registered VOL connector\n");
-                err_occurred = TRUE;
-                goto done;
-            }
+    if (H5_api_check_vol_registration() < 0) {
+        fprintf(stderr, "VOL connector not properly registered!\n");
+        return EXIT_FAILURE;
+    }
 
-            if (default_con_id != registered_con_id) {
-                fprintf(stderr, "VOL connector set on default FAPL didn't match specified VOL connector\n");
-                err_occurred = TRUE;
-                goto done;
-            }
+    if (H5_api_test_get_vol_cap_flags(&vol_cap_flags_g) < 0) {
+        fprintf(stderr, "Error setting up VOL flags\n");
+        return EXIT_FAILURE;
+    }
+
+    /* Set up test path prefix for filenames, with default being empty */
+    if (test_path_prefix == NULL) {
+        if ((test_path_prefix = HDgetenv(HDF5_API_TEST_PATH_PREFIX)) == NULL)
+            test_path_prefix = (const char *)"";
+    }
+
+    if (GetTestMaxNumThreads() == 1) {
+        /* Populate global test filename */
+        if ((chars_written = HDsnprintf(H5_api_test_filename_g, H5_TEST_FILENAME_MAX_LENGTH, "%s%s",test_path_prefix,
+                TEST_FILE_NAME)) < 0) {
+            fprintf(stderr, "Error while creating test file name\n");
+            return EXIT_FAILURE;
         }
     }
 
@@ -355,37 +311,21 @@ main(int argc, char **argv)
     if (GetTestCleanup() && !getenv(HDF5_NOCLEANUP))
         TestCleanup();
 
-    printf("Deleting container file(s) for tests\n\n");
-
-    if (H5_api_test_destroy_container_files() < 0) {
-        fprintf(stderr, "Error cleaning up global API test info\n");
-        err_occurred = true;
-        goto done;
+    if (GetTestCleanup()) {
+        printf("Deleting container file(s) for tests\n\n");
+        
+        if (H5_api_test_destroy_container_files() < 0) {
+            fprintf(stderr, "Error cleaning up global API test info\n");
+            err_occurred = true;
+            goto done;
+        }
     }
 
     if (n_tests_run_g > 0) {
-        printf("%zu/%zu (%.2f%%) API tests passed with VOL connector '%s'\n", n_tests_passed_g, n_tests_run_g,
-               ((double)n_tests_passed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
-        printf("%zu/%zu (%.2f%%) API tests did not pass with VOL connector '%s'\n", n_tests_failed_g,
-               n_tests_run_g, ((double)n_tests_failed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
-        printf("%zu/%zu (%.2f%%) API tests were skipped with VOL connector '%s'\n", n_tests_skipped_g,
-               n_tests_run_g, ((double)n_tests_skipped_g / (double)n_tests_run_g * 100.0),
-               vol_connector_name);
+        H5_api_test_display_results();
     }
 
 done:
-    free(vol_connector_string_copy);
-
-    if (default_con_id >= 0 && H5VLclose(default_con_id) < 0) {
-        fprintf(stderr, "Unable to close VOL connector ID\n");
-        err_occurred = TRUE;
-    }
-
-    if (registered_con_id >= 0 && H5VLclose(registered_con_id) < 0) {
-        fprintf(stderr, "Unable to close VOL connector ID\n");
-        err_occurred = TRUE;
-    }
-
     if (fapl_id >= 0 && H5Pclose(fapl_id) < 0) {
         fprintf(stderr, "Unable to close FAPL\n");
         err_occurred = TRUE;
@@ -404,6 +344,201 @@ done:
         exit(EXIT_FAILURE);
     else
         exit(EXIT_SUCCESS);
+}
+
+/* Returns a negative value if the VOL connector specified by environment variables 
+ * cannot be registered or does not match the VOL connector on the 
+ * default FAPL, 0 otherwise */
+static int
+H5_api_check_vol_registration(void) {
+    hid_t default_con_id = H5I_INVALID_HID;
+    hid_t registered_con_id = H5I_INVALID_HID;
+    hid_t fapl_id = H5I_INVALID_HID;
+
+    const char *vol_connector_name;
+    char *vol_connector_string = NULL;
+    char *vol_connector_string_copy = NULL;
+
+    /* Get active VOL connector name */
+    if (NULL == (vol_connector_string = getenv(HDF5_VOL_CONNECTOR))) {
+        printf("No VOL connector selected; using native VOL connector\n");
+        vol_connector_name = "native";
+    }
+    else {
+
+        if (NULL == (vol_connector_string_copy = strdup(vol_connector_string))) {
+            fprintf(stderr, "Unable to copy VOL connector string\n");
+            goto error;
+        }
+
+        if (NULL == (vol_connector_name = (const char*) strtok(vol_connector_string_copy, " "))) {
+            fprintf(stderr, "Error while parsing VOL connector string\n");
+            goto error;
+        }
+
+    }
+
+    /* If VOL is not native, make sure it is registered properly */
+    if (0 != strcmp(vol_connector_name, "native")) {
+        htri_t is_registered;
+
+        if ((is_registered = H5VLis_connector_registered_by_name(vol_connector_name)) < 0) {
+            fprintf(stderr, "Unable to determine if VOL connector is registered\n");
+            goto error;
+        }
+
+        if (!is_registered) {
+            fprintf(stderr, "Specified VOL connector '%s' wasn't correctly registered!\n",
+                    vol_connector_name);
+            goto error;
+        }
+        else {
+            /*
+             * If the connector was successfully registered, check that
+             * the connector ID set on the default FAPL matches the ID
+             * for the registered connector before running the tests.
+             */
+            if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
+                fprintf(stderr, "Couldn't create FAPL\n");
+                goto error;
+            }
+
+            if (H5Pget_vol_id(fapl_id, &default_con_id) < 0) {
+                fprintf(stderr, "Couldn't retrieve ID of VOL connector set on default FAPL\n");
+                goto error;
+            }
+
+            if ((registered_con_id = H5VLget_connector_id_by_name(vol_connector_name)) < 0) {
+                fprintf(stderr, "Couldn't retrieve ID of registered VOL connector\n");
+                goto error;
+            }
+
+            if (default_con_id != registered_con_id) {
+                fprintf(stderr, "VOL connector set on default FAPL didn't match specified VOL connector\n");
+                goto error;
+            }
+        }
+    }
+
+    if (registered_con_id > 0 && H5VLclose(registered_con_id) < 0) {
+        fprintf(stderr, "Unable to close registered VOL connector\n");
+        goto error;
+    }
+
+    if (default_con_id > 0 && H5VLclose(default_con_id) < 0) {
+        fprintf(stderr, "Unable to close default VOL connector\n");
+        goto error;
+    }
+
+    if (fapl_id > 0 && H5Pclose(fapl_id) < 0) {
+        fprintf(stderr, "Unable to close FAPL\n");
+        goto error;
+    }
+
+    free(vol_connector_string_copy);
+
+    return 0;
+
+error:
+    H5E_BEGIN_TRY {
+        H5VLclose(registered_con_id);
+        H5VLclose(default_con_id);
+        H5Pclose(fapl_id);
+        free(vol_connector_string_copy);
+    } H5E_END_TRY;
+
+    return -1;
+}
+
+/* Display API test configuration info. 
+ * Return: negative on failure, 0 on success */
+static int
+H5_api_test_display_information(unsigned seed) {
+    const char *vol_connector_name = NULL;
+    char *vol_connector_name_copy = NULL;
+    char *vol_connector_info = NULL;
+
+
+    if (NULL == (vol_connector_name = HDgetenv(HDF5_VOL_CONNECTOR))) {
+        vol_connector_name = "native";
+        vol_connector_info = NULL;
+    }
+    else {
+        char *token;
+
+        vol_connector_name_copy = HDstrdup(vol_connector_name);
+
+        if (NULL == (token = HDstrtok(vol_connector_name_copy, " "))) {
+            printf("    cannot parse VOL connector name string\n");
+            goto error;
+        }
+
+        vol_connector_name = token;
+
+        if (NULL != (token = HDstrtok(NULL, " "))) {
+            vol_connector_info = token;
+        }
+    }
+
+    printf("Running API tests with VOL connector '%s' and info string '%s'\n\n", vol_connector_name,
+           vol_connector_info ? vol_connector_info : "");
+    printf("Test parameters:\n");
+    printf("  - Test file name: '%s'\n", TEST_FILE_NAME);
+    printf("  - Test seed: %u\n", seed);
+    printf("  - Test path prefix: '%s'\n", test_path_prefix);
+    printf("\n\n");
+
+    free(vol_connector_name_copy);
+    return 0;
+error:
+    free(vol_connector_name_copy);
+    return -1;
+}
+
+/* Display the total success, failure, and skip counts from API test run */
+static void
+H5_api_test_display_results(void) {
+    const char *vol_connector_name = NULL;
+
+    if (NULL == (vol_connector_name = HDgetenv(HDF5_VOL_CONNECTOR)))
+        vol_connector_name = "native";
+    
+    printf("%zu/%zu (%.2f%%) API tests passed with VOL connector '%s'\n", n_tests_passed_g, n_tests_run_g,
+            ((double)n_tests_passed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
+    printf("%zu/%zu (%.2f%%) API tests did not pass with VOL connector '%s'\n", n_tests_failed_g,
+            n_tests_run_g, ((double)n_tests_failed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
+    printf("%zu/%zu (%.2f%%) API tests were skipped with VOL connector '%s'\n", n_tests_skipped_g,
+            n_tests_run_g, ((double)n_tests_skipped_g / (double)n_tests_run_g * 100.0),
+            vol_connector_name);
+}
+
+/* Retrieve the default VOL connector's capabilty flags.
+ * Returns negative on failure, 0 on success */
+static int
+H5_api_test_get_vol_cap_flags(uint64_t *vol_cap_flags) {
+    hid_t fapl_id = H5I_INVALID_HID;
+
+    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
+        printf("    couldn't create FAPL\n");
+        goto error;
+    }
+
+    *vol_cap_flags = H5VL_CAP_FLAG_NONE;
+    if (H5Pget_vol_cap_flags(fapl_id, vol_cap_flags) < 0) {
+        printf(" unable to retrieve VOL connector capability flags\n");
+        goto error;
+    }
+
+    if (H5Pclose(fapl_id) < 0) {
+        printf("    unable to close FAPL\n");
+        goto error;
+    }
+
+    return 0;
+
+error:
+    H5Pclose(fapl_id);
+    return -1;
 }
 
 /* Create the API container test file(s), one per thread.
