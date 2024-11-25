@@ -214,10 +214,13 @@ test_create_many_groups(void)
     }
 
     /* Create multiple groups under the parent group */
-    printf("\n");
+    if (IS_MAIN_TEST_THREAD)
+        printf("\n");
     for (i = 0; i < GROUP_NUMB_MANY; i++) {
-        printf("\r %u/%u", i + 1, GROUP_NUMB_MANY);
+        if (IS_MAIN_TEST_THREAD)
+            printf("\r %u/%u", i + 1, GROUP_NUMB_MANY);
         sprintf(group_name, "group %02u", i);
+
         if ((child_group_id =
                  H5Gcreate2(parent_group_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
             H5_FAILED();
@@ -292,7 +295,8 @@ test_create_deep_groups(void)
         goto error;
     }
 
-    printf("\n");
+    if (IS_MAIN_TEST_THREAD)
+        printf("\n");
     if (create_group_recursive(group_id, 1) < 0)
         TEST_ERROR;
 
@@ -328,7 +332,8 @@ create_group_recursive(hid_t parent_gid, unsigned counter)
     hid_t child_gid = H5I_INVALID_HID;
     char  gname[NAME_BUF_SIZE];
 
-    printf("\r %u/%u", counter, GROUP_DEPTH);
+    if (IS_MAIN_TEST_THREAD)
+        printf("\r %u/%u", counter, GROUP_DEPTH);
     if (counter == 1)
         sprintf(gname, "2nd_child_group");
     else if (counter == 2)
