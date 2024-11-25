@@ -419,6 +419,7 @@ extern "C" {
 
 #define H5_ATOMIC_STORE(dst, value) atomic_store(&dst, value)
 #define H5_ATOMIC_LOAD(src) atomic_load(&src)
+#define H5_ATOMIC_ADD(dst, value) atomic_fetch_add(&dst, value)
 
 #else
 #define H5_ATOMIC(type) type
@@ -427,6 +428,7 @@ extern "C" {
 
 #define H5_ATOMIC_STORE(dst, value) (dst = value)
 #define H5_ATOMIC_LOAD(src) (src)
+#define H5_ATOMIC_ADD(dst, value) (dst += value)
 #endif
 
 

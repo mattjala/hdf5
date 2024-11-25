@@ -3126,9 +3126,11 @@ test_create_many_dataset(void)
         goto error;
     }
 
-    printf("\n");
+    if (IS_MAIN_TEST_THREAD)
+        printf("\n");
     for (i = 0; i < DATASET_NUMB; i++) {
-        printf("\r %u/%u", i + 1, DATASET_NUMB);
+        if (IS_MAIN_TEST_THREAD)
+            printf("\r %u/%u", i + 1, DATASET_NUMB);
         sprintf(dset_name, "dset_%02u", i);
         data = i % 256;
 
@@ -5255,7 +5257,7 @@ test_dataset_io_point_selections(void)
     /* Perform with and without chunking */
     for (do_chunk = FALSE;; do_chunk = TRUE) {
         if (do_chunk) {
-            TESTING("point selection I/O with all selection in memory and points in file with chunking");
+            TESTING_2("point selection I/O with all selection in memory and points in file with chunking");
 
             /* Create chunked dataset */
             if ((dset_id = H5Dcreate2(group_id, DATASET_IO_POINT_DSET_NAME_CHUNK, H5T_NATIVE_INT, fspace_id,
@@ -5336,9 +5338,9 @@ test_dataset_io_point_selections(void)
         PASSED();
 
         if (do_chunk)
-            TESTING("point selection I/O with points in memory and file (same shape) with chunking");
+            TESTING_2("point selection I/O with points in memory and file (same shape) with chunking");
         else
-            TESTING("point selection I/O with points in memory and file (same shape)");
+            TESTING_2("point selection I/O with points in memory and file (same shape)");
 
         /* Generate points to read */
         DATASET_IO_POINT_GEN_POINTS(points, i, j);
@@ -5402,9 +5404,9 @@ test_dataset_io_point_selections(void)
         PASSED();
 
         if (do_chunk)
-            TESTING("point selection I/O with points in memory and file (different shape) with chunking");
+            TESTING_2("point selection I/O with points in memory and file (different shape) with chunking");
         else
-            TESTING("point selection I/O with points in memory and file (different shape)");
+            TESTING_2("point selection I/O with points in memory and file (different shape)");
 
         /* Generate points to read */
         DATASET_IO_POINT_GEN_POINTS(points, i, j);
@@ -5475,9 +5477,9 @@ test_dataset_io_point_selections(void)
         PASSED();
 
         if (do_chunk)
-            TESTING("point selection I/O with hyperslab in memory and points in file with chunking");
+            TESTING_2("point selection I/O with hyperslab in memory and points in file with chunking");
         else
-            TESTING("point selection I/O with hyperslab in memory and points in file");
+            TESTING_2("point selection I/O with hyperslab in memory and points in file");
 
         /* Generate points to read */
         DATASET_IO_POINT_GEN_POINTS(points, i, j);
@@ -5548,9 +5550,9 @@ test_dataset_io_point_selections(void)
         PASSED();
 
         if (do_chunk)
-            TESTING("point selection I/O with points in memory and hyperslab in file with chunking");
+            TESTING_2("point selection I/O with points in memory and hyperslab in file with chunking");
         else
-            TESTING("point selection I/O with points in memory and hyperslab in file");
+            TESTING_2("point selection I/O with points in memory and hyperslab in file");
 
         /* Generate points to read */
         DATASET_IO_POINT_GEN_POINTS(points, i, j);
@@ -12852,11 +12854,13 @@ test_write_multi_chunk_dataset_diff_shape_read(void)
     /*
      * Read every chunk in the dataset, checking the data for each one.
      */
-    printf("\n");
+    if (IS_MAIN_TEST_THREAD)
+        printf("\n");
     for (i = 0; i < data_size / chunk_size; i++) {
         size_t j;
 
-        printf("\r Reading chunk %zu", i);
+        if (IS_MAIN_TEST_THREAD)
+            printf("\r Reading chunk %zu", i);
 
         for (j = 0; j < DATASET_MULTI_CHUNK_WRITE_DIFF_SPACE_READ_TEST_DSET_SPACE_RANK; j++) {
             if (dims[j] == chunk_dims[j])
@@ -13078,7 +13082,8 @@ test_overwrite_multi_chunk_dataset_same_shape_read(void)
         count[i] = chunk_dims[i];
     }
 
-    printf("\n");
+    if (IS_MAIN_TEST_THREAD)
+        printf("\n");
     for (niter = 0; niter < DATASET_MULTI_CHUNK_OVERWRITE_SAME_SPACE_READ_TEST_NITERS; niter++) {
         memset(write_buf, 0, data_size);
 
@@ -13187,7 +13192,8 @@ test_overwrite_multi_chunk_dataset_same_shape_read(void)
         for (i = 0; i < data_size / chunk_size; i++) {
             size_t j, k;
 
-            printf("\r Reading chunk %zu", i);
+            if (IS_MAIN_TEST_THREAD)
+                printf("\r Reading chunk %zu", i);
 
             for (j = 0; j < DATASET_MULTI_CHUNK_OVERWRITE_SAME_SPACE_READ_TEST_DSET_SPACE_RANK; j++) {
                 if (dims[j] == chunk_dims[j])
@@ -13422,7 +13428,8 @@ test_overwrite_multi_chunk_dataset_diff_shape_read(void)
         count[i] = chunk_dims[i];
     }
 
-    printf("\n");
+    if (IS_MAIN_TEST_THREAD)
+        printf("\n");
     for (niter = 0; niter < DATASET_MULTI_CHUNK_OVERWRITE_DIFF_SPACE_READ_TEST_NITERS; niter++) {
         memset(write_buf, 0, data_size);
 
@@ -13531,7 +13538,8 @@ test_overwrite_multi_chunk_dataset_diff_shape_read(void)
         for (i = 0; i < data_size / chunk_size; i++) {
             size_t j;
 
-            printf("\r Reading chunk %zu", i);
+            if (IS_MAIN_TEST_THREAD)
+                printf("\r Reading chunk %zu", i);
 
             for (j = 0; j < DATASET_MULTI_CHUNK_OVERWRITE_DIFF_SPACE_READ_TEST_DSET_SPACE_RANK; j++) {
                 if (dims[j] == chunk_dims[j])
@@ -13942,7 +13950,8 @@ test_read_partial_chunk_hyperslab_selection(void)
     /*
      * Write and read each chunk in the dataset.
      */
-    printf("\n");
+    if (IS_MAIN_TEST_THREAD)
+        printf("\n");
     for (i = 0; i < FIXED_NCHUNKS; i++) {
         hsize_t start[DATASET_PARTIAL_CHUNK_READ_HYPER_SEL_TEST_DSET_SPACE_RANK];
         hsize_t count[DATASET_PARTIAL_CHUNK_READ_HYPER_SEL_TEST_DSET_SPACE_RANK];
@@ -14006,7 +14015,8 @@ test_read_partial_chunk_hyperslab_selection(void)
             goto error;
         }
 
-        printf("\r Writing chunk %zu", i);
+        if (IS_MAIN_TEST_THREAD)
+            printf("\r Writing chunk %zu", i);
 
         if (H5Dwrite(dset_id, DATASET_PARTIAL_CHUNK_READ_HYPER_SEL_TEST_DSET_DTYPE, mspace_id, fspace_id,
                      H5P_DEFAULT, write_buf) < 0) {
@@ -14041,7 +14051,8 @@ test_read_partial_chunk_hyperslab_selection(void)
             goto error;
         }
 
-        printf("\r Reading chunk %zu", i);
+        if (IS_MAIN_TEST_THREAD)
+            printf("\r Reading chunk %zu", i);
 
         if (H5Dread(dset_id, DATASET_PARTIAL_CHUNK_READ_HYPER_SEL_TEST_DSET_DTYPE, mspace_id, fspace_id,
                     H5P_DEFAULT, read_buf) < 0) {
