@@ -136,10 +136,10 @@ extern pthread_key_t test_thread_info_key_g;
 
 #else
 
-#define INCR_RUN_COUNT     n_tests_run_g++;
-#define INCR_FAILED_COUNT  n_tests_failed_g++;
-#define INCR_PASSED_COUNT  n_tests_passed_g++;
-#define INCR_SKIPPED_COUNT n_tests_skipped_g++;
+#define INCR_RUN_COUNT     H5_ATOMIC_ADD(n_tests_run_g, 1);
+#define INCR_FAILED_COUNT  H5_ATOMIC_ADD(n_tests_failed_g, 1);
+#define INCR_PASSED_COUNT  H5_ATOMIC_ADD(n_tests_passed_g, 1);
+#define INCR_SKIPPED_COUNT H5_ATOMIC_ADD(n_tests_skipped_g, 1);
 #endif
 
 /*
@@ -164,6 +164,8 @@ extern pthread_key_t test_thread_info_key_g;
         printf("  Testing %-60s", WHAT);                                                                     \
         fflush(stdout);                                                                                      \
     } while (0)
+
+#ifdef H5_HAVE_MULTITHREAD
 #define TESTING_2(WHAT)                                                                                      \
     do {                                                                                                     \
         INCR_RUN_COUNT;                                                                                     \
@@ -176,6 +178,18 @@ extern pthread_key_t test_thread_info_key_g;
             _tinfo->test_descriptions[_tinfo->num_tests - 1] = WHAT; \
         }                                                                                                   \
     } while (0)
+#else 
+#define TESTING_2(WHAT)                                                                                      \
+    do {                                                                                                     \
+        INCR_RUN_COUNT;                                                                                     \
+        if (GetTestMaxNumThreads() > 1) {                                                                          \
+            printf("  Test run with multiple threads, but library not built with multi-thread support!\n");\
+            goto error;                                                                                     \
+        }                                                                                                   \
+        TESTING_2_DISPLAY(WHAT);                                                                             \
+    } while (0)
+#endif /* H5_HAVE_MULTITHREAD */
+
 #define PASSED_DISPLAY()                                                                                     \
     do {                                                                                                     \
         HDputs(" PASSED");                                                                                   \
