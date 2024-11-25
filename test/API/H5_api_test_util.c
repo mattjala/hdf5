@@ -678,7 +678,7 @@ prefix_filename(const char *prefix, const char *filename, char **filename_out)
         goto done;
     }
 
-    if (GetTestMaxNumThreads() > 1) {
+    if (TEST_EXECUTION_MULTITHREADED) {
 #ifdef H5_HAVE_MULTITHREAD
 
         if ((tinfo = (thread_info_t *)pthread_getspecific(test_thread_info_key_g)) == NULL) {

@@ -38,7 +38,7 @@
 
 /* Final name of the API test container file (for this thread) */
 #ifdef H5_HAVE_MULTITHREAD
-#define H5_API_TEST_FILENAME (GetTestMaxNumThreads() > 1 ? ((thread_info_t*) pthread_getspecific(test_thread_info_key_g))->test_thread_filename : H5_api_test_filename_g)
+#define H5_API_TEST_FILENAME (TEST_EXECUTION_MULTITHREADED ? ((thread_info_t*) pthread_getspecific(test_thread_info_key_g))->test_thread_filename : H5_api_test_filename_g)
 #else
 #define H5_API_TEST_FILENAME H5_api_test_filename_g
 #endif
