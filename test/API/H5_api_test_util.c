@@ -649,7 +649,7 @@ error:
  * is responsible for freeing the returned filename
  * pointer with free().
  * 
- * If the API tests are being run multi-threaded,
+ * If the API tests are being run in separate thread(s)
  * then the framework-assigned thread index will be inserted as well.
  */
 herr_t
