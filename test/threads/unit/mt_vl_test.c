@@ -34,7 +34,7 @@ H5VL_connector_prop_t conn_prop_g;
 
 typedef void *(*mt_vl_test_cb)(void *arg);
 
-void mt_test_run_helper_in_parallel(int max_threads, mt_vl_test_cb mt_test_func, void *args);
+void mt_test_run_helper_in_parallel(mt_vl_test_cb mt_test_func, void *args);
 
 void *mt_test_registration_helper(void *arg);
 void *mt_test_registration_by_name_helper(void *arg);
@@ -54,19 +54,25 @@ void *mt_test_search_register_helper(void *arg);
 void *mt_test_search_search_by_name_helper(void *arg);
 void *mt_test_search_search_by_value_helper(void *arg);
 
-/* Run the provided test function independently in up to max_num_threads different threads */
-void mt_test_run_helper_in_parallel(int max_num_threads, mt_vl_test_cb mt_test_func, void *args) {
+/* Run the provided test function independently in different threads */
+void mt_test_run_helper_in_parallel(mt_vl_test_cb mt_test_func, void *args) {
   pthread_t *threads = NULL;
   void *thread_return = NULL;
+  int num_threads = 0;
   int ret = 0;
 
-  assert(max_num_threads > 0);
+  num_threads = GetTestMaxNumThreads();
 
-  threads = (pthread_t *)calloc((long unsigned int) max_num_threads, sizeof(pthread_t));
+  if (num_threads <= 0) {
+    printf("No threadcount specified with -maxthreads; skipping test\n");
+    return;
+  }
+
+  threads = (pthread_t *)calloc((long unsigned int) num_threads, sizeof(pthread_t));
   assert(threads != NULL);
 
-  for (int num_threads = 1; num_threads <= max_num_threads; num_threads++) {
-    memset(threads, 0, sizeof(pthread_t) * (long unsigned int) max_num_threads);
+  for (int num_threads = 1; num_threads <= num_threads; num_threads++) {
+    memset(threads, 0, sizeof(pthread_t) * (long unsigned int) num_threads);
 
     for (int i = 0; i < num_threads; i++) {
       ret = pthread_create(&threads[i], NULL, mt_test_func, args);
@@ -86,11 +92,10 @@ void mt_test_run_helper_in_parallel(int max_num_threads, mt_vl_test_cb mt_test_f
 /* Concurrently register and unregister the same VOL connector from multiple
  * threads. */
 void mt_test_registration(void) {
-  int max_num_threads = GetTestMaxNumThreads();
   const mt_test_params *params = (const mt_test_params *) GetTestParameters();
   assert(params != NULL);
   alarm(params->subtest_timeout);
-  mt_test_run_helper_in_parallel(max_num_threads, mt_test_registration_helper, NULL);
+  mt_test_run_helper_in_parallel(mt_test_registration_helper, NULL);
   return;
 }
 
@@ -125,11 +130,10 @@ void *mt_test_registration_helper(void H5_ATTR_UNUSED *arg) {
 /* Concurrently register and unregister the same VOL connector by name from multiple
  * threads. */
 void mt_test_registration_by_name(void) {
-  int max_num_threads = GetTestMaxNumThreads();
   const mt_test_params *params = (const mt_test_params *) GetTestParameters();
   assert(params != NULL);
   alarm(params->subtest_timeout);
-  mt_test_run_helper_in_parallel(max_num_threads, mt_test_registration_by_name_helper, NULL);
+  mt_test_run_helper_in_parallel(mt_test_registration_by_name_helper, NULL);
   return;
 }
 
@@ -168,11 +172,10 @@ void *mt_test_registration_by_name_helper(void H5_ATTR_UNUSED *arg) {
 /* Concurrently register and unregister the same VOL connector by value from multiple
  * threads. */
 void mt_test_registration_by_value(void) {
-  int max_num_threads = GetTestMaxNumThreads();
   const mt_test_params *params = (const mt_test_params *) GetTestParameters();
   assert(params != NULL);
   alarm(params->subtest_timeout);
-  mt_test_run_helper_in_parallel(max_num_threads, mt_test_registration_by_value_helper, NULL);
+  mt_test_run_helper_in_parallel(mt_test_registration_by_value_helper, NULL);
   return;
 }
 
@@ -210,11 +213,10 @@ void *mt_test_registration_by_value_helper(void H5_ATTR_UNUSED *arg) {
 
 /* Test concurrent registration and unregistration of dynamic VOL operations */
 void mt_test_dyn_op_registration(void) {
-  int max_num_threads = GetTestMaxNumThreads();
   const mt_test_params *params = (const mt_test_params *) GetTestParameters();
   assert(params != NULL);
   alarm(params->subtest_timeout);
-  mt_test_run_helper_in_parallel(max_num_threads, mt_test_dyn_op_registration_helper, NULL);
+  mt_test_run_helper_in_parallel(mt_test_dyn_op_registration_helper, NULL);
   return;
 }
 
@@ -305,7 +307,6 @@ H5VL_subclass_t mt_test_dyn_op_get_vol_subclass(size_t index) {
 void mt_test_registration_operation(void) {
   hid_t file_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
-  int max_num_threads = GetTestMaxNumThreads();
   const mt_test_params *params = (const mt_test_params *) GetTestParameters();
   assert(params != NULL);
   alarm(params->subtest_timeout);
@@ -314,7 +315,7 @@ void mt_test_registration_operation(void) {
   file_id = H5Fcreate(MT_TEST_VOL_REGISTRATION_FILENAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
   CHECK(file_id, H5I_INVALID_HID, "H5Fcreate");
 
-  mt_test_run_helper_in_parallel(max_num_threads, mt_test_registration_operation_helper, NULL);
+  mt_test_run_helper_in_parallel(mt_test_registration_operation_helper, NULL);
   
   ret = H5Fclose(file_id);
   CHECK(ret, FAIL, "H5Fclose");
@@ -383,12 +384,11 @@ void mt_test_registration_operation_cleanup(void) {
 /* Test that upon file open failure, loading an available VOL connector from
  * H5PL works in a multi-threaded environment */
 void mt_test_file_open_failure_registration(void) {
-  int max_num_threads = GetTestMaxNumThreads();
   const mt_test_params *params = (const mt_test_params *) GetTestParameters();
   assert(params != NULL);
   alarm(params->subtest_timeout);
 
-  mt_test_run_helper_in_parallel(max_num_threads, mt_test_file_open_failure_registration_helper, NULL);
+  mt_test_run_helper_in_parallel(mt_test_file_open_failure_registration_helper, NULL);
   return;
 }
 
@@ -453,7 +453,6 @@ done:
 void mt_test_vol_property_copy(void) {
   hid_t fapl_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
-  int max_num_threads = GetTestMaxNumThreads();
 
   const mt_test_params *params = (const mt_test_params *) GetTestParameters();
   assert(params != NULL);
@@ -465,7 +464,7 @@ void mt_test_vol_property_copy(void) {
   ret = H5Pset_vol(fapl_id, H5VL_NATIVE, NULL);
   CHECK(ret, FAIL, "H5Pset_vol");
 
-  mt_test_run_helper_in_parallel(max_num_threads, mt_test_vol_property_copy_helper, (void *)fapl_id);
+  mt_test_run_helper_in_parallel(mt_test_vol_property_copy_helper, (void *)fapl_id);
 
   ret = H5Pclose(fapl_id);
   CHECK(ret, FAIL, "H5Pclose");
@@ -526,13 +525,18 @@ void mt_test_register_and_search(void) {
   H5VL_class_t vol_class;
   int ret = 0;
 
-  int max_num_threads = GetTestMaxNumThreads();
+  int num_threads = GetTestMaxNumThreads();
 
   const mt_test_params *params = (const mt_test_params *) GetTestParameters();
   assert(params != NULL);
   alarm(params->subtest_timeout);
 
-  threads_per_group = max_num_threads / 3;
+  if (num_threads <= 0) {
+    printf("No threadcount specified with -maxthreads; skipping test\n");
+    return;
+  }
+
+  threads_per_group = num_threads / 3;
 
   /* Set up thread information */
   threads_register = (pthread_t *)malloc((size_t) threads_per_group * sizeof(pthread_t));
@@ -663,13 +667,11 @@ void *mt_test_search_search_by_value_helper(void *arg) {
 
 /* Test concurrent usage of library state routines */
 void mt_test_lib_state_ops(void) {
-  int max_num_threads = GetTestMaxNumThreads();
-
   const mt_test_params *params = (const mt_test_params *) GetTestParameters();
   assert(params != NULL);
   alarm(params->subtest_timeout);
 
-  mt_test_run_helper_in_parallel(max_num_threads, mt_test_lib_state_ops_helper, NULL);
+  mt_test_run_helper_in_parallel(mt_test_lib_state_ops_helper, NULL);
   return;
 }
 
@@ -713,7 +715,6 @@ void mt_test_vol_wrap_ctx(void) {
 
   H5VL_pass_through_info_t passthru_info = {H5VL_NATIVE, NULL};
   hid_t passthru_id = H5I_INVALID_HID;
-  int max_num_threads = GetTestMaxNumThreads();
 
   const mt_test_params *params = (const mt_test_params *) GetTestParameters();
   assert(params != NULL);
@@ -732,7 +733,7 @@ void mt_test_vol_wrap_ctx(void) {
   file_id = H5Fcreate(MT_TEST_VOL_WRAP_CTX_FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
   CHECK(file_id, H5I_INVALID_HID, "H5Fcreate");
 
-  mt_test_run_helper_in_parallel(max_num_threads, mt_test_vol_wrap_ctx_helper, (void*) fapl_id);
+  mt_test_run_helper_in_parallel(mt_test_vol_wrap_ctx_helper, (void*) fapl_id);
 
   /* Clean up */
   ret = H5Fclose(file_id);
@@ -799,13 +800,11 @@ void mt_test_vol_wrap_ctx_cleanup(void) {
  * TBD: This largely depends on the connector callbacks of the active connector(s), and
  * so should probably have a counterpart placed in the API tests for use with various VOL connectors. */
 void mt_test_vol_info(void) {
-  int max_num_threads = GetTestMaxNumThreads();
-
   const mt_test_params *params = (const mt_test_params *) GetTestParameters();
   assert(params != NULL);
   alarm(params->subtest_timeout);
 
-  mt_test_run_helper_in_parallel(max_num_threads, mt_test_vol_info_helper, NULL);
+  mt_test_run_helper_in_parallel(mt_test_vol_info_helper, NULL);
   return;
 }
 
