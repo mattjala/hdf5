@@ -25,7 +25,7 @@
 #include "H5_api_async_test_parallel.h"
 #endif
 
-char H5_api_test_parallel_filename[H5_API_TEST_FILENAME_MAX_LENGTH];
+char H5_api_test_parallel_filename[H5_TEST_FILENAME_MAX_LENGTH];
 
 const char *test_path_prefix;
 
@@ -292,7 +292,7 @@ main(int argc, char **argv)
     if (NULL == (test_path_prefix = HDgetenv(HDF5_API_TEST_PATH_PREFIX)))
         test_path_prefix = "";
 
-    HDsnprintf(H5_api_test_parallel_filename, H5_API_TEST_FILENAME_MAX_LENGTH, "%s%s", test_path_prefix,
+    HDsnprintf(H5_api_test_parallel_filename, H5_TEST_FILENAME_MAX_LENGTH, "%s%s", test_path_prefix,
                PARALLEL_TEST_FILE_NAME);
 
     if (NULL == (vol_connector_string = HDgetenv(HDF5_VOL_CONNECTOR))) {
