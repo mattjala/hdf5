@@ -34,8 +34,6 @@
 /* Margin of runtime for each subtest allocated to cleanup */
 #define MT_VL_TEST_MARGIN 1
 
-#define DEFAULT_NUM_THREADS 10
-
 /* Parameter to determine extent of stress testing */
 #define NUM_ITERS 100
 
@@ -122,9 +120,6 @@ int main(int argc, char *argv[])
 
     /* Parse command line arguments */
     TestParseCmdLine(argc, argv);
-
-    if (GetTestMaxNumThreads() <= 0)
-        SetTestMaxNumThreads(DEFAULT_NUM_THREADS);
 
     /* Perform requested testing */
     PerformTests();
