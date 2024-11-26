@@ -67,7 +67,7 @@ typedef struct thread_info_t {
     char* test_thread_filename; /* The name of the test container file */
 } thread_info_t;
 
-/* Whether or not the tests are configured to execute using multi-threaded infrastructure.
+/* Whether or not the tests are configured to execute using threaded infrastructure.
  * Note that if GetTestMaxNumThreads() == 1, then the tests are still only run in a single thread,
  * but that thread is a new thread spawned by the main thread. */
 #define TEST_EXECUTION_THREADED (GetTestMaxNumThreads() >= 1)
@@ -86,7 +86,7 @@ extern pthread_key_t test_thread_info_key_g;
 #endif /* H5_HAVE_MULTITHREAD */
 
 /* Flag values for TestFrameworkFlags */
-#define ALLOW_MULTITHREAD 0x00000001 /* Run the test in a multi-threaded environment */
+#define ALLOW_MULTITHREAD 0x00000001 /* Allow test to be run in spawned thread(s) based on runtime configuration */
 
 /*
  * Print the current location on the standard output stream.

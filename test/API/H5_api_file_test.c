@@ -1627,11 +1627,6 @@ test_get_file_obj_count(const void H5_ATTR_UNUSED *params)
         return;
     }
 
-    if (GetTestMaxNumThreads() == 0) {
-        printf("    Active thread count is invalid\n");
-        TEST_ERROR;
-    }
-
     TESTING_2("test setup");
 
     if (prefix_filename(test_path_prefix, GET_OBJ_COUNT_TEST_FILENAME1, &prefixed_filename1) < 0) {

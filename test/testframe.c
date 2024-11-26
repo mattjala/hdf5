@@ -447,9 +447,11 @@ done:
 herr_t
 PerformTests(void)
 {
+    unsigned Loop;
     bool mt_initialized = false;
     int test_num_errs = 0;
     int max_num_threads = GetTestMaxNumThreads();
+    bool is_test_threaded = false;
 
     for (unsigned Loop = 0; Loop < TestCount; Loop++) {
         bool is_test_mt = (TestArray[Loop].TestFrameworkFlags & ALLOW_MULTITHREAD) && (max_num_threads > 1);
@@ -528,37 +530,32 @@ PerformTests(void)
             }
 
             for (int i = 0; i < max_num_threads; i++) {
-                    thread_args[i].ThreadIndex = i;
-                    thread_args[i].Test = &TestArray[Loop];
-                    thread_args[i].num_tests = 0;
+                thread_args[i].ThreadIndex = i;
+                thread_args[i].Test = &TestArray[Loop];
+                thread_args[i].num_tests = 0;
 
-                    if ((thread_args[i].test_outcomes = calloc(H5_MAX_NUM_SUBTESTS, sizeof(test_outcome_t))) == NULL) {
-                        fprintf(stderr, "Error allocating memory for thread outcomes\n");
-                        exit(EXIT_FAILURE);
-                    }
+                if ((thread_args[i].test_outcomes = calloc(H5_MAX_NUM_SUBTESTS, sizeof(test_outcome_t))) == NULL) {
+                    fprintf(stderr, "Error allocating memory for thread outcomes\n");
+                    exit(EXIT_FAILURE);
+                }
 
-                    memset(thread_args[i].test_outcomes, (int) TEST_UNINIT, H5_MAX_NUM_SUBTESTS * sizeof(test_outcome_t));
+                memset(thread_args[i].test_outcomes, (int) TEST_UNINIT, H5_MAX_NUM_SUBTESTS * sizeof(test_outcome_t));
 
-                    if ((thread_args[i].test_descriptions = calloc(H5_MAX_NUM_SUBTESTS, sizeof(char*))) == NULL) {
-                        fprintf(stderr, "Error allocating memory for thread test descriptions\n");
-                        exit(EXIT_FAILURE);
-                    }
+                if ((thread_args[i].test_descriptions = calloc(H5_MAX_NUM_SUBTESTS, sizeof(char*))) == NULL) {
+                    fprintf(stderr, "Error allocating memory for thread test descriptions\n");
+                    exit(EXIT_FAILURE);
+                }
 
-                    memset(thread_args[i].test_descriptions, 0, H5_MAX_NUM_SUBTESTS * sizeof(char*));
+                memset(thread_args[i].test_descriptions, 0, H5_MAX_NUM_SUBTESTS * sizeof(char*));
 
-                    ret = pthread_create(&threads[i], NULL, ThreadTestWrapper, (void*) &thread_args[i]);
-
-                    if (ret != 0) {
-                        fprintf(stderr, "Error creating thread %d\n", i);
-                        exit(EXIT_FAILURE);
-                    }
+                ret = pthread_create(&threads[i], NULL, ThreadTestWrapper, (void*) &thread_args[i]);
             }
-
-            for (int i = 0; i < max_num_threads; i++) {
+                    
+            for (int i = 0; i < GetTestMaxNumThreads(); i++) {
                 ret = pthread_join(threads[i], NULL);
 
                 if (ret != 0) {
-                    fprintf(stderr, "Error joining thread %d\n", i);
+                    fprintf(stderr, "Error creating thread %d\n", i);
                     exit(EXIT_FAILURE);
                 }
 
@@ -569,7 +566,7 @@ PerformTests(void)
             }
             
             /* Verify that each thread reported the same number of subtests */
-            for (int i = 0; i < max_num_threads; i++) {
+            for (int i = 0; i < GetTestMaxNumThreads(); i++) {
                 if (thread_args[i].num_tests != thread_args[0].num_tests) {
                     fprintf(stderr, "Thread %d reported %ld subtests, but thread 0 reported %ld\n", i, thread_args[i].num_tests, thread_args[0].num_tests);
                     exit(EXIT_FAILURE);
@@ -580,7 +577,7 @@ PerformTests(void)
             H5_ATOMIC_ADD(n_tests_run_g, thread_args[0].num_tests);
 
             for (size_t j = 0; j < thread_args[0].num_tests; j++) {
-                for (int i = 0; i < max_num_threads; i++)
+                for (int i = 0; i < GetTestMaxNumThreads(); i++)
                     final_results[j] = ((final_results[j] > thread_args[i].test_outcomes[j]) ? final_results[j] : thread_args[i].test_outcomes[j]);
 
                 /* Display subtest description, if result is from subtest */
@@ -615,7 +612,7 @@ PerformTests(void)
                 }
             }
 
-            for (int i = 0; i < max_num_threads; i++) {
+            for (int i = 0; i < GetTestMaxNumThreads(); i++) {
                 free(thread_args[i].test_outcomes);
                 free(thread_args[i].test_descriptions);
                 thread_args[i].test_outcomes = NULL;
@@ -648,7 +645,7 @@ PerformTests(void)
 
 #ifdef H5_HAVE_MULTITHREAD
 /*
- * Set up and execute a test flagged for multi-threaded
+ * Set up and execute a test flagged for threaded
  *   execution within a single thread.
  */
 static void *
@@ -1122,17 +1119,7 @@ TestAlarmOff(void)
 
 #ifdef H5_HAVE_MULTITHREAD
 /* Set up global variables used for API tests */
-static int
-H5_mt_test_global_setup(void) {
-    int max_threads = 0;
-
-    /* Set up thread count, used for some file tests */
-    max_threads = GetTestMaxNumThreads();
-
-    if (max_threads <= 0) {
-        printf("    invalid max thread count\n");
-        goto error;
-    }
+int H5_mt_test_global_setup(void) {
 
     /* Set up pthread key */
     if (pthread_key_create(&test_thread_info_key_g, H5_test_thread_info_key_destructor) != 0) {

@@ -13,8 +13,6 @@
 #ifndef H5_API_TEST_UTIL_H_
 #define H5_API_TEST_UTIL_H_
 
-#define API_TESTS_DEFAULT_NUM_THREADS 1
-
 #include "hdf5.h"
 
 hid_t  generate_random_datatype(H5T_class_t parent_class, bool is_compact);
