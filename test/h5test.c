@@ -2194,19 +2194,19 @@ char *generate_threadlocal_filename(const char *prefix, int thread_idx, const ch
         goto error;
     }
 
-    if (MAX_THREAD_IDX_LEN + strlen(filename) >= H5_API_TEST_FILENAME_MAX_LENGTH) {
+    if (MAX_THREAD_IDX_LEN + strlen(filename) >= H5_TEST_FILENAME_MAX_LENGTH) {
         fprintf(stderr, "    test file name exceeded expected size\n");
         goto error;
     }
 
-    if (NULL == (test_filename = (char *)calloc(1, H5_API_TEST_FILENAME_MAX_LENGTH))) {
+    if (NULL == (test_filename = (char *)calloc(1, H5_TEST_FILENAME_MAX_LENGTH))) {
         fprintf(stderr, "    couldn't allocate memory for test file name\n");
         goto error;
     }
 
     /* Write prefix, thread index, and filename into buffer */
     if ((chars_written = snprintf(test_filename,
-                                  H5_API_TEST_FILENAME_MAX_LENGTH, "%s%d%s",
+                                  H5_TEST_FILENAME_MAX_LENGTH, "%s%d%s",
                                   prefix, thread_idx, filename)) < 0) {
         fprintf(stderr, "    couldn't create test file name\n");
         goto error;

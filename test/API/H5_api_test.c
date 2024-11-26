@@ -44,7 +44,7 @@
 #include <pthread.h>
 #endif
 
-char H5_api_test_filename_g[H5_API_TEST_FILENAME_MAX_LENGTH];
+char H5_api_test_filename_g[H5_TEST_FILENAME_MAX_LENGTH];
 
 static int H5_api_test_create_containers(const char *filename, uint64_t vol_cap_flags);
 static int H5_api_test_create_single_container(const char *filename, uint64_t vol_cap_flags);
@@ -227,14 +227,14 @@ main(int argc, char **argv)
 
     if (GetTestMaxNumThreads() == 1) {
         /* Populate global test filename */
-        if ((chars_written = HDsnprintf(H5_api_test_filename_g, H5_API_TEST_FILENAME_MAX_LENGTH, "%s%s",test_path_prefix,
+        if ((chars_written = HDsnprintf(H5_api_test_filename_g, H5_TEST_FILENAME_MAX_LENGTH, "%s%s",test_path_prefix,
                 TEST_FILE_NAME)) < 0) {
             fprintf(stderr, "Error while creating test file name\n");
             err_occurred = TRUE;
             goto done;
         }
 
-        if ((size_t)chars_written >= H5_API_TEST_FILENAME_MAX_LENGTH) {
+        if ((size_t)chars_written >= H5_TEST_FILENAME_MAX_LENGTH) {
             fprintf(stderr, "Test file name exceeded expected size\n");
             err_occurred = TRUE;
             goto done;
