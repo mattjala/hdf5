@@ -1713,7 +1713,7 @@ test_get_file_obj_count(void)
             if (check_open_obj_count(obj_count, 2) < 0) {
                 H5_FAILED();
                 printf("    number of open files (%ld) did not match %s expected number (2)\n", obj_count,
-                       TEST_EXECUTION_MULTITHREADED ? "or exceed" : "");
+                       TEST_EXECUTION_CONCURRENT ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_files);
             }
 
@@ -1757,7 +1757,7 @@ test_get_file_obj_count(void)
             if (check_open_obj_count(obj_count, 1) < 0) {
                 H5_FAILED();
                 printf("    number of open groups (%ld) did not match %s expected number (1)\n", obj_count,
-                       TEST_EXECUTION_MULTITHREADED ? "or exceed" : "");
+                       TEST_EXECUTION_CONCURRENT ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_types);
             }
 
@@ -1779,7 +1779,7 @@ test_get_file_obj_count(void)
             if (check_open_obj_count(obj_count, 1) < 0) {
                 H5_FAILED();
                 printf("    number of open named datatypes (%ld) did not match %s expected number (1)\n", obj_count,
-                       TEST_EXECUTION_MULTITHREADED ? "or exceed" : "");
+                       TEST_EXECUTION_CONCURRENT ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_types);
             }
 
@@ -1801,7 +1801,7 @@ test_get_file_obj_count(void)
             if (check_open_obj_count(obj_count, 1) < 0) {
                 H5_FAILED();
                 printf("    number of open attributes (%ld) did not match %s expected number (1)\n", obj_count,
-                       TEST_EXECUTION_MULTITHREADED ? "or exceed" : "");
+                       TEST_EXECUTION_CONCURRENT ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_attrs);
             }
 
@@ -1823,7 +1823,7 @@ test_get_file_obj_count(void)
             if (check_open_obj_count(obj_count, 1) < 0) {
                 H5_FAILED();
                 printf("    number of open datasets (%ld) did not match %s expected number (1)\n", obj_count,
-                       TEST_EXECUTION_MULTITHREADED ? "or exceed" : "");
+                       TEST_EXECUTION_CONCURRENT ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_dsets);
             }
 
@@ -1867,7 +1867,7 @@ test_get_file_obj_count(void)
             if (check_open_obj_count(obj_count, 6) < 0) {
                 H5_FAILED();
                 printf("    number of open objects (%ld) did not match %s expected number (6)\n", obj_count,
-                       TEST_EXECUTION_MULTITHREADED ? "or exceed" : "");
+                       TEST_EXECUTION_CONCURRENT ? "or exceed" : "");
                 PART_ERROR(H5Fget_obj_count_all);
             }
 
@@ -2547,9 +2547,9 @@ herr_t
 check_open_obj_count(ssize_t obj_count, int expected) {
     herr_t ret_value = SUCCEED;
     /* If multiple threads are concurrently executing tests, then more objects than expected may be open in the library */
-    if (TEST_EXECUTION_MULTITHREADED && obj_count < expected) {
+    if (TEST_EXECUTION_CONCURRENT && obj_count < expected) {
         ret_value = FAIL;
-    } else if (!TEST_EXECUTION_MULTITHREADED && obj_count != expected) { /* Single thread, expect exact count */
+    } else if (!TEST_EXECUTION_CONCURRENT && obj_count != expected) { /* Single thread, expect exact count */
         ret_value = FAIL;
     }
 

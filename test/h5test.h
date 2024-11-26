@@ -110,13 +110,18 @@ typedef struct thread_info_t {
     char* test_thread_filename; /* The name of the test container file */
 } thread_info_t;
 
-/* Number of threads defaults to -1 for baseline singlethreaded testing */
-#define TEST_EXECUTION_MULTITHREADED (!(GetTestMaxNumThreads() == 1 || GetTestMaxNumThreads() == -1))
+/* Whether or not the tests are configured to execute using multi-threaded infrastructure.
+ * Note that if GetTestMaxNumThreads() == 1, then the tests are still only run in a single thread,
+ * but that thread is a new thread spawned by the main thread. */
+#define TEST_EXECUTION_THREADED (GetTestMaxNumThreads() >= 1)
+
+/* Whether the tests are configured to concurrently execute in more than one thread */
+#define TEST_EXECUTION_CONCURRENT (GetTestMaxNumThreads() > 1)
 
 #ifdef H5_HAVE_MULTITHREAD
 extern pthread_key_t test_thread_info_key_g;
 
-#define IS_MAIN_TEST_THREAD (!TEST_EXECUTION_MULTITHREADED ||\
+#define IS_MAIN_TEST_THREAD (!TEST_EXECUTION_CONCURRENT ||\
     ((pthread_getspecific(test_thread_info_key_g)) && (((thread_info_t*)pthread_getspecific(test_thread_info_key_g))->thread_idx == 0)))
 
 #else
@@ -140,7 +145,7 @@ extern pthread_key_t test_thread_info_key_g;
 #ifdef H5_HAVE_MULTITHREAD
 
 #define INCR_RUN_COUNT                                                                                 \
-    if (TEST_EXECUTION_MULITTHREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
+    if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
         ((thread_info_t*)pthread_getspecific(test_thread_info_key_g))->num_tests++;                      \
         assert(((thread_info_t*)pthread_getspecific(test_thread_info_key_g))->num_tests <= H5_MAX_NUM_SUBTESTS); \
     } else {                                                                                                 \
@@ -151,7 +156,7 @@ extern pthread_key_t test_thread_info_key_g;
 /* The global variables are atomic based on build configuration, not runtime thread count,
  * and so the ATOMIC_ADD macros must be used even in the single-thread runtime. */
 #define INCR_FAILED_COUNT                                                                                  \
-    if (TEST_EXECUTION_MULITTHREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
+    if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
         thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);                \
         assert(_tinfo->num_tests > 0);                                                                   \
         assert(_tinfo->test_outcomes[_tinfo->num_tests - 1] == TEST_UNINIT);                                \
@@ -161,7 +166,7 @@ extern pthread_key_t test_thread_info_key_g;
     }
 
 #define INCR_PASSED_COUNT                                                                                 \
-    if (TEST_EXECUTION_MULITTHREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
+    if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
         thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);                \
         assert(_tinfo->num_tests > 0);                                                                   \
         assert(_tinfo->test_outcomes[_tinfo->num_tests - 1] == TEST_UNINIT);                                \
@@ -171,7 +176,7 @@ extern pthread_key_t test_thread_info_key_g;
     }
 
 #define INCR_SKIPPED_COUNT                                                                               \
-    if (TEST_EXECUTION_MULITTHREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
+    if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
         thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);                \
         assert(_tinfo->num_tests > 0);                                                                   \
         assert(_tinfo->test_outcomes[_tinfo->num_tests - 1] == TEST_UNINIT);                                \
@@ -215,7 +220,7 @@ extern pthread_key_t test_thread_info_key_g;
 #define TESTING_2(WHAT)                                                                                      \
     do {                                                                                                     \
         INCR_RUN_COUNT;                                                                                     \
-        if (GetTestMaxNumThreads() == 1) {                                                                           \
+        if (!TEST_EXECUTION_THREADED) {                                                                           \
             TESTING_2_DISPLAY(WHAT);                                                                             \
         } else {                                                                                             \
             /* Store test desc for display after test completion */ \
@@ -228,7 +233,7 @@ extern pthread_key_t test_thread_info_key_g;
 #define TESTING_2(WHAT)                                                                                      \
     do {                                                                                                     \
         INCR_RUN_COUNT;                                                                                     \
-        if (TEST_EXECUTION_MULITTHREADED) {                                                                          \
+        if (TEST_EXECUTION_THREADED) {                                                                          \
             printf("  Test run with multiple threads, but library not built with multi-thread support!\n");\
             goto error;                                                                                     \
         }                                                                                                   \
@@ -243,7 +248,7 @@ extern pthread_key_t test_thread_info_key_g;
     } while (0)
 #define PASSED()                                                                                             \
     do {                                                                                                     \
-        if (!TEST_EXECUTION_MULITTHREADED) {                                                                           \
+        if (!TEST_EXECUTION_THREADED) {                                                                           \
             PASSED_DISPLAY();                                                                                   \
         }                                                                                                  \
         INCR_PASSED_COUNT;                                                                                  \
@@ -255,7 +260,7 @@ extern pthread_key_t test_thread_info_key_g;
     } while (0)
 #define H5_FAILED()                                                                                          \
     do {                                                                                                     \
-        if (!TEST_EXECUTION_MULITTHREADED) {                                                                           \
+        if (!TEST_EXECUTION_THREADED) {                                                                           \
             H5_FAILED_DISPLAY();                                                                                 \
         }                                                                                                  \
         INCR_FAILED_COUNT;                                                                                   \
@@ -274,7 +279,7 @@ extern pthread_key_t test_thread_info_key_g;
     } while (0)
 #define SKIPPED()                                                                                            \
     do {                                                                                                     \
-        if (!TEST_EXECUTION_MULITTHREADED) {                                                                           \
+        if (!TEST_EXECUTION_THREADED) {                                                                           \
             SKIPPED_DISPLAY();                                                                                   \
         }                                                                                                 \
         INCR_SKIPPED_COUNT;                                                                                  \
