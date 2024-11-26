@@ -214,7 +214,7 @@ main(int argc, char **argv)
         test_path_prefix = "";
 
 #ifndef H5_HAVE_MULTITHREAD
-    if (TEST_EXECUTION_MULTITHREADED) {
+    if (TEST_EXECUTION_THREADED) {
         fprintf(stderr, "HDF5 must be built with multi-thread support to run multi-threaded API tests\n");
         err_occurred = TRUE;
         goto done;
@@ -225,7 +225,7 @@ main(int argc, char **argv)
         SetTestMaxNumThreads(API_TESTS_DEFAULT_NUM_THREADS);
     }
 
-    if (!TEST_EXECUTION_MULTITHREADED) {
+    if (!TEST_EXECUTION_THREADED) {
         /* Populate global test filename */
         if ((chars_written = HDsnprintf(H5_api_test_filename_g, H5_TEST_FILENAME_MAX_LENGTH, "%s%s",test_path_prefix,
                 TEST_FILE_NAME)) < 0) {
