@@ -1794,10 +1794,24 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
         H5_PUSH_FUNC                                                                                         \
         {
 
+#define FUNC_ENTER_NOAPI_MUTEX(err)                                                                              \
+    {                                                                                                        \
+        FUNC_ENTER_COMMON(!H5_IS_API(__func__));                                                             \
+        H5_API_LOCK                                                                                          \
+        H5_PUSH_FUNC                                                                                         \
+        {
+
 /* Use this macro for all non-API functions, which propagate errors, but don't issue them */
 #define FUNC_ENTER_NOAPI_NOERR                                                                               \
     {                                                                                                        \
         FUNC_ENTER_COMMON_NOERR(!H5_IS_API(__func__));                                                       \
+        H5_PUSH_FUNC                                                                                         \
+        {
+
+#define FUNC_ENTER_NOAPI_NOERR_MUTEX                                                                         \
+    {                                                                                                        \
+        FUNC_ENTER_COMMON_NOERR(!H5_IS_API(__func__));                                                       \
+        H5_API_LOCK                                                                                          \
         H5_PUSH_FUNC                                                                                         \
         {
 
@@ -1830,6 +1844,12 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
         H5_PUSH_FUNC                                                                                         \
         {
 
+#define FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX                                                                  \
+    {                                                                                                        \
+        FUNC_ENTER_COMMON_NOERR(!H5_IS_API(__func__));                                                       \
+        H5_API_LOCK                                                                                          \
+        H5_PUSH_FUNC                                                                                         \
+        {
 /*
  * Use this macro for non-API functions which fall into these categories:
  *      - functions which shouldn't push their name on the function stack
@@ -2079,10 +2099,26 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
     return (ret_value);                                                                                      \
     } /*end scope from beginning of FUNC_ENTER*/
 
+#define FUNC_LEAVE_NOAPI_MUTEX(ret_value)                                                                   \
+    ;                                                                                                        \
+    } /*end scope from end of FUNC_ENTER*/                                                                   \
+    H5_API_UNLOCK                                                                                            \
+    H5_POP_FUNC                                                                                              \
+    return (ret_value);                                                                                      \
+    } /*end scope from beginning of FUNC_ENTER*/
+
 #define FUNC_LEAVE_NOAPI_VOID                                                                                \
     ;                                                                                                        \
     } /*end scope from end of FUNC_ENTER*/                                                                   \
     H5_POP_FUNC                                                                                              \
+    return;                                                                                                  \
+    } /*end scope from beginning of FUNC_ENTER*/
+
+#define FUNC_LEAVE_NOAPI_VOID_MUTEX                                                                          \
+    ;                                                                                                        \
+    } /*end scope from end of FUNC_ENTER*/                                                                   \
+    H5_POP_FUNC                                                                                              \
+    H5_API_UNLOCK                                                                                            \
     return;                                                                                                  \
     } /*end scope from beginning of FUNC_ENTER*/
 

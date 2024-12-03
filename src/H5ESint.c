@@ -325,8 +325,7 @@ H5ES_insert(hid_t es_id, H5VL_t *connector, void *token, const char *caller, con
     hbool_t     arg_started = FALSE;   /* Whether the va_list has been started */
     herr_t      ret_value   = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
-    H5_API_LOCK
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
     /* Sanity check */
     assert(connector);
     assert(token);
@@ -376,8 +375,7 @@ done:
     if (rs)
         H5RS_decr(rs);
 
-    H5_API_UNLOCK
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5ES_insert() */
 
 /*-------------------------------------------------------------------------
