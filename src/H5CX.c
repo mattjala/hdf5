@@ -485,7 +485,7 @@ H5CX_init(void)
     H5P_genplist_t *fa_plist;            /* File access property list */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Reset the "default DXPL cache" information */
     memset(&H5CX_def_dxpl_cache, 0, sizeof(H5CX_dxpl_cache_t));
@@ -665,7 +665,7 @@ H5CX_init(void)
     if (H5P_get(fa_plist, H5F_ACS_LIBVER_HIGH_BOUND_NAME, &H5CX_def_fapl_cache.high_bound) < 0)
         HGOTO_ERROR(H5E_CONTEXT, H5E_CANTGET, FAIL, "Can't retrieve dataset minimize flag");
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 }
 
 /*-------------------------------------------------------------------------
@@ -682,7 +682,7 @@ done:
 int
 H5CX_term_package(void)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     H5CX_node_t *cnode; /* Context node */
 
@@ -698,7 +698,7 @@ H5CX_term_package(void)
     H5CX_head_g = NULL;
 #endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
-    FUNC_LEAVE_NOAPI(0)
+    FUNC_LEAVE_NOAPI_MUTEX(0)
 } /* end H5CX_term_package() */
 
 #if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
@@ -719,7 +719,7 @@ H5CX__get_context(void)
     H5TS_tl_value_t *tl_value = NULL;
     H5CX_node_t **ctx = NULL;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     tl_value = (H5TS_tl_value_t*)H5TS_get_thread_local_value(H5TS_apictx_key_g);
 
@@ -756,7 +756,7 @@ H5CX__get_context(void)
     }
 
     /* Set return value */
-    FUNC_LEAVE_NOAPI(ctx)
+    FUNC_LEAVE_NOAPI_MUTEX(ctx)
 } /* end H5CX__get_context() */
 #endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
@@ -774,7 +774,7 @@ H5CX__push_common(H5CX_node_t *cnode)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(cnode);
@@ -795,7 +795,7 @@ H5CX__push_common(H5CX_node_t *cnode)
     cnode->next = *head;
     *head       = cnode;
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX__push_common() */
 
 /*-------------------------------------------------------------------------
@@ -813,7 +813,7 @@ H5CX_push(void)
     H5CX_node_t *cnode     = NULL;    /* Context node */
     herr_t       ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Allocate & clear API context node */
     if (NULL == (cnode = H5FL_CALLOC(H5CX_node_t)))
@@ -823,7 +823,7 @@ H5CX_push(void)
     H5CX__push_common(cnode);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_push() */
 
 /*-------------------------------------------------------------------------
@@ -842,7 +842,7 @@ H5CX_push_special(void)
 {
     H5CX_node_t *cnode = NULL; /* Context node */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Allocate & clear API context node, without using library API routines */
     cnode = (H5CX_node_t *)calloc(1, sizeof(H5CX_node_t));
@@ -851,7 +851,7 @@ H5CX_push_special(void)
     /* Set context info */
     H5CX__push_common(cnode);
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_push_special() */
 
 /*-------------------------------------------------------------------------
@@ -874,7 +874,7 @@ H5CX_retrieve_state(H5CX_state_t **api_state)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -993,7 +993,7 @@ done:
         } /* end if */
     }     /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_retrieve_state() */
 
 /*-------------------------------------------------------------------------
@@ -1015,7 +1015,7 @@ H5CX_restore_state(const H5CX_state_t *api_state)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1055,7 +1055,7 @@ H5CX_restore_state(const H5CX_state_t *api_state)
     (*head)->ctx.coll_metadata_read = api_state->coll_metadata_read;
 #endif /* H5_HAVE_PARALLEL */
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5CX_restore_state() */
 
 /*-------------------------------------------------------------------------
@@ -1137,7 +1137,7 @@ H5CX_is_def_dxpl(void)
     H5CX_node_t **head        = NULL;  /* Pointer to head of API context list */
     hbool_t       is_def_dxpl = FALSE; /* Flag to indicate DXPL is default */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1146,7 +1146,7 @@ H5CX_is_def_dxpl(void)
     /* Set return value */
     is_def_dxpl = ((*head)->ctx.dxpl_id == H5P_DATASET_XFER_DEFAULT);
 
-    FUNC_LEAVE_NOAPI(is_def_dxpl)
+    FUNC_LEAVE_NOAPI_MUTEX(is_def_dxpl)
 } /* end H5CX_is_def_dxpl() */
 
 /*-------------------------------------------------------------------------
@@ -1163,7 +1163,7 @@ H5CX_set_dxpl(hid_t dxpl_id)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1172,7 +1172,7 @@ H5CX_set_dxpl(hid_t dxpl_id)
     /* Set the API context's DXPL to a new value */
     (*head)->ctx.dxpl_id = dxpl_id;
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_dxpl() */
 
 /*-------------------------------------------------------------------------
@@ -1217,7 +1217,7 @@ H5CX_set_libver_bounds(H5F_t *f)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1231,7 +1231,7 @@ H5CX_set_libver_bounds(H5F_t *f)
     (*head)->ctx.low_bound_valid  = TRUE;
     (*head)->ctx.high_bound_valid = TRUE;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_set_libver_bounds() */
 
 /*-------------------------------------------------------------------------
@@ -1274,7 +1274,7 @@ H5CX_set_lapl(hid_t lapl_id)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1283,7 +1283,7 @@ H5CX_set_lapl(hid_t lapl_id)
     /* Set the API context's LAPL to a new value */
     (*head)->ctx.lapl_id = lapl_id;
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_lapl() */
 
 /*-------------------------------------------------------------------------
@@ -1479,7 +1479,7 @@ H5CX_set_vol_wrap_ctx(void *vol_wrap_ctx)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1491,7 +1491,7 @@ H5CX_set_vol_wrap_ctx(void *vol_wrap_ctx)
     /* Mark the value as valid */
     (*head)->ctx.vol_wrap_ctx_valid = TRUE;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_set_vol_wrap_ctx() */
 
 /*-------------------------------------------------------------------------
@@ -1539,7 +1539,7 @@ H5CX_get_dxpl(void)
     H5CX_node_t **head    = NULL;            /* Pointer to head of API context list */
     hid_t         dxpl_id = H5I_INVALID_HID; /* DXPL ID for API operation */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1548,7 +1548,7 @@ H5CX_get_dxpl(void)
     /* Set return value */
     dxpl_id = (*head)->ctx.dxpl_id;
 
-    FUNC_LEAVE_NOAPI(dxpl_id)
+    FUNC_LEAVE_NOAPI_MUTEX(dxpl_id)
 } /* end H5CX_get_dxpl() */
 
 /*-------------------------------------------------------------------------
@@ -1566,7 +1566,7 @@ H5CX_get_lapl(void)
     H5CX_node_t **head    = NULL;            /* Pointer to head of API context list */
     hid_t         lapl_id = H5I_INVALID_HID; /* LAPL ID for API operation */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1575,7 +1575,7 @@ H5CX_get_lapl(void)
     /* Set return value */
     lapl_id = (*head)->ctx.lapl_id;
 
-    FUNC_LEAVE_NOAPI(lapl_id)
+    FUNC_LEAVE_NOAPI_MUTEX(lapl_id)
 } /* end H5CX_get_lapl() */
 
 /*-------------------------------------------------------------------------
@@ -1593,7 +1593,7 @@ H5CX_get_vol_wrap_ctx(void **vol_wrap_ctx)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(vol_wrap_ctx);
@@ -1616,7 +1616,7 @@ H5CX_get_vol_wrap_ctx(void **vol_wrap_ctx)
         *vol_wrap_ctx = NULL;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_vol_wrap_ctx() */
 
 /*-------------------------------------------------------------------------
@@ -1634,7 +1634,7 @@ H5CX_get_vol_connector_prop(H5VL_connector_prop_t *vol_connector_prop)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     /* Sanity check */
     assert(vol_connector_prop);
@@ -1648,7 +1648,7 @@ H5CX_get_vol_connector_prop(H5VL_connector_prop_t *vol_connector_prop)
     else
         memset(vol_connector_prop, 0, sizeof(H5VL_connector_prop_t));
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_vol_connector_prop() */
 
 /*-------------------------------------------------------------------------
@@ -1666,7 +1666,7 @@ H5CX_get_tag(void)
     H5CX_node_t **head = NULL;        /* Pointer to head of API context list */
     haddr_t       tag  = HADDR_UNDEF; /* Current object's tag (ohdr chunk #0 address) */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1675,7 +1675,7 @@ H5CX_get_tag(void)
     /* Set return value */
     tag = (*head)->ctx.tag;
 
-    FUNC_LEAVE_NOAPI(tag)
+    FUNC_LEAVE_NOAPI_MUTEX(tag)
 } /* end H5CX_get_tag() */
 
 /*-------------------------------------------------------------------------
@@ -1693,7 +1693,7 @@ H5CX_get_ring(void)
     H5CX_node_t **head = NULL;          /* Pointer to head of API context list */
     H5AC_ring_t   ring = H5AC_RING_INV; /* Current metadata cache ring for entries */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1702,7 +1702,7 @@ H5CX_get_ring(void)
     /* Set return value */
     ring = (*head)->ctx.ring;
 
-    FUNC_LEAVE_NOAPI(ring)
+    FUNC_LEAVE_NOAPI_MUTEX(ring)
 } /* end H5CX_get_ring() */
 
 #ifdef H5_HAVE_PARALLEL
@@ -1722,7 +1722,7 @@ H5CX_get_coll_metadata_read(void)
     H5CX_node_t **head         = NULL; /* Pointer to head of API context list */
     hbool_t       coll_md_read = FALSE;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1731,7 +1731,7 @@ H5CX_get_coll_metadata_read(void)
     /* Set return value */
     coll_md_read = (*head)->ctx.coll_metadata_read;
 
-    FUNC_LEAVE_NOAPI(coll_md_read)
+    FUNC_LEAVE_NOAPI_MUTEX(coll_md_read)
 } /* end H5CX_get_coll_metadata_read() */
 
 /*-------------------------------------------------------------------------
@@ -1751,7 +1751,7 @@ H5CX_get_mpi_coll_datatypes(MPI_Datatype *btype, MPI_Datatype *ftype)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     /* Sanity check */
     assert(btype);
@@ -1763,7 +1763,7 @@ H5CX_get_mpi_coll_datatypes(MPI_Datatype *btype, MPI_Datatype *ftype)
     *btype = (*head)->ctx.btype;
     *ftype = (*head)->ctx.ftype;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_mpi_coll_datatypes() */
 
 /*-------------------------------------------------------------------------
@@ -1781,7 +1781,7 @@ H5CX_get_mpi_file_flushing(void)
     H5CX_node_t **head     = NULL; /* Pointer to head of API context list */
     hbool_t       flushing = FALSE;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1790,7 +1790,7 @@ H5CX_get_mpi_file_flushing(void)
     /* Set return value */
     flushing = (*head)->ctx.mpi_file_flushing;
 
-    FUNC_LEAVE_NOAPI(flushing)
+    FUNC_LEAVE_NOAPI_MUTEX(flushing)
 } /* end H5CX_get_mpi_file_flushing() */
 
 /*-------------------------------------------------------------------------
@@ -1809,7 +1809,7 @@ H5CX_get_mpio_rank0_bcast(void)
     H5CX_node_t **head           = NULL; /* Pointer to head of API context list */
     hbool_t       do_rank0_bcast = FALSE;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1818,7 +1818,7 @@ H5CX_get_mpio_rank0_bcast(void)
     /* Set return value */
     do_rank0_bcast = (*head)->ctx.rank0_bcast;
 
-    FUNC_LEAVE_NOAPI(do_rank0_bcast)
+    FUNC_LEAVE_NOAPI_MUTEX(do_rank0_bcast)
 } /* end H5CX_get_mpio_rank0_bcast() */
 #endif /* H5_HAVE_PARALLEL */
 
@@ -1837,7 +1837,7 @@ H5CX_get_btree_split_ratios(double split_ratio[3])
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(split_ratio);
@@ -1852,7 +1852,7 @@ H5CX_get_btree_split_ratios(double split_ratio[3])
     H5MM_memcpy(split_ratio, &(*head)->ctx.btree_split_ratio, sizeof((*head)->ctx.btree_split_ratio));
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_btree_split_ratios() */
 
 /*-------------------------------------------------------------------------
@@ -1870,7 +1870,7 @@ H5CX_get_max_temp_buf(size_t *max_temp_buf)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(max_temp_buf);
@@ -1884,7 +1884,7 @@ H5CX_get_max_temp_buf(size_t *max_temp_buf)
     *max_temp_buf = (*head)->ctx.max_temp_buf;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_max_temp_buf() */
 
 /*-------------------------------------------------------------------------
@@ -1902,7 +1902,7 @@ H5CX_get_tconv_buf(void **tconv_buf)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(tconv_buf);
@@ -1916,7 +1916,7 @@ H5CX_get_tconv_buf(void **tconv_buf)
     *tconv_buf = (*head)->ctx.tconv_buf;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_tconv_buf() */
 
 /*-------------------------------------------------------------------------
@@ -1934,7 +1934,7 @@ H5CX_get_bkgr_buf(void **bkgr_buf)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(bkgr_buf);
@@ -1948,7 +1948,7 @@ H5CX_get_bkgr_buf(void **bkgr_buf)
     *bkgr_buf = (*head)->ctx.bkgr_buf;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_bkgr_buf() */
 
 /*-------------------------------------------------------------------------
@@ -1966,7 +1966,7 @@ H5CX_get_bkgr_buf_type(H5T_bkg_t *bkgr_buf_type)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(bkgr_buf_type);
@@ -1980,7 +1980,7 @@ H5CX_get_bkgr_buf_type(H5T_bkg_t *bkgr_buf_type)
     *bkgr_buf_type = (*head)->ctx.bkgr_buf_type;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_bkgr_buf_type() */
 
 /*-------------------------------------------------------------------------
@@ -1998,7 +1998,7 @@ H5CX_get_vec_size(size_t *vec_size)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(vec_size);
@@ -2012,7 +2012,7 @@ H5CX_get_vec_size(size_t *vec_size)
     *vec_size = (*head)->ctx.vec_size;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_vec_size() */
 
 #ifdef H5_HAVE_PARALLEL
@@ -2032,7 +2032,7 @@ H5CX_get_io_xfer_mode(H5FD_mpio_xfer_t *io_xfer_mode)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(io_xfer_mode);
@@ -2046,7 +2046,7 @@ H5CX_get_io_xfer_mode(H5FD_mpio_xfer_t *io_xfer_mode)
     *io_xfer_mode = (*head)->ctx.io_xfer_mode;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_io_xfer_mode() */
 
 /*-------------------------------------------------------------------------
@@ -2064,7 +2064,7 @@ H5CX_get_mpio_coll_opt(H5FD_mpio_collective_opt_t *mpio_coll_opt)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(mpio_coll_opt);
@@ -2078,7 +2078,7 @@ H5CX_get_mpio_coll_opt(H5FD_mpio_collective_opt_t *mpio_coll_opt)
     *mpio_coll_opt = (*head)->ctx.mpio_coll_opt;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_mpio_coll_opt() */
 
 /*-------------------------------------------------------------------------
@@ -2096,7 +2096,7 @@ H5CX_get_mpio_local_no_coll_cause(uint32_t *mpio_local_no_coll_cause)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(mpio_local_no_coll_cause);
@@ -2111,7 +2111,7 @@ H5CX_get_mpio_local_no_coll_cause(uint32_t *mpio_local_no_coll_cause)
     *mpio_local_no_coll_cause = (*head)->ctx.mpio_local_no_coll_cause;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_mpio_local_no_coll_cause() */
 
 /*-------------------------------------------------------------------------
@@ -2129,7 +2129,7 @@ H5CX_get_mpio_global_no_coll_cause(uint32_t *mpio_global_no_coll_cause)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(mpio_global_no_coll_cause);
@@ -2144,7 +2144,7 @@ H5CX_get_mpio_global_no_coll_cause(uint32_t *mpio_global_no_coll_cause)
     *mpio_global_no_coll_cause = (*head)->ctx.mpio_global_no_coll_cause;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_mpio_global_no_coll_cause() */
 
 /*-------------------------------------------------------------------------
@@ -2162,7 +2162,7 @@ H5CX_get_mpio_chunk_opt_mode(H5FD_mpio_chunk_opt_t *mpio_chunk_opt_mode)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(mpio_chunk_opt_mode);
@@ -2177,7 +2177,7 @@ H5CX_get_mpio_chunk_opt_mode(H5FD_mpio_chunk_opt_t *mpio_chunk_opt_mode)
     *mpio_chunk_opt_mode = (*head)->ctx.mpio_chunk_opt_mode;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_mpio_chunk_opt_mode() */
 
 /*-------------------------------------------------------------------------
@@ -2195,7 +2195,7 @@ H5CX_get_mpio_chunk_opt_num(unsigned *mpio_chunk_opt_num)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(mpio_chunk_opt_num);
@@ -2210,7 +2210,7 @@ H5CX_get_mpio_chunk_opt_num(unsigned *mpio_chunk_opt_num)
     *mpio_chunk_opt_num = (*head)->ctx.mpio_chunk_opt_num;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_mpio_chunk_opt_num() */
 
 /*-------------------------------------------------------------------------
@@ -2228,7 +2228,7 @@ H5CX_get_mpio_chunk_opt_ratio(unsigned *mpio_chunk_opt_ratio)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(mpio_chunk_opt_ratio);
@@ -2243,7 +2243,7 @@ H5CX_get_mpio_chunk_opt_ratio(unsigned *mpio_chunk_opt_ratio)
     *mpio_chunk_opt_ratio = (*head)->ctx.mpio_chunk_opt_ratio;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_mpio_chunk_opt_ratio() */
 #endif /* H5_HAVE_PARALLEL */
 
@@ -2262,7 +2262,7 @@ H5CX_get_err_detect(H5Z_EDC_t *err_detect)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(err_detect);
@@ -2276,7 +2276,7 @@ H5CX_get_err_detect(H5Z_EDC_t *err_detect)
     *err_detect = (*head)->ctx.err_detect;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_err_detect() */
 
 /*-------------------------------------------------------------------------
@@ -2294,7 +2294,7 @@ H5CX_get_filter_cb(H5Z_cb_t *filter_cb)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(filter_cb);
@@ -2308,7 +2308,7 @@ H5CX_get_filter_cb(H5Z_cb_t *filter_cb)
     *filter_cb = (*head)->ctx.filter_cb;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_filter_cb() */
 
 /*-------------------------------------------------------------------------
@@ -2326,7 +2326,7 @@ H5CX_get_data_transform(H5Z_data_xform_t **data_transform)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(data_transform);
@@ -2363,7 +2363,7 @@ H5CX_get_data_transform(H5Z_data_xform_t **data_transform)
     *data_transform = (*head)->ctx.data_transform;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_data_transform() */
 
 /*-------------------------------------------------------------------------
@@ -2381,7 +2381,7 @@ H5CX_get_vlen_alloc_info(H5T_vlen_alloc_info_t *vl_alloc_info)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(vl_alloc_info);
@@ -2425,7 +2425,7 @@ H5CX_get_vlen_alloc_info(H5T_vlen_alloc_info_t *vl_alloc_info)
     *vl_alloc_info = (*head)->ctx.vl_alloc_info;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_vlen_alloc_info() */
 
 /*-------------------------------------------------------------------------
@@ -2443,7 +2443,7 @@ H5CX_get_dt_conv_cb(H5T_conv_cb_t *dt_conv_cb)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(dt_conv_cb);
@@ -2457,7 +2457,7 @@ H5CX_get_dt_conv_cb(H5T_conv_cb_t *dt_conv_cb)
     *dt_conv_cb = (*head)->ctx.dt_conv_cb;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_dt_conv_cb() */
 
 /*-------------------------------------------------------------------------
@@ -2475,7 +2475,7 @@ H5CX_get_selection_io_mode(H5D_selection_io_mode_t *selection_io_mode)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(selection_io_mode);
@@ -2490,7 +2490,7 @@ H5CX_get_selection_io_mode(H5D_selection_io_mode_t *selection_io_mode)
     *selection_io_mode = (*head)->ctx.selection_io_mode;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_selection_io_mode() */
 
 /*-------------------------------------------------------------------------
@@ -2509,7 +2509,7 @@ H5CX_get_no_selection_io_cause(uint32_t *no_selection_io_cause)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(no_selection_io_cause);
@@ -2524,7 +2524,7 @@ H5CX_get_no_selection_io_cause(uint32_t *no_selection_io_cause)
     *no_selection_io_cause = (*head)->ctx.no_selection_io_cause;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_no_selection_io_cause() */
 
 /*-------------------------------------------------------------------------
@@ -2542,7 +2542,7 @@ H5CX_get_modify_write_buf(hbool_t *modify_write_buf)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(modify_write_buf);
@@ -2556,7 +2556,7 @@ H5CX_get_modify_write_buf(hbool_t *modify_write_buf)
     *modify_write_buf = (*head)->ctx.modify_write_buf;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_selection_io_mode() */
 
 /*-------------------------------------------------------------------------
@@ -2574,7 +2574,7 @@ H5CX_get_encoding(H5T_cset_t *encoding)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(encoding);
@@ -2588,7 +2588,7 @@ H5CX_get_encoding(H5T_cset_t *encoding)
     *encoding = (*head)->ctx.encoding;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_encoding() */
 
 /*-------------------------------------------------------------------------
@@ -2606,7 +2606,7 @@ H5CX_get_intermediate_group(unsigned *crt_intermed_group)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(crt_intermed_group);
@@ -2621,7 +2621,7 @@ H5CX_get_intermediate_group(unsigned *crt_intermed_group)
     *crt_intermed_group = (*head)->ctx.intermediate_group;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_create_intermediate_group() */
 
 /*-------------------------------------------------------------------------
@@ -2639,7 +2639,7 @@ H5CX_get_nlinks(size_t *nlinks)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(nlinks);
@@ -2653,7 +2653,7 @@ H5CX_get_nlinks(size_t *nlinks)
     *nlinks = (*head)->ctx.nlinks;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_nlinks() */
 
 /*-------------------------------------------------------------------------
@@ -2671,7 +2671,7 @@ H5CX_get_libver_bounds(H5F_libver_t *low_bound, H5F_libver_t *high_bound)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(low_bound);
@@ -2688,7 +2688,7 @@ H5CX_get_libver_bounds(H5F_libver_t *low_bound, H5F_libver_t *high_bound)
     *high_bound = (*head)->ctx.high_bound;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_libver_bounds() */
 
 /*-------------------------------------------------------------------------
@@ -2707,7 +2707,7 @@ H5CX_get_dset_min_ohdr_flag(hbool_t *dset_min_ohdr_flag)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(dset_min_ohdr_flag);
@@ -2722,7 +2722,7 @@ H5CX_get_dset_min_ohdr_flag(hbool_t *dset_min_ohdr_flag)
     *dset_min_ohdr_flag = (*head)->ctx.do_min_dset_ohdr;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_dset_min_ohdr_flag() */
 
 /*-------------------------------------------------------------------------
@@ -2740,7 +2740,7 @@ H5CX_get_ext_file_prefix(const char **extfile_prefix)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(extfile_prefix);
@@ -2777,7 +2777,7 @@ H5CX_get_ext_file_prefix(const char **extfile_prefix)
     *extfile_prefix = (*head)->ctx.extfile_prefix;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_ext_file_prefix() */
 
 /*-------------------------------------------------------------------------
@@ -2795,7 +2795,7 @@ H5CX_get_vds_prefix(const char **vds_prefix)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(vds_prefix);
@@ -2832,7 +2832,7 @@ H5CX_get_vds_prefix(const char **vds_prefix)
     *vds_prefix = (*head)->ctx.vds_prefix;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_get_vds_prefix() */
 
 /*-------------------------------------------------------------------------
@@ -2849,7 +2849,7 @@ H5CX_set_tag(haddr_t tag)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -2857,7 +2857,7 @@ H5CX_set_tag(haddr_t tag)
 
     (*head)->ctx.tag = tag;
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_tag() */
 
 /*-------------------------------------------------------------------------
@@ -2874,7 +2874,7 @@ H5CX_set_ring(H5AC_ring_t ring)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -2882,7 +2882,7 @@ H5CX_set_ring(H5AC_ring_t ring)
 
     (*head)->ctx.ring = ring;
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_ring() */
 
 #ifdef H5_HAVE_PARALLEL
@@ -2901,7 +2901,7 @@ H5CX_set_coll_metadata_read(hbool_t cmdr)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -2909,7 +2909,7 @@ H5CX_set_coll_metadata_read(hbool_t cmdr)
 
     (*head)->ctx.coll_metadata_read = cmdr;
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_coll_metadata_read() */
 
 /*-------------------------------------------------------------------------
@@ -2930,7 +2930,7 @@ H5CX_set_mpi_coll_datatypes(MPI_Datatype btype, MPI_Datatype ftype)
 
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -2940,7 +2940,7 @@ H5CX_set_mpi_coll_datatypes(MPI_Datatype btype, MPI_Datatype ftype)
     (*head)->ctx.btype = btype;
     (*head)->ctx.ftype = ftype;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_set_mpi_coll_datatypes() */
 
 /*-------------------------------------------------------------------------
@@ -2958,7 +2958,7 @@ H5CX_set_io_xfer_mode(H5FD_mpio_xfer_t io_xfer_mode)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -2970,7 +2970,7 @@ H5CX_set_io_xfer_mode(H5FD_mpio_xfer_t io_xfer_mode)
     /* Mark the value as valid */
     (*head)->ctx.io_xfer_mode_valid = TRUE;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_set_io_xfer_mode() */
 
 /*-------------------------------------------------------------------------
@@ -2988,7 +2988,7 @@ H5CX_set_mpio_coll_opt(H5FD_mpio_collective_opt_t mpio_coll_opt)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3000,7 +3000,7 @@ H5CX_set_mpio_coll_opt(H5FD_mpio_collective_opt_t mpio_coll_opt)
     /* Mark the value as valid */
     (*head)->ctx.mpio_coll_opt_valid = TRUE;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_set_mpio_coll_opt() */
 
 /*-------------------------------------------------------------------------
@@ -3017,7 +3017,7 @@ H5CX_set_mpi_file_flushing(hbool_t flushing)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3025,7 +3025,7 @@ H5CX_set_mpi_file_flushing(hbool_t flushing)
 
     (*head)->ctx.mpi_file_flushing = flushing;
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_mpi_file_flushing() */
 
 /*-------------------------------------------------------------------------
@@ -3043,7 +3043,7 @@ H5CX_set_mpio_rank0_bcast(hbool_t rank0_bcast)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3051,7 +3051,7 @@ H5CX_set_mpio_rank0_bcast(hbool_t rank0_bcast)
 
     (*head)->ctx.rank0_bcast = rank0_bcast;
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_mpio_rank0_bcast() */
 #endif /* H5_HAVE_PARALLEL */
 
@@ -3070,7 +3070,7 @@ H5CX_set_vlen_alloc_info(H5MM_allocate_t alloc_func, void *alloc_info, H5MM_free
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3085,7 +3085,7 @@ H5CX_set_vlen_alloc_info(H5MM_allocate_t alloc_func, void *alloc_info, H5MM_free
     /* Mark the value as valid */
     (*head)->ctx.vl_alloc_info_valid = TRUE;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_set_vlen_alloc_info() */
 
 /*-------------------------------------------------------------------------
@@ -3103,7 +3103,7 @@ H5CX_set_nlinks(size_t nlinks)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3115,7 +3115,7 @@ H5CX_set_nlinks(size_t nlinks)
     /* Mark the value as valid */
     (*head)->ctx.nlinks_valid = TRUE;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_set_nlinks() */
 
 #ifdef H5_HAVE_PARALLEL
@@ -3134,7 +3134,7 @@ H5CX_set_mpio_actual_chunk_opt(H5D_mpio_actual_chunk_opt_mode_t mpio_actual_chun
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3145,7 +3145,7 @@ H5CX_set_mpio_actual_chunk_opt(H5D_mpio_actual_chunk_opt_mode_t mpio_actual_chun
     (*head)->ctx.mpio_actual_chunk_opt     = mpio_actual_chunk_opt;
     (*head)->ctx.mpio_actual_chunk_opt_set = TRUE;
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_mpio_actual_chunk_opt() */
 
 /*-------------------------------------------------------------------------
@@ -3162,7 +3162,7 @@ H5CX_set_mpio_actual_io_mode(H5D_mpio_actual_io_mode_t mpio_actual_io_mode)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3173,7 +3173,7 @@ H5CX_set_mpio_actual_io_mode(H5D_mpio_actual_io_mode_t mpio_actual_io_mode)
     (*head)->ctx.mpio_actual_io_mode     = mpio_actual_io_mode;
     (*head)->ctx.mpio_actual_io_mode_set = TRUE;
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_mpio_actual_chunk_opt() */
 
 /*-------------------------------------------------------------------------
@@ -3190,7 +3190,7 @@ H5CX_set_mpio_local_no_coll_cause(uint32_t mpio_local_no_coll_cause)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3204,7 +3204,7 @@ H5CX_set_mpio_local_no_coll_cause(uint32_t mpio_local_no_coll_cause)
         (*head)->ctx.mpio_local_no_coll_cause_set = TRUE;
     } /* end if */
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_mpio_local_no_coll_cause() */
 
 /*-------------------------------------------------------------------------
@@ -3221,7 +3221,7 @@ H5CX_set_mpio_global_no_coll_cause(uint32_t mpio_global_no_coll_cause)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3235,7 +3235,7 @@ H5CX_set_mpio_global_no_coll_cause(uint32_t mpio_global_no_coll_cause)
         (*head)->ctx.mpio_global_no_coll_cause_set = TRUE;
     } /* end if */
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_mpio_global_no_coll_cause() */
 
 #ifdef H5_HAVE_INSTRUMENTED_LIBRARY
@@ -3257,7 +3257,7 @@ H5CX_test_set_mpio_coll_chunk_link_hard(int mpio_coll_chunk_link_hard)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3267,7 +3267,7 @@ H5CX_test_set_mpio_coll_chunk_link_hard(int mpio_coll_chunk_link_hard)
     H5CX_TEST_SET_PROP(H5D_XFER_COLL_CHUNK_LINK_HARD_NAME, mpio_coll_chunk_link_hard)
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_test_set_mpio_coll_chunk_link_hard() */
 
 /*-------------------------------------------------------------------------
@@ -3287,7 +3287,7 @@ H5CX_test_set_mpio_coll_chunk_multi_hard(int mpio_coll_chunk_multi_hard)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3297,7 +3297,7 @@ H5CX_test_set_mpio_coll_chunk_multi_hard(int mpio_coll_chunk_multi_hard)
     H5CX_TEST_SET_PROP(H5D_XFER_COLL_CHUNK_MULTI_HARD_NAME, mpio_coll_chunk_multi_hard)
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_test_set_mpio_coll_chunk_multi_hard() */
 
 /*-------------------------------------------------------------------------
@@ -3317,7 +3317,7 @@ H5CX_test_set_mpio_coll_chunk_link_num_true(int mpio_coll_chunk_link_num_true)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3327,7 +3327,7 @@ H5CX_test_set_mpio_coll_chunk_link_num_true(int mpio_coll_chunk_link_num_true)
     H5CX_TEST_SET_PROP(H5D_XFER_COLL_CHUNK_LINK_NUM_TRUE_NAME, mpio_coll_chunk_link_num_true)
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_test_set_mpio_coll_chunk_link_num_true() */
 
 /*-------------------------------------------------------------------------
@@ -3348,7 +3348,7 @@ H5CX_test_set_mpio_coll_chunk_link_num_false(int mpio_coll_chunk_link_num_false)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3358,7 +3358,7 @@ H5CX_test_set_mpio_coll_chunk_link_num_false(int mpio_coll_chunk_link_num_false)
     H5CX_TEST_SET_PROP(H5D_XFER_COLL_CHUNK_LINK_NUM_FALSE_NAME, mpio_coll_chunk_link_num_false)
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_test_set_mpio_coll_chunk_link_num_false() */
 
 /*-------------------------------------------------------------------------
@@ -3379,7 +3379,7 @@ H5CX_test_set_mpio_coll_chunk_multi_ratio_coll(int mpio_coll_chunk_multi_ratio_c
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3389,7 +3389,7 @@ H5CX_test_set_mpio_coll_chunk_multi_ratio_coll(int mpio_coll_chunk_multi_ratio_c
     H5CX_TEST_SET_PROP(H5D_XFER_COLL_CHUNK_MULTI_RATIO_COLL_NAME, mpio_coll_chunk_multi_ratio_coll)
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_test_set_mpio_coll_chunk_multi_ratio_coll() */
 
 /*-------------------------------------------------------------------------
@@ -3410,7 +3410,7 @@ H5CX_test_set_mpio_coll_chunk_multi_ratio_ind(int mpio_coll_chunk_multi_ratio_in
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3420,7 +3420,7 @@ H5CX_test_set_mpio_coll_chunk_multi_ratio_ind(int mpio_coll_chunk_multi_ratio_in
     H5CX_TEST_SET_PROP(H5D_XFER_COLL_CHUNK_MULTI_RATIO_IND_NAME, mpio_coll_chunk_multi_ratio_ind)
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_test_set_mpio_coll_chunk_multi_ratio_ind() */
 
 /*-------------------------------------------------------------------------
@@ -3440,7 +3440,7 @@ H5CX_test_set_mpio_coll_rank0_bcast(hbool_t mpio_coll_rank0_bcast)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3450,7 +3450,7 @@ H5CX_test_set_mpio_coll_rank0_bcast(hbool_t mpio_coll_rank0_bcast)
     H5CX_TEST_SET_PROP(H5D_XFER_COLL_RANK0_BCAST_NAME, mpio_coll_rank0_bcast)
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_test_set_mpio_coll_rank0_bcast() */
 #endif /* H5_HAVE_INSTRUMENTED_LIBRARY */
 #endif /* H5_HAVE_PARALLEL */
@@ -3470,7 +3470,7 @@ H5CX_set_no_selection_io_cause(uint32_t no_selection_io_cause)
 {
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity checks */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3484,7 +3484,7 @@ H5CX_set_no_selection_io_cause(uint32_t no_selection_io_cause)
         (*head)->ctx.no_selection_io_cause_set = TRUE;
     } /* end if */
 
-    FUNC_LEAVE_NOAPI_VOID
+    FUNC_LEAVE_NOAPI_VOID_MUTEX
 } /* end H5CX_set_no_selectiion_io_cause() */
 
 /*-------------------------------------------------------------------------
@@ -3502,7 +3502,7 @@ H5CX_get_ohdr_flags(uint8_t *ohdr_flags)
     H5CX_node_t **head      = NULL;    /* Pointer to head of API context list */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(ohdr_flags);
@@ -3516,7 +3516,7 @@ H5CX_get_ohdr_flags(uint8_t *ohdr_flags)
     *ohdr_flags = (*head)->ctx.ohdr_flags;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* End H5CX_get_ohdr_flags() */
 
 /*-------------------------------------------------------------------------
@@ -3534,7 +3534,7 @@ H5CX__pop_common(hbool_t update_dxpl_props)
     H5CX_node_t **head      = NULL; /* Pointer to head of API context list */
     H5CX_node_t  *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -3565,7 +3565,7 @@ H5CX__pop_common(hbool_t update_dxpl_props)
     (*head)   = (*head)->next;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX__pop_common() */
 
 /*-------------------------------------------------------------------------
@@ -3583,7 +3583,7 @@ H5CX_pop(hbool_t update_dxpl_props)
     H5CX_node_t *cnode;               /* Context node */
     herr_t       ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Perform common operations and get top context from stack */
     if (NULL == (cnode = H5CX__pop_common(update_dxpl_props)))
@@ -3593,5 +3593,5 @@ H5CX_pop(hbool_t update_dxpl_props)
     cnode = H5FL_FREE(H5CX_node_t, cnode);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5CX_pop() */
