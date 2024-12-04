@@ -207,7 +207,7 @@ H5P__fcrt_reg_prop(H5P_genclass_t *pclass)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Register the user block size */
     if (H5P__register_real(pclass, H5F_CRT_USER_BLOCK_NAME, H5F_CRT_USER_BLOCK_SIZE,
@@ -297,7 +297,7 @@ H5P__fcrt_reg_prop(H5P_genclass_t *pclass)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__fcrt_reg_prop() */
 
 /*-------------------------------------------------------------------------
@@ -666,7 +666,7 @@ H5P__fcrt_btree_rank_enc(const void *value, void **_pp, size_t *size)
     const unsigned *btree_k = (const unsigned *)value; /* Create local alias for values */
     uint8_t       **pp      = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(btree_k);
@@ -689,7 +689,7 @@ H5P__fcrt_btree_rank_enc(const void *value, void **_pp, size_t *size)
     /* Size of type flags values */
     *size += 1 + (H5B_NUM_BTREE_ID * sizeof(unsigned));
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__fcrt_btree_rank_enc() */
 
 /*-------------------------------------------------------------------------
@@ -712,7 +712,7 @@ H5P__fcrt_btree_rank_dec(const void **_pp, void *_value)
     unsigned        u;                   /* Local index variable */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -729,7 +729,7 @@ H5P__fcrt_btree_rank_dec(const void **_pp, void *_value)
         H5_DECODE_UNSIGNED(*pp, btree_k[u]);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__fcrt_btree_rank_dec() */
 
 /*-------------------------------------------------------------------------
@@ -935,7 +935,7 @@ H5P__fcrt_shmsg_index_types_enc(const void *value, void **_pp, size_t *size)
     const unsigned *type_flags = (const unsigned *)value; /* Create local alias for values */
     uint8_t       **pp         = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(type_flags);
@@ -958,7 +958,7 @@ H5P__fcrt_shmsg_index_types_enc(const void *value, void **_pp, size_t *size)
     /* Size of type flags values */
     *size += 1 + (H5O_SHMESG_MAX_NINDEXES * sizeof(unsigned));
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__fcrt_shmsg_index_types_enc() */
 
 /*-------------------------------------------------------------------------
@@ -982,7 +982,7 @@ H5P__fcrt_shmsg_index_types_dec(const void **_pp, void *_value)
     unsigned        u;                   /* Local index variable */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -999,7 +999,7 @@ H5P__fcrt_shmsg_index_types_dec(const void **_pp, void *_value)
         H5_DECODE_UNSIGNED(*pp, type_flags[u]);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__fcrt_shmsg_index_types_dec() */
 
 /*-------------------------------------------------------------------------
@@ -1020,7 +1020,7 @@ H5P__fcrt_shmsg_index_minsize_enc(const void *value, void **_pp, size_t *size)
     const unsigned *minsizes = (const unsigned *)value; /* Create local alias for values */
     uint8_t       **pp       = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(minsizes);
@@ -1043,7 +1043,7 @@ H5P__fcrt_shmsg_index_minsize_enc(const void *value, void **_pp, size_t *size)
     /* Size of type flags values */
     *size += 1 + (H5O_SHMESG_MAX_NINDEXES * sizeof(unsigned));
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__fcrt_shmsg_index_minsize_enc() */
 
 /*-------------------------------------------------------------------------
@@ -1067,7 +1067,7 @@ H5P__fcrt_shmsg_index_minsize_dec(const void **_pp, void *_value)
     unsigned        u;                   /* Local index variable */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -1084,7 +1084,7 @@ H5P__fcrt_shmsg_index_minsize_dec(const void **_pp, void *_value)
         H5_DECODE_UNSIGNED(*pp, minsizes[u]);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__fcrt_shmsg_index_minsize_dec() */
 
 /*-------------------------------------------------------------------------
@@ -1282,7 +1282,7 @@ H5P__fcrt_fspace_strategy_enc(const void *value, void **_pp, size_t *size)
         (const H5F_fspace_strategy_t *)value; /* Create local alias for values */
     uint8_t **pp = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(strategy);
@@ -1295,7 +1295,7 @@ H5P__fcrt_fspace_strategy_enc(const void *value, void **_pp, size_t *size)
     /* Size of free-space strategy */
     (*size)++;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__fcrt_fspace_strategy_enc() */
 
 /*-------------------------------------------------------------------------
@@ -1316,7 +1316,7 @@ H5P__fcrt_fspace_strategy_dec(const void **_pp, void *_value)
     H5F_fspace_strategy_t *strategy = (H5F_fspace_strategy_t *)_value; /* Free-space strategy */
     const uint8_t        **pp       = (const uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -1326,7 +1326,7 @@ H5P__fcrt_fspace_strategy_dec(const void **_pp, void *_value)
     /* Decode free-space strategy */
     *strategy = (H5F_fspace_strategy_t) * (*pp)++;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__fcrt_fspace_strategy_dec() */
 
 /*-------------------------------------------------------------------------

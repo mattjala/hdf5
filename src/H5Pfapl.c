@@ -549,7 +549,7 @@ H5P__facc_reg_prop(H5P_genclass_t *pclass)
         H5F_ACS_VOL_CONN_DEF;   /* Default VOL connector ID & info (initialized from a variable) */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Register the initial metadata cache resize configuration */
     if (H5P__register_real(pclass, H5F_ACS_META_CACHE_INIT_CONFIG_NAME, H5F_ACS_META_CACHE_INIT_CONFIG_SIZE,
@@ -828,7 +828,7 @@ H5P__facc_reg_prop(H5P_genclass_t *pclass)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_reg_prop() */
 
 /*-------------------------------------------------------------------------
@@ -849,7 +849,7 @@ H5P__facc_set_def_driver(void)
     hid_t       driver_id      = H5I_INVALID_HID; /* VFL driver ID */
     herr_t      ret_value      = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check if VFL driver environment variable is set */
     driver_env_var = HDgetenv(HDF5_DRIVER);
@@ -923,7 +923,7 @@ done:
             HDONE_ERROR(H5E_PLIST, H5E_CANTDEC, FAIL, "unable to unregister VFL driver");
     } /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_set_def_driver() */
 
 /*-------------------------------------------------------------------------
@@ -944,7 +944,7 @@ H5P__facc_set_def_driver_check_predefined(const char *driver_name, hid_t *driver
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(driver_name);
     assert(driver_id);
@@ -1038,7 +1038,7 @@ H5P__facc_set_def_driver_check_predefined(const char *driver_name, hid_t *driver
     }
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_set_def_driver_check_predefined() */
 
 /*-------------------------------------------------------------------------
@@ -1150,7 +1150,7 @@ H5P_set_driver(H5P_genplist_t *plist, hid_t new_driver_id, const void *new_drive
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* If VFD configuration information is supplied, ensure that either binary
      * configuration data or a configuration string is supplied, but not both.
@@ -1176,7 +1176,7 @@ H5P_set_driver(H5P_genplist_t *plist, hid_t new_driver_id, const void *new_drive
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a file access property list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_set_driver() */
 
 /*-------------------------------------------------------------------------
@@ -1242,7 +1242,7 @@ H5P_set_driver_by_name(H5P_genplist_t *plist, const char *driver_name, const cha
     hid_t  new_driver_id = H5I_INVALID_HID;
     herr_t ret_value     = SUCCEED;
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     assert(plist);
     assert(driver_name);
@@ -1261,7 +1261,7 @@ done:
             HDONE_ERROR(H5E_PLIST, H5E_CANTDEC, FAIL, "can't decrement count on VFD ID");
     }
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_set_driver_by_name() */
 
 /*-------------------------------------------------------------------------
@@ -1330,7 +1330,7 @@ H5P_set_driver_by_value(H5P_genplist_t *plist, H5FD_class_value_t driver_value, 
     hid_t  new_driver_id = H5I_INVALID_HID;
     herr_t ret_value     = SUCCEED;
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     assert(plist);
     assert(driver_value >= 0);
@@ -1349,7 +1349,7 @@ done:
             HDONE_ERROR(H5E_PLIST, H5E_CANTDEC, FAIL, "can't decrement count on VFD ID");
     }
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_set_driver_by_value() */
 
 /*-------------------------------------------------------------------------
@@ -1412,7 +1412,7 @@ H5P_peek_driver(H5P_genplist_t *plist)
 {
     hid_t ret_value = FAIL; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Get the current driver ID */
     if (TRUE == H5P_isa_class(plist->plist_id, H5P_FILE_ACCESS)) {
@@ -1429,7 +1429,7 @@ H5P_peek_driver(H5P_genplist_t *plist)
         ret_value = H5_DEFAULT_VFD;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_peek_driver() */
 
 /*-------------------------------------------------------------------------
@@ -1490,7 +1490,7 @@ H5P_peek_driver_info(H5P_genplist_t *plist)
 {
     const void *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_NOAPI(NULL)
+    FUNC_ENTER_NOAPI_MUTEX(NULL)
 
     /* Get the current driver info */
     if (TRUE == H5P_isa_class(plist->plist_id, H5P_FILE_ACCESS)) {
@@ -1504,7 +1504,7 @@ H5P_peek_driver_info(H5P_genplist_t *plist)
         HGOTO_ERROR(H5E_PLIST, H5E_BADTYPE, NULL, "not a file access property list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_peek_driver_info() */
 
 /*-------------------------------------------------------------------------
@@ -1562,7 +1562,7 @@ H5P_peek_driver_config_str(H5P_genplist_t *plist)
 {
     const char *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_NOAPI(NULL)
+    FUNC_ENTER_NOAPI_MUTEX(NULL)
 
     /* Get the current driver configuration string */
     if (TRUE == H5P_isa_class(plist->plist_id, H5P_FILE_ACCESS)) {
@@ -1576,7 +1576,7 @@ H5P_peek_driver_config_str(H5P_genplist_t *plist)
         HGOTO_ERROR(H5E_PLIST, H5E_BADTYPE, NULL, "not a file access property list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_peek_driver_config_str() */
 
 /*-------------------------------------------------------------------------
@@ -1653,7 +1653,7 @@ H5P__file_driver_copy(void *value)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     if (value) {
         H5FD_driver_prop_t *info = (H5FD_driver_prop_t *)value; /* Driver ID & info struct */
@@ -1702,7 +1702,7 @@ H5P__file_driver_copy(void *value)
     }         /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__file_driver_copy() */
 
 /*-------------------------------------------------------------------------
@@ -1720,7 +1720,7 @@ H5P__file_driver_free(void *value)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     if (value) {
         H5FD_driver_prop_t *info = (H5FD_driver_prop_t *)value; /* Driver ID & info struct */
@@ -1742,7 +1742,7 @@ H5P__file_driver_free(void *value)
     }
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__file_driver_free() */
 
 /*-------------------------------------------------------------------------
@@ -1760,14 +1760,14 @@ H5P__facc_file_driver_create(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNU
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Make copy of file driver */
     if (H5P__file_driver_copy(value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy file driver");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_driver_create() */
 
 /*-------------------------------------------------------------------------
@@ -1786,7 +1786,7 @@ H5P__facc_file_driver_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSE
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1796,7 +1796,7 @@ H5P__facc_file_driver_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSE
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy file driver");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_driver_set() */
 
 /*-------------------------------------------------------------------------
@@ -1815,7 +1815,7 @@ H5P__facc_file_driver_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSE
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1825,7 +1825,7 @@ H5P__facc_file_driver_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSE
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy file driver");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_driver_get() */
 
 /*-------------------------------------------------------------------------
@@ -1844,14 +1844,14 @@ H5P__facc_file_driver_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSE
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Free the file driver ID & info */
     if (H5P__file_driver_free(value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "can't release file driver");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_driver_del() */
 
 /*-------------------------------------------------------------------------
@@ -1869,14 +1869,14 @@ H5P__facc_file_driver_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSE
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Make copy of file driver */
     if (H5P__file_driver_copy(value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy file driver");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_driver_copy() */
 
 /*-------------------------------------------------------------------------
@@ -1901,7 +1901,7 @@ H5P__facc_file_driver_cmp(const void *_info1, const void *_info2, size_t H5_ATTR
     int           cmp_value;     /* Value from comparison */
     herr_t        ret_value = 0; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(info1);
@@ -1947,7 +1947,7 @@ H5P__facc_file_driver_cmp(const void *_info1, const void *_info2, size_t H5_ATTR
     }
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_driver_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -1965,14 +1965,14 @@ H5P__facc_file_driver_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUS
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Free the file driver */
     if (H5P__file_driver_free(value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "can't release file driver");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_driver_close() */
 
 /*-------------------------------------------------------------------------
@@ -3290,7 +3290,7 @@ H5P__file_image_info_copy(void *value)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     if (value) {
         H5FD_file_image_info_t *info; /* Image info struct */
@@ -3340,7 +3340,7 @@ H5P__file_image_info_copy(void *value)
     }     /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__file_image_info_copy() */
 
 /*-------------------------------------------------------------------------
@@ -3360,7 +3360,7 @@ H5P__file_image_info_free(void *value)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     if (value) {
         H5FD_file_image_info_t *info; /* Image info struct */
@@ -3391,7 +3391,7 @@ H5P__file_image_info_free(void *value)
     }     /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__file_image_info_free() */
 
 /*-------------------------------------------------------------------------
@@ -3413,7 +3413,7 @@ H5P__facc_cache_image_config_cmp(const void *_config1, const void *_config2, siz
         (const H5AC_cache_image_config_t *)_config2; /* Create local aliases for values */
     int ret_value = 0;                               /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Check for a property being set */
     if (config1 == NULL && config2 != NULL)
@@ -3442,7 +3442,7 @@ H5P__facc_cache_image_config_cmp(const void *_config1, const void *_config2, siz
         HGOTO_DONE(1);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_cache_image_config_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -3464,7 +3464,7 @@ H5P__facc_cache_image_config_enc(const void *value, void **_pp, size_t *size)
         (const H5AC_cache_image_config_t *)value; /* Create local aliases for value */
     uint8_t **pp = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -3485,7 +3485,7 @@ H5P__facc_cache_image_config_enc(const void *value, void **_pp, size_t *size)
     /* Compute encoded size of fixed-size values */
     *size += (1 + (2 * sizeof(unsigned)) + (2 * sizeof(int32_t)));
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_cache_image_config_enc() */
 
 /*-------------------------------------------------------------------------
@@ -3508,7 +3508,7 @@ H5P__facc_cache_image_config_dec(const void **_pp, void *_value)
     unsigned                   enc_size;
     herr_t                     ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -3533,7 +3533,7 @@ H5P__facc_cache_image_config_dec(const void **_pp, void *_value)
     INT32DECODE(*pp, config->entry_ageout);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_cache_image_config_dec() */
 
 /*-------------------------------------------------------------------------
@@ -3552,7 +3552,7 @@ H5P__facc_file_image_info_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_U
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -3562,7 +3562,7 @@ H5P__facc_file_image_info_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_U
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy file image info");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_image_info_set() */
 
 /*-------------------------------------------------------------------------
@@ -3581,7 +3581,7 @@ H5P__facc_file_image_info_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_U
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -3591,7 +3591,7 @@ H5P__facc_file_image_info_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_U
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy file image info");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_image_info_get() */
 
 /*-------------------------------------------------------------------------
@@ -3612,14 +3612,14 @@ H5P__facc_file_image_info_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_U
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Free the file image info */
     if (H5P__file_image_info_free(value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "can't release file image info");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_image_info_del() */
 
 /*-------------------------------------------------------------------------
@@ -3638,14 +3638,14 @@ H5P__facc_file_image_info_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_U
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Make copy of file image info */
     if (H5P__file_image_info_copy(value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy file image info");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_image_info_copy() */
 
 /*-------------------------------------------------------------------------
@@ -3668,7 +3668,7 @@ H5P__facc_file_image_info_cmp(const void *_info1, const void *_info2, size_t H5_
         *info2       = (const H5FD_file_image_info_t *)_info2;
     herr_t ret_value = 0; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(info1);
@@ -3712,7 +3712,7 @@ H5P__facc_file_image_info_cmp(const void *_info1, const void *_info2, size_t H5_
         ret_value = memcmp(info1->buffer, info2->buffer, size);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_image_info_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -3731,14 +3731,14 @@ H5P__facc_file_image_info_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Free the file image info */
     if (H5P__file_image_info_free(value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "can't release file image info");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_file_image_info_close() */
 
 /*-------------------------------------------------------------------------
@@ -3760,7 +3760,7 @@ H5P__facc_cache_config_cmp(const void *_config1, const void *_config2, size_t H5
         (const H5AC_cache_config_t *)_config2; /* Create local aliases for values */
     int ret_value = 0;                         /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Check for a property being set */
     if (config1 == NULL && config2 != NULL)
@@ -3904,7 +3904,7 @@ H5P__facc_cache_config_cmp(const void *_config1, const void *_config2, size_t H5
         HGOTO_DONE(1);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_cache_config_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -3928,7 +3928,7 @@ H5P__facc_cache_config_enc(const void *value, void **_pp, size_t *size)
     unsigned  enc_size;  /* Size of encoded property */
     uint64_t  enc_value; /* Property to encode */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -4046,7 +4046,7 @@ H5P__facc_cache_config_enc(const void *value, void **_pp, size_t *size)
     *size += (5 + (sizeof(unsigned) * 8) + (sizeof(double) * 8) + (sizeof(int32_t) * 4) + sizeof(int64_t) +
               H5AC__MAX_TRACE_FILE_NAME_LEN + 1);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_cache_config_enc() */
 
 /*-------------------------------------------------------------------------
@@ -4070,7 +4070,7 @@ H5P__facc_cache_config_dec(const void **_pp, void *_value)
     uint64_t             enc_value;
     herr_t               ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -4177,7 +4177,7 @@ H5P__facc_cache_config_dec(const void **_pp, void *_value)
     INT32DECODE(*pp, config->metadata_write_strategy);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_cache_config_dec() */
 
 /*-------------------------------------------------------------------------
@@ -4199,7 +4199,7 @@ H5P__facc_fclose_degree_enc(const void *value, void **_pp, size_t *size)
         (const H5F_close_degree_t *)value; /* Create local alias for values */
     uint8_t **pp = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(fclose_degree);
@@ -4212,7 +4212,7 @@ H5P__facc_fclose_degree_enc(const void *value, void **_pp, size_t *size)
     /* Size of file close degree */
     (*size)++;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_fclose_degree_enc() */
 
 /*-------------------------------------------------------------------------
@@ -4233,7 +4233,7 @@ H5P__facc_fclose_degree_dec(const void **_pp, void *_value)
     H5F_close_degree_t *fclose_degree = (H5F_close_degree_t *)_value; /* File close degree */
     const uint8_t     **pp            = (const uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -4243,7 +4243,7 @@ H5P__facc_fclose_degree_dec(const void **_pp, void *_value)
     /* Decode file close degree */
     *fclose_degree = (H5F_close_degree_t) * (*pp)++;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_fclose_degree_dec() */
 
 /*-------------------------------------------------------------------------
@@ -4264,7 +4264,7 @@ H5P__facc_multi_type_enc(const void *value, void **_pp, size_t *size)
     const H5FD_mem_t *type = (const H5FD_mem_t *)value; /* Create local alias for values */
     uint8_t         **pp   = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(type);
@@ -4277,7 +4277,7 @@ H5P__facc_multi_type_enc(const void *value, void **_pp, size_t *size)
     /* Size of multi VFD memory type */
     (*size)++;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_multi_type_enc() */
 
 /*-------------------------------------------------------------------------
@@ -4298,7 +4298,7 @@ H5P__facc_multi_type_dec(const void **_pp, void *_value)
     H5FD_mem_t     *type = (H5FD_mem_t *)_value; /* File close degree */
     const uint8_t **pp   = (const uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -4308,7 +4308,7 @@ H5P__facc_multi_type_dec(const void **_pp, void *_value)
     /* Decode multi VFD memory type */
     *type = (H5FD_mem_t) * (*pp)++;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_multi_type_dec() */
 
 /*-------------------------------------------------------------------------
@@ -4329,7 +4329,7 @@ H5P__facc_libver_type_enc(const void *value, void **_pp, size_t *size)
     const H5F_libver_t *type = (const H5F_libver_t *)value; /* Create local alias for values */
     uint8_t           **pp   = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(type);
@@ -4342,7 +4342,7 @@ H5P__facc_libver_type_enc(const void *value, void **_pp, size_t *size)
     /* Size */
     (*size)++;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_libver_type_enc() */
 
 /*-------------------------------------------------------------------------
@@ -4363,7 +4363,7 @@ H5P__facc_libver_type_dec(const void **_pp, void *_value)
     H5F_libver_t   *type = (H5F_libver_t *)_value;
     const uint8_t **pp   = (const uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -4373,7 +4373,7 @@ H5P__facc_libver_type_dec(const void **_pp, void *_value)
     /* Decode */
     *type = (H5F_libver_t) * (*pp)++;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_libver_type_dec() */
 
 /*-------------------------------------------------------------------------
@@ -4653,7 +4653,7 @@ H5P__facc_mdc_log_location_enc(const void *value, void **_pp, size_t *size)
     uint64_t    enc_value;
     unsigned    enc_size;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
 
@@ -4681,7 +4681,7 @@ H5P__facc_mdc_log_location_enc(const void *value, void **_pp, size_t *size)
     if (NULL != log_location)
         *size += len;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_mdc_log_location_enc() */
 
 /*-------------------------------------------------------------------------
@@ -4706,7 +4706,7 @@ H5P__facc_mdc_log_location_dec(const void **_pp, void *_value)
     unsigned        enc_size;  /* Size of encoded property */
     herr_t          ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(pp);
     assert(*pp);
@@ -4734,7 +4734,7 @@ H5P__facc_mdc_log_location_dec(const void **_pp, void *_value)
         *log_location = NULL;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mdc_log_location_dec() */
 
 /*-------------------------------------------------------------------------
@@ -4750,13 +4750,13 @@ static herr_t
 H5P__facc_mdc_log_location_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
                                size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     H5MM_xfree(*(void **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_mdc_log_location_del() */
 
 /*-------------------------------------------------------------------------
@@ -4771,13 +4771,13 @@ H5P__facc_mdc_log_location_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_
 static herr_t
 H5P__facc_mdc_log_location_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     *(char **)value = H5MM_xstrdup(*(const char **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_mdc_log_location_copy() */
 
 /*-------------------------------------------------------------------------
@@ -4798,7 +4798,7 @@ H5P__facc_mdc_log_location_cmp(const void *value1, const void *value2, size_t H5
     const char *pref2     = *(const char *const *)value2;
     int         ret_value = 0;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     if (NULL == pref1 && NULL != pref2)
         HGOTO_DONE(1);
@@ -4808,7 +4808,7 @@ H5P__facc_mdc_log_location_cmp(const void *value1, const void *value2, size_t H5
         ret_value = HDstrcmp(pref1, pref2);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mdc_log_location_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -4824,13 +4824,13 @@ done:
 static herr_t
 H5P__facc_mdc_log_location_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     H5MM_xfree(*(void **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__facc_mdc_log_location_close() */
 
 /*-------------------------------------------------------------------------
@@ -5019,7 +5019,7 @@ H5P__encode_coll_md_read_flag_t(const void *value, void **_pp, size_t *size)
     const H5P_coll_md_read_flag_t *coll_md_read_flag = (const H5P_coll_md_read_flag_t *)value;
     uint8_t                      **pp                = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(coll_md_read_flag);
@@ -5034,7 +5034,7 @@ H5P__encode_coll_md_read_flag_t(const void *value, void **_pp, size_t *size)
     /* Set size needed for encoding */
     *size += sizeof(H5P_coll_md_read_flag_t);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__encode_coll_md_read_flag_t() */
 
 /*-------------------------------------------------------------------------
@@ -5053,7 +5053,7 @@ H5P__decode_coll_md_read_flag_t(const void **_pp, void *_value)
     H5P_coll_md_read_flag_t *coll_md_read_flag = (H5P_coll_md_read_flag_t *)_value; /* File close degree */
     const uint8_t          **pp                = (const uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -5064,7 +5064,7 @@ H5P__decode_coll_md_read_flag_t(const void **_pp, void *_value)
     *coll_md_read_flag = (H5P_coll_md_read_flag_t) * (*pp);
     *pp += sizeof(H5P_coll_md_read_flag_t);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__decode_coll_md_read_flag_t() */
 
 /*-------------------------------------------------------------------------
@@ -5300,7 +5300,7 @@ H5P__facc_mpi_comm_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
     MPI_Comm  comm_tmp  = MPI_COMM_NULL;
     herr_t    ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Make a copy of the MPI communicator */
     if (H5_mpi_comm_dup(*comm, &comm_tmp) < 0)
@@ -5313,7 +5313,7 @@ done:
     else
         *comm = comm_tmp;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_comm_set() */
 
 /*-------------------------------------------------------------------------
@@ -5334,7 +5334,7 @@ H5P__facc_mpi_comm_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
     MPI_Comm  comm_tmp  = MPI_COMM_NULL;
     herr_t    ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Make a copy of the MPI communicator */
     if (H5_mpi_comm_dup(*comm, &comm_tmp) < 0)
@@ -5347,7 +5347,7 @@ done:
     else
         *comm = comm_tmp;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_comm_get() */
 
 /*-------------------------------------------------------------------------
@@ -5367,14 +5367,14 @@ H5P__facc_mpi_comm_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
     MPI_Comm *comm      = (MPI_Comm *)value;
     herr_t    ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Free the MPI communicator */
     if (H5_mpi_comm_free(comm) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTFREE, FAIL, "unable to free MPI communicator");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_comm_del() */
 
 /*-------------------------------------------------------------------------
@@ -5394,7 +5394,7 @@ H5P__facc_mpi_comm_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED s
     MPI_Comm  comm_tmp  = MPI_COMM_NULL;
     herr_t    ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Make a copy of the MPI communicator */
     if (H5_mpi_comm_dup(*comm, &comm_tmp) < 0)
@@ -5407,7 +5407,7 @@ done:
     else
         *comm = comm_tmp;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_comm_copy() */
 
 /*-------------------------------------------------------------------------
@@ -5430,14 +5430,14 @@ H5P__facc_mpi_comm_cmp(const void *_comm1, const void *_comm2, size_t H5_ATTR_UN
     const MPI_Comm *comm2     = (const MPI_Comm *)_comm2;
     int             ret_value = 0;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Compare the MPI communicators */
     if (H5_mpi_comm_cmp(*comm1, *comm2, &ret_value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, 0, "unable to compare MPI communicator");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_comm_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -5456,14 +5456,14 @@ H5P__facc_mpi_comm_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED 
     MPI_Comm *comm      = (MPI_Comm *)value;
     herr_t    ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Free the MPI communicator */
     if (H5_mpi_comm_free(comm) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTFREE, FAIL, "unable to free MPI communicator");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_comm_close() */
 
 /*-------------------------------------------------------------------------
@@ -5484,7 +5484,7 @@ H5P__facc_mpi_info_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
     MPI_Info  info_tmp  = MPI_INFO_NULL;
     herr_t    ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Make a copy of the MPI info object */
     if (H5_mpi_info_dup(*info, &info_tmp) < 0)
@@ -5497,7 +5497,7 @@ done:
     else
         *info = info_tmp;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_info_set() */
 
 /*-------------------------------------------------------------------------
@@ -5518,7 +5518,7 @@ H5P__facc_mpi_info_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
     MPI_Info  info_tmp  = MPI_INFO_NULL;
     herr_t    ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Make a copy of the MPI communicator */
     if (H5_mpi_info_dup(*info, &info_tmp) < 0)
@@ -5531,7 +5531,7 @@ done:
     else
         *info = info_tmp;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_info_get() */
 
 /*-------------------------------------------------------------------------
@@ -5551,14 +5551,14 @@ H5P__facc_mpi_info_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
     MPI_Info *info      = (MPI_Info *)value;
     herr_t    ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Free the MPI info object */
     if (H5_mpi_info_free(info) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTFREE, FAIL, "unable to free MPI info object");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_info_del() */
 
 /*-------------------------------------------------------------------------
@@ -5578,7 +5578,7 @@ H5P__facc_mpi_info_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED s
     MPI_Info  info_tmp  = MPI_INFO_NULL;
     herr_t    ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Make a copy of the MPI info object */
     if (H5_mpi_info_dup(*info, &info_tmp) < 0)
@@ -5591,7 +5591,7 @@ done:
     else
         *info = info_tmp;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_info_copy() */
 
 /*-------------------------------------------------------------------------
@@ -5614,14 +5614,14 @@ H5P__facc_mpi_info_cmp(const void *_info1, const void *_info2, size_t H5_ATTR_UN
     const MPI_Info *info2     = (const MPI_Info *)_info2;
     int             ret_value = 0;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Compare the MPI info objects */
     if (H5_mpi_info_cmp(*info1, *info2, &ret_value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, 0, "unable to compare MPI info objects");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_info_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -5640,14 +5640,14 @@ H5P__facc_mpi_info_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED 
     MPI_Info *info      = (MPI_Info *)value;
     herr_t    ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Free the MPI info object */
     if (H5_mpi_info_free(info) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTFREE, FAIL, "unable to free MPI info object");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_mpi_info_close() */
 
 /*-------------------------------------------------------------------------
@@ -5829,7 +5829,7 @@ H5P_reset_vol_class(const H5P_genclass_t *pclass, const H5VL_connector_prop_t *v
     H5VL_connector_prop_t old_vol_prop;        /* Previous VOL connector property */
     herr_t                ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Get the connector ID & info property */
     if (H5P__class_get(pclass, H5F_ACS_VOL_CONN_NAME, &old_vol_prop) < 0)
@@ -5840,7 +5840,7 @@ H5P_reset_vol_class(const H5P_genclass_t *pclass, const H5VL_connector_prop_t *v
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set VOL connector ID & info");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_set_vol_class() */
 
 /*-------------------------------------------------------------------------
@@ -6060,14 +6060,14 @@ H5P__facc_vol_create(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Make copy of the VOL connector */
     if (H5VL_conn_copy((H5VL_connector_prop_t *)value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy VOL connector");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_vol_create() */
 
 /*-------------------------------------------------------------------------
@@ -6086,7 +6086,7 @@ H5P__facc_vol_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -6096,7 +6096,7 @@ H5P__facc_vol_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy VOL connector");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_vol_set() */
 
 /*-------------------------------------------------------------------------
@@ -6115,7 +6115,7 @@ H5P__facc_vol_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -6125,7 +6125,7 @@ H5P__facc_vol_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy VOL connector");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_vol_get() */
 
 /*-------------------------------------------------------------------------
@@ -6144,14 +6144,14 @@ H5P__facc_vol_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Free the VOL connector ID & info */
     if (H5VL_conn_free((H5VL_connector_prop_t *)value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "can't release VOL connector");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_vol_del() */
 
 /*-------------------------------------------------------------------------
@@ -6169,14 +6169,14 @@ H5P__facc_vol_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, 
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Make copy of VOL connector */
     if (H5VL_conn_copy((H5VL_connector_prop_t *)value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy VOL connector");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_vol_copy() */
 
 /*-------------------------------------------------------------------------
@@ -6203,7 +6203,7 @@ H5P__facc_vol_cmp(const void *_info1, const void *_info2, size_t H5_ATTR_UNUSED 
     herr_t H5_ATTR_NDEBUG_UNUSED status;        /* Status from info comparison */
     int                          ret_value = 0; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(info1);
@@ -6235,7 +6235,7 @@ H5P__facc_vol_cmp(const void *_info1, const void *_info2, size_t H5_ATTR_UNUSED 
     ret_value = cmp_value;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_vol_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -6253,12 +6253,12 @@ H5P__facc_vol_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size,
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Free the VOL connector */
     if (H5VL_conn_free((H5VL_connector_prop_t *)value) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "can't release VOL connector");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__facc_vol_close() */

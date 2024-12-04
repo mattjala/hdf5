@@ -115,7 +115,7 @@ H5P__gcrt_reg_prop(H5P_genclass_t *pclass)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Register group info property */
     if (H5P__register_real(pclass, H5G_CRT_GROUP_INFO_NAME, H5G_CRT_GROUP_INFO_SIZE, &H5G_def_ginfo_g, NULL,
@@ -130,7 +130,7 @@ H5P__gcrt_reg_prop(H5P_genclass_t *pclass)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__gcrt_reg_prop() */
 
 /*-------------------------------------------------------------------------
@@ -508,7 +508,7 @@ H5P__gcrt_group_info_enc(const void *value, void **_pp, size_t *size)
     const H5O_ginfo_t *ginfo = (const H5O_ginfo_t *)value; /* Create local aliases for values */
     uint8_t          **pp    = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     if (NULL != *pp) {
         UINT32ENCODE(*pp, ginfo->lheap_size_hint);
@@ -520,7 +520,7 @@ H5P__gcrt_group_info_enc(const void *value, void **_pp, size_t *size)
 
     *size += sizeof(uint16_t) * 4 + sizeof(uint32_t);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__gcrt_group_info_enc() */
 
 /*-------------------------------------------------------------------------
@@ -542,7 +542,7 @@ H5P__gcrt_group_info_dec(const void **_pp, void *_value)
     const uint8_t **pp        = (const uint8_t **)_pp;
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Set property to default value */
     memset(ginfo, 0, sizeof(H5O_ginfo_t));
@@ -566,7 +566,7 @@ H5P__gcrt_group_info_dec(const void **_pp, void *_value)
     else
         ginfo->store_est_entry_info = FALSE;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__gcrt_group_info_dec() */
 
 /*-------------------------------------------------------------------------
@@ -587,7 +587,7 @@ H5P__gcrt_link_info_enc(const void *value, void **_pp, size_t *size)
     const H5O_linfo_t *linfo = (const H5O_linfo_t *)value; /* Create local aliases for values */
     uint8_t          **pp    = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     if (NULL != *pp) {
         unsigned crt_order_flags = 0;
@@ -604,7 +604,7 @@ H5P__gcrt_link_info_enc(const void *value, void **_pp, size_t *size)
 
     *size += (1 + sizeof(unsigned));
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__gcrt_link_info_enc() */
 
 /*-------------------------------------------------------------------------
@@ -628,7 +628,7 @@ H5P__gcrt_link_info_dec(const void **_pp, void *_value)
     unsigned        enc_size;
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     enc_size = *(*pp)++;
     if (enc_size != sizeof(unsigned))
@@ -645,5 +645,5 @@ H5P__gcrt_link_info_dec(const void **_pp, void *_value)
     linfo->index_corder = (hbool_t)((crt_order_flags & H5P_CRT_ORDER_INDEXED) ? TRUE : FALSE);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__gcrt_link_info_dec() */

@@ -111,7 +111,7 @@ H5P__macc_reg_prop(H5P_genclass_t *pclass)
         H5M_ACS_KEY_ALLOC_SIZE_DEF; /* Default key prefetch allocation size for iteration */
     herr_t ret_value = SUCCEED;     /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Register the key prefetch size for iteration */
     if (H5P__register_real(pclass, H5M_ACS_KEY_PREFETCH_SIZE_NAME, H5M_ACS_KEY_PREFETCH_SIZE_SIZE,
@@ -126,7 +126,7 @@ H5P__macc_reg_prop(H5P_genclass_t *pclass)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__macc_reg_prop() */
 
 #ifdef H5_HAVE_MAP_API

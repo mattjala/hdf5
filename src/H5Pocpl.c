@@ -149,7 +149,7 @@ H5P__ocrt_reg_prop(H5P_genclass_t *pclass)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Register max. compact attribute storage property */
     if (H5P__register_real(pclass, H5O_CRT_ATTR_MAX_COMPACT_NAME, H5O_CRT_ATTR_MAX_COMPACT_SIZE,
@@ -177,7 +177,7 @@ H5P__ocrt_reg_prop(H5P_genclass_t *pclass)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocrt_reg_prop() */
 
 /*-------------------------------------------------------------------------
@@ -490,7 +490,7 @@ H5P_modify_filter(H5P_genplist_t *plist, H5Z_filter_t filter, unsigned flags, si
     H5O_pline_t pline;
     herr_t      ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Get the pipeline property to modify */
     if (H5P_peek(plist, H5O_CRT_PIPELINE_NAME, &pline) < 0)
@@ -505,7 +505,7 @@ H5P_modify_filter(H5P_genplist_t *plist, H5Z_filter_t filter, unsigned flags, si
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set pipeline");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_modify_filter() */
 
 /*-------------------------------------------------------------------------
@@ -670,7 +670,7 @@ H5P__set_filter(H5P_genplist_t *plist, H5Z_filter_t filter, unsigned int flags, 
     htri_t      filter_avail;        /* Filter availability */
     herr_t      ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check if filter is already available */
     if ((filter_avail = H5Z_filter_avail(filter)) < 0)
@@ -689,7 +689,7 @@ H5P__set_filter(H5P_genplist_t *plist, H5Z_filter_t filter, unsigned int flags, 
         HGOTO_ERROR(H5E_PLIST, H5E_CANTSET, FAIL, "can't set pipeline");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__set_filter() */
 
 /*-------------------------------------------------------------------------
@@ -844,7 +844,7 @@ H5P_get_filter_by_id(H5P_genplist_t *plist, H5Z_filter_t id, unsigned int *flags
     H5Z_filter_info_t *filter;              /* Pointer to filter information */
     herr_t             ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Get pipeline info */
     if (H5P_peek(plist, H5O_CRT_PIPELINE_NAME, &pline) < 0)
@@ -859,7 +859,7 @@ H5P_get_filter_by_id(H5P_genplist_t *plist, H5Z_filter_t id, unsigned int *flags
         HGOTO_ERROR(H5E_PLIST, H5E_CANTGET, FAIL, "can't get filter info");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_get_filter_by_id() */
 
 /*-------------------------------------------------------------------------
@@ -983,7 +983,7 @@ H5P_filter_in_pline(H5P_genplist_t *plist, H5Z_filter_t id)
     H5O_pline_t pline;               /* Filter pipeline */
     htri_t      ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Get pipeline info */
     if (H5P_peek(plist, H5O_CRT_PIPELINE_NAME, &pline) < 0)
@@ -994,7 +994,7 @@ H5P_filter_in_pline(H5P_genplist_t *plist, H5Z_filter_t id)
         HGOTO_ERROR(H5E_PLINE, H5E_CANTCOMPARE, FAIL, "can't find filter");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_filter_in_pline() */
 
 /*-------------------------------------------------------------------------
@@ -1143,7 +1143,7 @@ H5P__get_filter(const H5Z_filter_info_t *filter, unsigned int *flags /*out*/, si
                 unsigned cd_values[] /*out*/, size_t namelen, char name[] /*out*/,
                 unsigned *filter_config /*out*/)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Check arguments */
     assert(filter);
@@ -1197,7 +1197,7 @@ H5P__get_filter(const H5Z_filter_info_t *filter, unsigned int *flags /*out*/, si
     if (filter_config)
         H5Z_get_filter_info(filter->id, filter_config);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__get_filter() */
 
 /*-------------------------------------------------------------------------
@@ -1218,7 +1218,7 @@ H5P__ocrt_pipeline_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
     H5O_pline_t  new_pline;
     herr_t       ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1231,7 +1231,7 @@ H5P__ocrt_pipeline_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
     *pline = new_pline;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocrt_pipeline_set() */
 
 /*-------------------------------------------------------------------------
@@ -1252,7 +1252,7 @@ H5P__ocrt_pipeline_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
     H5O_pline_t  new_pline;
     herr_t       ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1265,7 +1265,7 @@ H5P__ocrt_pipeline_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
     *pline = new_pline;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocrt_pipeline_get() */
 
 /*-------------------------------------------------------------------------
@@ -1287,7 +1287,7 @@ H5P__ocrt_pipeline_enc(const void *value, void **_pp, size_t *size)
     uint8_t          **pp    = (uint8_t **)_pp;
     size_t             u; /* Local index variable */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(pline);
     assert(size);
@@ -1354,7 +1354,7 @@ H5P__ocrt_pipeline_enc(const void *value, void **_pp, size_t *size)
         *size += pline->filter[u].cd_nelmts * sizeof(unsigned);
     } /* end for */
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__ocrt_pipeline_enc() */
 
 /*-------------------------------------------------------------------------
@@ -1380,7 +1380,7 @@ H5P__ocrt_pipeline_dec(const void **_pp, void *_value)
     size_t          u;                   /* Local index variable */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
 
@@ -1446,7 +1446,7 @@ H5P__ocrt_pipeline_dec(const void **_pp, void *_value)
     } /* end for */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__ocrt_pipeline_dec() */
 
 /*-------------------------------------------------------------------------
@@ -1465,7 +1465,7 @@ H5P__ocrt_pipeline_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1475,7 +1475,7 @@ H5P__ocrt_pipeline_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRESET, FAIL, "can't release I/O pipeline message");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocrt_pipeline_del() */
 
 /*--------------------------------------------------------------------------
@@ -1495,7 +1495,7 @@ H5P__ocrt_pipeline_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED s
     H5O_pline_t  new_pline;
     herr_t       ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(pline);
@@ -1508,7 +1508,7 @@ H5P__ocrt_pipeline_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED s
     *pline = new_pline;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocrt_pipeline_copy() */
 
 /*-------------------------------------------------------------------------
@@ -1531,7 +1531,7 @@ H5P__ocrt_pipeline_cmp(const void *_pline1, const void *_pline2, size_t H5_ATTR_
     int    cmp_value;     /* Value from comparison */
     herr_t ret_value = 0; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(pline1);
@@ -1602,7 +1602,7 @@ H5P__ocrt_pipeline_cmp(const void *_pline1, const void *_pline2, size_t H5_ATTR_
     }             /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocrt_pipeline_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -1620,7 +1620,7 @@ H5P__ocrt_pipeline_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED 
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1630,7 +1630,7 @@ H5P__ocrt_pipeline_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED 
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRESET, FAIL, "can't release I/O pipeline message");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocrt_pipeline_close() */
 
 #ifndef H5_NO_DEPRECATED_SYMBOLS

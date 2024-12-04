@@ -430,7 +430,7 @@ H5P_init_phase1(void)
     size_t u;
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     HDcompile_assert(H5P_TYPE_REFERENCE_ACCESS == (H5P_TYPE_MAX_TYPE - 1));
@@ -520,7 +520,7 @@ done:
         }
     }
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 }
 
 /*-------------------------------------------------------------------------
@@ -542,14 +542,14 @@ H5P_init_phase2(void)
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Set up the default VFL driver */
     if (H5P__facc_set_def_driver() < 0)
         HGOTO_ERROR(H5E_VFL, H5E_CANTSET, FAIL, "unable to set default VFL driver");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_init_phase2() */
 
 /*--------------------------------------------------------------------------
@@ -574,7 +574,7 @@ H5P_term_package(void)
 {
     int n = 0;
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     int64_t nlist, nclass;
 
@@ -678,7 +678,7 @@ H5P_term_package(void)
         n += (H5I_dec_type_ref(H5I_GENPROP_CLS) > 0);
     } /* end else */
 
-    FUNC_LEAVE_NOAPI(n)
+    FUNC_LEAVE_NOAPI_MUTEX(n)
 } /* end H5P_term_package() */
 
 /*-------------------------------------------------------------------------
@@ -696,7 +696,7 @@ H5P__close_class_cb(void *_pclass, void H5_ATTR_UNUSED **request)
     H5P_genclass_t *pclass    = (H5P_genclass_t *)_pclass; /* Property list class to close */
     herr_t          ret_value = SUCCEED;                   /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(pclass);
@@ -706,7 +706,7 @@ H5P__close_class_cb(void *_pclass, void H5_ATTR_UNUSED **request)
         HGOTO_ERROR(H5E_PLIST, H5E_CLOSEERROR, FAIL, "unable to close property list class");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__close_class_cb() */
 
 /*-------------------------------------------------------------------------
@@ -724,7 +724,7 @@ H5P__close_list_cb(void *_plist, void H5_ATTR_UNUSED **request)
     H5P_genplist_t *plist     = (H5P_genplist_t *)_plist; /* Property list to close */
     herr_t          ret_value = SUCCEED;                  /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(plist);
@@ -734,7 +734,7 @@ H5P__close_list_cb(void *_plist, void H5_ATTR_UNUSED **request)
         HGOTO_ERROR(H5E_PLIST, H5E_CLOSEERROR, FAIL, "unable to close property list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__close_list_cb() */
 
 /*--------------------------------------------------------------------------
@@ -766,7 +766,7 @@ H5P__do_prop_cb1(H5SL_t *slist, H5P_genprop_t *prop, H5P_prp_cb1_t cb)
     H5P_genprop_t *pcopy     = NULL;    /* Copy of property to insert into skip list */
     herr_t         ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(slist);
@@ -804,7 +804,7 @@ done:
         if (pcopy)
             H5P__free_prop(pcopy);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__do_prop_cb1() */
 
 /*--------------------------------------------------------------------------
@@ -834,7 +834,7 @@ H5P__copy_pclass(H5P_genclass_t *pclass)
     H5P_genprop_t  *pcopy;             /* Copy of property to insert into class */
     H5P_genclass_t *ret_value = NULL;  /* return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(pclass);
 
@@ -878,7 +878,7 @@ done:
     if (NULL == ret_value && new_pclass)
         H5P__close_class(new_pclass);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__copy_pclass() */
 
 /*--------------------------------------------------------------------------
@@ -1132,7 +1132,7 @@ H5P__dup_prop(H5P_genprop_t *oprop, H5P_prop_within_t type)
     H5P_genprop_t *prop      = NULL; /* Pointer to new property copied */
     H5P_genprop_t *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(oprop);
     assert(type != H5P_PROP_WITHIN_UNKNOWN);
@@ -1200,7 +1200,7 @@ done:
         } /* end if */
     }     /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__dup_prop() */
 
 /*--------------------------------------------------------------------------
@@ -1246,7 +1246,7 @@ H5P__create_prop(const char *name, size_t size, H5P_prop_within_t type, const vo
     H5P_genprop_t *prop      = NULL; /* Pointer to new property copied */
     H5P_genprop_t *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(name);
     assert((size > 0 && value != NULL) || (size == 0));
@@ -1301,7 +1301,7 @@ done:
         } /* end if */
     }     /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__create_prop() */
 
 /*--------------------------------------------------------------------------
@@ -1327,7 +1327,7 @@ H5P__add_prop(H5SL_t *slist, H5P_genprop_t *prop)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(slist);
     assert(prop);
@@ -1338,7 +1338,7 @@ H5P__add_prop(H5SL_t *slist, H5P_genprop_t *prop)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into skip list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__add_prop() */
 
 /*--------------------------------------------------------------------------
@@ -1364,7 +1364,7 @@ H5P__find_prop_plist(const H5P_genplist_t *plist, const char *name)
 {
     H5P_genprop_t *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(plist);
     assert(name);
@@ -1397,7 +1397,7 @@ H5P__find_prop_plist(const H5P_genplist_t *plist, const char *name)
     }     /* end else */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__find_prop_plist() */
 
 /*--------------------------------------------------------------------------
@@ -1423,7 +1423,7 @@ H5P__find_prop_pclass(H5P_genclass_t *pclass, const char *name)
 {
     H5P_genprop_t *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(pclass);
     assert(name);
@@ -1433,7 +1433,7 @@ H5P__find_prop_pclass(H5P_genclass_t *pclass, const char *name)
         HGOTO_ERROR(H5E_PLIST, H5E_NOTFOUND, NULL, "can't find property in skip list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__find_prop_pclass() */
 
 /*--------------------------------------------------------------------------
@@ -1457,7 +1457,7 @@ done:
 static herr_t
 H5P__free_prop(H5P_genprop_t *prop)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(prop);
 
@@ -1471,7 +1471,7 @@ H5P__free_prop(H5P_genprop_t *prop)
 
     prop = H5FL_FREE(H5P_genprop_t, prop);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* H5P__free_prop() */
 
 /*--------------------------------------------------------------------------
@@ -1500,7 +1500,7 @@ H5P__free_prop_cb(void *item, void H5_ATTR_UNUSED *key, void *op_data)
     H5P_genprop_t *tprop   = (H5P_genprop_t *)item; /* Temporary pointer to property */
     hbool_t        make_cb = *(hbool_t *)op_data;   /* Whether to make property 'close' callback */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(tprop);
 
@@ -1511,7 +1511,7 @@ H5P__free_prop_cb(void *item, void H5_ATTR_UNUSED *key, void *op_data)
     /* Free the property, ignoring return value, nothing we can do */
     H5P__free_prop(tprop);
 
-    FUNC_LEAVE_NOAPI(0)
+    FUNC_LEAVE_NOAPI_MUTEX(0)
 } /* H5P__free_prop_cb() */
 
 /*--------------------------------------------------------------------------
@@ -1538,14 +1538,14 @@ H5P__free_del_name_cb(void *item, void H5_ATTR_UNUSED *key, void H5_ATTR_UNUSED 
 {
     char *del_name = (char *)item; /* Temporary pointer to deleted name */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(del_name);
 
     /* Free the name */
     H5MM_xfree(del_name);
 
-    FUNC_LEAVE_NOAPI(0)
+    FUNC_LEAVE_NOAPI_MUTEX(0)
 } /* H5P__free_del_name_cb() */
 
 /*--------------------------------------------------------------------------
@@ -1573,7 +1573,7 @@ H5P__free_del_name_cb(void *item, void H5_ATTR_UNUSED *key, void H5_ATTR_UNUSED 
 herr_t
 H5P__access_class(H5P_genclass_t *pclass, H5P_class_mod_t mod)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(pclass);
     assert(mod > H5P_MOD_ERR && mod < H5P_MOD_MAX);
@@ -1637,7 +1637,7 @@ H5P__access_class(H5P_genclass_t *pclass, H5P_class_mod_t mod)
             H5P__access_class(par_class, H5P_MOD_DEC_CLS);
     } /* end if */
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* H5P__access_class() */
 
 /*--------------------------------------------------------------------------
@@ -1668,7 +1668,7 @@ H5P__open_class_path_cb(void *_obj, hid_t H5_ATTR_UNUSED id, void *_key)
     H5P_check_class_t *key       = (H5P_check_class_t *)_key; /* Pointer to key information for comparison */
     int                ret_value = 0;                         /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(obj);
     assert(H5I_GENPROP_CLS == H5I_get_type(id));
@@ -1683,7 +1683,7 @@ H5P__open_class_path_cb(void *_obj, hid_t H5_ATTR_UNUSED id, void *_key)
         }                       /* end if */
     }                           /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__open_class_path_cb() */
 
 /*--------------------------------------------------------------------------
@@ -1727,7 +1727,7 @@ H5P__create_class(H5P_genclass_t *par_class, const char *name, H5P_plist_type_t 
     H5P_genclass_t *pclass    = NULL; /* Property list class created */
     H5P_genclass_t *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(name);
     /* Allow internal classes to break some rules */
@@ -1786,7 +1786,7 @@ done:
             pclass = H5FL_FREE(H5P_genclass_t, pclass);
         } /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__create_class() */
 
 /*--------------------------------------------------------------------------
@@ -1823,7 +1823,7 @@ H5P__create(H5P_genclass_t *pclass)
     H5SL_t         *seen      = NULL; /* Skip list to hold names of properties already seen */
     H5P_genplist_t *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(pclass);
 
@@ -1929,7 +1929,7 @@ done:
         } /* end if */
     }     /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__create() */
 
 /*--------------------------------------------------------------------------
@@ -1962,7 +1962,7 @@ H5P_create_id(H5P_genclass_t *pclass, hbool_t app_ref)
     hid_t           plist_id  = FAIL;            /* Property list ID */
     hid_t           ret_value = H5I_INVALID_HID; /* return value */
 
-    FUNC_ENTER_NOAPI(H5I_INVALID_HID)
+    FUNC_ENTER_NOAPI_MUTEX(H5I_INVALID_HID)
 
     assert(pclass);
 
@@ -2005,7 +2005,7 @@ done:
     if (H5I_INVALID_HID == ret_value && plist)
         H5P_close(plist);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_create_id() */
 
 /*--------------------------------------------------------------------------
@@ -2202,7 +2202,7 @@ H5P__register_real(H5P_genclass_t *pclass, const char *name, size_t size, const 
     H5P_genprop_t *new_prop  = NULL;    /* Temporary property pointer */
     herr_t         ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(pclass);
     assert(0 == pclass->plists);
@@ -2235,7 +2235,7 @@ done:
         if (new_prop && H5P__free_prop(new_prop) < 0)
             HDONE_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "unable to close property");
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__register_real() */
 
 /*--------------------------------------------------------------------------
@@ -2432,7 +2432,7 @@ H5P__register(H5P_genclass_t **ppclass, const char *name, size_t size, const voi
     H5P_genclass_t *new_class = NULL;     /* New class pointer */
     herr_t          ret_value = SUCCEED;  /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(ppclass);
@@ -2491,7 +2491,7 @@ done:
         if (new_class && H5P__close_class(new_class) < 0)
             HDONE_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "unable to close new property class");
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__register() */
 
 /*--------------------------------------------------------------------------
@@ -2672,7 +2672,7 @@ H5P_insert(H5P_genplist_t *plist, const char *name, size_t size, void *value, H5
     H5P_genprop_t *new_prop  = NULL;    /* Temporary property pointer */
     herr_t         ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_MUTEX
 
     assert(plist);
     assert(name);
@@ -2730,7 +2730,7 @@ done:
         if (new_prop && H5P__free_prop(new_prop) < 0)
             HDONE_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "unable to close property");
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_insert() */
 
 /*--------------------------------------------------------------------------
@@ -2764,7 +2764,7 @@ H5P__do_prop(H5P_genplist_t *plist, const char *name, H5P_do_plist_op_t plist_op
     H5P_genprop_t  *prop;                /* Temporary property pointer */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(plist);
@@ -2813,7 +2813,7 @@ H5P__do_prop(H5P_genplist_t *plist, const char *name, H5P_do_plist_op_t plist_op
     } /* end else */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__do_prop() */
 
 /*--------------------------------------------------------------------------
@@ -2844,7 +2844,7 @@ H5P__poke_plist_cb(H5P_genplist_t H5_ATTR_NDEBUG_UNUSED *plist, const char H5_AT
     H5P_prop_set_ud_t *udata     = (H5P_prop_set_ud_t *)_udata; /* User data for callback */
     herr_t             ret_value = SUCCEED;                     /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(plist);
@@ -2859,7 +2859,7 @@ H5P__poke_plist_cb(H5P_genplist_t H5_ATTR_NDEBUG_UNUSED *plist, const char H5_AT
     H5MM_memcpy(prop->value, udata->value, prop->size);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__poke_plist_cb() */
 
 /*--------------------------------------------------------------------------
@@ -2891,7 +2891,7 @@ H5P__poke_pclass_cb(H5P_genplist_t *plist, const char H5_ATTR_NDEBUG_UNUSED *nam
     H5P_genprop_t     *pcopy     = NULL;    /* Copy of property to insert into skip list */
     herr_t             ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(plist);
@@ -2919,7 +2919,7 @@ done:
         if (pcopy)
             H5P__free_prop(pcopy);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__poke_pclass_cb() */
 
 /*--------------------------------------------------------------------------
@@ -2952,7 +2952,7 @@ H5P_poke(H5P_genplist_t *plist, const char *name, const void *value)
     H5P_prop_set_ud_t udata;               /* User data for callback */
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(plist);
@@ -2965,7 +2965,7 @@ H5P_poke(H5P_genplist_t *plist, const char *name, const void *value)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTOPERATE, FAIL, "can't operate on plist to overwrite value");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_poke() */
 
 /*--------------------------------------------------------------------------
@@ -2997,7 +2997,7 @@ H5P__set_plist_cb(H5P_genplist_t *plist, const char *name, H5P_genprop_t *prop, 
     const void        *prp_value = NULL;                        /* Property value */
     herr_t             ret_value = SUCCEED;                     /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(plist);
@@ -3041,7 +3041,7 @@ done:
     if (tmp_value != NULL)
         H5MM_xfree(tmp_value);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__set_plist_cb() */
 
 /*--------------------------------------------------------------------------
@@ -3074,7 +3074,7 @@ H5P__set_pclass_cb(H5P_genplist_t *plist, const char *name, H5P_genprop_t *prop,
     const void        *prp_value = NULL;    /* Property value */
     herr_t             ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(plist);
@@ -3124,7 +3124,7 @@ done:
         if (pcopy)
             H5P__free_prop(pcopy);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__set_pclass_cb() */
 
 /*--------------------------------------------------------------------------
@@ -3164,7 +3164,7 @@ H5P_set(H5P_genplist_t *plist, const char *name, const void *value)
     H5P_prop_set_ud_t udata;               /* User data for callback */
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(plist);
@@ -3177,7 +3177,7 @@ H5P_set(H5P_genplist_t *plist, const char *name, const void *value)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTOPERATE, FAIL, "can't operate on plist to set value");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_set() */
 
 /*--------------------------------------------------------------------------
@@ -3211,7 +3211,7 @@ H5P__class_get(const H5P_genclass_t *pclass, const char *name, void *value)
     H5P_genprop_t *prop;                /* Temporary property pointer */
     herr_t         ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(pclass);
@@ -3230,7 +3230,7 @@ H5P__class_get(const H5P_genclass_t *pclass, const char *name, void *value)
     H5MM_memcpy(value, prop->value, prop->size);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__class_get() */
 
 /*--------------------------------------------------------------------------
@@ -3266,7 +3266,7 @@ H5P__class_set(const H5P_genclass_t *pclass, const char *name, const void *value
     H5P_genprop_t *prop;                /* Temporary property pointer */
     herr_t         ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(pclass);
@@ -3285,7 +3285,7 @@ H5P__class_set(const H5P_genclass_t *pclass, const char *name, const void *value
     H5MM_memcpy(prop->value, value, prop->size);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__class_set() */
 
 /*--------------------------------------------------------------------------
@@ -3314,7 +3314,7 @@ H5P_exist_plist(const H5P_genplist_t *plist, const char *name)
 {
     htri_t ret_value = FAIL; /* return value */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     assert(plist);
     assert(name);
@@ -3344,7 +3344,7 @@ H5P_exist_plist(const H5P_genplist_t *plist, const char *name)
     }     /* end else */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_exist_plist() */
 
 /*--------------------------------------------------------------------------
@@ -3373,7 +3373,7 @@ H5P__exist_pclass(H5P_genclass_t *pclass, const char *name)
 {
     htri_t ret_value = FAIL; /* return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(pclass);
     assert(name);
@@ -3398,7 +3398,7 @@ H5P__exist_pclass(H5P_genclass_t *pclass, const char *name)
     } /* end else */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__exist_pclass() */
 
 /*--------------------------------------------------------------------------
@@ -3429,7 +3429,7 @@ H5P__get_size_plist(const H5P_genplist_t *plist, const char *name, size_t *size)
     H5P_genprop_t *prop;                /* Temporary property pointer */
     herr_t         ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(plist);
     assert(name);
@@ -3443,7 +3443,7 @@ H5P__get_size_plist(const H5P_genplist_t *plist, const char *name, size_t *size)
     *size = prop->size;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__get_size_plist() */
 
 /*--------------------------------------------------------------------------
@@ -3474,7 +3474,7 @@ H5P__get_size_pclass(H5P_genclass_t *pclass, const char *name, size_t *size)
     H5P_genprop_t *prop;                /* Temporary property pointer */
     herr_t         ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(pclass);
     assert(name);
@@ -3488,7 +3488,7 @@ H5P__get_size_pclass(H5P_genclass_t *pclass, const char *name, size_t *size)
     *size = prop->size;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__get_size_pclass() */
 
 /*--------------------------------------------------------------------------
@@ -3514,7 +3514,7 @@ done:
 herr_t
 H5P__get_nprops_plist(const H5P_genplist_t *plist, size_t *nprops)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(plist);
     assert(nprops);
@@ -3522,7 +3522,7 @@ H5P__get_nprops_plist(const H5P_genplist_t *plist, size_t *nprops)
     /* Get property size */
     *nprops = plist->nprops;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* H5P__get_nprops_plist() */
 
 /*--------------------------------------------------------------------------
@@ -3551,7 +3551,7 @@ H5P_get_nprops_pclass(const H5P_genclass_t *pclass, size_t *nprops, hbool_t recu
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     assert(pclass);
     assert(nprops);
@@ -3566,7 +3566,7 @@ H5P_get_nprops_pclass(const H5P_genclass_t *pclass, size_t *nprops, hbool_t recu
             *nprops += pclass->nprops;
         } /* end while */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_get_nprops_pclass() */
 
 /*--------------------------------------------------------------------------
@@ -3597,7 +3597,7 @@ H5P__cmp_prop(const H5P_genprop_t *prop1, const H5P_genprop_t *prop2)
     int cmp_value;     /* Value from comparison */
     int ret_value = 0; /* return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(prop1);
     assert(prop2);
@@ -3696,7 +3696,7 @@ H5P__cmp_prop(const H5P_genprop_t *prop1, const H5P_genprop_t *prop2)
     } /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__cmp_prop() */
 
 /*--------------------------------------------------------------------------
@@ -3728,7 +3728,7 @@ H5P__cmp_class(const H5P_genclass_t *pclass1, const H5P_genclass_t *pclass2)
     int          cmp_value;       /* Value from comparison */
     int          ret_value = 0;   /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(pclass1);
     assert(pclass2);
@@ -3825,7 +3825,7 @@ H5P__cmp_class(const H5P_genclass_t *pclass1, const H5P_genclass_t *pclass2)
     } /* end while */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__cmp_class() */
 
 /*--------------------------------------------------------------------------
@@ -3858,7 +3858,7 @@ H5P__cmp_plist_cb(H5P_genprop_t *prop, void *_udata)
     htri_t              prop2_exist; /* Whether the property exists in the second property list */
     int                 ret_value = H5_ITER_CONT; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(prop);
@@ -3885,7 +3885,7 @@ H5P__cmp_plist_cb(H5P_genprop_t *prop, void *_udata)
     } /* end else */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__cmp_plist_cb() */
 
 /*--------------------------------------------------------------------------
@@ -3919,7 +3919,7 @@ H5P__cmp_plist(const H5P_genplist_t *plist1, const H5P_genplist_t *plist2, int *
     int                idx       = 0;       /* Index of property to begin with */
     herr_t             ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(plist1);
     assert(plist2);
@@ -3965,7 +3965,7 @@ H5P__cmp_plist(const H5P_genplist_t *plist1, const H5P_genplist_t *plist2, int *
     *cmp_ret = 0;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__cmp_plist() */
 
 /*--------------------------------------------------------------------------
@@ -3996,7 +3996,7 @@ H5P_class_isa(const H5P_genclass_t *pclass1, const H5P_genclass_t *pclass2)
 {
     htri_t ret_value = FAIL; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     assert(pclass1);
     assert(pclass2);
@@ -4014,7 +4014,7 @@ H5P_class_isa(const H5P_genclass_t *pclass1, const H5P_genclass_t *pclass2)
     } /* end else */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_class_isa() */
 
 /*--------------------------------------------------------------------------
@@ -4098,7 +4098,7 @@ H5P_object_verify(hid_t plist_id, hid_t pclass_id)
 {
     H5P_genplist_t *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_NOAPI(NULL)
+    FUNC_ENTER_NOAPI_MUTEX(NULL)
 
     /* Compare the property list's class against the other class */
     if (H5P_isa_class(plist_id, pclass_id) != TRUE)
@@ -4109,7 +4109,7 @@ H5P_object_verify(hid_t plist_id, hid_t pclass_id)
         HGOTO_ERROR(H5E_ID, H5E_BADID, NULL, "can't find object for ID");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_object_verify() */
 
 /*--------------------------------------------------------------------------
@@ -4140,7 +4140,7 @@ H5P__iterate_plist_cb(void *_item, void *_key, void *_udata)
     H5P_iter_plist_ud_t *udata     = (H5P_iter_plist_ud_t *)_udata; /* Pointer to user data */
     int                  ret_value = H5_ITER_CONT;                  /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(item);
@@ -4162,7 +4162,7 @@ H5P__iterate_plist_cb(void *_item, void *_key, void *_udata)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, H5_ITER_ERROR, "can't insert property into 'seen' skip list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__iterate_plist_cb() */
 
 /*--------------------------------------------------------------------------
@@ -4193,7 +4193,7 @@ H5P__iterate_plist_pclass_cb(void *_item, void *_key, void *_udata)
     H5P_iter_plist_ud_t *udata     = (H5P_iter_plist_ud_t *)_udata; /* Pointer to user data */
     int                  ret_value = H5_ITER_CONT;                  /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(item);
@@ -4205,7 +4205,7 @@ H5P__iterate_plist_pclass_cb(void *_item, void *_key, void *_udata)
     if (NULL == H5SL_search(udata->seen, key) && NULL == H5SL_search(udata->plist->del, key))
         ret_value = H5P__iterate_plist_cb(item, key, udata);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__iterate_plist_pclass_cb() */
 
 /*--------------------------------------------------------------------------
@@ -4272,7 +4272,7 @@ H5P__iterate_plist(const H5P_genplist_t *plist, hbool_t iter_all_prop, int *idx,
     int                 curr_idx  = 0;    /* Current iteration index */
     int                 ret_value = 0;    /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(plist);
@@ -4320,7 +4320,7 @@ done:
     if (seen != NULL)
         H5SL_close(seen);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__iterate_plist() */
 
 /*--------------------------------------------------------------------------
@@ -4351,7 +4351,7 @@ H5P__iterate_pclass_cb(void *_item, void H5_ATTR_NDEBUG_UNUSED *_key, void *_uda
     H5P_iter_pclass_ud_t *udata     = (H5P_iter_pclass_ud_t *)_udata; /* Pointer to user data */
     int                   ret_value = 0;                              /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(item);
@@ -4369,7 +4369,7 @@ H5P__iterate_pclass_cb(void *_item, void H5_ATTR_NDEBUG_UNUSED *_key, void *_uda
     (*udata->curr_idx_ptr)++;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__iterate_pclass_cb() */
 
 /*--------------------------------------------------------------------------
@@ -4430,7 +4430,7 @@ H5P__iterate_pclass(const H5P_genclass_t *pclass, int *idx, H5P_iterate_int_t cb
     int                  curr_idx  = 0; /* Current iteration index */
     int                  ret_value = 0; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(pclass);
@@ -4452,7 +4452,7 @@ done:
     /* Set the index we stopped at */
     *idx = curr_idx;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__iterate_pclass() */
 
 /*--------------------------------------------------------------------------
@@ -4484,7 +4484,7 @@ H5P__peek_cb(H5P_genplist_t H5_ATTR_NDEBUG_UNUSED *plist, const char H5_ATTR_NDE
     H5P_prop_get_ud_t *udata     = (H5P_prop_get_ud_t *)_udata; /* User data for callback */
     herr_t             ret_value = SUCCEED;                     /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(plist);
@@ -4499,7 +4499,7 @@ H5P__peek_cb(H5P_genplist_t H5_ATTR_NDEBUG_UNUSED *plist, const char H5_ATTR_NDE
     H5MM_memcpy(udata->value, prop->value, prop->size);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__peek_cb() */
 
 /*--------------------------------------------------------------------------
@@ -4577,7 +4577,7 @@ H5P__get_cb(H5P_genplist_t *plist, const char *name, H5P_genprop_t *prop, void *
     void              *tmp_value = NULL;                        /* Temporary value for property */
     herr_t             ret_value = SUCCEED;                     /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(plist);
@@ -4611,7 +4611,7 @@ done:
     if (tmp_value)
         H5MM_xfree(tmp_value);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__get_cb() */
 
 /*--------------------------------------------------------------------------
@@ -4648,7 +4648,7 @@ H5P_get(H5P_genplist_t *plist, const char *name, void *value)
     H5P_prop_get_ud_t udata;               /* User data for callback */
     herr_t            ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(plist);
@@ -4661,7 +4661,7 @@ H5P_get(H5P_genplist_t *plist, const char *name, void *value)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTOPERATE, FAIL, "can't operate on plist to get value");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_get() */
 
 /*--------------------------------------------------------------------------
@@ -4691,7 +4691,7 @@ H5P__del_plist_cb(H5P_genplist_t *plist, const char *name, H5P_genprop_t *prop, 
     char  *del_name  = NULL;    /* Pointer to deleted name */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(plist);
@@ -4729,7 +4729,7 @@ done:
         if (del_name)
             H5MM_xfree(del_name);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__del_plist_cb() */
 
 /*--------------------------------------------------------------------------
@@ -4760,7 +4760,7 @@ H5P__del_pclass_cb(H5P_genplist_t *plist, const char *name, H5P_genprop_t *prop,
     void  *tmp_value = NULL;    /* Temporary value for property */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(plist);
@@ -4801,7 +4801,7 @@ done:
         if (del_name)
             H5MM_xfree(del_name);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__del_pclass_cb() */
 
 /*--------------------------------------------------------------------------
@@ -4835,7 +4835,7 @@ H5P_remove(H5P_genplist_t *plist, const char *name)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Sanity check */
     assert(plist);
@@ -4846,7 +4846,7 @@ H5P_remove(H5P_genplist_t *plist, const char *name)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTOPERATE, FAIL, "can't operate on plist to remove value");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_remove() */
 
 /*--------------------------------------------------------------------------
@@ -4889,7 +4889,7 @@ H5P__copy_prop_plist(hid_t dst_id, hid_t src_id, const char *name)
     H5P_genprop_t  *new_prop  = NULL;    /* Pointer to new property */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(name);
 
@@ -4958,7 +4958,7 @@ done:
             H5P__free_prop(new_prop);
     } /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__copy_prop_plist() */
 
 /*--------------------------------------------------------------------------
@@ -4999,7 +4999,7 @@ H5P__copy_prop_pclass(hid_t dst_id, hid_t src_id, const char *name)
     H5P_genprop_t  *prop;                /* Temporary property pointer */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(name);
@@ -5045,7 +5045,7 @@ H5P__copy_prop_pclass(hid_t dst_id, hid_t src_id, const char *name)
 done:
     /* Cleanup, if necessary */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__copy_prop_pclass() */
 
 /*--------------------------------------------------------------------------
@@ -5075,7 +5075,7 @@ H5P__unregister(H5P_genclass_t *pclass, const char *name)
     H5P_genprop_t *prop;                /* Temporary property pointer */
     herr_t         ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(pclass);
     assert(name);
@@ -5098,7 +5098,7 @@ H5P__unregister(H5P_genclass_t *pclass, const char *name)
     pclass->revision = H5P_GET_NEXT_REV;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__unregister() */
 
 /*--------------------------------------------------------------------------
@@ -5138,7 +5138,7 @@ H5P_close(H5P_genplist_t *plist)
     unsigned        make_cb   = 0;       /* Operator data for property free callback */
     herr_t          ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_MUTEX
 
     assert(plist);
 
@@ -5270,7 +5270,7 @@ done:
     if (seen != NULL)
         H5SL_close(seen);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_close() */
 
 /*--------------------------------------------------------------------------
@@ -5298,14 +5298,14 @@ H5P_get_class_name(H5P_genclass_t *pclass)
 {
     char *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     assert(pclass);
 
     /* Get class name */
     ret_value = H5MM_xstrdup(pclass->name);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P_get_class_name() */
 
 /*--------------------------------------------------------------------------
@@ -5334,7 +5334,7 @@ H5P__get_class_path(H5P_genclass_t *pclass)
 {
     char *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(pclass);
 
@@ -5368,7 +5368,7 @@ H5P__get_class_path(H5P_genclass_t *pclass)
         ret_value = H5MM_xstrdup(pclass->name);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__get_class_path() */
 
 /*--------------------------------------------------------------------------
@@ -5400,7 +5400,7 @@ H5P__open_class_path(const char *path)
     H5P_check_class_t check_info;       /* Structure to hold the information for checking duplicate names */
     H5P_genclass_t   *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(path);
 
@@ -5452,7 +5452,7 @@ done:
     /* Free the duplicated path */
     H5MM_xfree(tmp_path);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__open_class_path() */
 
 /*--------------------------------------------------------------------------
@@ -5479,14 +5479,14 @@ H5P__get_class_parent(const H5P_genclass_t *pclass)
 {
     H5P_genclass_t *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(pclass);
 
     /* Get property size */
     ret_value = pclass->parent;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__get_class_parent() */
 
 /*--------------------------------------------------------------------------
@@ -5511,7 +5511,7 @@ H5P__close_class(H5P_genclass_t *pclass)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_MUTEX
 
     assert(pclass);
 
@@ -5520,7 +5520,7 @@ H5P__close_class(H5P_genclass_t *pclass)
         HGOTO_ERROR(H5E_PLIST, H5E_NOTFOUND, FAIL, "can't decrement ID ref count");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__close_class() */
 
 /*-------------------------------------------------------------------------
@@ -5540,7 +5540,7 @@ H5P__new_plist_of_type(H5P_plist_type_t type)
     hid_t           class_id;                    /* ID of class to create */
     hid_t           ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity checks */
     HDcompile_assert(H5P_TYPE_REFERENCE_ACCESS == (H5P_TYPE_MAX_TYPE - 1));
@@ -5655,7 +5655,7 @@ H5P__new_plist_of_type(H5P_plist_type_t type)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCREATE, H5I_INVALID_HID, "unable to create property list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__new_plist_of_type() */
 
 /*-------------------------------------------------------------------------
@@ -5674,12 +5674,12 @@ done:
 hid_t
 H5P_get_plist_id(const H5P_genplist_t *plist)
 {
-    /* Use FUNC_ENTER_NOAPI_NOINIT_NOERR here to avoid performance issues */
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOERR here to avoid performance issues _MUTEX*/
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     assert(plist);
 
-    FUNC_LEAVE_NOAPI(plist->plist_id)
+    FUNC_LEAVE_NOAPI_MUTEX(plist->plist_id)
 } /* end H5P_get_plist_id() */
 
 /*-------------------------------------------------------------------------
@@ -5698,12 +5698,12 @@ H5P_get_plist_id(const H5P_genplist_t *plist)
 H5P_genclass_t *
 H5P_get_class(const H5P_genplist_t *plist)
 {
-    /* Use FUNC_ENTER_NOAPI_NOINIT_NOERR here to avoid performance issues */
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    /* Use FUNC_ENTER_NOAPI_NOINIT_NOERR here to avoid performance issues _MUTEX*/
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     assert(plist);
 
-    FUNC_LEAVE_NOAPI(plist->pclass)
+    FUNC_LEAVE_NOAPI_MUTEX(plist->pclass)
 } /* end H5P_get_class() */
 
 /*-------------------------------------------------------------------------
@@ -5718,7 +5718,7 @@ H5P_get_class(const H5P_genplist_t *plist)
 int
 H5P_ignore_cmp(const void H5_ATTR_UNUSED *val1, const void H5_ATTR_UNUSED *val2, size_t H5_ATTR_UNUSED size)
 {
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
-    FUNC_LEAVE_NOAPI(0)
+    FUNC_LEAVE_NOAPI_MUTEX(0)
 } /* end H5P_ignore_cmp() */

@@ -1829,6 +1829,13 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
         H5_PUSH_FUNC                                                                                         \
         {
 
+#define FUNC_ENTER_NOAPI_NOINIT_MUTEX                                                                       \
+    {                                                                                                        \
+        FUNC_ENTER_COMMON(!H5_IS_API(__func__));                                                             \
+        H5_API_LOCK                                                                                          \
+        H5_PUSH_FUNC                                                                                         \
+        {
+
 /*
  * Use this macro for non-API functions which fall into these categories:
  *      - static functions, since they must be called from a function in the
@@ -1915,10 +1922,24 @@ H5_DLL herr_t H5CX_pop(hbool_t update_dxpl_props);
         H5_PUSH_FUNC                                                                                         \
         {
 
+#define FUNC_ENTER_PACKAGE_MUTEX                                                                            \
+    {                                                                                                        \
+        FUNC_ENTER_COMMON(H5_IS_PKG(__func__));                                                              \
+        H5_API_LOCK                                                                                          \
+        H5_PUSH_FUNC                                                                                         \
+        {
+
 /* Use this macro for package-level functions which propgate errors, but don't issue them */
 #define FUNC_ENTER_PACKAGE_NOERR                                                                             \
     {                                                                                                        \
         FUNC_ENTER_COMMON_NOERR(H5_IS_PKG(__func__));                                                        \
+        H5_PUSH_FUNC                                                                                         \
+        {
+
+#define FUNC_ENTER_PACKAGE_NOERR_MUTEX                                                                      \
+    {                                                                                                        \
+        FUNC_ENTER_COMMON_NOERR(H5_IS_PKG(__func__));                                                        \
+        H5_API_LOCK                                                                                          \
         H5_PUSH_FUNC                                                                                         \
         {
 

@@ -195,7 +195,7 @@ H5P__dacc_reg_prop(H5P_genclass_t *pclass)
     hsize_t        printf_gap   = H5D_ACS_VDS_PRINTF_GAP_DEF; /* Default VDS printf gap */
     herr_t         ret_value    = SUCCEED;                    /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Register the size of raw data chunk cache (elements) */
     if (H5P__register_real(pclass, H5D_ACS_DATA_CACHE_NUM_SLOTS_NAME, H5D_ACS_DATA_CACHE_NUM_SLOTS_SIZE,
@@ -248,7 +248,7 @@ H5P__dacc_reg_prop(H5P_genclass_t *pclass)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dacc_reg_prop() */
 
 /*-------------------------------------------------------------------------
@@ -264,7 +264,7 @@ static herr_t
 H5P__dapl_vds_file_pref_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
                             size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -272,7 +272,7 @@ H5P__dapl_vds_file_pref_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNU
     /* Copy the prefix */
     *(char **)value = H5MM_xstrdup(*(const char **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_vds_file_pref_set() */
 
 /*-------------------------------------------------------------------------
@@ -288,7 +288,7 @@ static herr_t
 H5P__dapl_vds_file_pref_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
                             size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -296,7 +296,7 @@ H5P__dapl_vds_file_pref_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNU
     /* Copy the prefix */
     *(char **)value = H5MM_xstrdup(*(const char **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_vds_file_pref_get() */
 
 /*-------------------------------------------------------------------------
@@ -318,7 +318,7 @@ H5P__dapl_vds_file_pref_enc(const void *value, void **_pp, size_t *size)
     uint64_t    enc_value;
     unsigned    enc_size;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
 
@@ -346,7 +346,7 @@ H5P__dapl_vds_file_pref_enc(const void *value, void **_pp, size_t *size)
     if (NULL != vds_file_pref)
         *size += len;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_vds_file_pref_enc() */
 
 /*-------------------------------------------------------------------------
@@ -369,7 +369,7 @@ H5P__dapl_vds_file_pref_dec(const void **_pp, void *_value)
     unsigned        enc_size;  /* Size of encoded property */
     herr_t          ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(pp);
     assert(*pp);
@@ -397,7 +397,7 @@ H5P__dapl_vds_file_pref_dec(const void **_pp, void *_value)
         *vds_file_pref = NULL;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dapl_vds_file_pref_dec() */
 
 /*-------------------------------------------------------------------------
@@ -412,13 +412,13 @@ static herr_t
 H5P__dapl_vds_file_pref_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
                             size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     H5MM_xfree(*(void **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_vds_file_pref_del() */
 
 /*-------------------------------------------------------------------------
@@ -432,13 +432,13 @@ H5P__dapl_vds_file_pref_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNU
 static herr_t
 H5P__dapl_vds_file_pref_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     *(char **)value = H5MM_xstrdup(*(const char **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_vds_file_pref_copy() */
 
 /*-------------------------------------------------------------------------
@@ -458,7 +458,7 @@ H5P__dapl_vds_file_pref_cmp(const void *value1, const void *value2, size_t H5_AT
     const char *pref2     = *(const char *const *)value2;
     int         ret_value = 0;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     if (NULL == pref1 && NULL != pref2)
         HGOTO_DONE(1);
@@ -468,7 +468,7 @@ H5P__dapl_vds_file_pref_cmp(const void *value1, const void *value2, size_t H5_AT
         ret_value = HDstrcmp(pref1, pref2);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dapl_vds_file_pref_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -482,13 +482,13 @@ done:
 static herr_t
 H5P__dapl_vds_file_pref_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     H5MM_xfree(*(void **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_vds_file_pref_close() */
 
 /*-------------------------------------------------------------------------
@@ -504,7 +504,7 @@ static herr_t
 H5P__dapl_efile_pref_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
                          size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -512,7 +512,7 @@ H5P__dapl_efile_pref_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     /* Copy the prefix */
     *(char **)value = H5MM_xstrdup(*(const char **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_efile_pref_set() */
 
 /*-------------------------------------------------------------------------
@@ -528,7 +528,7 @@ static herr_t
 H5P__dapl_efile_pref_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
                          size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -536,7 +536,7 @@ H5P__dapl_efile_pref_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     /* Copy the prefix */
     *(char **)value = H5MM_xstrdup(*(const char **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_efile_pref_get() */
 
 /*-------------------------------------------------------------------------
@@ -558,7 +558,7 @@ H5P__dapl_efile_pref_enc(const void *value, void **_pp, size_t *size)
     uint64_t    enc_value;
     unsigned    enc_size;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
 
@@ -586,7 +586,7 @@ H5P__dapl_efile_pref_enc(const void *value, void **_pp, size_t *size)
     if (NULL != efile_pref)
         *size += len;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_efile_pref_enc() */
 
 /*-------------------------------------------------------------------------
@@ -609,7 +609,7 @@ H5P__dapl_efile_pref_dec(const void **_pp, void *_value)
     unsigned        enc_size;  /* Size of encoded property */
     herr_t          ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(pp);
     assert(*pp);
@@ -637,7 +637,7 @@ H5P__dapl_efile_pref_dec(const void **_pp, void *_value)
         *efile_pref = NULL;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dapl_efile_pref_dec() */
 
 /*-------------------------------------------------------------------------
@@ -652,13 +652,13 @@ static herr_t
 H5P__dapl_efile_pref_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
                          size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     H5MM_xfree(*(void **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_efile_pref_del() */
 
 /*-------------------------------------------------------------------------
@@ -672,13 +672,13 @@ H5P__dapl_efile_pref_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
 static herr_t
 H5P__dapl_efile_pref_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     *(char **)value = H5MM_xstrdup(*(const char **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_efile_pref_copy() */
 
 /*-------------------------------------------------------------------------
@@ -698,7 +698,7 @@ H5P__dapl_efile_pref_cmp(const void *value1, const void *value2, size_t H5_ATTR_
     const char *pref2     = *(const char *const *)value2;
     int         ret_value = 0;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     if (NULL == pref1 && NULL != pref2)
         HGOTO_DONE(1);
@@ -708,7 +708,7 @@ H5P__dapl_efile_pref_cmp(const void *value1, const void *value2, size_t H5_ATTR_
         ret_value = HDstrcmp(pref1, pref2);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dapl_efile_pref_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -722,13 +722,13 @@ done:
 static herr_t
 H5P__dapl_efile_pref_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     H5MM_xfree(*(void **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dapl_efile_pref_close() */
 
 /*-------------------------------------------------------------------------
@@ -868,7 +868,7 @@ H5P__encode_chunk_cache_nslots(const void *value, void **_pp, size_t *size)
     uint8_t **pp        = (uint8_t **)_pp;
     unsigned  enc_size; /* Size of encoded property */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
@@ -899,7 +899,7 @@ H5P__encode_chunk_cache_nslots(const void *value, void **_pp, size_t *size)
         } /* end if */
     }     /* end if */
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__encode_chunk_cache_nslots() */
 
 /*-------------------------------------------------------------------------
@@ -923,7 +923,7 @@ H5P__decode_chunk_cache_nslots(const void **_pp, void *_value)
     uint64_t        enc_value; /* Decoded property value */
     unsigned        enc_size;  /* Size of encoded property */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
@@ -945,7 +945,7 @@ H5P__decode_chunk_cache_nslots(const void **_pp, void *_value)
         H5_CHECKED_ASSIGN(*value, uint64_t, enc_value, size_t);
     } /* end else */
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__decode_chunk_cache_nslots() */
 
 /*-------------------------------------------------------------------------
@@ -968,7 +968,7 @@ H5P__encode_chunk_cache_nbytes(const void *value, void **_pp, size_t *size)
     uint8_t **pp        = (uint8_t **)_pp;
     unsigned  enc_size; /* Size of encoded property */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
@@ -999,7 +999,7 @@ H5P__encode_chunk_cache_nbytes(const void *value, void **_pp, size_t *size)
         } /* end if */
     }     /* end if */
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__encode_chunk_cache_nbytes() */
 
 /*-------------------------------------------------------------------------
@@ -1023,7 +1023,7 @@ H5P__decode_chunk_cache_nbytes(const void **_pp, void *_value)
     uint64_t        enc_value; /* Decoded property value */
     unsigned        enc_size;  /* Size of encoded property */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
@@ -1045,7 +1045,7 @@ H5P__decode_chunk_cache_nbytes(const void **_pp, void *_value)
         H5_CHECKED_ASSIGN(*value, uint64_t, enc_value, size_t);
     } /* end else */
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__decode_chunk_cache_nbytes() */
 
 /*-------------------------------------------------------------------------
@@ -1139,7 +1139,7 @@ H5P__dacc_vds_view_enc(const void *value, void **_pp, size_t *size)
     const H5D_vds_view_t *view = (const H5D_vds_view_t *)value; /* Create local alias for values */
     uint8_t             **pp   = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(view);
@@ -1152,7 +1152,7 @@ H5P__dacc_vds_view_enc(const void *value, void **_pp, size_t *size)
     /* Size of EDC property */
     (*size)++;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dacc_vds_view_enc() */
 
 /*-------------------------------------------------------------------------
@@ -1171,7 +1171,7 @@ H5P__dacc_vds_view_dec(const void **_pp, void *_value)
     H5D_vds_view_t *view = (H5D_vds_view_t *)_value;
     const uint8_t **pp   = (const uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -1181,7 +1181,7 @@ H5P__dacc_vds_view_dec(const void **_pp, void *_value)
     /* Decode EDC property */
     *view = (H5D_vds_view_t) * (*pp)++;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dacc_vds_view_dec() */
 
 /*-------------------------------------------------------------------------

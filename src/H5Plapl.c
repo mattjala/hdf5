@@ -184,7 +184,7 @@ H5P__lacc_reg_prop(H5P_genclass_t *pclass)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Register property for number of links traversed */
     if (H5P__register_real(pclass, H5L_ACS_NLINKS_NAME, H5L_ACS_NLINKS_SIZE, &H5L_def_nlinks_g, NULL, NULL,
@@ -227,7 +227,7 @@ H5P__lacc_reg_prop(H5P_genclass_t *pclass)
 #endif /* H5_HAVE_PARALLEL */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__lacc_reg_prop() */
 
 /*-------------------------------------------------------------------------
@@ -247,7 +247,7 @@ H5P__lacc_elink_fapl_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     hid_t  l_fapl_id;
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -266,7 +266,7 @@ H5P__lacc_elink_fapl_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     } /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__lacc_elink_fapl_set() */
 
 /*-------------------------------------------------------------------------
@@ -286,7 +286,7 @@ H5P__lacc_elink_fapl_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     hid_t  l_fapl_id;
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -305,7 +305,7 @@ H5P__lacc_elink_fapl_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     } /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__lacc_elink_fapl_get() */
 
 /*-------------------------------------------------------------------------
@@ -330,7 +330,7 @@ H5P__lacc_elink_fapl_enc(const void *value, void **_pp, size_t *size)
     size_t          fapl_size        = 0;       /* FAPL's encoded size */
     herr_t          ret_value        = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check for non-default FAPL */
     if (*elink_fapl != H5P_DEFAULT) {
@@ -373,7 +373,7 @@ H5P__lacc_elink_fapl_enc(const void *value, void **_pp, size_t *size)
     *size += (1 + fapl_size); /* Non-default flag, plus encoded property list size */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__lacc_elink_fapl_enc() */
 
 /*-------------------------------------------------------------------------
@@ -396,7 +396,7 @@ H5P__lacc_elink_fapl_dec(const void **_pp, void *_value)
     hbool_t         non_default_fapl;    /* Whether the FAPL is non-default */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(pp);
@@ -428,7 +428,7 @@ H5P__lacc_elink_fapl_dec(const void **_pp, void *_value)
         *elink_fapl = H5P_DEFAULT;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__lacc_elink_fapl_dec() */
 
 /*--------------------------------------------------------------------------
@@ -448,7 +448,7 @@ H5P__lacc_elink_fapl_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     hid_t  l_fapl_id;
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -461,7 +461,7 @@ H5P__lacc_elink_fapl_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "unable to close ID for file access property list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__lacc_elink_fapl_del() */
 
 /*--------------------------------------------------------------------------
@@ -480,7 +480,7 @@ H5P__lacc_elink_fapl_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED
     hid_t  l_fapl_id;
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -499,7 +499,7 @@ H5P__lacc_elink_fapl_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED
     } /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__lacc_elink_fapl_copy() */
 
 /*-------------------------------------------------------------------------
@@ -521,7 +521,7 @@ H5P__lacc_elink_fapl_cmp(const void *value1, const void *value2, size_t H5_ATTR_
     H5P_genplist_t *obj1, *obj2; /* Property lists to compare */
     int             ret_value = 0;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Check for comparison with default value */
     if (*fapl1 == 0 && *fapl2 > 0)
@@ -546,7 +546,7 @@ H5P__lacc_elink_fapl_cmp(const void *value1, const void *value2, size_t H5_ATTR_
     } /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__lacc_elink_fapl_cmp() */
 
 /*--------------------------------------------------------------------------
@@ -565,7 +565,7 @@ H5P__lacc_elink_fapl_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSE
     hid_t  l_fapl_id;
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -578,7 +578,7 @@ H5P__lacc_elink_fapl_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSE
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "unable to close ID for file access property list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__lacc_elink_fapl_close() */
 
 /*-------------------------------------------------------------------------
@@ -595,7 +595,7 @@ static herr_t
 H5P__lacc_elink_pref_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
                          size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -603,7 +603,7 @@ H5P__lacc_elink_pref_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     /* Copy the prefix */
     *(char **)value = H5MM_xstrdup(*(const char **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__lacc_elink_pref_set() */
 
 /*-------------------------------------------------------------------------
@@ -620,7 +620,7 @@ static herr_t
 H5P__lacc_elink_pref_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
                          size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -628,7 +628,7 @@ H5P__lacc_elink_pref_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     /* Copy the prefix */
     *(char **)value = H5MM_xstrdup(*(const char **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__lacc_elink_pref_get() */
 
 /*-------------------------------------------------------------------------
@@ -652,7 +652,7 @@ H5P__lacc_elink_pref_enc(const void *value, void **_pp, size_t *size)
     uint64_t    enc_value;
     unsigned    enc_size;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
 
@@ -680,7 +680,7 @@ H5P__lacc_elink_pref_enc(const void *value, void **_pp, size_t *size)
     if (NULL != elink_pref)
         *size += len;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__lacc_elink_pref_enc() */
 
 /*-------------------------------------------------------------------------
@@ -705,7 +705,7 @@ H5P__lacc_elink_pref_dec(const void **_pp, void *_value)
     unsigned        enc_size;  /* Size of encoded property */
     herr_t          ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(pp);
     assert(*pp);
@@ -733,7 +733,7 @@ H5P__lacc_elink_pref_dec(const void **_pp, void *_value)
         *elink_pref = NULL;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__lacc_elink_pref_dec() */
 
 /*-------------------------------------------------------------------------
@@ -749,13 +749,13 @@ static herr_t
 H5P__lacc_elink_pref_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
                          size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     H5MM_xfree(*(void **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__lacc_elink_pref_del() */
 
 /*-------------------------------------------------------------------------
@@ -770,13 +770,13 @@ H5P__lacc_elink_pref_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
 static herr_t
 H5P__lacc_elink_pref_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     *(char **)value = H5MM_xstrdup(*(const char **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__lacc_elink_pref_copy() */
 
 /*-------------------------------------------------------------------------
@@ -797,7 +797,7 @@ H5P__lacc_elink_pref_cmp(const void *value1, const void *value2, size_t H5_ATTR_
     const char *pref2     = *(const char *const *)value2;
     int         ret_value = 0;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     if (NULL == pref1 && NULL != pref2)
         HGOTO_DONE(1);
@@ -807,7 +807,7 @@ H5P__lacc_elink_pref_cmp(const void *value1, const void *value2, size_t H5_ATTR_
         ret_value = HDstrcmp(pref1, pref2);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__lacc_elink_pref_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -822,13 +822,13 @@ done:
 static herr_t
 H5P__lacc_elink_pref_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     H5MM_xfree(*(void **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__lacc_elink_pref_close() */
 
 /*-------------------------------------------------------------------------

@@ -56,7 +56,7 @@ H5P__get_class_path_test(hid_t pclass_id)
     H5P_genclass_t *pclass;           /* Property class to query */
     char           *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check arguments. */
     if (NULL == (pclass = (H5P_genclass_t *)H5I_object_verify(pclass_id, H5I_GENPROP_CLS)))
@@ -67,7 +67,7 @@ H5P__get_class_path_test(hid_t pclass_id)
         HGOTO_ERROR(H5E_PLIST, H5E_NOTFOUND, NULL, "unable to query full path of class");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__get_class_path_test() */
 
 /*--------------------------------------------------------------------------
@@ -96,7 +96,7 @@ H5P__open_class_path_test(const char *path)
     H5P_genclass_t *pclass    = NULL;            /* Property class to query */
     hid_t           ret_value = H5I_INVALID_HID; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check arguments. */
     if (NULL == path || *path == '\0')
@@ -114,5 +114,5 @@ done:
     if (H5I_INVALID_HID == ret_value && pclass)
         H5P__close_class(pclass);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__open_class_path_test() */

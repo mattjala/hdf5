@@ -82,7 +82,7 @@ H5P__encode_size_t(const void *value, void **_pp, size_t *size)
     uint8_t **pp        = (uint8_t **)_pp;
     unsigned  enc_size  = H5VM_limit_enc_size(enc_value); /* Size of encoded property */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
@@ -100,7 +100,7 @@ H5P__encode_size_t(const void *value, void **_pp, size_t *size)
     /* Set size needed for encoding */
     *size += (1 + enc_size);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__encode_size_t() */
 
 /*-------------------------------------------------------------------------
@@ -120,7 +120,7 @@ H5P__encode_hsize_t(const void *value, void **_pp, size_t *size)
     unsigned  enc_size  = H5VM_limit_enc_size(enc_value);      /* Size of encoded property */
     uint8_t **pp        = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     HDcompile_assert(sizeof(hsize_t) <= sizeof(uint64_t));
@@ -137,7 +137,7 @@ H5P__encode_hsize_t(const void *value, void **_pp, size_t *size)
     /* Set size needed for encoding */
     *size += (1 + enc_size);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__encode_hsize_t() */
 
 /*-------------------------------------------------------------------------
@@ -155,7 +155,7 @@ H5P__encode_unsigned(const void *value, void **_pp, size_t *size)
 {
     uint8_t **pp = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(value);
@@ -172,7 +172,7 @@ H5P__encode_unsigned(const void *value, void **_pp, size_t *size)
     /* Set size needed for encoding */
     *size += (1 + sizeof(unsigned));
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__encode_unsigned() */
 
 /*-------------------------------------------------------------------------
@@ -190,7 +190,7 @@ H5P__encode_uint8_t(const void *value, void **_pp, size_t *size)
 {
     uint8_t **pp = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(value);
@@ -204,7 +204,7 @@ H5P__encode_uint8_t(const void *value, void **_pp, size_t *size)
     /* Set size needed for encoding */
     *size += 1;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__encode_uint8_t() */
 
 /*-------------------------------------------------------------------------
@@ -222,7 +222,7 @@ H5P__encode_hbool_t(const void *value, void **_pp, size_t *size)
 {
     uint8_t **pp = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(value);
@@ -235,7 +235,7 @@ H5P__encode_hbool_t(const void *value, void **_pp, size_t *size)
     /* Set size needed for encoding */
     *size += 1;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__encode_hbool_t() */
 
 /*-------------------------------------------------------------------------
@@ -253,7 +253,7 @@ H5P__encode_double(const void *value, void **_pp, size_t *size)
 {
     uint8_t **pp = (uint8_t **)_pp;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(value);
@@ -270,7 +270,7 @@ H5P__encode_double(const void *value, void **_pp, size_t *size)
     /* Set size needed for encoding */
     *size += (1 + sizeof(double));
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__encode_double() */
 
 /*--------------------------------------------------------------------------
@@ -299,7 +299,7 @@ H5P__encode_cb(H5P_genprop_t *prop, void *_udata)
     H5P_enc_iter_ud_t *udata     = (H5P_enc_iter_ud_t *)_udata; /* Pointer to user data */
     int                ret_value = H5_ITER_CONT;                /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(prop);
@@ -326,7 +326,7 @@ H5P__encode_cb(H5P_genprop_t *prop, void *_udata)
     } /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__encode_cb() */
 
 /*-------------------------------------------------------------------------
@@ -362,7 +362,7 @@ H5P__encode(const H5P_genplist_t *plist, hbool_t enc_all_prop, void *buf, size_t
     hbool_t           encode      = TRUE;    /* Whether the property list should be encoded */
     herr_t            ret_value   = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     if (NULL == nalloc)
@@ -403,7 +403,7 @@ H5P__encode(const H5P_genplist_t *plist, hbool_t enc_all_prop, void *buf, size_t
     *nalloc = encode_size;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__encode() */
 
 /*-------------------------------------------------------------------------
@@ -424,7 +424,7 @@ H5P__decode_size_t(const void **_pp, void *_value)
     uint64_t        enc_value; /* Decoded property value */
     unsigned        enc_size;  /* Size of encoded property */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
@@ -440,7 +440,7 @@ H5P__decode_size_t(const void **_pp, void *_value)
     UINT64DECODE_VAR(*pp, enc_value, enc_size);
     H5_CHECKED_ASSIGN(*value, size_t, enc_value, uint64_t);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__decode_size_t() */
 
 /*-------------------------------------------------------------------------
@@ -461,7 +461,7 @@ H5P__decode_hsize_t(const void **_pp, void *_value)
     uint64_t        enc_value; /* Decoded property value */
     unsigned        enc_size;  /* Size of encoded property */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     HDcompile_assert(sizeof(hsize_t) <= sizeof(uint64_t));
@@ -477,7 +477,7 @@ H5P__decode_hsize_t(const void **_pp, void *_value)
     UINT64DECODE_VAR(*pp, enc_value, enc_size);
     H5_CHECKED_ASSIGN(*value, hsize_t, enc_value, uint64_t);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__decode_hsize_t() */
 
 /*-------------------------------------------------------------------------
@@ -498,7 +498,7 @@ H5P__decode_unsigned(const void **_pp, void *_value)
     unsigned        enc_size;            /* Size of encoded property */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -513,7 +513,7 @@ H5P__decode_unsigned(const void **_pp, void *_value)
     H5_DECODE_UNSIGNED(*pp, *value);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__decode_unsigned() */
 
 /*-------------------------------------------------------------------------
@@ -533,7 +533,7 @@ H5P__decode_uint8_t(const void **_pp, void *_value)
     const uint8_t **pp        = (const uint8_t **)_pp;
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -543,7 +543,7 @@ H5P__decode_uint8_t(const void **_pp, void *_value)
     /* Decode the value */
     *value = *(*pp)++;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__decode_uint8_t() */
 
 /*-------------------------------------------------------------------------
@@ -563,7 +563,7 @@ H5P__decode_hbool_t(const void **_pp, void *_value)
     const uint8_t **pp        = (const uint8_t **)_pp;
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -573,7 +573,7 @@ H5P__decode_hbool_t(const void **_pp, void *_value)
     /* Decode the value */
     *value = (hbool_t) * (*pp)++;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__decode_hbool_t() */
 
 /*-------------------------------------------------------------------------
@@ -594,7 +594,7 @@ H5P__decode_double(const void **_pp, void *_value)
     unsigned        enc_size;            /* Size of encoded property */
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -609,7 +609,7 @@ H5P__decode_double(const void **_pp, void *_value)
     H5_DECODE_DOUBLE(*pp, *value);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__decode_double() */
 
 /*-------------------------------------------------------------------------
@@ -647,7 +647,7 @@ H5P__decode(const void *buf)
     uint8_t          vers;                             /* Version of encoded property list */
     hid_t            ret_value = H5I_INVALID_HID;      /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     if (NULL == p)
@@ -725,5 +725,5 @@ done:
                         "unable to close partially initialized property list");
     } /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__decode() */

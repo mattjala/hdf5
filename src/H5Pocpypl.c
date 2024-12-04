@@ -150,7 +150,7 @@ H5P__ocpy_reg_prop(H5P_genclass_t *pclass)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Register copy options property */
     if (H5P__register_real(pclass, H5O_CPY_OPTION_NAME, H5O_CPY_OPTION_SIZE, &H5O_def_ocpy_option_g, NULL,
@@ -174,7 +174,7 @@ H5P__ocpy_reg_prop(H5P_genclass_t *pclass)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocpy_reg_prop() */
 
 /*-------------------------------------------------------------------------
@@ -189,7 +189,7 @@ done:
 static H5O_copy_dtype_merge_list_t *
 H5P__free_merge_comm_dtype_list(H5O_copy_dtype_merge_list_t *dt_list)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Free the list */
     while (dt_list) {
@@ -203,7 +203,7 @@ H5P__free_merge_comm_dtype_list(H5O_copy_dtype_merge_list_t *dt_list)
         dt_list = tmp_node;
     } /* end while */
 
-    FUNC_LEAVE_NOAPI(NULL)
+    FUNC_LEAVE_NOAPI_MUTEX(NULL)
 } /* H5P__free_merge_comm_dtype_list */
 
 /*--------------------------------------------------------------------------
@@ -225,7 +225,7 @@ H5P__copy_merge_comm_dt_list(H5O_copy_dtype_merge_list_t **value)
                                 *tmp_dt_list            = NULL; /* temporary merge named datatype lists */
     herr_t ret_value                                    = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -266,7 +266,7 @@ done:
         } /* end if */
     }     /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__copy_merge_comm_dt_list() */
 
 /*-------------------------------------------------------------------------
@@ -285,7 +285,7 @@ H5P__ocpy_merge_comm_dt_list_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATT
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -295,7 +295,7 @@ H5P__ocpy_merge_comm_dt_list_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATT
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy merge committed dtype list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocpy_merge_comm_dt_list_set() */
 
 /*-------------------------------------------------------------------------
@@ -314,7 +314,7 @@ H5P__ocpy_merge_comm_dt_list_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATT
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -324,7 +324,7 @@ H5P__ocpy_merge_comm_dt_list_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATT
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy merge committed dtype list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocpy_merge_comm_dt_list_get() */
 
 /*-------------------------------------------------------------------------
@@ -347,7 +347,7 @@ H5P__ocpy_merge_comm_dt_list_enc(const void *value, void **_pp, size_t *size)
     const H5O_copy_dtype_merge_list_t        *dt_list; /* Pointer to merge named datatype list */
     size_t                                    len;     /* Length of path component */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(dt_list_ptr);
     assert(size);
@@ -378,7 +378,7 @@ H5P__ocpy_merge_comm_dt_list_enc(const void *value, void **_pp, size_t *size)
     /* Account for the string sequence terminator */
     *size += 1;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__ocpy_merge_comm_dt_list_enc() */
 
 /*-------------------------------------------------------------------------
@@ -404,7 +404,7 @@ H5P__ocpy_merge_comm_dt_list_dec(const void **_pp, void *_value)
     size_t len;                                       /* Length of path component */
     herr_t ret_value = SUCCEED;                       /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(pp);
@@ -452,7 +452,7 @@ done:
         } /* end if */
     }     /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* H5P__ocpy_merge_comm_dt_list_dec() */
 
 /*--------------------------------------------------------------------------
@@ -469,7 +469,7 @@ static herr_t
 H5P__ocpy_merge_comm_dt_list_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *name,
                                  size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -477,7 +477,7 @@ H5P__ocpy_merge_comm_dt_list_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATT
     /* Free the merge named dtype list */
     H5P__free_merge_comm_dtype_list(*(H5O_copy_dtype_merge_list_t **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__ocpy_merge_comm_dt_list_del() */
 
 /*--------------------------------------------------------------------------
@@ -495,7 +495,7 @@ H5P__ocpy_merge_comm_dt_list_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATT
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -505,7 +505,7 @@ H5P__ocpy_merge_comm_dt_list_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATT
         HGOTO_ERROR(H5E_PLIST, H5E_CANTCOPY, FAIL, "can't copy merge committed dtype list");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocpy_merge_comm_dt_list_copy() */
 
 /*-------------------------------------------------------------------------
@@ -529,7 +529,7 @@ H5P__ocpy_merge_comm_dt_list_cmp(const void *_dt_list1, const void *_dt_list2, s
         *dt_list2    = *(H5O_copy_dtype_merge_list_t *const *)_dt_list2;
     herr_t ret_value = 0; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(_dt_list1);
@@ -559,7 +559,7 @@ H5P__ocpy_merge_comm_dt_list_cmp(const void *_dt_list1, const void *_dt_list2, s
         HGOTO_DONE(-1);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__ocpy_merge_comm_dt_list_cmp() */
 
 /*--------------------------------------------------------------------------
@@ -575,14 +575,14 @@ done:
 static herr_t
 H5P__ocpy_merge_comm_dt_list_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED size, void *value)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(value);
 
     /* Free the merge named dtype list */
     H5P__free_merge_comm_dtype_list(*(H5O_copy_dtype_merge_list_t **)value);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__ocpy_merge_comm_dt_list_close() */
 
 /*-------------------------------------------------------------------------

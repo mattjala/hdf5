@@ -1120,7 +1120,7 @@ H5P__iterate_cb(H5P_genprop_t *prop, void *_udata)
     H5P_iter_ud_t *udata     = (H5P_iter_ud_t *)_udata; /* Pointer to user data */
     int            ret_value = 0;                       /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(prop);
@@ -1129,7 +1129,7 @@ H5P__iterate_cb(H5P_genprop_t *prop, void *_udata)
     /* Call the user's callback routine */
     ret_value = (*udata->iter_func)(udata->id, prop->name, udata->iter_data);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__iterate_cb() */
 
 /*--------------------------------------------------------------------------

@@ -299,7 +299,7 @@ H5P__dcrt_reg_prop(H5P_genclass_t *pclass)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Register the storage layout property */
     if (H5P__register_real(pclass, H5D_CRT_LAYOUT_NAME, H5D_CRT_LAYOUT_SIZE, &H5D_def_layout_g, NULL,
@@ -336,7 +336,7 @@ H5P__dcrt_reg_prop(H5P_genclass_t *pclass)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert property into class");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_reg_prop() */
 
 /*-------------------------------------------------------------------------
@@ -357,7 +357,7 @@ H5P__dcrt_layout_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *na
     H5O_layout_t  new_layout;
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -370,7 +370,7 @@ H5P__dcrt_layout_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *na
     *layout = new_layout;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_layout_set() */
 
 /*-------------------------------------------------------------------------
@@ -391,7 +391,7 @@ H5P__dcrt_layout_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *na
     H5O_layout_t  new_layout;
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -404,7 +404,7 @@ H5P__dcrt_layout_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *na
     *layout = new_layout;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_layout_get() */
 
 /*-------------------------------------------------------------------------
@@ -429,7 +429,7 @@ H5P__dcrt_layout_enc(const void *value, void **_pp, size_t *size)
     size_t              u;                   /* Local index variable */
     herr_t              ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(layout);
@@ -536,7 +536,7 @@ H5P__dcrt_layout_enc(const void *value, void **_pp, size_t *size)
     }         /* end else */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_layout_enc() */
 
 /*-------------------------------------------------------------------------
@@ -560,7 +560,7 @@ H5P__dcrt_layout_dec(const void **_pp, void *value)
     const uint8_t     **pp        = (const uint8_t **)_pp;
     herr_t              ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity checks */
     assert(pp);
@@ -732,7 +732,7 @@ H5P__dcrt_layout_dec(const void **_pp, void *value)
     H5MM_memcpy(value, layout, sizeof(H5O_layout_t));
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_layout_dec() */
 
 /*-------------------------------------------------------------------------
@@ -751,7 +751,7 @@ H5P__dcrt_layout_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *na
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -761,7 +761,7 @@ H5P__dcrt_layout_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED *na
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRESET, FAIL, "can't release layout message");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_layout_del() */
 
 /*--------------------------------------------------------------------------
@@ -781,7 +781,7 @@ H5P__dcrt_layout_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED siz
     H5O_layout_t  new_layout;
     herr_t        ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(layout);
 
@@ -793,7 +793,7 @@ H5P__dcrt_layout_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED siz
     *layout = new_layout;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_layout_copy() */
 
 /*-------------------------------------------------------------------------
@@ -816,7 +816,7 @@ H5P__dcrt_layout_cmp(const void *_layout1, const void *_layout2, size_t H5_ATTR_
         *layout2                = (const H5O_layout_t *)_layout2;
     herr_t ret_value            = 0; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(layout1);
@@ -923,7 +923,7 @@ H5P__dcrt_layout_cmp(const void *_layout1, const void *_layout2, size_t H5_ATTR_
     } /* end switch */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_layout_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -941,7 +941,7 @@ H5P__dcrt_layout_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED si
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -951,7 +951,7 @@ H5P__dcrt_layout_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED si
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRESET, FAIL, "can't release layout message");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_layout_close() */
 
 /*-------------------------------------------------------------------------
@@ -972,7 +972,7 @@ H5P__dcrt_fill_value_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     H5O_fill_t  new_fill;
     herr_t      ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -985,7 +985,7 @@ H5P__dcrt_fill_value_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     *fill = new_fill;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_fill_value_set() */
 
 /*-------------------------------------------------------------------------
@@ -1006,7 +1006,7 @@ H5P__dcrt_fill_value_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     H5O_fill_t  new_fill;
     herr_t      ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1019,7 +1019,7 @@ H5P__dcrt_fill_value_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
     *fill = new_fill;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_fill_value_get() */
 
 /*-------------------------------------------------------------------------
@@ -1044,7 +1044,7 @@ H5P__dcrt_fill_value_enc(const void *value, void **_pp, size_t *size)
     uint64_t          enc_value;
     unsigned          enc_size = 0;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
@@ -1110,7 +1110,7 @@ H5P__dcrt_fill_value_enc(const void *value, void **_pp, size_t *size)
     } /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_fill_value_enc() */
 
 /*-------------------------------------------------------------------------
@@ -1132,7 +1132,7 @@ H5P__dcrt_fill_value_dec(const void **_pp, void *_value)
     const uint8_t **pp        = (const uint8_t **)_pp;
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     HDcompile_assert(sizeof(size_t) <= sizeof(uint64_t));
     HDcompile_assert(sizeof(ssize_t) <= sizeof(int64_t));
@@ -1173,7 +1173,7 @@ H5P__dcrt_fill_value_dec(const void **_pp, void *_value)
     } /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_fill_value_dec() */
 
 /*-------------------------------------------------------------------------
@@ -1192,7 +1192,7 @@ H5P__dcrt_fill_value_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1202,7 +1202,7 @@ H5P__dcrt_fill_value_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNUSED
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRESET, FAIL, "can't release fill value message");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_fill_value_del() */
 
 /*--------------------------------------------------------------------------
@@ -1222,7 +1222,7 @@ H5P__dcrt_fill_value_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED
     H5O_fill_t  new_fill;
     herr_t      ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(fill);
 
@@ -1234,7 +1234,7 @@ H5P__dcrt_fill_value_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSED
     *fill = new_fill;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_fill_value_copy() */
 
 /*-------------------------------------------------------------------------
@@ -1257,7 +1257,7 @@ H5P_fill_value_cmp(const void *_fill1, const void *_fill2, size_t H5_ATTR_UNUSED
     int    cmp_value;     /* Value from comparison */
     herr_t ret_value = 0; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     assert(fill1);
@@ -1301,7 +1301,7 @@ H5P_fill_value_cmp(const void *_fill1, const void *_fill2, size_t H5_ATTR_UNUSED
         HGOTO_DONE(1);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_fill_value_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -1319,7 +1319,7 @@ H5P__dcrt_fill_value_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSE
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1329,7 +1329,7 @@ H5P__dcrt_fill_value_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNUSE
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRESET, FAIL, "can't release fill value message");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_fill_value_close() */
 
 /*-------------------------------------------------------------------------
@@ -1350,7 +1350,7 @@ H5P__dcrt_ext_file_list_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNU
     H5O_efl_t  new_efl;
     herr_t     ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1363,7 +1363,7 @@ H5P__dcrt_ext_file_list_set(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNU
     *efl = new_efl;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_ext_file_list_set() */
 
 /*-------------------------------------------------------------------------
@@ -1384,7 +1384,7 @@ H5P__dcrt_ext_file_list_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNU
     H5O_efl_t  new_efl;
     herr_t     ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1397,7 +1397,7 @@ H5P__dcrt_ext_file_list_get(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNU
     *efl = new_efl;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_ext_file_list_get() */
 
 /*-------------------------------------------------------------------------
@@ -1422,7 +1422,7 @@ H5P__dcrt_ext_file_list_enc(const void *value, void **_pp, size_t *size)
     unsigned         enc_size;
     uint64_t         enc_value;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(efl);
@@ -1479,7 +1479,7 @@ H5P__dcrt_ext_file_list_enc(const void *value, void **_pp, size_t *size)
         *size += (1 + H5VM_limit_enc_size((uint64_t)efl->slot[u].size));
     } /* end for */
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5P__dcrt_ext_file_list_enc() */
 
 /*-------------------------------------------------------------------------
@@ -1504,7 +1504,7 @@ H5P__dcrt_ext_file_list_dec(const void **_pp, void *_value)
     uint64_t        enc_value;
     herr_t          ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(pp);
@@ -1563,7 +1563,7 @@ H5P__dcrt_ext_file_list_dec(const void **_pp, void *_value)
     } /* end for */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_ext_file_list_dec() */
 
 /*-------------------------------------------------------------------------
@@ -1582,7 +1582,7 @@ H5P__dcrt_ext_file_list_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNU
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1592,7 +1592,7 @@ H5P__dcrt_ext_file_list_del(hid_t H5_ATTR_UNUSED prop_id, const char H5_ATTR_UNU
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRESET, FAIL, "can't release external file list message");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_ext_file_list_del() */
 
 /*--------------------------------------------------------------------------
@@ -1612,7 +1612,7 @@ H5P__dcrt_ext_file_list_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNU
     H5O_efl_t  new_efl;
     herr_t     ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(efl);
 
@@ -1624,7 +1624,7 @@ H5P__dcrt_ext_file_list_copy(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UNU
     *efl = new_efl;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_ext_file_list_copy() */
 
 /*-------------------------------------------------------------------------
@@ -1648,7 +1648,7 @@ H5P__dcrt_ext_file_list_cmp(const void *_efl1, const void *_efl2, size_t H5_ATTR
     int    cmp_value;     /* Value from comparison */
     herr_t ret_value = 0; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(efl1);
@@ -1707,7 +1707,7 @@ H5P__dcrt_ext_file_list_cmp(const void *_efl1, const void *_efl2, size_t H5_ATTR
     }     /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_ext_file_list_cmp() */
 
 /*-------------------------------------------------------------------------
@@ -1725,7 +1725,7 @@ H5P__dcrt_ext_file_list_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UN
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(value);
@@ -1735,7 +1735,7 @@ H5P__dcrt_ext_file_list_close(const char H5_ATTR_UNUSED *name, size_t H5_ATTR_UN
         HGOTO_ERROR(H5E_PLIST, H5E_CANTRESET, FAIL, "can't release external file list message");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__dcrt_ext_file_list_close() */
 
 /*-------------------------------------------------------------------------
@@ -1753,7 +1753,7 @@ H5P__set_layout(H5P_genplist_t *plist, const H5O_layout_t *layout)
     unsigned alloc_time_state;    /* State of allocation time property */
     herr_t   ret_value = SUCCEED; /* return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Get the allocation time state */
     if (H5P_get(plist, H5D_CRT_ALLOC_TIME_STATE_NAME, &alloc_time_state) < 0)
@@ -1798,7 +1798,7 @@ H5P__set_layout(H5P_genplist_t *plist, const H5O_layout_t *layout)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINIT, FAIL, "can't set layout");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P__set_layout() */
 
 /*-------------------------------------------------------------------------
@@ -3089,7 +3089,7 @@ H5P_get_fill_value(H5P_genplist_t *plist, const H5T_t *type, void *value /*out*/
     hid_t       dst_id    = -1;      /*destination datatype id	*/
     herr_t      ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /*
      * If no fill value is defined then return an error.  We can't even
@@ -3152,7 +3152,7 @@ done:
     if (dst_id >= 0 && H5I_dec_ref(dst_id) < 0)
         HDONE_ERROR(H5E_PLIST, H5E_CANTDEC, FAIL, "can't decrement ref count of temp ID");
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_get_fill_value() */
 
 /*-------------------------------------------------------------------------
@@ -3210,7 +3210,7 @@ H5P_is_fill_value_defined(const H5O_fill_t *fill, H5D_fill_value_t *status)
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     assert(fill);
     assert(status);
@@ -3230,7 +3230,7 @@ H5P_is_fill_value_defined(const H5O_fill_t *fill, H5D_fill_value_t *status)
     } /* end else */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_is_fill_value_defined() */
 
 /*-------------------------------------------------------------------------
@@ -3248,7 +3248,7 @@ H5P_fill_value_defined(H5P_genplist_t *plist, H5D_fill_value_t *status)
     H5O_fill_t fill; /* Fill value to query */
     herr_t     ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     assert(status);
 
@@ -3261,7 +3261,7 @@ H5P_fill_value_defined(H5P_genplist_t *plist, H5D_fill_value_t *status)
         HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "can't check fill value status");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5P_fill_value_defined() */
 
 /*-------------------------------------------------------------------------
