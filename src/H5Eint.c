@@ -113,7 +113,7 @@ H5E__get_msg(const H5E_msg_t *msg, H5E_type_t *type, char *msg_str, size_t size)
 {
     ssize_t len = -1; /* Length of error message */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Check arguments */
     assert(msg);
@@ -133,7 +133,7 @@ H5E__get_msg(const H5E_msg_t *msg, H5E_type_t *type, char *msg_str, size_t size)
         *type = msg->type;
 
     /* Set the return value to the full length of the message */
-    FUNC_LEAVE_NOAPI(len)
+    FUNC_LEAVE_NOAPI_MUTEX(len)
 } /* end H5E__get_msg() */
 
 #ifndef H5_NO_DEPRECATED_SYMBOLS
@@ -181,7 +181,7 @@ H5E__walk1_cb(int n, H5E_error1_t *err_desc, void *client_data)
     unsigned     have_desc = 1; /* Flag to indicate whether the error has a "real" description */
     herr_t       ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Check arguments */
     assert(err_desc);
@@ -255,7 +255,7 @@ H5E__walk1_cb(int n, H5E_error1_t *err_desc, void *client_data)
     fprintf(stream, "%*sminor: %s\n", (H5E_INDENT * 2), "", min_str);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__walk1_cb() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
 
@@ -300,7 +300,7 @@ H5E__walk2_cb(unsigned n, const H5E_error2_t *err_desc, void *client_data)
     unsigned     have_desc = 1; /* Flag to indicate whether the error has a "real" description */
     herr_t       ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Check arguments */
     assert(err_desc);
@@ -379,7 +379,7 @@ H5E__walk2_cb(unsigned n, const H5E_error2_t *err_desc, void *client_data)
     fprintf(stream, "%*sminor: %s\n", (H5E_INDENT * 2), "", min_str);
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__walk2_cb() */
 
 /*-------------------------------------------------------------------------
@@ -402,7 +402,7 @@ H5E__print(const H5E_t *estack, FILE *stream, hbool_t bk_compatible)
     H5E_walk_op_t walk_op; /* Error stack walking callback */
     herr_t        ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(estack);
@@ -435,7 +435,7 @@ H5E__print(const H5E_t *estack, FILE *stream, hbool_t bk_compatible)
     } /* end else */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__print() */
 
 /*-------------------------------------------------------------------------
@@ -471,7 +471,7 @@ H5E__walk(const H5E_t *estack, H5E_direction_t direction, const H5E_walk_op_t *o
     int    i;                        /* Local index variable */
     herr_t ret_value = H5_ITER_CONT; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(estack);
@@ -543,7 +543,7 @@ H5E__walk(const H5E_t *estack, H5E_direction_t direction, const H5E_walk_op_t *o
         } /* end if */
     }     /* end else */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__walk() */
 
 /*-------------------------------------------------------------------------
@@ -561,7 +561,7 @@ H5E__walk(const H5E_t *estack, H5E_direction_t direction, const H5E_walk_op_t *o
 herr_t
 H5E__get_auto(const H5E_t *estack, H5E_auto_op_t *op, void **client_data)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(estack);
 
@@ -571,7 +571,7 @@ H5E__get_auto(const H5E_t *estack, H5E_auto_op_t *op, void **client_data)
     if (client_data)
         *client_data = estack->auto_data;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5E__get_auto() */
 
 /*-------------------------------------------------------------------------
@@ -597,7 +597,7 @@ H5E__get_auto(const H5E_t *estack, H5E_auto_op_t *op, void **client_data)
 herr_t
 H5E__set_auto(H5E_t *estack, const H5E_auto_op_t *op, void *client_data)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(estack);
 
@@ -621,7 +621,7 @@ H5E__set_auto(H5E_t *estack, const H5E_auto_op_t *op, void *client_data)
     estack->auto_op   = *op;
     estack->auto_data = client_data;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5E__set_auto() */
 
 /*-------------------------------------------------------------------------
@@ -649,7 +649,7 @@ H5E_printf_stack(H5E_t *estack, const char *file, const char *func, unsigned lin
      *		HERROR().  HERROR() is called by HRETURN_ERROR() which could
      *		be called by FUNC_ENTER().
      */
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     /* Sanity check */
     assert(cls_id > 0);
@@ -683,7 +683,7 @@ done:
     if (tmp)
         free(tmp);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E_printf_stack() */
 
 /*-------------------------------------------------------------------------
@@ -716,7 +716,7 @@ H5E__push_stack(H5E_t *estack, const char *file, const char *func, unsigned line
      *		HERROR().  HERROR() is called by HRETURN_ERROR() which could
      *		be called by FUNC_ENTER().
      */
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(cls_id > 0);
@@ -779,7 +779,7 @@ H5E__push_stack(H5E_t *estack, const char *file, const char *func, unsigned line
     } /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__push_stack() */
 
 /*-------------------------------------------------------------------------
@@ -799,7 +799,7 @@ H5E__clear_entries(H5E_t *estack, size_t nentries)
     unsigned      u;                   /* Local index variable */
     herr_t        ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(estack);
@@ -848,7 +848,7 @@ H5E__clear_entries(H5E_t *estack, size_t nentries)
     estack->nused -= u;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__clear_entries() */
 
 /*-------------------------------------------------------------------------
@@ -865,7 +865,7 @@ herr_t
 H5E_clear_stack(H5E_t *estack)
 {
     herr_t ret_value = SUCCEED; /* Return value */
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
 #ifdef H5_HAVE_MULTITHREAD
     /* In the multi-thread case, we don't need to worry about mutual exclusion
@@ -919,7 +919,7 @@ H5E_clear_stack(H5E_t *estack)
             HGOTO_ERROR(H5E_ERROR, H5E_CANTSET, FAIL, "can't clear error stack");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E_clear_stack() */
 
 /*-------------------------------------------------------------------------
@@ -937,7 +937,7 @@ H5E__pop(H5E_t *estack, size_t count)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(estack);
@@ -948,7 +948,7 @@ H5E__pop(H5E_t *estack, size_t count)
         HGOTO_ERROR(H5E_ERROR, H5E_CANTRELEASE, FAIL, "can't remove errors from stack");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__pop() */
 
 /*-------------------------------------------------------------------------
@@ -967,7 +967,7 @@ H5E_dump_api_stack(hbool_t is_api)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI_NOERR
+    FUNC_ENTER_NOAPI_NOERR_MUTEX
 
     /* Only dump the error stack during an API call */
     if (is_api) {
@@ -990,5 +990,5 @@ H5E_dump_api_stack(hbool_t is_api)
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
     }  /* end if */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E_dump_api_stack() */

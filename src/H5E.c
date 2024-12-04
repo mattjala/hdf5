@@ -199,7 +199,7 @@ H5E_init(void)
     char       lib_vers[128];       /* Buffer to constructu library version within */
     herr_t     ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
 #ifdef H5_HAVE_MULTITHREAD
 
@@ -246,7 +246,7 @@ H5E_init(void)
 #include "H5Einit.h"
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 }
 
 /*-------------------------------------------------------------------------
@@ -269,7 +269,7 @@ H5E_term_package(void)
     bool have_global_mutex;
 #endif /* H5_HAVE_MULTITHREAD */
 
-    FUNC_ENTER_NOAPI_NOINIT_NOERR
+    FUNC_ENTER_NOAPI_NOINIT_NOERR_MUTEX
 
     int64_t ncls, nmsg, nstk;
 
@@ -335,7 +335,7 @@ H5E_term_package(void)
 
     } /* end else */
 
-    FUNC_LEAVE_NOAPI(n)
+    FUNC_LEAVE_NOAPI_MUTEX(n)
 } /* end H5E_term_package() */
 
 /*--------------------------------------------------------------------------
@@ -351,7 +351,7 @@ H5E_term_package(void)
 static herr_t
 H5E__set_default_auto(H5E_t *stk)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
 #ifndef H5_NO_DEPRECATED_SYMBOLS
 #ifdef H5_USE_16_API_DEFAULT
@@ -369,7 +369,7 @@ H5E__set_default_auto(H5E_t *stk)
 
     stk->auto_data = NULL;
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5E__set_default_auto() */
 
 #if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
@@ -391,7 +391,7 @@ H5E__get_stack(void)
     H5TS_tl_value_t *tl_value = NULL;
     H5E_t *estack = NULL;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     tl_value = (H5TS_tl_value_t *)H5TS_get_thread_local_value(H5TS_errstk_key_g);
 
@@ -429,7 +429,7 @@ H5E__get_stack(void)
     }
 
     /* Set return value */
-    FUNC_LEAVE_NOAPI(estack)
+    FUNC_LEAVE_NOAPI_MUTEX(estack)
 } /* end H5E__get_stack() */
 #endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
@@ -445,7 +445,7 @@ H5E__get_stack(void)
 static herr_t
 H5E__free_class(H5E_cls_t *cls)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Check arguments */
     assert(cls);
@@ -479,7 +479,7 @@ H5E__free_class(H5E_cls_t *cls)
     cls           = H5FL_FREE(H5E_cls_t, cls);
 #endif /* H5_HAVE_MULTITHREAD */
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5E__free_class() */
 
 /*-------------------------------------------------------------------------
@@ -533,7 +533,7 @@ H5E__register_class(const char *cls_name, const char *lib_name, const char *vers
     H5E_cls_t *cls       = NULL; /* Pointer to error class */
     H5E_cls_t *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check arguments */
     assert(cls_name);
@@ -584,7 +584,7 @@ done:
         if (cls && H5E__free_class(cls) < 0)
             HDONE_ERROR(H5E_ERROR, H5E_CANTRELEASE, NULL, "unable to free error class");
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__register_class() */
 
 /*-------------------------------------------------------------------------
@@ -649,7 +649,7 @@ H5E__unregister_class(H5E_cls_t *cls, void H5_ATTR_UNUSED **request)
     H5E_msg_t *err_msg;
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check arguments */
     assert(cls);
@@ -701,7 +701,7 @@ H5E__unregister_class(H5E_cls_t *cls, void H5_ATTR_UNUSED **request)
 
 done:
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 
 } /* end H5E__unregister_class() */
 
@@ -721,7 +721,7 @@ H5E__unregister_class(H5E_cls_t *cls, void H5_ATTR_UNUSED **request)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check arguments */
     assert(cls);
@@ -735,7 +735,7 @@ H5E__unregister_class(H5E_cls_t *cls, void H5_ATTR_UNUSED **request)
         HGOTO_ERROR(H5E_ERROR, H5E_CANTRELEASE, FAIL, "unable to free error class");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__unregister_class() */
 
 #endif /* H5_HAVE_MULTITHREAD */
@@ -786,7 +786,7 @@ H5E__get_class_name(const H5E_cls_t *cls, char *name, size_t size)
 {
     ssize_t len = -1; /* Length of error class's name */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* This function doesn't need the global mutex, as it doesn't 
      * modify the target class.  That said, it has it anyway, as it 
@@ -807,7 +807,7 @@ H5E__get_class_name(const H5E_cls_t *cls, char *name, size_t size)
     } /* end if */
 
     /* Return the full length */
-    FUNC_LEAVE_NOAPI(len)
+    FUNC_LEAVE_NOAPI_MUTEX(len)
 } /* end H5E__get_class_name() */
 
 /*-------------------------------------------------------------------------
@@ -828,7 +828,7 @@ H5E__close_msg_cb(void *obj_ptr, hid_t obj_id, void *udata)
     H5E_cls_t *cls       = (H5E_cls_t *)udata;
     int        ret_value = H5_ITER_CONT; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check arguments */
     assert(err_msg);
@@ -846,7 +846,7 @@ H5E__close_msg_cb(void *obj_ptr, hid_t obj_id, void *udata)
     } /* end if */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__close_msg_cb() */
 
 /*-------------------------------------------------------------------------
@@ -894,7 +894,7 @@ H5E__close_msg(H5E_msg_t *err, void H5_ATTR_UNUSED **request)
     bool have_global_mutex;
 #endif /* H5_HAVE_MULTITHREAD */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Check arguments */
     assert(err);
@@ -922,7 +922,7 @@ H5E__close_msg(H5E_msg_t *err, void H5_ATTR_UNUSED **request)
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5E__close_msg() */
 
 /*-------------------------------------------------------------------------
@@ -983,7 +983,7 @@ H5E__create_msg(H5E_cls_t *cls, H5E_type_t msg_type, const char *msg_str)
     H5E_msg_t *msg       = NULL; /* Pointer to new error message */
     H5E_msg_t *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check arguments */
     assert(cls);
@@ -1026,7 +1026,7 @@ done:
         if (msg && H5E__close_msg(msg, NULL) < 0)
             HDONE_ERROR(H5E_ERROR, H5E_CANTCLOSEOBJ, NULL, "unable to close error message");
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__create_msg() */
 
 /*-------------------------------------------------------------------------
@@ -1155,7 +1155,7 @@ H5E__get_current_stack(void)
     unsigned u;                  /* Local index variable */
     H5E_t   *ret_value = NULL;   /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Get a pointer to the current error stack */
     if (NULL == (current_stack = H5E__get_my_stack())) /*lint !e506 !e774 Make lint 'constant value Boolean'
@@ -1246,7 +1246,7 @@ done:
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__get_current_stack() */
 
 /*-------------------------------------------------------------------------
@@ -1304,7 +1304,7 @@ H5E__set_current_stack(H5E_t *estack)
     unsigned u;                   /* Local index variable */
     herr_t   ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity check */
     assert(estack);
@@ -1361,7 +1361,7 @@ H5E__set_current_stack(H5E_t *estack)
     } /* end for */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__set_current_stack() */
 
 /*-------------------------------------------------------------------------
@@ -1410,7 +1410,7 @@ done:
 static herr_t
 H5E__close_stack(H5E_t *estack, void H5_ATTR_UNUSED **request)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Sanity check */
     assert(estack);
@@ -1431,7 +1431,7 @@ H5E__close_stack(H5E_t *estack, void H5_ATTR_UNUSED **request)
 
 #endif /* H5_HAVE_MULTITHREAD */
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5E__close_stack() */
 
 /*-------------------------------------------------------------------------
@@ -1490,11 +1490,11 @@ done:
 static ssize_t
 H5E__get_num(const H5E_t *estack)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     assert(estack);
 
-    FUNC_LEAVE_NOAPI((ssize_t)estack->nused)
+    FUNC_LEAVE_NOAPI_MUTEX((ssize_t)estack->nused)
 } /* end H5E__get_num() */
 
 /*-------------------------------------------------------------------------
@@ -1698,7 +1698,7 @@ H5E__print2(hid_t err_stack, FILE *stream)
     H5E_t *estack;              /* Error stack to operate on */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Need to check for errors */
     if (err_stack == H5E_DEFAULT) {
@@ -1742,7 +1742,7 @@ H5E__print2(hid_t err_stack, FILE *stream)
         HGOTO_ERROR(H5E_ERROR, H5E_CANTLIST, FAIL, "can't display error stack");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__print2() */
 
 /*-------------------------------------------------------------------------
@@ -2014,7 +2014,7 @@ H5E__append_stack(H5E_t *dst_stack, const H5E_t *src_stack)
     unsigned u;                   /* Local index variable */
     herr_t   ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Sanity checks */
     assert(dst_stack);
@@ -2067,5 +2067,5 @@ H5E__append_stack(H5E_t *dst_stack, const H5E_t *src_stack)
     } /* end for */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5E__append_stack() */
