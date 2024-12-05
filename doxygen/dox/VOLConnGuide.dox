@@ -481,14 +481,22 @@ typedef struct H5VL_loc_by_token {
 
 \subsection subsecVOLRefConn Connector Information Callbacks
 This section's callbacks involve the connector-specific information that will be associated with the VOL in
-the fapl via <b>H5Pset_fapl_<name></b> et al. This data is copied into the fapl so the library needs these functions to
+the fapl via <b>H5Pset_fapl_<name></b> et al. This data is copied into the fapl, so the library needs these functions to
 manage this in a way that prevents resource leaks.
+
+The connector-specific information is required for passthrough connectors, which must use it to properly pass control to
+the next connector in the connector stack. For passthrough connectors, the connector information must at a minimum contain
+the ID of the next connector, and a pointer to the connector-specific information of the next connector.
 
 The <em>to_str</em> and <em>from_str</em> callbacks are used to convert the connector-specific data to and from a configuration
 string. There is no official way to construct VOL configuration strings, so the format used (JSON,
 XML, getopt-style processing, etc.) is up to the connector author. These connector configuration strings
 can be used to set up a VOL connector via mechanisms like command-line parameters and environment
 variables.
+
+Multi-threaded VOL connectors must define a copy callback that performs an actual deep copy of the underlying information buffer,
+as opposed to using reference counting or some other method to share a buffer. This ensures thread safety by having all subsequent
+information callbacks act on independent buffers.
 
 <em>Info class for connector information routines, H5VLconnector.h</em>
 \code
@@ -524,6 +532,8 @@ If the connector requires no special information, set this field to zero.
 The <em>copy</em> callback is invoked when the connector is selected for use with <b>H5Pset_fapl_<name></b>, the
 connector-specific set call, etc. Where possible, the information should be deep copied in such a way that the original
 data can be freed.
+
+For multi-threaded connectors, it is required that the information be deep copied to a new buffer.
 <table>
 <tr>
 <th>Signature:</th>
@@ -657,11 +667,14 @@ structure. It is the opposite of the <em>to_str</em> callback.
 
 \subsection subsecVOLRefWrap Object Wrap Callbacks
 The object wrap callbacks are used by passthrough connectors to wrap/unwrap objects and contexts when
-passing them up and down the VOL chain. Each passthrough VOL must define an object wrapping structure and a wrap context.
+passing them up and down the VOL stack. Each passthrough VOL must define an object wrapping structure and a wrap context.
 The object wrapping structure should contain the information necessary to recursively unwrap the object - at a minimum, this is the object provided from and the ID of the next connector in the stack.
 The wrap context should contain the information necessary to recursively wrap the object - at a minimum, this is the ID and the wrap context of the next VOL connector in the stack.
 
-Each callback should use <em>H5VL&lt;callback&gt;</em> to recursively invoke the same callback in all lower passthrough VOl connectors.
+Each callback should use <em>H5VL&lt;callback&gt;</em> to recursively invoke the same callback in all lower passthrough VOL connectors.
+
+Multi-threaded VOL connectors which define the wrap callbacks must allocate a separate wrap context buffer in each invocation of <b>get_wrap_ctx</b>,
+if that callback is defined.
 
 <em>Wrap class for object wrapping routines, H5VLconnector.h</em>
 \code
@@ -710,6 +723,8 @@ Get a VOL connector's object wrapping context.
 
 The context should be returned in dynamically allocated memory under <em>*wrap_ctx</em>.
 Any resources this callback allocates should be freed within <em>free_wrap_ctx</em>.
+
+If this connector is multi-threaded, this routine must allocate a new context buffer on each invocation.
 <table>
 <tr>
 <th>Signature:</th>
