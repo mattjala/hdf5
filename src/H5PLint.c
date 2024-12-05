@@ -79,7 +79,7 @@ H5PL__get_plugin_control_mask(unsigned int *mask /*out*/)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(mask);
@@ -87,7 +87,7 @@ H5PL__get_plugin_control_mask(unsigned int *mask /*out*/)
     /* Return the mask */
     *mask = H5PL_plugin_control_mask_g;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 
 } /* end H5PL__get_plugin_control_mask() */
 
@@ -105,7 +105,7 @@ H5PL__set_plugin_control_mask(unsigned int mask)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Only allow setting this if plugins have not been disabled.
      * XXX: Note that we don't consider this an error, but instead
@@ -115,7 +115,7 @@ H5PL__set_plugin_control_mask(unsigned int mask)
     if (H5PL_allow_plugins_g)
         H5PL_plugin_control_mask_g = mask;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 
 } /* end H5PL__set_plugin_control_mask() */
 
@@ -134,7 +134,7 @@ H5PL_init(void)
     char  *env_var   = NULL;
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_NOAPI(FAIL)
+    FUNC_ENTER_NOAPI_MUTEX(FAIL)
 
     /* Check the environment variable to determine if the user wants
      * to ignore plugins. The special symbol H5PL_NO_PLUGIN (defined in
@@ -155,7 +155,7 @@ H5PL_init(void)
         HGOTO_ERROR(H5E_PLUGIN, H5E_CANTINIT, FAIL, "can't create plugin search path table");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 }
 
 /*-------------------------------------------------------------------------
@@ -177,7 +177,7 @@ H5PL_term_package(void)
     hbool_t already_closed = FALSE;
     int     ret_value      = 0;
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_MUTEX
 
     /* Close the plugin cache.
      * We need to bump the return value if we did any real work here.
@@ -192,7 +192,7 @@ H5PL_term_package(void)
         HGOTO_ERROR(H5E_PLUGIN, H5E_CANTFREE, (-1), "problem closing search path table");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL_term_package() */
 
 /*-------------------------------------------------------------------------
@@ -217,7 +217,7 @@ H5PL_load(H5PL_type_t type, const H5PL_key_t *key)
     const void          *plugin_info = NULL;  /* Information from the plugin  */
     const void          *ret_value   = NULL;
 
-    FUNC_ENTER_NOAPI(NULL)
+    FUNC_ENTER_NOAPI_MUTEX(NULL)
 
     /* Check if plugins can be loaded for this plugin type */
     switch (type) {
@@ -267,7 +267,7 @@ H5PL_load(H5PL_type_t type, const H5PL_key_t *key)
                     "or path set by H5PLxxx functions");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL_load() */
 
 /*-------------------------------------------------------------------------
@@ -326,7 +326,7 @@ H5PL__open(const char *path, H5PL_type_t type, const H5PL_key_t *key, hbool_t *s
     H5PL_key_t             tmp_key;
     herr_t                 ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(path);
@@ -464,7 +464,7 @@ done:
         if (H5PL__close(handle) < 0)
             HDONE_ERROR(H5E_PLUGIN, H5E_CLOSEERROR, FAIL, "can't close dynamic library");
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__open() */
 H5_GCC_CLANG_DIAG_ON("pedantic")
 
@@ -480,11 +480,11 @@ H5_GCC_CLANG_DIAG_ON("pedantic")
 herr_t
 H5PL__close(H5PL_HANDLE handle)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     H5PL_CLOSE_LIB(handle);
 
-    FUNC_LEAVE_NOAPI(SUCCEED)
+    FUNC_LEAVE_NOAPI_MUTEX(SUCCEED)
 } /* end H5PL__close() */
 
 /*-------------------------------------------------------------------------

@@ -100,7 +100,7 @@ H5PL__create_plugin_cache(void)
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Allocate memory for the plugin cache */
     H5PL_num_plugins_g = 0;
@@ -119,7 +119,7 @@ done:
         H5PL_cache_capacity_g = 0;
     }
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__create_plugin_cache() */
 
 /*-------------------------------------------------------------------------
@@ -138,7 +138,7 @@ H5PL__close_plugin_cache(hbool_t *already_closed /*out*/)
     unsigned int u; /* iterator */
     herr_t       ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Close opened dynamic libraries */
     if (H5PL_cache_g) {
@@ -158,7 +158,7 @@ H5PL__close_plugin_cache(hbool_t *already_closed /*out*/)
     else
         *already_closed = TRUE;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__close_plugin_cache() */
 
 /*-------------------------------------------------------------------------
@@ -175,7 +175,7 @@ H5PL__expand_cache(void)
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Update the capacity */
     H5PL_cache_capacity_g += H5PL_CACHE_CAPACITY_ADD;
@@ -193,7 +193,7 @@ done:
     if (FAIL == ret_value)
         H5PL_cache_capacity_g -= H5PL_CACHE_CAPACITY_ADD;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__expand_cache() */
 
 /*-------------------------------------------------------------------------
@@ -210,7 +210,7 @@ H5PL__add_plugin(H5PL_type_t type, const H5PL_key_t *key, H5PL_HANDLE handle)
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Expand the cache if it is too small */
     if (H5PL_num_plugins_g >= H5PL_cache_capacity_g)
@@ -225,7 +225,7 @@ H5PL__add_plugin(H5PL_type_t type, const H5PL_key_t *key, H5PL_HANDLE handle)
     H5PL_num_plugins_g++;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__add_plugin() */
 
 /*-------------------------------------------------------------------------
@@ -250,7 +250,7 @@ H5PL__find_plugin_in_cache(const H5PL_search_params_t *search_params, hbool_t *f
     unsigned int u; /* iterator */
     herr_t       ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(search_params);
@@ -358,6 +358,6 @@ H5PL__find_plugin_in_cache(const H5PL_search_params_t *search_params, hbool_t *f
     } /* end for */
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__find_plugin_in_cache() */
 H5_GCC_CLANG_DIAG_ON("pedantic")

@@ -105,7 +105,7 @@ H5PL__insert_at(const char *path, unsigned int idx)
     char  *path_copy = NULL;    /* copy of path string (for storing) */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(path);
@@ -136,7 +136,7 @@ H5PL__insert_at(const char *path, unsigned int idx)
     H5PL_num_paths_g++;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__insert_at() */
 
 /*-------------------------------------------------------------------------
@@ -155,7 +155,7 @@ H5PL__make_space_at(unsigned int idx)
     unsigned u;                   /* iterator */
     herr_t   ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(idx < H5PL_path_capacity_g);
@@ -166,7 +166,7 @@ H5PL__make_space_at(unsigned int idx)
 
     H5PL_paths_g[idx] = NULL;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__make_space_at() */
 
 /*-------------------------------------------------------------------------
@@ -186,7 +186,7 @@ H5PL__replace_at(const char *path, unsigned int idx)
     char  *path_copy = NULL;    /* copy of path string (for storing) */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(path);
@@ -213,7 +213,7 @@ H5PL__replace_at(const char *path, unsigned int idx)
     H5PL_paths_g[idx] = path_copy;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__replace_at() */
 
 /*-------------------------------------------------------------------------
@@ -237,7 +237,7 @@ H5PL__create_path_table(void)
     char  *lasts     = NULL;    /* Context pointer for strtok_r() call */
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Allocate memory for the path table */
     H5PL_num_paths_g     = 0;
@@ -280,7 +280,7 @@ done:
         H5PL_path_capacity_g = 0;
     }
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__create_path_table() */
 
 /*-------------------------------------------------------------------------
@@ -299,7 +299,7 @@ H5PL__close_path_table(void)
     unsigned u;                   /* iterator */
     herr_t   ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
     /* Free paths */
     for (u = 0; u < H5PL_num_paths_g; u++)
@@ -312,7 +312,7 @@ H5PL__close_path_table(void)
     /* Reset values */
     H5PL_num_paths_g = 0;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 
 } /* end H5PL__close_path_table() */
 
@@ -328,9 +328,9 @@ H5PL__close_path_table(void)
 unsigned
 H5PL__get_num_paths(void)
 {
-    FUNC_ENTER_PACKAGE_NOERR
+    FUNC_ENTER_PACKAGE_NOERR_MUTEX
 
-    FUNC_LEAVE_NOAPI(H5PL_num_paths_g)
+    FUNC_LEAVE_NOAPI_MUTEX(H5PL_num_paths_g)
 
 } /* end H5PL__get_num_paths() */
 
@@ -348,7 +348,7 @@ H5PL__expand_path_table(void)
 {
     herr_t ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Update the capacity */
     H5PL_path_capacity_g += H5PL_PATH_CAPACITY_ADD;
@@ -366,7 +366,7 @@ done:
     if (FAIL == ret_value)
         H5PL_path_capacity_g -= H5PL_PATH_CAPACITY_ADD;
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__expand_path_table() */
 
 /*-------------------------------------------------------------------------
@@ -383,7 +383,7 @@ H5PL__append_path(const char *path)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(path);
@@ -394,7 +394,7 @@ H5PL__append_path(const char *path)
         HGOTO_ERROR(H5E_PLUGIN, H5E_CANTINSERT, FAIL, "unable to append search path");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__append_path() */
 
 /*-------------------------------------------------------------------------
@@ -411,7 +411,7 @@ H5PL__prepend_path(const char *path)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(path);
@@ -422,7 +422,7 @@ H5PL__prepend_path(const char *path)
         HGOTO_ERROR(H5E_PLUGIN, H5E_CANTINSERT, FAIL, "unable to prepend search path");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__prepend_path() */
 
 /*-------------------------------------------------------------------------
@@ -439,7 +439,7 @@ H5PL__replace_path(const char *path, unsigned int idx)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(path);
@@ -451,7 +451,7 @@ H5PL__replace_path(const char *path, unsigned int idx)
         HGOTO_ERROR(H5E_PLUGIN, H5E_CANTINSERT, FAIL, "unable to replace search path");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__replace_path() */
 
 /*-------------------------------------------------------------------------
@@ -469,7 +469,7 @@ H5PL__insert_path(const char *path, unsigned int idx)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(path);
@@ -481,7 +481,7 @@ H5PL__insert_path(const char *path, unsigned int idx)
         HGOTO_ERROR(H5E_PLUGIN, H5E_CANTINSERT, FAIL, "unable to insert search path");
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__insert_path() */
 
 /*-------------------------------------------------------------------------
@@ -500,7 +500,7 @@ H5PL__remove_path(unsigned int idx)
     unsigned u;                   /* iterator */
     herr_t   ret_value = SUCCEED; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(idx < H5PL_path_capacity_g);
@@ -521,7 +521,7 @@ H5PL__remove_path(unsigned int idx)
     H5PL_paths_g[H5PL_num_paths_g] = NULL;
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__remove_path() */
 
 /*-------------------------------------------------------------------------
@@ -539,7 +539,7 @@ H5PL__get_path(unsigned int idx)
 {
     char *ret_value = NULL; /* Return value */
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Get the path at the requested index */
     if (idx >= H5PL_num_paths_g)
@@ -547,7 +547,7 @@ H5PL__get_path(unsigned int idx)
 
     return H5PL_paths_g[idx];
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__get_path() */
 
 /*-------------------------------------------------------------------------
@@ -569,7 +569,7 @@ H5PL__path_table_iterate(H5PL_iterate_type_t iter_type, H5PL_iterate_t iter_op, 
     unsigned int u;
     herr_t       ret_value = H5_ITER_CONT;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     for (u = 0; (u < H5PL_num_paths_g) && (ret_value == H5_ITER_CONT); u++) {
         if ((ret_value =
@@ -579,7 +579,7 @@ H5PL__path_table_iterate(H5PL_iterate_type_t iter_type, H5PL_iterate_t iter_op, 
     }
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__path_table_iterate() */
 
 /*-------------------------------------------------------------------------
@@ -610,7 +610,7 @@ H5PL__path_table_iterate_process_path(const char *plugin_path, H5PL_iterate_type
     struct dirent *dp        = NULL; /* Directory entry */
     herr_t         ret_value = H5_ITER_CONT;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     assert(plugin_path);
     assert(iter_op);
@@ -685,7 +685,7 @@ done:
 
     path = (char *)H5MM_xfree(path);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__path_table_iterate_process_path() */
 #else  /* H5_HAVE_WIN32_API */
 static herr_t
@@ -701,7 +701,7 @@ H5PL__path_table_iterate_process_path(const char *plugin_path, H5PL_iterate_type
     char             service[2048];
     herr_t           ret_value = H5_ITER_CONT;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(plugin_path);
@@ -762,7 +762,7 @@ done:
 
     path = (char *)H5MM_xfree(path);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__path_table_iterate_process_path() */
 #endif /* H5_HAVE_WIN32_API */
 
@@ -785,7 +785,7 @@ H5PL__find_plugin_in_path_table(const H5PL_search_params_t *search_params, hbool
     unsigned int u; /* iterator */
     herr_t       ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(search_params);
@@ -812,7 +812,7 @@ H5PL__find_plugin_in_path_table(const H5PL_search_params_t *search_params, hbool
     }
 
 done:
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__find_plugin_in_path_table() */
 
 /*-------------------------------------------------------------------------
@@ -840,7 +840,7 @@ H5PL__find_plugin_in_path(const H5PL_search_params_t *search_params, hbool_t *fo
     struct dirent *dp        = NULL; /* Directory entry */
     herr_t         ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(search_params);
@@ -909,7 +909,7 @@ done:
 
     path = (char *)H5MM_xfree(path);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__find_plugin_in_path() */
 #else  /* H5_HAVE_WIN32_API */
 static herr_t
@@ -922,7 +922,7 @@ H5PL__find_plugin_in_path(const H5PL_search_params_t *search_params, hbool_t *fo
     char             service[2048];
     herr_t           ret_value = SUCCEED;
 
-    FUNC_ENTER_PACKAGE
+    FUNC_ENTER_PACKAGE_MUTEX
 
     /* Check args - Just assert on package functions */
     assert(search_params);
@@ -975,6 +975,6 @@ done:
     if (path)
         path = (char *)H5MM_xfree(path);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_MUTEX(ret_value)
 } /* end H5PL__find_plugin_in_path() */
 #endif /* H5_HAVE_WIN32_API */
