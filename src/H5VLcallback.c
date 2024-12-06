@@ -3935,7 +3935,7 @@ H5VL_file_open(H5VL_connector_prop_t *connector_prop, const char *name, unsigned
          * to attempt to open the file with. This only occurs if the default
          * VOL connector was used for the initial file open attempt.
          */
-        H5VL__is_default_conn(fapl_id, connector_prop->connector_id, &is_default_conn);
+        H5VL__is_default_conn(connector_prop->connector_id, &is_default_conn);
 
         if (is_default_conn) {
             H5VL_file_open_find_connector_t find_connector_ud;
