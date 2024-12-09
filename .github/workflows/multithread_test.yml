@@ -13,18 +13,19 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                api_tests: ["--enable-api-tests", "--disable-api-tests"]
-                multi_thread: ["--enable-multithread --disable-hl", "--disable-multithread --enable-threadsafe --disable-hl", "--disable-multithread --disable-threadsafe"]
+                build_system: ["autotools", "cmake"]
+                api_tests_enabled: [true, false]
+                thread_build: ["multithread", "threadsafe", "singlethread"]
                 build_mode: ["production", "debug"]
                 include:
                     # Non-multi thread library builds should only run non-threaded
-                    - multi_thread: "--disable-multithread --enable-threadsafe --disable-hl"
+                    - multi_thread: "threadsafe"
                       test_thread_counts: 0
                       connector_stacks: 
                         - ""
                         - "pass_through under_vol=0\\;under_info={}"
 
-                    - multi_thread: "--disable-multithread --disable-threadsafe"
+                    - multi_thread: "singlethread"
                       test_thread_counts: 0
                       connector_stacks: 
                         - ""
@@ -52,40 +53,86 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Set up autotools
+              if: matrix.build_system == 'autotools'
               run: |
                   sudo apt install automake autoconf libtool libtool-bin
                   sudo apt install libaec0 libaec-dev valgrind
 
-            - name: Configure HDF5
+            - name: Configure HDF5 (Autotools)
+              if: matrix.build_system == 'autotools'
               working-directory: ${{github.workspace}}
               run: |
-                    sh ./autogen.sh
-                    ./configure --enable-shared --enable-tests ${{ matrix.multi_thread }} ${{ matrix.api_tests }} --enable-build-mode=${{ matrix.build_mode }}
+                    HDF5_ENABLE_API_TESTS=$([[ "${{ matrix.api_tests_enabled }}" == "true" ]] && echo "--enable-api-tests" || echo "--disable-api-tests")
+                    HDF5_MULTITHREAD=$([[ "${{ matrix.thread_build }}" == "multithread" ]] && echo "--enable-multithread" || echo "--disable-multithread")
+                    HDF5_THREADSAFE=$([[ "${{ matrix.thread_build }}" == "threadsafe" ]] && echo "--enable-threadsafe" || echo "--disable-threadsafe")
 
-            - name: Build HDF5
+                    sh ./autogen.sh
+                    ./configure --enable-shared --enable-tests --disable-hl $HDF5_THREADSAFE $HDF5_MULTITHREAD $HDF5_ENABLE_API_TESTS --enable-build-mode=${{ matrix.build_mode }}
+
+            - name: Build HDF5 (Autotools)
+              if: matrix.build_system == 'autotools'
               working-directory: ${{github.workspace}}
               run: |
                     make -j
+
+            - name: Configure HDF5 (CMake)
+              if: matrix.build_system == 'cmake'
+              working-directory: ${{github.workspace}}
+              run: |
+                    # Deal with different arguments in CMake vs Autotools
+                    HDF5_BUILD_TYPE=$([[ "${{ matrix.build_mode }}" == "debug" ]] && echo "Debug" || echo "Release")
+                    HDF5_ENABLE_MULTITHREAD=$([[ "${{ matrix.thread_build }}" == "multithread" ]] && echo "ON" || echo "OFF")
+                    HDF5_ENABLE_THREADSAFE=$([[ "${{ matrix.thread_build }}" == "threadsafe" ]] && echo "ON" || echo "OFF")
+                    HDF5_TEST_API=$([[ "${{ matrix.api_tests_enabled }}" == "true" ]] && echo "ON" || echo "OFF")
+                    
+                    sudo apt install cmake
+                    mkdir build
+                    cd build
+                    cmake --log-level=VERBOSE \
+                    -DBUILD_SHARED_LIBS:BOOL=ON \
+                    -DHDF5_ENABLE_TESTS=ON \
+                    -HDF5_BUILD_HL_LIB:BOOL=OFF \
+                    -DHDF5_BUILD_TYPE=$HDF5_BUILD_TYPE \
+                    -DHDF5_ENABLE_THREADSAFE:BOOL=$HDF5_ENABLE_THREADSAFE \
+                    -DHDF5_ENABLE_MULTITHREAD:BOOL=$HDF5_ENABLE_MULTITHREAD \
+                    -DHDF5_TEST_API=$HDF5_TEST_API \
+                    ..
+
+            - name: Build HDF5 (CMake)
+              if: matrix.build_system == 'cmake'
+              working-directory: ${{github.workspace}}/build
+              run: |
+                    HDF5_BUILD_TYPE=$([[ "${{ matrix.build_mode }}" == "debug" ]] && echo "Debug" || echo "Release")
+
+                    cmake --build . -j --config $HDF5_BUILD_TYPE
         
             - name: API Tests
-              if: matrix.api_tests == '--enable-api-tests'
+              if: matrix.api_tests_enabled == true
               working-directory: ${{github.workspace}}
               run: |
                 failure=0
                 CONNECTOR_STACKS='${{ toJson(matrix.connector_stacks) }}'
 
+                if [[ "${{ matrix.build_system }}" == "autotools" ]]; then
+                  API_TEST_COMMAND="valgrind ./test/API/h5_api_test"
+                else
+                  cd build
+                  API_TEST_COMMAND="valgrind ctest -N -R 'h5_api_test'"
+                fi
+
                 echo "$CONNECTOR_STACKS" | jq -r '.[]' | while IFS= read -r connector_stack; do
-                  for num_threads in ${{ matrix.test_thread_counts }}; do
-                    echo "::group:: API Tests with $num_threads threads, HDF5_VOL_CONNECTOR=$connector_stack"
                     if [ -n "$connector_stack" ]; then
                       HDF5_PLUGIN_PATH=${{github.workspace}}/test/.libs
                       HDF5_VOL_CONNECTOR=$connector_stack
                     fi
+  
+                  for num_threads in ${{ matrix.test_thread_counts }}; do
+                    echo "::group:: API Tests with $num_threads threads, HDF5_VOL_CONNECTOR=$connector_stack"
 
                     if [ "$num_threads" == "0" ]; then
-                      valgrind ./test/API/h5_api_test || failure=1
+                      eval "$API_TEST_COMMAND" || failure=1
                     else
-                      valgrind ./test/API/h5_api_test -maxthreads $num_threads || failure=1
+                      eval "$API_TEST_COMMAND" -maxthreads $num_threads || failure=1
                     fi
                     echo "::endgroup::"
                   done
@@ -98,24 +145,31 @@ jobs:
                 fi
 
             - name: MT VL Tests
-              if: matrix.multi_thread == '--enable-multithread --disable-hl'
+              if: matrix.thread_build == 'multithread'
               working-directory: ${{github.workspace}}/test/
               run: |
                 failure=0
                 CONNECTOR_STACKS='${{ toJson(matrix.connector_stacks) }}'
 
+                if [[ "${{ matrix.build_system }}" == "autotools" ]]; then
+                  MT_VL_TEST_COMMAND="valgrind ./threads/testmthdf5"
+                else
+                  MT_VL_TEST_COMMAND="valgrind ctest -R 'testmthdf5'"
+                fi
+
                 echo "$CONNECTOR_STACKS" | jq -r '.[]' | while IFS= read -r connector_stack; do
-                  for num_threads in ${{ matrix.test_thread_counts }}; do
-                    echo "::group:: MT HDF5 Tests with $num_threads, HDF5_VOL_CONNECTOR=$connector_stack"
                     if [ -n "$connector_stack" ]; then
                       HDF5_PLUGIN_PATH=${{github.workspace}}/test/.libs
                       HDF5_VOL_CONNECTOR=$connector_stack
                     fi
+                      
+                  for num_threads in ${{ matrix.test_thread_counts }}; do
+                    echo "::group:: MT HDF5 Tests with $num_threads, HDF5_VOL_CONNECTOR=$connector_stack"
 
                     if [ "$num_threads" == "0" ]; then
-                      valgrind ./threads/testmthdf5 || failure=1
+                      eval "$MT_VL_TEST_COMMAND" || failure=1
                     else
-                      valgrind ./threads/testmthdf5 -maxthreads $num_threads || failure=1
+                      eval "$MT_VL_TEST_COMMAND" -maxthreads $num_threads || failure=1
                     fi
                     echo "::endgroup::"
                   done
@@ -127,9 +181,16 @@ jobs:
                   exit 1
                 fi
 
-            - name: Other HDF5 Tests (Native Only)
+            - name: Other HDF5 Tests (Native Only, Autotools)
+              if: matrix.build_system == 'autotools'
               working-directory: ${{github.workspace}}
-              env:
-                HDF5_VOL_CONNECTOR: ""
               run: |
+                unset HDF5_VOL_CONNECTOR
                 make check
+
+            - name: Other HDF5 Tests (Native Only, CMake)
+              if: matrix.build_system == 'cmake'
+              working-directory: ${{github.workspace}}/build
+              run: |
+                unset HDF5_VOL_CONNECTOR
+                ctest -V -E "h5_api_test"

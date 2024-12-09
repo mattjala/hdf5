@@ -35,8 +35,9 @@
 /* Public HDF5 file */
 #include "hdf5.h"
 
-/* This connector's header */
+/* This connector's headers */
 #include "mt_passthru_wrapper_vol_connector.h"
+#include "H5VLpassthru_private.h"
 
 /**********/
 /* Macros */
@@ -53,29 +54,9 @@
 #define va_copy(D, S) ((D) = (S))
 #endif
 
-/************/
-/* Typedefs */
-/************/
-
-/* The pass through VOL info object */
-typedef struct mt_pass_through_wrapper_t {
-    hid_t under_vol_id; /* ID for underlying VOL connector */
-    void *under_object; /* Info object for underlying VOL connector */
-} mt_pass_through_wrapper_t;
-
-/* The pass through VOL wrapper context */
-typedef struct mt_pass_through_wrapper_wrap_ctx_t {
-    hid_t under_vol_id;   /* VOL ID for under VOL */
-    void *under_wrap_ctx; /* Object wrapping context for under VOL */
-} mt_pass_through_wrapper_wrap_ctx_t;
-
 /********************* */
 /* Function prototypes */
 /********************* */
-
-/* Helper routines */
-static mt_pass_through_wrapper_t *mt_pass_through_wrapper_new_obj(void *under_obj, hid_t under_vol_id);
-static herr_t               mt_pass_through_wrapper_free_obj(mt_pass_through_wrapper_t *obj);
 
 /* Dynamic plugin routines */
 H5PL_type_t H5PLget_plugin_type(void);
@@ -360,43 +341,6 @@ static const H5VL_class_t mt_pass_through_wrapper_g = {
     },
     mt_pass_through_wrapper_optional /* optional */
 };
-
-/*-------------------------------------------------------------------------
- * Function:    mt_pass_through_wrapper_new_obj
- *
- * Purpose:     Create a new pass through object for an underlying object
- *
- * Return:      Success:    Pointer to the new pass through object
- *              Failure:    NULL
- *
- *-------------------------------------------------------------------------
- */
-static mt_pass_through_wrapper_t *
-mt_pass_through_wrapper_new_obj(void *under_obj, hid_t under_vol_id)
-{
-    return H5VL_pass_through_wrap_object(under_obj, under_vol_id);
-}
-
-/*-------------------------------------------------------------------------
- * Function:    mt_pass_through_wrapper_free_obj
- *
- * Purpose:     Release a pass through object
- *
- * Note:	Take care to preserve the current HDF5 error stack
- *		when calling HDF5 API calls.
- *
- * Return:      Success:    0
- *              Failure:    -1
- *
- *-------------------------------------------------------------------------
- */
-static herr_t
-mt_pass_through_wrapper_free_obj(mt_pass_through_wrapper_t *obj)
-{
-    H5VL_pass_through_wrapper_free_obj(obj);
-
-    return 0;
-} /* end H5VL__pass_through_free_obj() */
 
 /*---------------------------------------------------------------------------
  * Function:    mt_pass_through_wrapper_info_copy

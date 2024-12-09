@@ -406,6 +406,9 @@
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #cmakedefine H5_LT_OBJDIR @H5_LT_OBJDIR@
 
+/* Define to the sub-directory where the Multi-thread wrapper connector libraries are built */
+#cmakedefine H5_MT_TEST_VOL_DIR @H5_MT_TEST_VOL_DIR@
+
 /* Define if deprecated public API symbols are disabled */
 #cmakedefine H5_NO_DEPRECATED_SYMBOLS @H5_NO_DEPRECATED_SYMBOLS@
 
