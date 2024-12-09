@@ -2063,6 +2063,7 @@ esac
 
 if test "X$MULTITHREAD" = "Xyes"; then
     AC_DEFINE([HAVE_MULTITHREAD], [1], [Define if we have multithread support])
+    AC_SUBST([MT_TEST_VOL_DIR], ["$srcdir/test/.libs/"], [The directory containing the multi-threaded wrapper VOL connectors])
 
     ## ----------------------------------------------------------------------
     ## Is the Pthreads library present?  It has a header file `pthread.h' and
@@ -2175,6 +2176,8 @@ if test "X$MULTITHREAD" = "Xyes"; then
         fi
         ;;
     esac
+else
+    AC_SUBST([MT_TEST_VOL_DIR], [""], [The directory containing the multi-threaded wrapper VOL connectors])
 fi
 
 ## ----------------------------------------------------------------------
