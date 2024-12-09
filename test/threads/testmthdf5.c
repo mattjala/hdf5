@@ -113,6 +113,8 @@ int main(int argc, char *argv[])
     AddTest("mt_library_init", mt_test_library_init,
         NULL, "MT usage of H5open/H5close", &params, test_framework_flags);
 
+#else
+    printf("Multi-threading is disabled.  Skipping multi-threaded tests.\n");
 #endif /* H5_HAVE_MULTITHREAD */
     /* Display testing information */
     TestInfo(argv[0]);

@@ -155,7 +155,7 @@ if HAVE_SHARED_CONDITIONAL
   # mt_native_wrapper_vol_connector and mt_passthru_wrapper_connector are used for testing the H5VL module with real operations
   libmt_native_wrapper_vol_connector_la_SOURCES=mt_native_wrapper_vol_connector.c
   libmt_native_wrapper_vol_connector_la_LDFLAGS=$(AM_LDFLAGS) -avoid-version -module -shared -export-dynamic -rpath /nowhere
-  libmt_passthru_wrapper_vol_connector_la_SOURCES=mt_passthru_wrapper_vol_connector.c
+  libmt_passthru_wrapper_vol_connector_la_SOURCES=mt_passthru_wrapper_vol_connector.c ../src/H5VLpassthru.c
   libmt_passthru_wrapper_vol_connector_la_LDFLAGS=$(AM_LDFLAGS) -avoid-version -module -shared -export-dynamic -rpath /nowhere
 else
   # The libh5test library provides common support code for the tests.

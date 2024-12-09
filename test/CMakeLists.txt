@@ -966,3 +966,57 @@ endif ()
 if (HDF5_TEST_API)
   add_subdirectory (API)
 endif ()
+
+if (HDF5_ENABLE_MULTITHREAD)
+  # Build MT Passthru VOL Connector 
+  set (HDF5_MT_PASSTHRU_WRAPPER_SOURCES 
+      mt_passthru_wrapper_vol_connector.c
+  )
+
+  set (HDF5_MT_PASSTHRU_WRAPPER_HEADERS 
+      mt_passthru_wrapper_vol_connector.h
+      ${HDF5_SRC_DIR}/H5VLpassthru_private.h
+  )
+
+  add_library(mt_passthru_wrapper_vol_connector
+    SHARED
+    ${HDF5_MT_PASSTHRU_WRAPPER_SOURCES}
+    ${HDF5_MT_PASSTHRU_WRAPPER_HEADERS}
+  )
+  
+  target_link_libraries(mt_passthru_wrapper_vol_connector
+    PUBLIC
+      ${HDF5_LIB_TARGET}
+  )
+
+  target_compile_options(mt_passthru_wrapper_vol_connector PRIVATE "${HDF5_CMAKE_C_FLAGS}")
+
+  # Build MT Native Wrapper VOL Connector
+  set (HDF5_MT_NATIVE_WRAPPER_SOURCES
+      mt_native_wrapper_vol_connector.c
+  )
+
+  set (HDF5_MT_NATIVE_WRAPPER_HEADERS
+      mt_native_wrapper_vol_connector.h
+  )
+
+  add_library(mt_native_wrapper_vol_connector 
+    SHARED
+    ${HDF5_MT_NATIVE_WRAPPER_SOURCES}
+    ${HDF5_MT_NATIVE_WRAPPER_HEADERS}
+  )
+
+  target_include_directories(mt_native_wrapper_vol_connector
+    PRIVATE
+      ${HDF5_SRC_DIR}
+  )
+
+  target_link_libraries(mt_native_wrapper_vol_connector
+    PUBLIC
+      ${HDF5_LIB_TARGET}
+  )
+
+  target_compile_options(mt_native_wrapper_vol_connector PRIVATE "${HDF5_CMAKE_C_FLAGS}")
+
+  add_subdirectory(threads)
+endif ()

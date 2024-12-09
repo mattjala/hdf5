@@ -969,6 +969,7 @@ if (HDF5_ENABLE_MULTITHREAD)
   endif()
 
   set (H5_HAVE_MULTITHREAD 1)
+  set (H5_MT_TEST_VOL_DIR "\"${HDF5_BINARY_DIR}/bin/\"")
 endif ()
 
 #-----------------------------------------------------------------------------

@@ -20,7 +20,6 @@
 #define MT_DUMMY_GROUP_NAME "mt_dummy_group"
 #define NONEXISTENT_FILENAME "nonexistent.h5"
 #define SUBCLS_NAME_SIZE 100
-#define VOL_LIB_PATH "./.libs/"
 #define H5F_ACS_VOL_CONN_NAME "vol_connector_info" /* Name of the VOL connector info property */
 
 /* Parameters describing dynamic VOL operations - these cannot be changed */
@@ -113,6 +112,10 @@ void mt_test_registration(void) {
 /* Concurrently register and unregister the same VOL connector by name from multiple
  * threads. */
 void mt_test_registration_by_name(void) {
+#ifndef H5_MT_TEST_VOL_DIR
+  printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
+  return;
+#else
   hid_t *vol_ids;
   herr_t ret = SUCCEED;
   const mt_test_params *params = NULL;
@@ -123,11 +126,11 @@ void mt_test_registration_by_name(void) {
   vol_ids = (hid_t *)calloc(params->num_repetitions, sizeof(hid_t));
   assert(vol_ids != NULL);
 
-  ret = H5PLprepend(VOL_LIB_PATH);
+  ret = H5PLprepend(H5_MT_TEST_VOL_DIR);
   CHECK(ret, FAIL, "H5PLprepend");
 
   for (size_t i = 0; i < params->num_repetitions; i++) {
-    vol_ids[i] = H5VLregister_connector_by_name(NULL_VOL_CONNECTOR_NAME,H5P_DEFAULT);
+    vol_ids[i] = H5VLregister_connector_by_name(NULL_VOL_CONNECTOR_NAME, H5P_DEFAULT);
 
     if (vol_ids[i] == H5I_INVALID_HID)
       TestErrPrintf("Failed to register VOL connector by name (Make sure test is run from 'test' directory)\n");
@@ -142,11 +145,16 @@ void mt_test_registration_by_name(void) {
 
   free(vol_ids);
   return;
+#endif
 }
 
 /* Concurrently register and unregister the same VOL connector by value from multiple
  * threads. */
 void mt_test_registration_by_value(void) {
+#ifndef H5_MT_TEST_VOL_DIR
+  printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
+  return;
+#else
   hid_t *vol_ids;
   herr_t ret = SUCCEED;
   const mt_test_params *params = NULL;
@@ -157,7 +165,7 @@ void mt_test_registration_by_value(void) {
   vol_ids = (hid_t *)calloc(params->num_repetitions, sizeof(hid_t));
   assert(vol_ids != NULL);
 
-  ret = H5PLprepend(VOL_LIB_PATH);
+  ret = H5PLprepend(H5_MT_TEST_VOL_DIR);
   CHECK(ret, FAIL, "H5PLprepend");
 
   for (size_t i = 0; i < params->num_repetitions; i++) {
@@ -176,6 +184,7 @@ void mt_test_registration_by_value(void) {
 
   free(vol_ids);
   return;
+#endif
 }
 
 /* Test concurrent registration and unregistration of dynamic VOL operations */
@@ -343,6 +352,10 @@ void mt_test_registration_operation_cleanup(void) {
 /* Test that upon file open failure, loading an available VOL connector from
  * H5PL works in a multi-threaded environment */
 void mt_test_file_open_failure_registration(void) {
+#ifndef H5_MT_TEST_VOL_DIR
+  printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
+  return;
+#else
   hid_t file_id = H5I_INVALID_HID;
   hid_t fapl_id = H5I_INVALID_HID;
   hid_t curr_vol_id = H5I_INVALID_HID;
@@ -361,7 +374,7 @@ void mt_test_file_open_failure_registration(void) {
   }
 
   /* Make the NULL VOL connector available via H5PL */
-  ret = H5PLprepend(VOL_LIB_PATH);
+  ret = H5PLprepend(H5_MT_TEST_VOL_DIR);
   CHECK(ret, FAIL, "H5PLprepend");
 
   /* Attempt to open an unopenable file with Native VOL, triggering dynamic load and usage of the
@@ -396,6 +409,7 @@ done:
   if (curr_vol_id != H5I_INVALID_HID)
     H5VLclose(curr_vol_id);
   return;
+#endif
 }
 
 /* Test that implicit copying of a VOL connector property on a FAPL is handled
