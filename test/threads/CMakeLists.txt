@@ -6,6 +6,7 @@ set (HDF5_TEST_MT_SOURCES
   testmthdf5.c 
   unit/mt_vl_test.c 
   unit/mt_misc_test.c
+  unit/mt_test_util.c
 )
 
 set (HDF5_TEST_MT_HEADERS
