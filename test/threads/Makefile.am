@@ -26,7 +26,7 @@ noinst_PROGRAMS = testmthdf5
 # Programs to be built when testing
 check_PROGRAMS = testmthdf5
 
-testmthdf5_SOURCES=testmthdf5.c testmthdf5.h unit/mt_vl_test.c unit/mt_misc_test.c
+testmthdf5_SOURCES=testmthdf5.c testmthdf5.h unit/mt_vl_test.c unit/mt_misc_test.c unit/mt_test_util.c
 
 testmthdf5_LDADD = $(LIBH5TEST) $(LIBHDF5)
 

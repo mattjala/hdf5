@@ -8,6 +8,7 @@
 
 #include "../testmthdf5.h"
 #include "h5test.h"
+#include "mt_test_util.h"
 
 #include "H5VLprivate.h"
 #include "H5CXprivate.h"
@@ -31,14 +32,11 @@
 /* Shared VOL Connector Property for testing */
 H5VL_connector_prop_t conn_prop_g;
 
-typedef void *(*mt_vl_test_cb)(void *arg);
-
 void *mt_test_registration_operation_helper(void *arg);
 void *mt_test_dyn_op_registration_helper(void *arg);
 void *mt_test_vol_property_copy_helper(void *arg);
 void *mt_test_vol_wrap_ctx_helper(void *arg);
 
-void mt_test_run_helper_in_parallel(mt_vl_test_cb mt_test_func, void *args);
 
 /* Helper routines used by the tests */
 H5VL_subclass_t mt_test_dyn_op_get_vol_subclass(size_t index);
@@ -46,38 +44,6 @@ void *mt_test_search_register_helper(void *arg);
 void *mt_test_search_search_by_name_helper(void *arg);
 void *mt_test_search_search_by_value_helper(void *arg);
 
-/* Run the provided test function independently in different threads */
-void mt_test_run_helper_in_parallel(mt_vl_test_cb mt_test_func, void *args) {
-  pthread_t *threads = NULL;
-  void *thread_return = NULL;
-  int max_num_threads = GetTestMaxNumThreads();
-  int ret = 0;
-
-  if (max_num_threads <= 0) {
-    printf("No threadcount specified with -maxthreads; skipping test\n");
-    return;
-  }
-
-  threads = (pthread_t *)calloc((long unsigned int) max_num_threads, sizeof(pthread_t));
-  assert(threads != NULL);
-
-  for (int num_threads = 1; num_threads <= max_num_threads; num_threads++) {
-    memset(threads, 0, sizeof(pthread_t) * (long unsigned int) num_threads);
-
-    for (int i = 0; i < num_threads; i++) {
-      ret = pthread_create(&threads[i], NULL, mt_test_func, args);
-      VERIFY(ret, 0, "pthread_create");
-    }
-
-    for (int i = 0; i < num_threads; i++) {
-      ret = pthread_join(threads[i], &thread_return);
-      VERIFY(ret, 0, "pthread_join");
-    }
-  }
-
-  free(threads);
-  return;
-}
 
 /* Concurrently register and unregister the same VOL connector from multiple
  * threads. */
