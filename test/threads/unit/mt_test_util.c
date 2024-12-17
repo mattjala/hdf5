@@ -18,6 +18,7 @@ void mt_test_run_helper_in_parallel(mt_test_cb mt_test_func, void *args) {
   threads = (pthread_t *)calloc((long unsigned int) max_num_threads, sizeof(pthread_t));
   assert(threads != NULL);
 
+  /* Run the test in a varying number of threads, up to max_num_threads */
   for (int num_threads = 1; num_threads <= max_num_threads; num_threads++) {
     memset(threads, 0, sizeof(pthread_t) * (long unsigned int) num_threads);
 
