@@ -231,6 +231,9 @@
 /* Define if we have multi-thread support */
 #cmakedefine H5_HAVE_MULTITHREAD @H5_HAVE_MULTITHREAD@
 
+/* Define to enable the virtual ID locks */
+#cmakedefine01 H5_HAVE_VIRTUAL_LOCK
+
 /* Define to 1 if you have the <netdb.h> header file. */
 #cmakedefine H5_HAVE_NETDB_H @H5_HAVE_NETDB_H@
 

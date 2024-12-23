@@ -1517,7 +1517,6 @@ extern hbool_t H5_libterm_g; /* Is the library being shutdown? */
         }\
     }\
     assert(virtual_lock_success);\
-    /* HGOTO_ERROR(H5E_FUNC, H5E_CANTINIT, FAIL, "unable to lock object");*/\
     }
 
 #define FUNC_LEAVE_VIRTUAL_LOCK(...)   \
@@ -1543,7 +1542,6 @@ extern hbool_t H5_libterm_g; /* Is the library being shutdown? */
         }\
     }\
     assert(virtual_lock_success_exit);\
-    /*HGOTO_ERROR(H5E_FUNC, H5E_CANTINIT, FAIL, "unable to unlock object"); */\
     }
 
 #else /* H5_HAVE_VIRTUAL_LOCK */

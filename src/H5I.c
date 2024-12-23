@@ -2004,7 +2004,7 @@ bool H5I_is_default_id(hid_t id) {
     /* Is this a predefined library type? */
     if (H5I_TYPE(id) == H5I_DATATYPE) {
         dtype = (H5T_t *)H5I_object_verify(id, H5I_DATATYPE);
-        
+
         assert(dtype);
 
         if (H5T_is_immutable(dtype))
@@ -2052,6 +2052,10 @@ herr_t H5I_vlock_enter(hid_t id) {
 
     /* No-op for default ids */
     if (H5I_is_default_id(id))
+        HGOTO_DONE(SUCCEED);
+
+    /* Try to get ID info - if it was already released, do nothing */
+    if ((id_info_ptr = H5I__find_id(id)) == NULL)
         HGOTO_DONE(SUCCEED);
 
     /* Ensure that we have exlusive write access to the ID */
@@ -2118,6 +2122,10 @@ herr_t H5I_vlock_exit(hid_t id) {
     memset(&info_k, 0, sizeof(info_k));
     memset(&mod_info_k, 0, sizeof(mod_info_k));
 
+    /* No-op for default ids */
+    if (H5I_is_default_id(id))
+        HGOTO_DONE(SUCCEED);
+
     /* Get ID info */
     if ((id_info_ptr = H5I__find_id(id)) == NULL)
         /* Assume ID was released during the course of the API routine */
@@ -2129,7 +2137,6 @@ herr_t H5I_vlock_exit(hid_t id) {
 
     /* Ensure that we have exlusive write access to the ID */
     do {
-
         info_k = atomic_load(&(id_info_ptr->k));
         
         if (info_k.do_not_disturb) {
