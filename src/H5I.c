@@ -2054,10 +2054,6 @@ herr_t H5I_vlock_enter(hid_t id) {
     if (H5I_is_default_id(id))
         HGOTO_DONE(SUCCEED);
 
-    /* Try to get ID info - if it was already released, do nothing */
-    if ((id_info_ptr = H5I__find_id(id)) == NULL)
-        HGOTO_DONE(SUCCEED);
-
     /* Ensure that we have exlusive write access to the ID */
     do {
         info_k = atomic_load(&(id_info_ptr->k));
@@ -2121,10 +2117,6 @@ herr_t H5I_vlock_exit(hid_t id) {
     /* Initialize */
     memset(&info_k, 0, sizeof(info_k));
     memset(&mod_info_k, 0, sizeof(mod_info_k));
-
-    /* No-op for default ids */
-    if (H5I_is_default_id(id))
-        HGOTO_DONE(SUCCEED);
 
     /* Get ID info */
     if ((id_info_ptr = H5I__find_id(id)) == NULL)
