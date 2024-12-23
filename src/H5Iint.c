@@ -2966,6 +2966,7 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
                 assert(info_k.do_not_disturb    == mod_info_k.do_not_disturb);
                 assert(info_k.is_future         == mod_info_k.is_future);
                 assert(info_k.have_global_mutex == mod_info_k.have_global_mutex);
+
 #if H5_HAVE_VIRTUAL_LOCK
                 assert(info_k.lock_count        == mod_info_k.lock_count);
                 assert(info_k.app_unlocks       == mod_info_k.app_unlocks);
@@ -4131,6 +4132,7 @@ H5I_subst(hid_t id, const void *new_object)
         mod_info_k.is_future      = info_k.is_future;
 
         mod_info_k.object = new_object;
+
 #if H5_HAVE_VIRTUAL_LOCK
         mod_info_k.lock_count     = info_k.lock_count;
         mod_info_k.app_unlocks    = info_k.app_unlocks;
@@ -5518,6 +5520,7 @@ H5I__dec_ref(hid_t id, void **request, hbool_t app)
                 assert(info_k.do_not_disturb    == mod_info_k.do_not_disturb);
                 assert(info_k.is_future         == mod_info_k.is_future);
                 assert(info_k.have_global_mutex == mod_info_k.have_global_mutex);
+
 #if H5_HAVE_VIRTUAL_LOCK
                 assert(info_k.lock_count        == mod_info_k.lock_count);
                 assert(info_k.app_unlocks       == mod_info_k.app_unlocks);
@@ -7228,6 +7231,7 @@ H5I__iterate_cb(void *_item, void H5_ATTR_UNUSED *_key, void *_udata)
                     assert(info_k.do_not_disturb    == mod_info_k.do_not_disturb);
                     assert(info_k.is_future         == mod_info_k.is_future);
                     assert(info_k.have_global_mutex == mod_info_k.have_global_mutex);
+
 #if H5_HAVE_VIRTUAL_LOCK
                     assert(info_k.lock_count       == mod_info_k.lock_count);
                     assert(info_k.app_unlocks      == mod_info_k.app_unlocks);

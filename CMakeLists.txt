@@ -909,6 +909,7 @@ endif ()
 #-----------------------------------------------------------------------------
 # Option to enable multi-thread capable library
 #-----------------------------------------------------------------------------
+set (H5_HAVE_VIRTUAL_LOCK 0)
 option (HDF5_ENABLE_MULTITHREAD "Enable multi-thread library" OFF)
 if (HDF5_ENABLE_MULTITHREAD)
   if (HDF5_BUILD_FORTRAN)
@@ -970,6 +971,10 @@ if (HDF5_ENABLE_MULTITHREAD)
 
   set (H5_HAVE_MULTITHREAD 1)
   set (H5_MT_TEST_VOL_DIR "\"${HDF5_BINARY_DIR}/bin/\"")
+
+  if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    set (H5_HAVE_VIRTUAL_LOCK 1)
+  endif()
 endif ()
 
 #-----------------------------------------------------------------------------
