@@ -89,6 +89,7 @@ static H5VL_object_t *H5VL__new_vol_obj(H5I_type_t type, void *object, H5VL_t *v
                                         hbool_t wrap_obj);
 static void          *H5VL__object(hid_t id, H5I_type_t obj_type);
 static herr_t         H5VL__free_vol_wrapper(H5VL_wrap_ctx_t *vol_wrap_ctx);
+static herr_t         H5VL__new_vol_wrapper(const H5VL_object_t *vol_obj, H5VL_wrap_ctx_t **new_wrap_ctx);
 
 #ifdef H5_HAVE_MULTITHREAD
 static herr_t H5VL__get_registered_connector_mt(H5VL_get_connector_ud_t *op_data, bool inc_ref, bool app_ref);
@@ -2648,7 +2649,6 @@ H5VL_set_vol_wrapper(const H5VL_object_t *vol_obj)
 {
     H5VL_wrap_ctx_t *vol_wrap_ctx = NULL;    /* Object wrapping context */
     herr_t           ret_value    = SUCCEED; /* Return value */
-    bool conn_incr_rc = false;               /* Whether the connector's ref count has been incremented */
 
     FUNC_ENTER_NOAPI(FAIL)
 
@@ -2661,38 +2661,8 @@ H5VL_set_vol_wrapper(const H5VL_object_t *vol_obj)
 
     /* Check for existing wrapping context */
     if (NULL == vol_wrap_ctx) {
-        void *obj_wrap_ctx = NULL; /* VOL connector's wrapping context */
-
-        /* Sanity checks */
-        assert(vol_obj->data);
-        assert(vol_obj->connector);
-
-        /* Check if the connector can create a wrap context */
-        if (vol_obj->connector->cls->wrap_cls.get_wrap_ctx) {
-            /* Sanity check */
-            assert(vol_obj->connector->cls->wrap_cls.free_wrap_ctx);
-
-            /* Get the wrap context from the connector */
-            if ((vol_obj->connector->cls->wrap_cls.get_wrap_ctx)(vol_obj->data, &obj_wrap_ctx) < 0)
-                HGOTO_ERROR(H5E_VOL, H5E_CANTGET, FAIL, "can't retrieve VOL connector's object wrap context");
-        } /* end if */
-
-        /* Allocate VOL object wrapper context */
-        if (NULL == (vol_wrap_ctx = H5FL_MALLOC(H5VL_wrap_ctx_t)))
-            HGOTO_ERROR(H5E_VOL, H5E_CANTALLOC, FAIL, "can't allocate VOL wrap context");
-
-        /* Increment the outstanding objects that are using the connector */
-        H5VL_conn_inc_rc(vol_obj->connector);
-        conn_incr_rc = true;
-
-        /* Set up VOL object wrapper context */
-        vol_wrap_ctx->connector    = vol_obj->connector;
-        vol_wrap_ctx->obj_wrap_ctx = obj_wrap_ctx;
-#ifdef H5_HAVE_MULTITHREAD
-        atomic_init(&vol_wrap_ctx->rc, 1);
-#else
-        vol_wrap_ctx->rc           = 1;
-#endif
+        if (H5VL__new_vol_wrapper(vol_obj, &vol_wrap_ctx) < 0)
+            HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't create VOL object wrap context");
     } /* end if */
     else
         /* Increment ref count on existing wrapper context */
@@ -2706,9 +2676,64 @@ H5VL_set_vol_wrapper(const H5VL_object_t *vol_obj)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't set VOL object wrap context");
 
 done:
-    if (ret_value < 0 && vol_wrap_ctx)
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5VL_set_vol_wrapper() */
+
+/*-------------------------------------------------------------------------
+ * Function:    H5VL__new_vol_wrapper
+ *
+ * Purpose:     Create a new VOL wrapping context for a VOL connector
+ *
+ * Return:      SUCCEED / FAIL
+ *
+ *-------------------------------------------------------------------------
+ */
+static herr_t
+H5VL__new_vol_wrapper(const H5VL_object_t *vol_obj, H5VL_wrap_ctx_t **wrap_ctx_out) {
+    H5VL_wrap_ctx_t *new_wrap_ctx = NULL;
+	void *obj_wrap_ctx = NULL;
+    herr_t ret_value = SUCCEED;
+    bool conn_incr_rc = false;
+
+    FUNC_ENTER_PACKAGE
+
+    /* Sanity checks */
+    assert(vol_obj->data);
+    assert(vol_obj->connector);
+
+    /* Check if the connector can create a wrap context */
+    if (vol_obj->connector->cls->wrap_cls.get_wrap_ctx) {
+        /* Sanity check */
+        assert(vol_obj->connector->cls->wrap_cls.free_wrap_ctx);
+
+        /* Get the wrap context from the connector */
+        if ((vol_obj->connector->cls->wrap_cls.get_wrap_ctx)(vol_obj->data, &obj_wrap_ctx) < 0)
+            HGOTO_ERROR(H5E_VOL, H5E_CANTGET, FAIL, "can't retrieve VOL connector's object wrap context");
+    } /* end if */
+
+    /* Allocate VOL object wrapper context */
+    if (NULL == (new_wrap_ctx = H5FL_MALLOC(H5VL_wrap_ctx_t)))
+        HGOTO_ERROR(H5E_VOL, H5E_CANTALLOC, FAIL, "can't allocate VOL wrap context");
+
+    /* Increment the outstanding objects that are using the connector */
+    H5VL_conn_inc_rc(vol_obj->connector);
+    conn_incr_rc = true;
+
+    /* Set up VOL object wrapper context */
+    new_wrap_ctx->connector    = vol_obj->connector;
+    new_wrap_ctx->obj_wrap_ctx = obj_wrap_ctx;
+#ifdef H5_HAVE_MULTITHREAD
+        atomic_init(&new_wrap_ctx->rc, 1);
+#else
+        new_wrap_ctx->rc           = 1;
+#endif
+    
+    *wrap_ctx_out = new_wrap_ctx;
+
+done:
+    if (ret_value < 0 && new_wrap_ctx)
         /* Release object wrapping context */
-        H5FL_FREE(H5VL_wrap_ctx_t, vol_wrap_ctx);
+        H5FL_FREE(H5VL_wrap_ctx_t, new_wrap_ctx);
 
     if (ret_value < 0 && conn_incr_rc)
         /* Undo ref count increment on connector */
@@ -2716,7 +2741,7 @@ done:
             HDONE_ERROR(H5E_VOL, H5E_CANTDEC, FAIL, "unable to decrement ref count on VOL connector");
 
     FUNC_LEAVE_NOAPI(ret_value)
-} /* end H5VL_set_vol_wrapper() */
+}
 
 /*-------------------------------------------------------------------------
  * Function:    H5VL_inc_vol_wrapper
