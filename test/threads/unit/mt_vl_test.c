@@ -728,11 +728,13 @@ void *mt_test_vol_wrap_ctx_helper(void H5_ATTR_UNUSED *arg) {
 }
 
 void mt_test_vol_wrap_ctx_cleanup(void) {
+#ifdef H5_MT_TEST_VOL_DIR
   herr_t ret = SUCCEED;
-
-  ret = H5Fdelete(MT_TEST_VOL_WRAP_CTX_FILE_NAME, H5P_DEFAULT);
-  CHECK(ret, FAIL, "H5Fdelete");
-
+  if (GetTestMaxNumThreads() > 0) {
+    ret = H5Fdelete(MT_TEST_VOL_WRAP_CTX_FILE_NAME, H5P_DEFAULT);
+    CHECK(ret, FAIL, "H5Fdelete");
+  }
+#endif
   return;
 }
 
