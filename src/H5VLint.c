@@ -1777,6 +1777,16 @@ H5VL__register_connector_by_value(H5VL_class_value_t value, hbool_t app_ref, hid
     if (op_data.found_id != H5I_INVALID_HID) {
         ret_value = op_data.found_id;
     } /* end if */
+    /* Check if the connector is one of the included library connectors */
+    else if (value == H5VL_NATIVE_VALUE) {
+        ret_value = H5VL_NATIVE;
+        if (H5I_inc_ref(ret_value, FALSE) < 0)
+            HGOTO_ERROR(H5E_VOL, H5E_CANTINC, FAIL, "can't increment VOL connector refcount");
+    } else if (value == H5VL_PASSTHRU_VALUE) {
+        ret_value = H5VL_PASSTHRU;
+        if (H5I_inc_ref(ret_value, FALSE) < 0)
+            HGOTO_ERROR(H5E_VOL, H5E_CANTINC, FAIL, "can't increment VOL connector refcount");
+    }
     else {
         H5PL_key_t          key;
         const H5VL_class_t *cls;
