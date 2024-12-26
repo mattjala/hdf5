@@ -1264,6 +1264,30 @@ extern H5_debug_t H5_debug_g;
 /* Embedded build information */
 extern const char H5libhdf5_settings[];
 
+/* Prepare to call / return from user callback */
+#define H5_BEFORE_USER_CB(err)              \
+    {                                       \
+        if (H5_user_cb_prepare() < 0)       \
+            HGOTO_ERROR(H5E_LIB, H5E_CANTSET, (err), "preparation for user callback failed");
+
+#define H5_AFTER_USER_CB(err)                                                                     \
+        if (H5_user_cb_restore() < 0)                                                             \
+            HGOTO_ERROR(H5E_LIB, H5E_CANTRESTORE, (err), "preparation for user callback failed"); \
+    }
+
+#define H5_BEFORE_USER_CB_NOERR(err)        \
+    {                                       \
+        if (H5_user_cb_prepare() < 0)       \
+            ret_value = (err);              \
+        else {
+
+#define H5_AFTER_USER_CB_NOERR(err)             \
+            if (H5_user_cb_restore() < 0)       \
+                ret_value = (err);              \
+        } /* end else */                        \
+    }
+
+
 /*-------------------------------------------------------------------------
  * Purpose: These macros are inserted automatically just after the
  *          FUNC_ENTER() macro of API functions and are used to trace
@@ -2351,4 +2375,7 @@ H5_DLL herr_t  H5_mpio_get_file_sync_required(MPI_File fh, hbool_t *file_sync_re
 H5_DLL herr_t H5_buffer_dump(FILE *stream, int indent, const uint8_t *buf, const uint8_t *marker,
                              size_t buf_offset, size_t buf_size);
 
+/* Functions for preparing for / returning from user callbacks */
+H5_DLL herr_t H5_user_cb_prepare(void);
+H5_DLL herr_t H5_user_cb_restore(void);
 #endif /* H5private_H */

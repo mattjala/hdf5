@@ -32,6 +32,7 @@
 #include "H5PLprivate.h" /* Plugins                                  */
 #include "H5SLprivate.h" /* Skip lists                               */
 #include "H5Tprivate.h"  /* Datatypes                                */
+#include "H5TSprivate.h" /* Threadsafety                             */
 
 #include "H5FDsec2.h" /* for H5FD_sec2_init() */
 
@@ -1334,3 +1335,54 @@ DllMain(_In_ HINSTANCE hinstDLL, _In_ DWORD fdwReason, _In_ LPVOID lpvReserved)
     return fOkay;
 }
 #endif /* H5_HAVE_WIN32_API && H5_BUILT_AS_DYNAMIC_LIB && H5_HAVE_WIN_THREADS && H5_HAVE_THREADSAFE*/
+/*-------------------------------------------------------------------------
+ * Function:    H5_user_cb_prepare
+ *
+ * Purpose:     Prepares library before a user callback
+ *
+ * Return:      SUCCEED/FAIL
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5_user_cb_prepare(void)
+{
+    herr_t ret_value = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
+    /* Prepare H5TS package for user callback */
+    if (H5TS_user_cb_prepare() < 0)
+        HGOTO_ERROR(H5E_LIB, H5E_CANTSET, FAIL, "unable to prepare H5TS package for user callback");
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5_user_cb_prepare() */
+
+/*-------------------------------------------------------------------------
+ * Function:    H5_user_cb_restore
+ *
+ * Purpose:     Restores library after a user callback
+ *
+ * Return:      SUCCEED/FAIL
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5_user_cb_restore(void)
+{
+    herr_t ret_value = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+#if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
+    /* Restore H5TS package after user callback */
+    if (H5TS_user_cb_restore() < 0)
+        HGOTO_ERROR(H5E_LIB, H5E_CANTRESTORE, FAIL, "unable to restore H5TS package after user callback");
+#endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5_user_cb_restore() */

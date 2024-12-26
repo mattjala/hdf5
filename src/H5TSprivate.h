@@ -150,10 +150,15 @@ H5_DLL herr_t H5TS_have_mutex(H5TS_mutex_t *mutex, bool *have_mutex_ptr);
 /* Testing routines */
 H5_DLL H5TS_thread_t H5TS_create_thread(void *(*func)(void *), H5TS_attr_t *attr, void *udata);
 
+/* Prepare for / restore after user callback */
+H5_DLL herr_t H5TS_user_cb_prepare(void);
+H5_DLL herr_t H5TS_user_cb_restore(void);
+
 #else /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
 
 #define H5TS_thread_id() ((uint64_t)0)
 
 #endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
+
 
 #endif /* H5TSprivate_H_ */

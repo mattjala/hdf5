@@ -1116,4 +1116,48 @@ H5TS_create_thread(H5TS_thread_cb_t func, H5TS_attr_t *attr, void *udata)
     FUNC_LEAVE_NOAPI_NAMECHECK_ONLY(ret_value)
 } /* H5TS_create_thread */
 
+/*-------------------------------------------------------------------------
+ * Function:    H5TS_user_cb_prepare
+ *
+ * Purpose:     Prepare the H5E package before a user callback
+ *
+ * Return:      SUCCEED/FAIL
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5TS_user_cb_prepare(void)
+{
+    herr_t ret_value = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    // TODO
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5TS_user_cb_prepare() */
+
+/*-------------------------------------------------------------------------
+ * Function:    H5TS_user_cb_restore
+ *
+ * Purpose:     Restores the state of the H5TS package after a user callback
+ *
+ * Return:      SUCCEED/FAIL
+ *
+ *-------------------------------------------------------------------------
+ */
+herr_t
+H5TS_user_cb_restore(void)
+{
+    herr_t ret_value = SUCCEED; /* Return value */
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    // TODO
+
+done:
+    FUNC_LEAVE_NOAPI(ret_value)
+} /* end H5TS_user_cb_restore() */
+
 #endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
