@@ -2994,7 +2994,11 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
                 atomic_fetch_add(&(H5I_mt_g.H5I__mark_node__global_mutex_locks_for_discard_cb), 1ULL);
                 H5_API_LOCK
                 H5_GCC_CLANG_DIAG_OFF("cast-qual")
+
+                H5_BEFORE_USER_CB(FAIL) {
                 result = (id_info_ptr->discard_cb)((void *)info_k.object);
+                } H5_AFTER_USER_CB(FAIL)
+
                 H5_GCC_CLANG_DIAG_ON("cast-qual")
                 H5_API_UNLOCK
                 atomic_fetch_add(&(H5I_mt_g.H5I__mark_node__global_mutex_unlocks_for_discard_cb), 1ULL);
@@ -3002,7 +3006,9 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
             } else {
 
                 H5_GCC_CLANG_DIAG_OFF("cast-qual")
+                H5_BEFORE_USER_CB(FAIL) {
                 result = (id_info_ptr->discard_cb)((void *)info_k.object);
+                } H5_AFTER_USER_CB(FAIL)
                 H5_GCC_CLANG_DIAG_ON("cast-qual")
             }
 
@@ -3063,7 +3069,9 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
                     atomic_fetch_add(&(H5I_mt_g.H5I__mark_node__global_mutex_locks_for_free_func), 1ULL);
                     H5_API_LOCK
                     H5_GCC_CLANG_DIAG_OFF("cast-qual")
+                    H5_BEFORE_USER_CB(FAIL) {
                     result = (udata->type_info->cls->free_func)((void *)info_k.object, H5_REQUEST_NULL);
+                    } H5_AFTER_USER_CB(FAIL)
                     H5_GCC_CLANG_DIAG_ON("cast-qual")
                     H5_API_UNLOCK
                     atomic_fetch_add(&(H5I_mt_g.H5I__mark_node__global_mutex_unlocks_for_free_func), 1ULL);
@@ -3071,7 +3079,11 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
                 } else {
 
                     H5_GCC_CLANG_DIAG_OFF("cast-qual")
+
+                    H5_BEFORE_USER_CB(FAIL) {
                     result = (udata->type_info->cls->free_func)((void *)info_k.object, H5_REQUEST_NULL);
+                    } H5_AFTER_USER_CB(FAIL)
+
                     H5_GCC_CLANG_DIAG_ON("cast-qual")
                 }
 
@@ -3258,6 +3270,7 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
     H5I_id_info_t       *info  = (H5I_id_info_t *)_info;        /* Current ID info being worked with */
     H5I_clear_type_ud_t *udata = (H5I_clear_type_ud_t *)_udata; /* udata struct */
     hbool_t              mark  = FALSE;
+    herr_t               cb_ret_val = FAIL;
 
     FUNC_ENTER_PACKAGE_NOERR
 
@@ -3274,7 +3287,11 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
         H5_GCC_CLANG_DIAG_OFF("cast-qual")
         if (info->is_future) {
             /* Discard the future object */
-            if ((info->discard_cb)((void *)info->object) < 0) {
+            H5_BEFORE_USER_CB(FAIL) {
+                cb_ret_val = (info->discard_cb)((void *)info->object);
+            } H5_AFTER_USER_CB(FAIL)
+
+            if (cb_ret_val < 0) {
                 if (udata->force) {
 #ifdef H5I_DEBUG
                     if (H5DEBUG(I)) {
@@ -3296,15 +3313,19 @@ H5I__mark_node(void *_info, void H5_ATTR_UNUSED *key, void *_udata)
         }
         else {
             /* Check for a 'free' function and call it, if it exists */
-            if (udata->type_info->cls->free_func &&
-                (udata->type_info->cls->free_func)((void *)info->object, H5_REQUEST_NULL) < 0) {
-                if (udata->force) {
+            if (udata->type_info->cls->free_func) {
+
+                H5_BEFORE_USER_CB(FAIL) {
+                cb_ret_val = (udata->type_info->cls->free_func)((void *)info->object, H5_REQUEST_NULL);
+                } H5_AFTER_USER_CB(FAIL)
+
+                if (cb_ret_val < 0 && udata->force) {
 #ifdef H5I_DEBUG
                     if (H5DEBUG(I)) {
                         fprintf(H5DEBUG(I),
-                                  "H5I: free type=%d obj=0x%08lx "
-                                  "failure ignored\n",
-                                  (int)udata->type_info->cls->type, (unsigned long)(info->object));
+                                "H5I: free type=%d obj=0x%08lx "
+                                "failure ignored\n",
+                                (int)udata->type_info->cls->type, (unsigned long)(info->object));
                     }
 #endif /* H5I_DEBUG */
 
@@ -5683,6 +5704,7 @@ H5I__dec_ref(hid_t id, void **request)
 {
     H5I_id_info_t *info      = NULL; /* Pointer to the ID */
     int            ret_value = 0;    /* Return value */
+    herr_t         cb_ret_val = FAIL;
 
     FUNC_ENTER_PACKAGE
 
@@ -5714,7 +5736,14 @@ H5I__dec_ref(hid_t id, void **request)
         type_info = H5I_type_info_array_g[H5I_TYPE(id)];
 
         H5_GCC_CLANG_DIAG_OFF("cast-qual")
-        if (!type_info->cls->free_func || (type_info->cls->free_func)((void *)info->object, request) >= 0) {
+
+        if (type_info->cls->free_func) {
+            H5_BEFORE_USER_CB(FAIL) {
+                cb_ret_val = (type_info->cls->free_func)((void *)info->object, request);
+            } H5_AFTER_USER_CB(cb_ret_val)
+        }
+            
+        if (!type_info->cls->free_func || cb_ret_val >= 0) {
             /* Remove the node from the type */
             if (NULL == H5I__remove_common(type_info, id))
                 HGOTO_ERROR(H5E_ID, H5E_CANTDELETE, (-1), "can't remove ID node");
@@ -8219,7 +8248,9 @@ H5I__find_id(hid_t id)
                     atomic_fetch_add(&(H5I_mt_g.H5I__find_id__global_mutex_locks_for_realize_cb), 1ULL);
                     H5_API_LOCK
                     H5_GCC_CLANG_DIAG_OFF("cast-qual")
+                    H5_BEFORE_USER_CB_NOERR(NULL) {
                     result = (id_info_ptr->realize_cb)((void *)info_k.object, &actual_id);
+                    } H5_AFTER_USER_CB_NOERR(NULL)
                     H5_GCC_CLANG_DIAG_ON("cast-qual")
                     H5_API_UNLOCK
                     atomic_fetch_add(&(H5I_mt_g.H5I__find_id__global_mutex_unlocks_for_realize_cb), 1ULL);
@@ -8227,7 +8258,9 @@ H5I__find_id(hid_t id)
                 } else {
 
                     H5_GCC_CLANG_DIAG_OFF("cast-qual")
+                    H5_BEFORE_USER_CB_NOERR(NULL) {
                     result = (id_info_ptr->realize_cb)((void *)info_k.object, &actual_id);
+                    } H5_AFTER_USER_CB_NOERR(NULL)
                     H5_GCC_CLANG_DIAG_ON("cast-qual")
                 }
 
@@ -8296,7 +8329,9 @@ H5I__find_id(hid_t id)
                         atomic_fetch_add(&(H5I_mt_g.H5I__find_id__global_mutex_locks_for_discard_cb), 1ULL);
                         H5_API_LOCK
                         H5_GCC_CLANG_DIAG_OFF("cast-qual")
+                        H5_BEFORE_USER_CB_NOERR(NULL) {
                         result = (id_info_ptr->discard_cb)((void *)future_object);
+                        } H5_AFTER_USER_CB_NOERR(NULL)
                         H5_GCC_CLANG_DIAG_ON("cast-qual")
                         H5_API_UNLOCK
                         atomic_fetch_add(&(H5I_mt_g.H5I__find_id__global_mutex_unlocks_for_discard_cb), 1ULL);
@@ -8304,7 +8339,9 @@ H5I__find_id(hid_t id)
                     } else {
 
                         H5_GCC_CLANG_DIAG_OFF("cast-qual")
+                        H5_BEFORE_USER_CB_NOERR(NULL) {
                         result = (id_info_ptr->discard_cb)((void *)future_object);
+                        } H5_AFTER_USER_CB_NOERR(NULL)
                         H5_GCC_CLANG_DIAG_ON("cast-qual")
                     }
 
@@ -8413,6 +8450,7 @@ H5I__find_id(hid_t id)
     H5I_type_info_t *type_info = NULL; /* Pointer to the type */
     H5I_id_info_t   *id_info   = NULL; /* ID's info */
     H5I_id_info_t   *ret_value = NULL; /* Return value */
+    herr_t           cb_ret_val = FAIL;
 
     FUNC_ENTER_PACKAGE_NOERR
 
@@ -8443,7 +8481,11 @@ H5I__find_id(hid_t id)
         void *actual_object;               /* Pointer to the actual object */
 
         /* Invoke the realize callback, to get the actual object */
-        if ((id_info->realize_cb)((void *)id_info->object, &actual_id) < 0)
+        H5_BEFORE_USER_CB_NOERR(FAIL) {
+            cb_ret_val = (id_info->realize_cb)((void *)id_info->object, &actual_id);
+        } H5_AFTER_USER_CB_NOERR(FAIL)
+
+        if (cb_ret_val < 0)
             HGOTO_DONE(NULL);
 
         /* Verify that we received a valid ID, of the same type */
@@ -8459,7 +8501,11 @@ H5I__find_id(hid_t id)
         id_info->object = actual_object;
 
         /* Discard the future object */
-        if ((id_info->discard_cb)(future_object) < 0)
+        H5_BEFORE_USER_CB_NOERR(cb_ret_val) {
+            cb_ret_val = (id_info->discard_cb)(future_object);
+        } H5_AFTER_USER_CB_NOERR(cb_ret_val);
+        
+        if (cb_ret_val < 0)
             HGOTO_DONE(NULL);
         future_object = NULL;
 
