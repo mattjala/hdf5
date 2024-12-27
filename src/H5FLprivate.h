@@ -143,6 +143,25 @@ typedef struct H5FL_reg_head_t {
 #define H5FL_FREE(t, obj)     (t *)H5MM_xfree(obj)
 #endif /* H5_NO_REG_FREE_LISTS */
 
+/* These macros only compile to free-list operations if multithreading is disabled */
+#if !defined H5_NO_REG_FREE_LISTS && !defined H5_HAVE_MULTITHREAD
+#define H5FL_DEFINE_COMMON_MT(t) H5FL_DEFINE_COMMON(t)
+#define H5FL_DEFINE_MT(t)        H5FL_DEFINE(t)
+#define H5FL_EXTERN_MT(t)        H5FL_EXTERN(t)
+#define H5FL_DEFINE_STATIC_MT(t) H5FL_DEFINE_STATIC(t)
+#define H5FL_MALLOC_MT(t)        H5FL_MALLOC(t)
+#define H5FL_CALLOC_MT(t)        H5FL_CALLOC(t)
+#define H5FL_FREE_MT(t, obj)     H5FL_FREE(t, obj)
+#else /* !H5_NO_REG_FREE_LISTS && !H5_HAVE_MULTITHREAD */
+#define H5FL_DEFINE_COMMON_MT(t) int H5_ATTR_UNUSED H5FL_REG_NAME(t)
+#define H5FL_DEFINE_MT(t)        H5_DLL H5FL_DEFINE_COMMON(t)
+#define H5FL_EXTERN_MT(t)        H5_DLLVAR H5FL_DEFINE_COMMON(t)
+#define H5FL_DEFINE_STATIC_MT(t) static H5FL_DEFINE_COMMON(t)
+#define H5FL_MALLOC_MT(t)        (t *)H5MM_malloc(sizeof(t))
+#define H5FL_CALLOC_MT(t)        (t *)H5MM_calloc(sizeof(t))
+#define H5FL_FREE_MT(t, obj)     (t *)H5MM_xfree(obj) 
+#endif /* !H5_NO_REG_FREE_LISTS && !H5_HAVE_MULTITHREAD */
+
 /* Data structure to store information about each block allocated */
 typedef union H5FL_blk_list_t {
     size_t                 size;    /* Size of the page */
@@ -217,6 +236,30 @@ typedef struct H5FL_blk_head_t {
 #define H5FL_BLK_REALLOC(t, blk, new_size) (uint8_t *)H5MM_realloc(blk, new_size)
 #define H5FL_BLK_AVAIL(t, size)            (FALSE)
 #endif /* H5_NO_BLK_FREE_LISTS */
+
+
+/* These macros only compile to free-list operations if multithreading is disabled */
+#if !defined H5_NO_BLK_FREE_LISTS && !defined H5_HAVE_MULTITHREAD
+#define H5FL_BLK_DEFINE_COMMON_MT(t) H5FL_BLK_DEFINE_COMMON(t)
+#define H5FL_BLK_DEFINE_MT(t)        H5FL_BLK_DEFINE(t)
+#define H5FL_BLK_EXTERN_MT(t)        H5FL_BLK_EXTERN(t)
+#define H5FL_BLK_DEFINE_STATIC_MT(t) H5FL_BLK_DEFINE_STATIC(t)
+#define H5FL_BLK_MALLOC_MT(t, size)  H5FL_BLK_MALLOC(t, size)
+#define H5FL_BLK_CALLOC_MT(t, size)  H5FL_BLK_CALLOC(t, size)
+#define H5FL_BLK_FREE_MT(t, blk)     H5FL_BLK_FREE(t, blk)
+#define H5FL_BLK_REALLOC_MT(t, blk, new_size) H5FL_BLK_REALLOC(t, blk, new_size)
+#define H5FL_BLK_AVAIL_MT(t, size)   H5FL_BLK_AVAIL(t, size)
+#else /* !H5_NO_BLK_FREE_LISTS && !H5_HAVE_MULTITHREAD */
+#define H5FL_BLK_DEFINE_COMMON_MT(t) int H5_ATTR_UNUSED H5FL_BLK_NAME(t)
+#define H5FL_BLK_DEFINE_MT(t)        H5_DLL H5FL_BLK_DEFINE_COMMON(t)
+#define H5FL_BLK_EXTERN_MT(t)        H5_DLLVAR H5FL_BLK_DEFINE_COMMON(t)
+#define H5FL_BLK_DEFINE_STATIC_MT(t) static H5FL_BLK_DEFINE_COMMON(t)
+#define H5FL_BLK_MALLOC_MT(t, size)  (uint8_t *)H5MM_malloc(size)
+#define H5FL_BLK_CALLOC_MT(t, size)  (uint8_t *)H5MM_calloc(size)
+#define H5FL_BLK_FREE_MT(t, blk)     (uint8_t *)H5MM_xfree(blk)
+#define H5FL_BLK_REALLOC_MT(t, blk, new_size) (uint8_t *)H5MM_realloc(blk, new_size)
+#define H5FL_BLK_AVAIL_MT(t, size)   (FALSE)
+#endif /* !H5_NO_BLK_FREE_LISTS && !H5_HAVE_MULTITHREAD */
 
 /* Data structure to store each array in free list */
 typedef union H5FL_arr_list_t {
@@ -299,6 +342,32 @@ typedef struct H5FL_arr_head_t {
 #define H5FL_ARR_REALLOC(t, obj, new_elem) H5MM_realloc(obj, H5FL_ARR_NAME(t) + ((new_elem) * sizeof(t)))
 #endif /* H5_NO_ARR_FREE_LISTS */
 
+
+/* These macros only compile to free-list operations if multithreading is disabled */
+#if !defined H5_NO_ARR_FREE_LISTS && !defined H5_HAVE_MULTITHREAD
+#define H5FL_ARR_DEFINE_COMMON_MT(t, m) H5FL_ARR_DEFINE_COMMON(t, m)
+#define H5FL_ARR_DEFINE_MT(t, m)        H5FL_ARR_DEFINE(t, m)
+#define H5FL_BARR_DEFINE_MT(b, t, m)    H5FL_BARR_DEFINE(b, t, m)
+#define H5FL_ARR_EXTERN_MT(t)           H5FL_ARR_EXTERN(t)
+#define H5FL_ARR_DEFINE_STATIC_MT(t, m) H5FL_ARR_DEFINE_STATIC(t, m)
+#define H5FL_BARR_DEFINE_STATIC_MT(b, t, m) H5FL_BARR_DEFINE_STATIC(b, t, m)
+#define H5FL_ARR_MALLOC_MT(t, elem)     H5FL_ARR_MALLOC(t, elem)
+#define H5FL_ARR_CALLOC_MT(t, elem)     H5FL_ARR_CALLOC(t, elem)
+#define H5FL_ARR_FREE_MT(t, obj)        H5FL_ARR_FREE(t, obj)
+#define H5FL_ARR_REALLOC_MT(t, obj, new_elem) H5FL_ARR_REALLOC(t, obj, new_elem)
+#else /* !H5_NO_ARR_FREE_LISTS && !H5_HAVE_MULTITHREAD */
+#define H5FL_ARR_DEFINE_COMMON_MT(t, m) size_t H5FL_ARR_NAME(t)
+#define H5FL_ARR_DEFINE_MT(t, m)        H5FL_ARR_DEFINE_COMMON(t, m) = 0
+#define H5FL_BARR_DEFINE_MT(b, t, m)    H5FL_ARR_DEFINE_COMMON(t, m) = sizeof(b)
+#define H5FL_ARR_EXTERN_MT(t)           H5FL_ARR_DEFINE_COMMON(t, m)
+#define H5FL_ARR_DEFINE_STATIC_MT(t, m) static H5FL_ARR_DEFINE_COMMON(t, m) = 0
+#define H5FL_BARR_DEFINE_STATIC_MT(b, t, m) static H5FL_ARR_DEFINE_COMMON(t, m) = sizeof(b)
+#define H5FL_ARR_MALLOC_MT(t, elem)     H5MM_malloc(H5FL_ARR_NAME(t) + ((elem) * sizeof(t)))
+#define H5FL_ARR_CALLOC_MT(t, elem)     H5MM_calloc(H5FL_ARR_NAME(t) + ((elem) * sizeof(t)))
+#define H5FL_ARR_FREE_MT(t, obj)        H5MM_xfree(obj)
+#define H5FL_ARR_REALLOC_MT(t, obj, new_elem) H5MM_realloc(obj, H5FL_ARR_NAME(t) + ((new_elem) * sizeof(t)))
+#endif /* !H5_NO_ARR_FREE_LISTS && !H5_HAVE_MULTITHREAD */
+
 /* Data structure for free list of sequence blocks */
 typedef struct H5FL_seq_head_t {
     H5FL_blk_head_t queue; /* Priority queue of sequence blocks */
@@ -351,6 +420,27 @@ typedef struct H5FL_seq_head_t {
 #define H5FL_SEQ_FREE(t, obj)              (t *)H5MM_xfree(obj)
 #define H5FL_SEQ_REALLOC(t, obj, new_elem) (t *)H5MM_realloc(obj, (new_elem) * sizeof(t))
 #endif /* H5_NO_SEQ_FREE_LISTS */
+
+/* These macros only compile to free-list operations if multithreading is disabled */
+#if !defined H5_NO_SEQ_FREE_LISTS && !defined H5_HAVE_MULTITHREAD
+#define H5FL_SEQ_DEFINE_COMMON_MT(t) H5FL_SEQ_DEFINE_COMMON(t)
+#define H5FL_SEQ_DEFINE_MT(t)        H5FL_SEQ_DEFINE(t)
+#define H5FL_SEQ_EXTERN_MT(t)        H5FL_SEQ_EXTERN(t)
+#define H5FL_SEQ_DEFINE_STATIC_MT(t) H5FL_SEQ_DEFINE_STATIC(t)
+#define H5FL_SEQ_MALLOC_MT(t, elem)  H5FL_SEQ_MALLOC(t, elem)
+#define H5FL_SEQ_CALLOC_MT(t, elem)  H5FL_SEQ_CALLOC(t, elem)
+#define H5FL_SEQ_FREE_MT(t, obj)     H5FL_SEQ_FREE(t, obj)
+#define H5FL_SEQ_REALLOC_MT(t, obj, new_elem) H5FL_SEQ_REALLOC(t, obj, new_elem)
+#else /* !H5_NO_SEQ_FREE_LISTS && !H5_HAVE_MULTITHREAD */
+#define H5FL_SEQ_DEFINE_COMMON_MT(t) int H5_ATTR_UNUSED H5FL_SEQ_NAME(t)
+#define H5FL_SEQ_DEFINE_MT(t)        H5_DLL H5FL_SEQ_DEFINE_COMMON(t)
+#define H5FL_SEQ_EXTERN_MT(t)        H5_DLLVAR H5FL_SEQ_DEFINE_COMMON(t)
+#define H5FL_SEQ_DEFINE_STATIC_MT(t) static H5FL_SEQ_DEFINE_COMMON(t)
+#define H5FL_SEQ_MALLOC_MT(t, elem)  (t *)H5MM_malloc((elem) * sizeof(t))
+#define H5FL_SEQ_CALLOC_MT(t, elem)  (t *)H5MM_calloc((elem) * sizeof(t))
+#define H5FL_SEQ_FREE_MT(t, obj)     (t *)H5MM_xfree(obj)
+#define H5FL_SEQ_REALLOC_MT(t, obj, new_elem) (t *)H5MM_realloc(obj, (new_elem) * sizeof(t))
+#endif /* !H5_NO_SEQ_FREE_LISTS && !H5_HAVE_MULTITHREAD */
 
 /* Forward declarations of the data structures for free list block factory */
 typedef struct H5FL_fac_gc_node_t H5FL_fac_gc_node_t;
