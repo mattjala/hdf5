@@ -25,7 +25,6 @@
 #include "H5Eprivate.h"  /* Error handling                           */
 #include "H5ESprivate.h" /* Event Sets                               */
 #include "H5Fpkg.h"      /* File access                              */
-#include "H5FLprivate.h" /* Free lists                               */
 #include "H5Iprivate.h"  /* IDs                                      */
 #include "H5Pprivate.h"  /* Property lists                           */
 #include "H5VLprivate.h" /* Virtual Object Layer                     */
@@ -87,12 +86,6 @@ static herr_t H5F__flush_api_common(hid_t object_id, H5F_scope_t scope, void **t
 /*******************/
 /* Local Variables */
 /*******************/
-
-/* Declare a free list to manage the H5VL_t struct */
-H5FL_EXTERN(H5VL_t);
-
-/* Declare a free list to manage the H5VL_object_t struct */
-H5FL_EXTERN(H5VL_object_t);
 
 /*-------------------------------------------------------------------------
  * Function:    H5Fget_create_plist
