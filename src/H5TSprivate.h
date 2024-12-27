@@ -78,6 +78,7 @@ typedef enum H5TS_tl_type_t {
 	H5TS_ERRSTK,
 	H5TS_FUNCSTK,
 	H5TS_THREAD_ID,
+	H5TS_REENTRANCE,
 	H5TS_CANCEL
 } H5TS_tl_type_t;
 
@@ -137,6 +138,7 @@ extern H5TS_key_t  H5TS_errstk_key_g; /* Error stacks */
 extern H5TS_key_t H5TS_funcstk_key_g; /* Function stacks */
 #endif                                /* H5_HAVE_CODESTACK */
 extern H5TS_key_t H5TS_apictx_key_g;  /* API contexts */
+extern H5TS_key_t H5TS_reentrance_key_g; /* Re-entrance tracker */
 
 /* Library-scope routines */
 /* (Only used within H5private.h macros) */

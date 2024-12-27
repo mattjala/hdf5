@@ -2044,11 +2044,19 @@ herr_t H5I_vlock_enter(hid_t id) {
     H5I_mt_id_info_kernel_t info_k;
     H5I_mt_id_info_kernel_t mod_info_k;
     
+    H5TS_tl_value_t *tl_value = NULL;
+
     FUNC_ENTER_NOAPI_NOERR
 
     /* Initialize */
     memset(&info_k, 0, sizeof(info_k));
     memset(&mod_info_k, 0, sizeof(mod_info_k));
+
+
+    /* If this a re-entrance, skip virtual locks */
+    if (((tl_value = H5TS_get_thread_local_value(H5TS_reentrance_key_g)) != NULL)
+        && (size_t) tl_value->value > 0)
+        HGOTO_DONE(SUCCEED);
 
     /* Try to get ID info - if it was already released, do nothing */
     if ((id_info_ptr = H5I__find_id(id)) == NULL)
@@ -2116,11 +2124,18 @@ herr_t H5I_vlock_exit(hid_t id) {
     H5I_mt_id_info_kernel_t info_k;
     H5I_mt_id_info_kernel_t mod_info_k;
 
+    H5TS_tl_value_t *tl_value = NULL;
+
     FUNC_ENTER_NOAPI_NOERR
 
     /* Initialize */
     memset(&info_k, 0, sizeof(info_k));
     memset(&mod_info_k, 0, sizeof(mod_info_k));
+
+    /* If this a re-entrance, skip virtual locks */
+    if (((tl_value = H5TS_get_thread_local_value(H5TS_reentrance_key_g)) != NULL)
+        && (size_t) tl_value->value > 0)
+        HGOTO_DONE(SUCCEED);
 
     /* Get ID info */
     if ((id_info_ptr = H5I__find_id(id)) == NULL)

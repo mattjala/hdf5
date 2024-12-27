@@ -98,6 +98,13 @@ H5TS_key_t H5TS_apictx_key_g = TLS_OUT_OF_INDEXES;
 H5TS_key_t        H5TS_apictx_key_g;
 #endif
 
+/* Re-entrance tracker */
+#ifdef H5_HAVE_WINTHREADS
+H5TS_key_t H5TS_reentrance_key_g = TLS_OUT_OF_INDEXES;
+#else
+H5TS_key_t        H5TS_reentrance_key_g;
+#endif
+
 /*******************/
 /* Local Variables */
 /*******************/
@@ -179,6 +186,10 @@ H5TS__key_destructor(void *_key_val)
 
             case H5TS_THREAD_ID: {
                 H5TS_tid_destructor(key_val->value);
+                break;
+            }
+
+            case H5TS_REENTRANCE: {
                 break;
             }
 
@@ -390,6 +401,9 @@ H5TS_pthread_first_thread_init(void)
 
     /* initialize key for thread cancellability mechanism */
     pthread_key_create(&H5TS_cancel_key_s, H5TS__key_destructor);
+
+    /* initialize key to track re-entrance status */
+    pthread_key_create(&H5TS_reentrance_key_g, H5TS__key_destructor);
 
     FUNC_LEAVE_NOAPI_VOID_NAMECHECK_ONLY
 } /* end H5TS_pthread_first_thread_init() */
@@ -1129,10 +1143,26 @@ herr_t
 H5TS_user_cb_prepare(void)
 {
     herr_t ret_value = SUCCEED; /* Return value */
+    H5TS_tl_value_t *tl_value = NULL;
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    // TODO
+    /* Track re-entrance status */
+    tl_value = (H5TS_tl_value_t *) H5TS_get_thread_local_value(H5TS_reentrance_key_g);
+
+    /* If it does not exist, initialize it */
+    if (!tl_value) {
+
+        if ((tl_value = calloc(1, sizeof(H5TS_tl_value_t))) == NULL)
+            HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed");
+
+        tl_value->type = H5TS_REENTRANCE;
+        tl_value->value = (void*) 1;
+    }
+
+    tl_value->value = (void*) ((size_t)tl_value->value + 1);
+    
+    H5TS_set_thread_local_value(H5TS_reentrance_key_g, (void *)tl_value);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1151,10 +1181,20 @@ herr_t
 H5TS_user_cb_restore(void)
 {
     herr_t ret_value = SUCCEED; /* Return value */
+    H5TS_tl_value_t *tl_value = NULL;
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    // TODO
+    tl_value = (H5TS_tl_value_t *) H5TS_get_thread_local_value(H5TS_reentrance_key_g);
+
+    /* Must have been setup by H5TS_user_cb_prepare before this */
+    assert(tl_value);
+    assert((size_t) tl_value->value > 0);
+
+    /* Decrement re-entrance counter */
+    tl_value->value = (void*) ((size_t)tl_value->value - 1);
+
+    H5TS_set_thread_local_value(H5TS_reentrance_key_g, (void *)tl_value);
 
 done:
     FUNC_LEAVE_NOAPI(ret_value)
