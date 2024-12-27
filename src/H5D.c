@@ -68,10 +68,10 @@ static herr_t H5D__set_extent_api_common(hid_t dset_id, const hsize_t size[], vo
 /*****************************/
 
 /* Declare extern free list to manage the H5S_sel_iter_t struct */
-H5FL_EXTERN(H5S_sel_iter_t);
+H5FL_EXTERN_MT(H5S_sel_iter_t);
 
 /* Declare extern the free list to manage blocks of type conversion data */
-H5FL_BLK_EXTERN(type_conv);
+H5FL_BLK_EXTERN_MT(type_conv);
 
 /*******************/
 /* Local Variables */
@@ -1635,7 +1635,7 @@ H5Dscatter(H5D_scatter_func_t op, void *op_data, hid_t type_id, hid_t dst_space_
         HGOTO_ERROR(H5E_DATASET, H5E_CANTCOUNT, FAIL, "unable to get number of elements in selection");
 
     /* Allocate the selection iterator */
-    if (NULL == (iter = H5FL_MALLOC(H5S_sel_iter_t)))
+    if (NULL == (iter = H5FL_MALLOC_MT(H5S_sel_iter_t)))
         HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "can't allocate selection iterator");
 
     /* Initialize selection iterator */
@@ -1674,7 +1674,7 @@ done:
     if (iter_init && H5S_SELECT_ITER_RELEASE(iter) < 0)
         HDONE_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "can't release selection iterator");
     if (iter)
-        iter = H5FL_FREE(H5S_sel_iter_t, iter);
+        iter = H5FL_FREE_MT(H5S_sel_iter_t, iter);
 
     FUNC_LEAVE_API(ret_value)
 } /* H5Dscatter() */
@@ -1741,7 +1741,7 @@ H5Dgather(hid_t src_space_id, const void *src_buf, hid_t type_id, size_t dst_buf
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no callback supplied and destination buffer too small");
 
     /* Allocate the selection iterator */
-    if (NULL == (iter = H5FL_MALLOC(H5S_sel_iter_t)))
+    if (NULL == (iter = H5FL_MALLOC_MT(H5S_sel_iter_t)))
         HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "can't allocate selection iterator");
 
     /* Initialize selection iterator */
@@ -1770,7 +1770,7 @@ done:
     if (iter_init && H5S_SELECT_ITER_RELEASE(iter) < 0)
         HDONE_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "can't release selection iterator");
     if (iter)
-        iter = H5FL_FREE(H5S_sel_iter_t, iter);
+        iter = H5FL_FREE_MT(H5S_sel_iter_t, iter);
 
     FUNC_LEAVE_API(ret_value)
 } /* H5Dgather() */
