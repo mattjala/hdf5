@@ -78,10 +78,10 @@ static H5T_t *H5T__open_oid(const H5G_loc_t *loc);
 /*******************/
 
 /* Declare a free list to manage the H5VL_t struct */
-H5FL_EXTERN(H5VL_t);
+H5FL_EXTERN_MT(H5VL_t);
 
 /* Declare a free list to manage the H5VL_object_t struct */
-H5FL_EXTERN(H5VL_object_t);
+H5FL_EXTERN_MT(H5VL_object_t);
 
 /*-------------------------------------------------------------------------
  * Function:    H5T__commit_api_common
@@ -1046,7 +1046,7 @@ H5T_open(const H5G_loc_t *loc)
         dt->shared->fo_count = 1;
     } /* end if */
     else {
-        if (NULL == (dt = H5FL_MALLOC(H5T_t)))
+        if (NULL == (dt = H5FL_MALLOC_MT(H5T_t)))
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "can't allocate space for datatype");
         dt->vol_obj = NULL;
 
@@ -1101,13 +1101,13 @@ done:
             if (shared_fo == NULL) { /* Need to free shared file object */
                 if (dt->shared->owned_vol_obj && H5VL_free_object(dt->shared->owned_vol_obj) < 0)
                     HDONE_ERROR(H5E_DATATYPE, H5E_CANTCLOSEOBJ, NULL, "unable to close owned VOL object");
-                dt->shared = H5FL_FREE(H5T_shared_t, dt->shared);
+                dt->shared = H5FL_FREE_MT(H5T_shared_t, dt->shared);
             } /* end if */
 
             H5O_loc_free(&(dt->oloc));
             H5G_name_free(&(dt->path));
 
-            dt = H5FL_FREE(H5T_t, dt);
+            dt = H5FL_FREE_MT(H5T_t, dt);
         } /* end if */
 
         if (shared_fo)
