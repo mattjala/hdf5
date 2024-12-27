@@ -113,6 +113,10 @@ int main(int argc, char *argv[])
     AddTest("mt_ctx_plist_modify", mt_test_shared_plist_modify,
         NULL, "MT modification of property list shared through API context", &params, 0);
 
+    AddTest("mt_ctx_vol_wrap_ctx", mt_test_api_ctx_vol_wrap_ctx,
+        mt_test_api_ctx_vol_wrap_ctx_cleanup,
+        "MT usage of API context VOL wrap context routines", &params, 0);
+
     /* Misc MT tests */
     AddTest("mt_library_init", mt_test_library_init, NULL, NULL,
         &params, sizeof(mt_test_params), threaded_test_flag, "MT usage of H5open/H5close");

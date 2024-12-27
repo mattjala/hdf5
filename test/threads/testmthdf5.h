@@ -45,6 +45,9 @@ herr_t mt_test_vol_wrap_ctx_cleanup(TestParams_t *args);
 /* H5CX Tests */
 void mt_test_shared_plist_modify(void);
 
+void mt_test_api_ctx_vol_wrap_ctx(void);
+void mt_test_api_ctx_vol_wrap_ctx_cleanup(void);
+
 /* Misc Tests */
 void mt_test_library_init(const void *args);
 
