@@ -103,7 +103,7 @@ static H5_ATOMIC_SPECIFIER(H5SL_t *) H5VL_opt_ops_g[H5VL_SUBCLS_TOKEN + 1] =
     };
 
 /* Declare a free list to manage the H5VL_class_t struct */
-H5FL_DEFINE_STATIC(H5VL_dyn_op_t);
+H5FL_DEFINE_STATIC_MT(H5VL_dyn_op_t);
 
 /*---------------------------------------------------------------------------
  * Function:    H5VL__release_dyn_op
@@ -121,7 +121,7 @@ H5VL__release_dyn_op(H5VL_dyn_op_t *dyn_op)
     FUNC_ENTER_PACKAGE_NOERR
 
     H5MM_xfree(dyn_op->op_name);
-    H5FL_FREE(H5VL_dyn_op_t, dyn_op);
+    H5FL_FREE_MT(H5VL_dyn_op_t, dyn_op);
 
     FUNC_LEAVE_NOAPI_VOID
 } /* H5VL__release_dyn_op() */
@@ -245,7 +245,7 @@ H5VL__register_opt_operation(H5VL_subclass_t subcls, const char *op_name, int *o
     } /* end else */
 
     /* Register new operation */
-    if (NULL == (new_op = H5FL_CALLOC(H5VL_dyn_op_t)))
+    if (NULL == (new_op = H5FL_CALLOC_MT(H5VL_dyn_op_t)))
         HGOTO_ERROR(H5E_VOL, H5E_CANTALLOC, FAIL, "can't allocate memory for dynamic operation info");
     if (NULL == (new_op->op_name = H5MM_strdup(op_name)))
         HGOTO_ERROR(H5E_VOL, H5E_CANTALLOC, FAIL, "can't allocate name for dynamic operation info");
@@ -267,7 +267,7 @@ done:
     if (ret_value < 0 && new_op) {
         if (new_op->op_name)
             H5MM_xfree(new_op->op_name);
-        H5FL_FREE(H5VL_dyn_op_t, new_op);
+        H5FL_FREE_MT(H5VL_dyn_op_t, new_op);
     }
 
     if (new_op_list && !new_list_inserted)
