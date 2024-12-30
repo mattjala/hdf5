@@ -449,11 +449,8 @@ done:
 herr_t
 PerformTests(void)
 {
-    unsigned Loop;
-    bool mt_initialized = false;
     int test_num_errs = 0;
     int max_num_threads = GetTestMaxNumThreads();
-    bool is_test_threaded = false;
 
     for (unsigned Loop = 0; Loop < TestCount; Loop++) {
         bool is_test_mt = (TestArray[Loop].TestFrameworkFlags & ALLOW_MULTITHREAD) && (max_num_threads > 1);
