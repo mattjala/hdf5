@@ -725,7 +725,7 @@ done:
  * of testing files has not been disabled.
  */
 herr_t
-remove_test_file(const char *filename)
+remove_test_file(const char *filename, hid_t fapl_id)
 {
     herr_t ret_value = SUCCEED;
 
@@ -734,8 +734,8 @@ remove_test_file(const char *filename)
 
     H5E_BEGIN_TRY
     {
-        if (H5Fis_accessible(filename, H5P_DEFAULT) > 0) {
-            if (H5Fdelete(filename, H5P_DEFAULT) < 0) {
+        if (H5Fis_accessible(filename, fapl_id) > 0) {
+            if (H5Fdelete(filename, fapl_id) < 0) {
                 TestErrPrintf("couldn't remove file '%s'\n", filename);
                 ret_value = FAIL;
                 goto done;
@@ -746,4 +746,146 @@ remove_test_file(const char *filename)
 
 done:
     return ret_value;
+}
+
+/* Create the API container test file(s), one per thread.
+ * Returns negative on failure, 0 on success */
+int
+H5_api_test_create_containers(char **filenames, size_t num_filenames, uint64_t vol_cap_flags)
+{
+    hid_t file_id  = H5I_INVALID_HID;
+    hid_t group_id = H5I_INVALID_HID;
+
+    if (!(vol_cap_flags & H5VL_CAP_FLAG_FILE_BASIC)) {
+        TestErrPrintf("VOL connector doesn't support file creation\n");
+        goto error;
+    }
+
+    for (size_t i = 0; i < num_filenames; i++) {
+        if ((file_id = H5Fcreate(filenames[i], H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+            TestErrPrintf("Couldn't create testing container file '%s'\n", filenames[i]);
+            goto error;
+        }
+
+        /* Create container groups for each of the test interfaces
+         * (group, attribute, dataset, etc.).
+         */
+        if (vol_cap_flags & H5VL_CAP_FLAG_GROUP_BASIC) {
+            if ((group_id = H5Gcreate2(file_id, GROUP_TEST_GROUP_NAME,
+                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+                TestErrPrintf("Couldn't create container group '%s'\n", GROUP_TEST_GROUP_NAME);
+                goto error;
+            }
+            if (H5Gclose(group_id) < 0) {
+                TestErrPrintf("Couldn't close container group '%s'\n", GROUP_TEST_GROUP_NAME);
+                goto error;
+            }
+
+            if ((group_id = H5Gcreate2(file_id, ATTRIBUTE_TEST_GROUP_NAME,
+                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+                TestErrPrintf("Couldn't create container group '%s'\n", ATTRIBUTE_TEST_GROUP_NAME);
+                goto error;
+            }
+            if (H5Gclose(group_id) < 0) {
+                TestErrPrintf("Couldn't close container group '%s'\n", ATTRIBUTE_TEST_GROUP_NAME);
+                goto error;
+            }
+
+            if ((group_id = H5Gcreate2(file_id, DATASET_TEST_GROUP_NAME,
+                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+                TestErrPrintf("Couldn't create container group '%s'\n", DATASET_TEST_GROUP_NAME);
+                goto error;
+            }
+            if (H5Gclose(group_id) < 0) {
+                TestErrPrintf("Couldn't close container group '%s'\n", DATASET_TEST_GROUP_NAME);
+                goto error;
+            }
+
+            if ((group_id = H5Gcreate2(file_id, DATATYPE_TEST_GROUP_NAME,
+                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+                TestErrPrintf("Couldn't create container group '%s'\n", DATATYPE_TEST_GROUP_NAME);
+                goto error;
+            }
+            if (H5Gclose(group_id) < 0) {
+                TestErrPrintf("Couldn't close container group '%s'\n", DATATYPE_TEST_GROUP_NAME);
+                goto error;
+            }
+
+            if ((group_id = H5Gcreate2(file_id, LINK_TEST_GROUP_NAME,
+                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+                TestErrPrintf("Couldn't create container group '%s'\n", LINK_TEST_GROUP_NAME);
+                goto error;
+            }
+            if (H5Gclose(group_id) < 0) {
+                TestErrPrintf("Couldn't close container group '%s'\n", LINK_TEST_GROUP_NAME);
+                goto error;
+            }
+
+            if ((group_id = H5Gcreate2(file_id, OBJECT_TEST_GROUP_NAME,
+                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+                TestErrPrintf("Couldn't create container group '%s'\n", OBJECT_TEST_GROUP_NAME);
+                goto error;
+            }
+            if (H5Gclose(group_id) < 0) {
+                TestErrPrintf("Couldn't close container group '%s'\n", OBJECT_TEST_GROUP_NAME);
+                goto error;
+            }
+
+            if ((group_id = H5Gcreate2(file_id, MISCELLANEOUS_TEST_GROUP_NAME,
+                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+                TestErrPrintf("Couldn't create container group '%s'\n", MISCELLANEOUS_TEST_GROUP_NAME);
+                goto error;
+            }
+            if (H5Gclose(group_id) < 0) {
+                TestErrPrintf("Couldn't close container group '%s'\n", MISCELLANEOUS_TEST_GROUP_NAME);
+                goto error;
+            }
+        }
+
+        if (H5Fclose(file_id) < 0) {
+            TestErrPrintf("Couldn't close testing container file '%s'\n", filenames[i]);
+            goto error;
+        }
+    }
+
+    if (num_filenames == 1)
+        printf("Created container file '%s'\n\n", filenames[0]);
+    else if (num_filenames > 1)
+        printf("Created container files '%s' through '%s'\n\n", filenames[0], filenames[num_filenames - 1]);
+
+    return 0;
+
+error:
+    H5E_BEGIN_TRY
+    {
+        H5Gclose(group_id);
+        H5Fclose(file_id);
+        for (size_t i = 0; i < num_filenames; i++)
+            H5Fdelete(filenames[i], H5P_DEFAULT);
+    }
+    H5E_END_TRY
+
+    return -1;
+}
+
+/* Delete the API test container file(s).
+ * Returns negative on failure, 0 on success */
+int
+H5_api_test_destroy_container_files(char **filenames, size_t num_filenames, hid_t fapl_id)
+{
+    int ret_value = 0;
+
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC)) {
+        TestErrPrintf("VOL connector doesn't support file deletion\n");
+        goto error;
+    }
+
+    for (size_t i = 0; i < num_filenames; i++)
+        if (remove_test_file(filenames[i], fapl_id) < 0)
+            ret_value = -1;
+
+    return ret_value;
+
+error:
+    return -1;
 }

@@ -66,11 +66,6 @@ static char *H5_api_test_base_filename_g = NULL;
 
 const char *test_path_prefix;
 
-static herr_t H5_api_test_setup_container_names(const char *prefix, const char *filename);
-
-static int H5_api_test_create_containers(char **filenames, size_t num_filenames, uint64_t vol_cap_flags);
-static int H5_api_test_destroy_container_files(char **filenames, size_t num_filenames);
-
 /* X-macro to define the following for each test:
  * - enum type
  * - name
@@ -402,7 +397,7 @@ main(int argc, char **argv)
     if (GetTestCleanup()) {
         printf("Deleting container file(s) for tests\n\n");
 
-        if (H5_api_test_destroy_container_files(H5_api_test_filenames_g, H5_api_test_num_filenames_g) < 0) {
+        if (H5_api_test_destroy_container_files(H5_api_test_filenames_g, H5_api_test_num_filenames_g, H5P_DEFAULT) < 0) {
             TestErrPrintf("Error cleaning up testing container files\n");
             goto done;
         }
@@ -440,146 +435,4 @@ done:
         exit(EXIT_FAILURE);
     else
         exit(EXIT_SUCCESS);
-}
-
-/* Create the API container test file(s), one per thread.
- * Returns negative on failure, 0 on success */
-static int
-H5_api_test_create_containers(char **filenames, size_t num_filenames, uint64_t vol_cap_flags)
-{
-    hid_t file_id  = H5I_INVALID_HID;
-    hid_t group_id = H5I_INVALID_HID;
-
-    if (!(vol_cap_flags & H5VL_CAP_FLAG_FILE_BASIC)) {
-        TestErrPrintf("VOL connector doesn't support file creation\n");
-        goto error;
-    }
-
-    for (size_t i = 0; i < num_filenames; i++) {
-        if ((file_id = H5Fcreate(filenames[i], H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-            TestErrPrintf("Couldn't create testing container file '%s'\n", filenames[i]);
-            goto error;
-        }
-
-        /* Create container groups for each of the test interfaces
-         * (group, attribute, dataset, etc.).
-         */
-        if (vol_cap_flags & H5VL_CAP_FLAG_GROUP_BASIC) {
-            if ((group_id = H5Gcreate2(file_id, GROUP_TEST_GROUP_NAME,
-                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                TestErrPrintf("Couldn't create container group '%s'\n", GROUP_TEST_GROUP_NAME);
-                goto error;
-            }
-            if (H5Gclose(group_id) < 0) {
-                TestErrPrintf("Couldn't close container group '%s'\n", GROUP_TEST_GROUP_NAME);
-                goto error;
-            }
-
-            if ((group_id = H5Gcreate2(file_id, ATTRIBUTE_TEST_GROUP_NAME,
-                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                TestErrPrintf("Couldn't create container group '%s'\n", ATTRIBUTE_TEST_GROUP_NAME);
-                goto error;
-            }
-            if (H5Gclose(group_id) < 0) {
-                TestErrPrintf("Couldn't close container group '%s'\n", ATTRIBUTE_TEST_GROUP_NAME);
-                goto error;
-            }
-
-            if ((group_id = H5Gcreate2(file_id, DATASET_TEST_GROUP_NAME,
-                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                TestErrPrintf("Couldn't create container group '%s'\n", DATASET_TEST_GROUP_NAME);
-                goto error;
-            }
-            if (H5Gclose(group_id) < 0) {
-                TestErrPrintf("Couldn't close container group '%s'\n", DATASET_TEST_GROUP_NAME);
-                goto error;
-            }
-
-            if ((group_id = H5Gcreate2(file_id, DATATYPE_TEST_GROUP_NAME,
-                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                TestErrPrintf("Couldn't create container group '%s'\n", DATATYPE_TEST_GROUP_NAME);
-                goto error;
-            }
-            if (H5Gclose(group_id) < 0) {
-                TestErrPrintf("Couldn't close container group '%s'\n", DATATYPE_TEST_GROUP_NAME);
-                goto error;
-            }
-
-            if ((group_id = H5Gcreate2(file_id, LINK_TEST_GROUP_NAME,
-                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                TestErrPrintf("Couldn't create container group '%s'\n", LINK_TEST_GROUP_NAME);
-                goto error;
-            }
-            if (H5Gclose(group_id) < 0) {
-                TestErrPrintf("Couldn't close container group '%s'\n", LINK_TEST_GROUP_NAME);
-                goto error;
-            }
-
-            if ((group_id = H5Gcreate2(file_id, OBJECT_TEST_GROUP_NAME,
-                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                TestErrPrintf("Couldn't create container group '%s'\n", OBJECT_TEST_GROUP_NAME);
-                goto error;
-            }
-            if (H5Gclose(group_id) < 0) {
-                TestErrPrintf("Couldn't close container group '%s'\n", OBJECT_TEST_GROUP_NAME);
-                goto error;
-            }
-
-            if ((group_id = H5Gcreate2(file_id, MISCELLANEOUS_TEST_GROUP_NAME,
-                                       H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-                TestErrPrintf("Couldn't create container group '%s'\n", MISCELLANEOUS_TEST_GROUP_NAME);
-                goto error;
-            }
-            if (H5Gclose(group_id) < 0) {
-                TestErrPrintf("Couldn't close container group '%s'\n", MISCELLANEOUS_TEST_GROUP_NAME);
-                goto error;
-            }
-        }
-
-        if (H5Fclose(file_id) < 0) {
-            TestErrPrintf("Couldn't close testing container file '%s'\n", filenames[i]);
-            goto error;
-        }
-    }
-
-    if (num_filenames == 1)
-        printf("Created container file '%s'\n\n", filenames[0]);
-    else if (num_filenames > 1)
-        printf("Created container files '%s' through '%s'\n\n", filenames[0], filenames[num_filenames - 1]);
-
-    return 0;
-
-error:
-    H5E_BEGIN_TRY
-    {
-        H5Gclose(group_id);
-        H5Fclose(file_id);
-        for (size_t i = 0; i < num_filenames; i++)
-            H5Fdelete(filenames[i], H5P_DEFAULT);
-    }
-    H5E_END_TRY
-
-    return -1;
-}
-
-/* Delete the API test container file(s).
- * Returns negative on failure, 0 on success */
-static int
-H5_api_test_destroy_container_files(char **filenames, size_t num_filenames)
-{
-    int ret_value = 0;
-
-    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC)) {
-        TestErrPrintf("VOL connector doesn't support file deletion\n");
-        goto error;
-    }
-
-    for (size_t i = 0; i < num_filenames; i++)
-        if (remove_test_file(filenames[i]) < 0)
-            ret_value = -1;
-
-    return ret_value;
-
-error:
-    return -1;
 }

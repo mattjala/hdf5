@@ -801,7 +801,7 @@ test_create_hard_link_invalid_params(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -814,7 +814,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -1764,7 +1764,7 @@ test_create_external_link(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -1777,7 +1777,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -1889,7 +1889,7 @@ test_create_external_link_dangling(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(ext_file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -1903,7 +1903,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(file_id);
         H5Fclose(ext_file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -2199,11 +2199,11 @@ test_create_external_link_multi(TestParams_t *params)
     }
     SUBTEST_END(params);
 
-    if (remove_test_file(ext_link_filename1) < 0)
+    if (remove_test_file(ext_link_filename1, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename2) < 0)
+    if (remove_test_file(ext_link_filename2, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename3) < 0)
+    if (remove_test_file(ext_link_filename3, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     free(ext_link_filename1);
@@ -2221,9 +2221,9 @@ error:
         H5Gclose(group_id3);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename1);
-        remove_test_file(ext_link_filename2);
-        remove_test_file(ext_link_filename3);
+        remove_test_file(ext_link_filename1, H5P_DEFAULT);
+        remove_test_file(ext_link_filename2, H5P_DEFAULT);
+        remove_test_file(ext_link_filename3, H5P_DEFAULT);
         free(ext_link_filename1);
         free(ext_link_filename2);
         free(ext_link_filename3);
@@ -2462,9 +2462,9 @@ test_create_external_link_ping_pong(TestParams_t *params)
     }
     SUBTEST_END(params);
 
-    if (remove_test_file(ext_link_filename1) < 0)
+    if (remove_test_file(ext_link_filename1, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename2) < 0)
+    if (remove_test_file(ext_link_filename2, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     free(ext_link_filename1);
@@ -2478,8 +2478,8 @@ error:
         H5Gclose(group_id);
         H5Gclose(group_id2);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename1);
-        remove_test_file(ext_link_filename2);
+        remove_test_file(ext_link_filename1, H5P_DEFAULT);
+        remove_test_file(ext_link_filename2, H5P_DEFAULT);
         free(ext_link_filename1);
         free(ext_link_filename2);
     }
@@ -2707,7 +2707,7 @@ test_create_external_link_invalid_params(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -2719,7 +2719,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -5905,7 +5905,7 @@ test_delete_link(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(ext_file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -5920,7 +5920,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -7395,7 +7395,7 @@ test_copy_link(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(ext_file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -7410,7 +7410,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -7703,7 +7703,7 @@ test_copy_link_invalid_params(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(ext_file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -7718,7 +7718,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -8921,7 +8921,7 @@ test_move_link(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(ext_file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -8936,7 +8936,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(file_id);
         H5Fclose(ext_file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -9593,7 +9593,7 @@ test_move_link_invalid_params(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(ext_file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -9608,7 +9608,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -11344,7 +11344,7 @@ test_get_link_val(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(ext_file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -11359,7 +11359,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -13870,7 +13870,7 @@ test_get_link_info(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -13885,7 +13885,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -15995,7 +15995,7 @@ test_get_link_name(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -16010,7 +16010,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -17118,7 +17118,7 @@ test_link_iterate_external_links(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -17131,7 +17131,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -17582,7 +17582,7 @@ test_link_iterate_mixed_links(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -17598,7 +17598,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -17927,7 +17927,7 @@ test_link_iterate_invalid_params(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -17942,7 +17942,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -19051,7 +19051,7 @@ test_link_visit_external_links_no_cycles(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -19065,7 +19065,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -19475,7 +19475,7 @@ test_link_visit_mixed_links_no_cycles(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -19493,7 +19493,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -20764,7 +20764,7 @@ test_link_visit_mixed_links_cycles(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -20779,7 +20779,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -21151,7 +21151,7 @@ test_link_visit_invalid_params(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(ext_link_filename) < 0)
+    if (remove_test_file(ext_link_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(ext_link_filename);
 
@@ -21168,7 +21168,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(ext_link_filename);
+        remove_test_file(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY

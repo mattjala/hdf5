@@ -3391,11 +3391,11 @@ test_async_file_cleanup(TestParams_t H5_ATTR_UNUSED *params)
     int  i;
 
     if (MAINPROCESS) {
-        remove_test_file(PAR_ASYNC_API_TEST_FILE);
+        remove_test_file(PAR_ASYNC_API_TEST_FILE, H5P_DEFAULT);
 
         for (i = 0; i <= max_printf_file; i++) {
             snprintf(file_name, sizeof(file_name), PAR_ASYNC_API_TEST_FILE_PRINTF, i);
-            remove_test_file(file_name);
+            remove_test_file(file_name, H5P_DEFAULT);
         }
     }
 

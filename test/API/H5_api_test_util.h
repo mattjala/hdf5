@@ -22,6 +22,9 @@ hid_t  generate_random_dataspace(int rank, const hsize_t *max_dims, hsize_t *dim
 
 herr_t prefix_test_filename(TestParams_t *test_params, const char *prefix, const char *filename,
                             char **filename_out);
-herr_t remove_test_file(const char *filename);
+herr_t remove_test_file(const char *filename, hid_t fapl_id);
+
+int H5_api_test_create_containers(char **filenames, size_t num_filenames, uint64_t vol_cap_flags);
+int H5_api_test_destroy_container_files(char **filenames, size_t num_filenames, hid_t fapl_id);
 
 #endif /* H5_API_TEST_UTIL_H_ */

@@ -3964,7 +3964,7 @@ test_object_copy_between_files(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(obj_copy_filename) < 0)
+    if (remove_test_file(obj_copy_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(obj_copy_filename);
 
@@ -3988,7 +3988,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(file_id2);
         H5Fclose(file_id);
-        remove_test_file(obj_copy_filename);
+        remove_test_file(obj_copy_filename, H5P_DEFAULT);
         free(obj_copy_filename);
     }
     H5E_END_TRY
@@ -4733,7 +4733,7 @@ test_object_visit(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
     if (H5Fclose(file_id2) < 0)
         TESTFRAME_TEST_ERROR(params);
-    if (remove_test_file(visit_filename) < 0)
+    if (remove_test_file(visit_filename, H5P_DEFAULT) < 0)
         TESTFRAME_TEST_ERROR(params);
     free(visit_filename);
 
@@ -4756,7 +4756,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(file_id);
         H5Fclose(file_id2);
-        remove_test_file(visit_filename);
+        remove_test_file(visit_filename, H5P_DEFAULT);
         free(visit_filename);
     }
     H5E_END_TRY;
