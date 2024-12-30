@@ -461,7 +461,7 @@ PerformTests(void)
         }
 
         MESSAGE(2, ("Testing %s -- %s (%s) \n", (is_test_mt ? "(Multi-threaded)" : ""),
-            TestAqrray[Loop].Description, TestArray[Loop].Name));
+            TestArray[Loop].Description, TestArray[Loop].Name));
         MESSAGE(5, ("===============================================\n"));
 
         test_num_errs = H5_ATOMIC_LOAD(TestArray[Loop].TestNumErrors);
@@ -670,11 +670,22 @@ ThreadTestWrapper(void *test)
         return (void*)-1;
     }
 
-    /* TODO: Test setup and cleanup functions should be
-     * accounted for in the multithread case
+    /* This setup/cleanup pattern requires that each
+     * thread that delegates threading to the test framework
+     * must not have any form of "shared" setup or cleanup.
+     * 
+     * This is usually accomplished by having thread-specific filenames.
+     * 
+     * If a test requires shared setup/cleanup, then the test must 
+     * handle its own threading internally
      */
+    if (test_struct->TestSetupFunc)
+        test_struct->TestSetupFunc(test_struct->TestParameters);
 
     test_struct->TestFunc(test_struct->TestParameters);
+
+    if (test_struct->TestCleanupFunc)
+        test_struct->TestCleanupFunc(test_struct->TestParameters);
 
     if ((tinfo = pthread_getspecific(test_thread_info_key_g)) == NULL) {
         memset(test_args->test_outcomes, (int) TEST_INVALID, H5_MAX_NUM_SUBTESTS * sizeof(test_outcome_t));
