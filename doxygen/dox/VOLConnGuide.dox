@@ -494,9 +494,8 @@ XML, getopt-style processing, etc.) is up to the connector author. These connect
 can be used to set up a VOL connector via mechanisms like command-line parameters and environment
 variables.
 
-Multi-threaded VOL connectors must define a copy callback that performs an actual deep copy of the underlying information buffer,
-as opposed to using reference counting or some other method to share a buffer. This ensures thread safety by having all subsequent
-information callbacks act on independent buffers.
+Multi-threaded VOL connectors have two possible approaches to connector information. They may either have each connector information
+instance be an independent buffer, or have each be a reference to a shared underlying information buffer that is constant afer connector initialization.
 
 <em>Info class for connector information routines, H5VLconnector.h</em>
 \code
@@ -533,7 +532,11 @@ The <em>copy</em> callback is invoked when the connector is selected for use wit
 connector-specific set call, etc. Where possible, the information should be deep copied in such a way that the original
 data can be freed.
 
-For multi-threaded connectors, it is required that the information be deep copied to a new buffer.
+Multi-threaded VOL connectors must take one of two approaches to the connector information copy callback.
+The first approach is to define a copy callback that performs an actual deep copy of the underlying information buffer,
+as opposed to using reference counting or some other method to share a buffer. This ensures thread safety by having all subsequent
+information callbacks act on independent buffers. The second approach is to define a copy callback that provides a reference to a buffer
+which is constant after connector initialization. This ensures threadsafety by eliminating the possibility of concurrent reads and writes.
 <table>
 <tr>
 <th>Signature:</th>
@@ -673,8 +676,8 @@ The wrap context should contain the information necessary to recursively wrap th
 
 Each callback should use <em>H5VL&lt;callback&gt;</em> to recursively invoke the same callback in all lower passthrough VOL connectors.
 
-Multi-threaded VOL connectors which define the wrap callbacks must allocate a separate wrap context buffer in each invocation of <b>get_wrap_ctx</b>,
-if that callback is defined.
+Multi-threaded VOL connectors which define the wrap callbacks have two possible approaches. One is to allocate a separate wrap context buffer in each invocation of <b>get_wrap_ctx</b>.
+The other is to have each wrap context instance be a reference to a shared, underlying wrap context that is held constant after connector initialization.
 
 <em>Wrap class for object wrapping routines, H5VLconnector.h</em>
 \code
@@ -718,7 +721,11 @@ Get a VOL connector's object wrapping context.
 The context should be returned in dynamically allocated memory under <em>*wrap_ctx</em>.
 Any resources this callback allocates should be freed within <em>free_wrap_ctx</em>.
 
-If this connector is multi-threaded, this routine must allocate a new context buffer on each invocation.
+If this connector is multi-threaded, this routine must either allocate a new context buffer on each invocation, or
+provide a reference to a constant, shared underlying wrap context buffer. The first approach prevents concurrency issues by
+making each wrap context independent, and the second approach prevents concurrency issues by eliminating the possibility
+of concurrent reads and writes.
+
 <table>
 <tr>
 <th>Signature:</th>
