@@ -461,7 +461,7 @@ PerformTests(void)
         }
 
         MESSAGE(2, ("Testing %s -- %s (%s) \n", (is_test_mt ? "(Multi-threaded)" : ""),
-            TestArray[Loop].Description, TestArray[Loop].Name));
+            TestAqrray[Loop].Description, TestArray[Loop].Name));
         MESSAGE(5, ("===============================================\n"));
 
         test_num_errs = H5_ATOMIC_LOAD(TestArray[Loop].TestNumErrors);
@@ -990,7 +990,7 @@ TestErrPrintf(const char *format, ...)
     int     ret_value;
 
     /* Increment the error count */
-    H5_ATOMIC_ADD(TestNumErrs_g, 1);
+    IncTestNumErrs();
 
     /* Print the requested information */
     va_start(arglist, format);
