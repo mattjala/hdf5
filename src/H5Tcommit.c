@@ -131,7 +131,9 @@ H5T__commit_api_common(hid_t loc_id, const char *name, hid_t type_id, hid_t lcpl
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not datatype creation property list");
 
     /* Set the LCPL for the API context */
+    H5_API_LOCK
     H5CX_set_lcpl(lcpl_id);
+    H5_API_UNLOCK
 
     /* Set up object access arguments */
     if (H5VL_setup_acc_args(loc_id, H5P_CLS_TACC, TRUE, &tapl_id, vol_obj_ptr, &loc_params) < 0)
@@ -346,7 +348,11 @@ H5Tcommit_anon(hid_t loc_id, hid_t type_id, hid_t tcpl_id, hid_t tapl_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not datatype access property list");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&tapl_id, H5P_CLS_TACC, loc_id, TRUE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&tapl_id, H5P_CLS_TACC, loc_id, TRUE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTSET, FAIL, "can't set access property list info");
 
     /* Fill in location struct fields */
@@ -823,7 +829,11 @@ H5Tflush(hid_t type_id)
         H5VL_datatype_specific_args_t vol_cb_args; /* Arguments to VOL callback */
 
         /* Set up collective metadata if appropriate */
-        if (H5CX_set_loc(type_id) < 0)
+        H5_API_LOCK
+        ret_value = H5CX_set_loc(type_id);
+        H5_API_UNLOCK
+
+        if (ret_value < 0)
             HGOTO_ERROR(H5E_DATATYPE, H5E_CANTSET, FAIL, "can't set access property list info");
 
         /* Set up VOL callback arguments */
@@ -867,7 +877,11 @@ H5Trefresh(hid_t type_id)
         H5VL_datatype_specific_args_t vol_cb_args; /* Arguments to VOL callback */
 
         /* Set up collective metadata if appropriate */
-        if (H5CX_set_loc(type_id) < 0)
+        H5_API_LOCK
+        ret_value = H5CX_set_loc(type_id);
+        H5_API_UNLOCK
+
+        if (ret_value < 0)
             HGOTO_ERROR(H5E_DATATYPE, H5E_CANTSET, FAIL, "can't set access property list info");
 
         /* Set up VOL callback arguments */

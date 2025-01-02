@@ -589,7 +589,11 @@ H5F__create_api_common(const char *filename, unsigned flags, hid_t fcpl_id, hid_
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not file create property list");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&fapl_id, H5P_CLS_FACC, H5I_INVALID_HID, TRUE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&fapl_id, H5P_CLS_FACC, H5I_INVALID_HID, TRUE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, H5I_INVALID_HID, "can't set access property list info");
 
     /* Get the VOL info from the fapl */
@@ -601,7 +605,11 @@ H5F__create_api_common(const char *filename, unsigned flags, hid_t fcpl_id, hid_
     /* Stash a copy of the "top-level" connector property, before any pass-through
      *  connectors modify or unwrap it.
      */
-    if (H5CX_set_vol_connector_prop(&connector_prop) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_vol_connector_prop(&connector_prop);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, H5I_INVALID_HID, "can't set VOL connector info in API context");
 
     /* Adjust bit flags by turning on the creation bit and making sure that
@@ -786,7 +794,11 @@ H5F__open_api_common(const char *filename, unsigned flags, hid_t fapl_id, void *
                     "SWMR read access on a file open for read-write access is not allowed");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&fapl_id, H5P_CLS_FACC, H5I_INVALID_HID, TRUE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&fapl_id, H5P_CLS_FACC, H5I_INVALID_HID, TRUE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, H5I_INVALID_HID, "can't set access property list info");
 
     /* Get the VOL info from the fapl */
@@ -798,7 +810,11 @@ H5F__open_api_common(const char *filename, unsigned flags, hid_t fapl_id, void *
     /* Stash a copy of the "top-level" connector property, before any pass-through
      *  connectors modify or unwrap it.
      */
-    if (H5CX_set_vol_connector_prop(&connector_prop) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_vol_connector_prop(&connector_prop);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, H5I_INVALID_HID, "can't set VOL connector info in API context");
 
     /* Open the file through the VOL layer */
@@ -1181,7 +1197,11 @@ H5Fdelete(const char *filename, hid_t fapl_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADRANGE, FAIL, "no file name specified");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&fapl_id, H5P_CLS_FACC, H5I_INVALID_HID, TRUE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&fapl_id, H5P_CLS_FACC, H5I_INVALID_HID, TRUE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set access property list info");
 
     /* Get the VOL info from the fapl */
@@ -1193,7 +1213,11 @@ H5Fdelete(const char *filename, hid_t fapl_id)
     /* Stash a copy of the "top-level" connector property, before any pass-through
      *  connectors modify or unwrap it.
      */
-    if (H5CX_set_vol_connector_prop(&connector_prop) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_vol_connector_prop(&connector_prop);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set VOL connector info in API context");
 
     /* Set up VOL callback arguments */
@@ -1261,7 +1285,11 @@ H5Fmount(hid_t loc_id, const char *name, hid_t child_id, hid_t plist_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "plist_id is not a file mount property list ID");
 
     /* Set up collective metadata if appropriate */
-    if (H5CX_set_loc(loc_id) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_loc(loc_id);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set collective metadata read info");
 
     /* Get the location object */
@@ -1372,7 +1400,11 @@ H5Funmount(hid_t loc_id, const char *name)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "name parameter cannot be the empty string");
 
     /* Set up collective metadata if appropriate */
-    if (H5CX_set_loc(loc_id) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_loc(loc_id);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set collective metadata read info");
 
     /* Get the location object */
@@ -2330,7 +2362,11 @@ H5Fstart_swmr_write(hid_t file_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "hid_t identifier is not a file ID");
 
     /* Set up collective metadata if appropriate */
-    if (H5CX_set_loc(file_id) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_loc(file_id);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set collective metadata read info");
 
     /* Set up VOL callback arguments */
@@ -2486,7 +2522,11 @@ H5Fset_libver_bounds(hid_t file_id, H5F_libver_t low, H5F_libver_t high)
         HGOTO_ERROR(H5E_FILE, H5E_BADVALUE, FAIL, "not a file ID");
 
     /* Set up collective metadata if appropriate */
-    if (H5CX_set_loc(file_id) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_loc(file_id);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set collective metadata read info");
 
     /* Set up VOL callback arguments */
@@ -2529,7 +2569,11 @@ H5Fformat_convert(hid_t file_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "file_id parameter is not a valid file identifier");
 
     /* Set up collective metadata if appropriate */
-    if (H5CX_set_loc(file_id) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_loc(file_id);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, FAIL, "can't set collective metadata read info");
 
     /* Set up VOL callback arguments */

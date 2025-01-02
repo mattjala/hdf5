@@ -1072,9 +1072,6 @@ H5CX_free_state(H5CX_state_t *api_state)
 {
     herr_t ret_value = SUCCEED; /* Return value */
 
-    /* TBD: Retain ID lock to protect iteration */
-    H5_API_LOCK
-
     FUNC_ENTER_NOAPI(FAIL)
 
     /* Sanity check */
@@ -1122,7 +1119,6 @@ H5CX_free_state(H5CX_state_t *api_state)
     api_state = H5FL_FREE(H5CX_state_t, api_state);
 
 done:
-    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5CX_free_state() */
 
@@ -1194,7 +1190,6 @@ H5CX_set_dcpl(hid_t dcpl_id)
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
-    H5_API_LOCK
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1203,7 +1198,6 @@ H5CX_set_dcpl(hid_t dcpl_id)
     /* Set the API context's DCPL to a new value */
     (*head)->ctx.dcpl_id = dcpl_id;
 
-    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI_VOID
 } /* end H5CX_set_dcpl() */
 
@@ -1255,7 +1249,6 @@ H5CX_set_lcpl(hid_t lcpl_id)
     H5CX_node_t **head = NULL; /* Pointer to head of API context list */
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
-    H5_API_LOCK
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1264,7 +1257,6 @@ H5CX_set_lcpl(hid_t lcpl_id)
     /* Set the API context's LCPL to a new value */
     (*head)->ctx.lcpl_id = lcpl_id;
 
-    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI_VOID
 } /* end H5CX_set_lcpl() */
 
@@ -1321,7 +1313,6 @@ H5CX_set_apl(hid_t *acspl_id, const H5P_libclass_t *libclass,
     herr_t        ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
-    H5_API_LOCK
 
     /* Sanity checks */
     assert(acspl_id);
@@ -1413,7 +1404,6 @@ H5CX_set_apl(hid_t *acspl_id, const H5P_libclass_t *libclass,
 #endif    /* H5_HAVE_PARALLEL */
 
 done:
-    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5CX_set_apl() */
 
@@ -1441,7 +1431,6 @@ H5CX_set_loc(hid_t
     herr_t        ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI(FAIL)
-    H5_API_LOCK
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1467,7 +1456,6 @@ H5CX_set_loc(hid_t
     } /* end if */
 
 done:
-    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 #else  /* H5_HAVE_PARALLEL */
     FUNC_ENTER_NOAPI_NOINIT_NOERR
@@ -1522,7 +1510,6 @@ H5CX_set_vol_connector_prop(const H5VL_connector_prop_t *vol_connector_prop)
     herr_t        ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_NOAPI_NOERR
-    H5_API_LOCK
 
     /* Sanity check */
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
@@ -1534,7 +1521,6 @@ H5CX_set_vol_connector_prop(const H5VL_connector_prop_t *vol_connector_prop)
     /* Mark the value as valid */
     (*head)->ctx.vol_connector_prop_valid = TRUE;
 
-    H5_API_UNLOCK
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5CX_set_vol_connector_prop() */
 

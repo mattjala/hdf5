@@ -330,7 +330,11 @@ H5A__create_by_name_api_common(hid_t loc_id, const char *obj_name, const char *a
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, H5I_INVALID_HID, "can't set object access arguments");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&aapl_id, H5P_CLS_AACC, loc_id, TRUE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&aapl_id, H5P_CLS_AACC, loc_id, TRUE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, H5I_INVALID_HID, "can't set attribute access property list info");
 
     /* Get correct property list */
@@ -654,7 +658,11 @@ H5A__open_by_name_api_common(hid_t loc_id, const char *obj_name, const char *att
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, H5I_INVALID_HID, "can't set object access arguments");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&aapl_id, H5P_CLS_AACC, loc_id, FALSE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&aapl_id, H5P_CLS_AACC, loc_id, FALSE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, H5I_INVALID_HID, "can't set attribute access property list info");
 
     /* Open the attribute */
@@ -796,7 +804,11 @@ H5A__open_by_idx_api_common(hid_t loc_id, const char *obj_name, H5_index_t idx_t
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, H5I_INVALID_HID, "can't set object access arguments");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&aapl_id, H5P_CLS_AACC, loc_id, FALSE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&aapl_id, H5P_CLS_AACC, loc_id, FALSE);
+    H5_API_UNLOCK
+    
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, H5I_INVALID_HID, "can't set attribute access property list info");
 
     /* Open the attribute */
@@ -1358,7 +1370,11 @@ H5Aget_name_by_idx(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_i
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid iteration order specified");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, FALSE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, FALSE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, FAIL, "can't set access property list info");
 
     /* Get the object */
@@ -1506,7 +1522,11 @@ H5Aget_info_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, H
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid info pointer");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, FALSE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, FALSE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, FAIL, "can't set access property list info");
 
     /* Get the object */
@@ -1565,7 +1585,11 @@ H5Aget_info_by_idx(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_i
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid info pointer");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, FALSE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, FALSE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, FAIL, "can't set access property list info");
 
     /* Get the object */
@@ -2012,7 +2036,11 @@ H5Aiterate_by_name(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_i
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid iteration order specified");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, FALSE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, FALSE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, FAIL, "can't set access property list info");
 
     /* get the loc object */
@@ -2076,7 +2104,11 @@ H5Adelete(hid_t loc_id, const char *name)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "name parameter cannot be an empty string");
 
     /* Set up collective metadata if appropriate */
-    if (H5CX_set_loc(loc_id) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_loc(loc_id);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, FAIL, "can't set collective metadata read");
 
     /* Get the object */
@@ -2135,7 +2167,11 @@ H5Adelete_by_name(hid_t loc_id, const char *obj_name, const char *attr_name, hid
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no attribute name");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, TRUE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, TRUE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, FAIL, "can't set access property list info");
 
     /* Get the object */
@@ -2207,7 +2243,11 @@ H5Adelete_by_idx(hid_t loc_id, const char *obj_name, H5_index_t idx_type, H5_ite
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid iteration order specified");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    if (H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, TRUE) < 0)
+    H5_API_LOCK
+    ret_value = H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, TRUE);
+    H5_API_UNLOCK
+
+    if (ret_value < 0)
         HGOTO_ERROR(H5E_ATTR, H5E_CANTSET, FAIL, "can't set access property list info");
 
     /* get the object */
