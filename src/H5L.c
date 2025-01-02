@@ -96,6 +96,7 @@ H5Lmove(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id, const char *ds
     H5VL_loc_params_t loc_params2;
     H5VL_object_t     tmp_vol_obj;         /* Temporary object */
     herr_t            ret_value = SUCCEED; /* Return value */
+    htri_t            ret       = FALSE;
 
     FUNC_ENTER_API_NO_MUTEX(FAIL)
     H5TRACE6("e", "i*si*sii", src_loc_id, src_name, dst_loc_id, dst_name, lcpl_id, lapl_id);
@@ -107,8 +108,14 @@ H5Lmove(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id, const char *ds
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no current name specified");
     if (!dst_name || !*dst_name)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no destination name specified");
-    if (lcpl_id != H5P_DEFAULT && (TRUE != H5P_isa_class(lcpl_id, H5P_LINK_CREATE)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a link creation property list");
+    if (lcpl_id != H5P_DEFAULT) {
+        H5_API_LOCK
+        ret = H5P_isa_class(lcpl_id, H5P_LINK_CREATE);
+        H5_API_UNLOCK
+
+        if (TRUE != ret)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a link creation property list");
+    }
 
     /* Check the link create property list */
     if (H5P_DEFAULT == lcpl_id)
@@ -204,6 +211,7 @@ H5Lcopy(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id, const char *ds
     H5VL_loc_params_t loc_params2;
     H5VL_object_t     tmp_vol_obj;         /* Temporary object */
     herr_t            ret_value = SUCCEED; /* Return value */
+    htri_t            ret       = FALSE;
 
     FUNC_ENTER_API_NO_MUTEX(FAIL)
     H5TRACE6("e", "i*si*sii", src_loc_id, src_name, dst_loc_id, dst_name, lcpl_id, lapl_id);
@@ -215,8 +223,14 @@ H5Lcopy(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id, const char *ds
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no current name specified");
     if (!dst_name || !*dst_name)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no destination name specified");
-    if (lcpl_id != H5P_DEFAULT && (TRUE != H5P_isa_class(lcpl_id, H5P_LINK_CREATE)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a link creation property list");
+    if (lcpl_id != H5P_DEFAULT) {
+        H5_API_LOCK
+        ret = H5P_isa_class(lcpl_id, H5P_LINK_CREATE);
+        H5_API_UNLOCK
+
+        if (TRUE != ret)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a link creation property list");
+    }
 
     /* Check the link create property list */
     if (H5P_DEFAULT == lcpl_id)
@@ -310,6 +324,7 @@ H5L__create_soft_api_common(const char *link_target, hid_t link_loc_id, const ch
     H5VL_link_create_args_t vol_cb_args;              /* Arguments to VOL callback */
     H5VL_loc_params_t       loc_params;               /* Location parameters for object access */
     herr_t                  ret_value = SUCCEED;      /* Return value */
+    htri_t                  ret       = FALSE;
 
     FUNC_ENTER_PACKAGE
 
@@ -320,8 +335,15 @@ H5L__create_soft_api_common(const char *link_target, hid_t link_loc_id, const ch
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "link_target parameter cannot be NULL");
     if (!*link_target)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "link_target parameter cannot be an empty string");
-    if (lcpl_id != H5P_DEFAULT && (TRUE != H5P_isa_class(lcpl_id, H5P_LINK_CREATE)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a link creation property list");
+    if (lcpl_id != H5P_DEFAULT) {
+        H5_API_LOCK
+        ret = H5P_isa_class(lcpl_id, H5P_LINK_CREATE);
+        H5_API_UNLOCK
+
+        if (TRUE != ret)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a link creation property list");
+    }
+
     /* link_name is verified in H5VL_setup_name_args() */
 
     /* Get the link creation property list */
@@ -455,6 +477,7 @@ H5L__create_hard_api_common(hid_t cur_loc_id, const char *cur_name, hid_t link_l
     H5VL_link_create_args_t vol_cb_args;                  /* Arguments to VOL callback */
     H5VL_loc_params_t       link_loc_params;     /* Location parameters for link_loc_id object access */
     herr_t                  ret_value = SUCCEED; /* Return value */
+    htri_t                  ret      = FALSE;
 
     FUNC_ENTER_PACKAGE
 
@@ -469,8 +492,14 @@ H5L__create_hard_api_common(hid_t cur_loc_id, const char *cur_name, hid_t link_l
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "new_name parameter cannot be NULL");
     if (!*link_name)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "new_name parameter cannot be an empty string");
-    if (lcpl_id != H5P_DEFAULT && (TRUE != H5P_isa_class(lcpl_id, H5P_LINK_CREATE)))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a link creation property list");
+    if (lcpl_id != H5P_DEFAULT) {
+        H5_API_LOCK
+        ret = H5P_isa_class(lcpl_id, H5P_LINK_CREATE);
+        H5_API_UNLOCK
+
+        if (TRUE != ret)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a link creation property list");
+    }
 
     /* Check the link create property list */
     if (H5P_DEFAULT == lcpl_id)

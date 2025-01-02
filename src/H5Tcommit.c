@@ -104,6 +104,7 @@ H5T__commit_api_common(hid_t loc_id, const char *name, hid_t type_id, hid_t lcpl
         (_vol_obj_ptr ? _vol_obj_ptr : &tmp_vol_obj); /* Ptr to object ptr for loc_id */
     H5VL_loc_params_t loc_params;                     /* Location parameters */
     herr_t            ret_value = SUCCEED;            /* Return value */
+    htri_t            ret      = FALSE;              /* Generic return value */
 
     FUNC_ENTER_PACKAGE
 
@@ -121,14 +122,26 @@ H5T__commit_api_common(hid_t loc_id, const char *name, hid_t type_id, hid_t lcpl
     /* Get correct property list */
     if (H5P_DEFAULT == lcpl_id)
         lcpl_id = H5P_LINK_CREATE_DEFAULT;
-    else if (TRUE != H5P_isa_class(lcpl_id, H5P_LINK_CREATE))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not link creation property list");
+    else {
+        H5_API_LOCK
+        ret = H5P_isa_class(lcpl_id, H5P_LINK_CREATE);
+        H5_API_UNLOCK
+
+        if (TRUE != ret)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not link creation property list");
+    }
 
     /* Get correct property list */
     if (H5P_DEFAULT == tcpl_id)
         tcpl_id = H5P_DATATYPE_CREATE_DEFAULT;
-    else if (TRUE != H5P_isa_class(tcpl_id, H5P_DATATYPE_CREATE))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not datatype creation property list");
+    else {
+        H5_API_LOCK
+        ret = H5P_isa_class(tcpl_id, H5P_DATATYPE_CREATE);
+        H5_API_UNLOCK
+
+        if (TRUE != ret)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not datatype creation property list");
+    }
 
     /* Set the LCPL for the API context */
     H5_API_LOCK
@@ -326,6 +339,7 @@ H5Tcommit_anon(hid_t loc_id, hid_t type_id, hid_t tcpl_id, hid_t tapl_id)
     H5VL_object_t    *vol_obj = NULL; /* object of loc_id */
     H5VL_loc_params_t loc_params;
     herr_t            ret_value = SUCCEED; /* Return value */
+    htri_t            ret      = FALSE;   /* Generic return value */
 
     FUNC_ENTER_API_NO_MUTEX(FAIL)
     H5TRACE4("e", "iiii", loc_id, type_id, tcpl_id, tapl_id);
@@ -339,13 +353,25 @@ H5Tcommit_anon(hid_t loc_id, hid_t type_id, hid_t tcpl_id, hid_t tapl_id)
     /* Get correct property list */
     if (H5P_DEFAULT == tcpl_id)
         tcpl_id = H5P_DATATYPE_CREATE_DEFAULT;
-    else if (TRUE != H5P_isa_class(tcpl_id, H5P_DATATYPE_CREATE))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not datatype creation property list");
+    else {
+        H5_API_LOCK
+        ret = H5P_isa_class(tcpl_id, H5P_DATATYPE_CREATE);
+        H5_API_UNLOCK
+
+        if (TRUE != ret)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not datatype creation property list");
+    }
 
     if (H5P_DEFAULT == tapl_id)
         tapl_id = H5P_DATATYPE_ACCESS_DEFAULT;
-    else if (TRUE != H5P_isa_class(tapl_id, H5P_DATATYPE_ACCESS))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not datatype access property list");
+    else {
+        H5_API_LOCK
+        ret = H5P_isa_class(tapl_id, H5P_DATATYPE_ACCESS);
+        H5_API_UNLOCK
+
+        if (TRUE != ret)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not datatype access property list");
+    }
 
     /* Verify access property list and set up collective metadata if appropriate */
     H5_API_LOCK
@@ -775,7 +801,12 @@ H5Tget_create_plist(hid_t dtype_id)
         /* Copy the default datatype creation property list */
         if (NULL == (tcpl_plist = (H5P_genplist_t *)H5I_object(H5P_LST_DATATYPE_CREATE_ID_g)))
             HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "can't get default creation property list");
-        if ((ret_value = H5P_copy_plist(tcpl_plist, TRUE)) < 0)
+        
+        H5_API_LOCK
+        ret_value = H5P_copy_plist(tcpl_plist, TRUE);
+        H5_API_UNLOCK
+
+        if (ret_value < 0)
             HGOTO_ERROR(H5E_DATATYPE, H5E_CANTGET, H5I_INVALID_HID,
                         "unable to copy the creation property list");
     } /* end if */
@@ -928,7 +959,12 @@ H5T__get_create_plist(const H5T_t *type)
     /* Copy the default datatype creation property list */
     if (NULL == (tcpl_plist = (H5P_genplist_t *)H5I_object(H5P_LST_DATATYPE_CREATE_ID_g)))
         HGOTO_ERROR(H5E_DATATYPE, H5E_BADTYPE, H5I_INVALID_HID, "can't get default creation property list");
-    if ((new_tcpl_id = H5P_copy_plist(tcpl_plist, TRUE)) < 0)
+    
+    H5_API_LOCK
+    new_tcpl_id = H5P_copy_plist(tcpl_plist, TRUE);
+    H5_API_UNLOCK
+
+    if (new_tcpl_id < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTGET, H5I_INVALID_HID, "unable to copy the creation property list");
 
     /* Get property list object for new TCPL */

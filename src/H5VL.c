@@ -83,6 +83,7 @@ hid_t
 H5VLregister_connector(const H5VL_class_t *cls, hid_t vipl_id)
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
+    htri_t ret     = FALSE;           /* Generic return value */
 
     FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
     H5TRACE2("i", "*#i", cls, vipl_id);
@@ -90,8 +91,14 @@ H5VLregister_connector(const H5VL_class_t *cls, hid_t vipl_id)
     /* Check VOL initialization property list */
     if (H5P_DEFAULT == vipl_id)
         vipl_id = H5P_VOL_INITIALIZE_DEFAULT;
-    else if (TRUE != H5P_isa_class(vipl_id, H5P_VOL_INITIALIZE))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a VOL initialize property list");
+    else {
+        H5_API_LOCK
+        ret = H5P_isa_class(vipl_id, H5P_VOL_INITIALIZE);
+        H5_API_UNLOCK
+
+        if (TRUE != ret)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a VOL initialize property list");
+    }
 
     /* Register connector */
     if ((ret_value = H5VL__register_connector_by_class(cls, TRUE, vipl_id)) < 0)
@@ -122,6 +129,7 @@ hid_t
 H5VLregister_connector_by_name(const char *name, hid_t vipl_id)
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
+    htri_t ret     = FALSE;            /* Generic return value */
 
     FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
     H5TRACE2("i", "*si", name, vipl_id);
@@ -136,8 +144,14 @@ H5VLregister_connector_by_name(const char *name, hid_t vipl_id)
     /* Check VOL initialization property list */
     if (H5P_DEFAULT == vipl_id)
         vipl_id = H5P_VOL_INITIALIZE_DEFAULT;
-    else if (TRUE != H5P_isa_class(vipl_id, H5P_VOL_INITIALIZE))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a VOL initialize property list");
+    else {
+        H5_API_LOCK
+        ret = H5P_isa_class(vipl_id, H5P_VOL_INITIALIZE);
+        H5_API_UNLOCK
+
+        if (TRUE != ret)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a VOL initialize property list");
+    }
 
     /* Register connector */
     if ((ret_value = H5VL__register_connector_by_name(name, TRUE, vipl_id)) < 0)
@@ -168,6 +182,7 @@ hid_t
 H5VLregister_connector_by_value(H5VL_class_value_t value, hid_t vipl_id)
 {
     hid_t ret_value = H5I_INVALID_HID; /* Return value */
+    htri_t ret    = FALSE;            /* Generic return value */
 
     FUNC_ENTER_API_NO_MUTEX(H5I_INVALID_HID)
     H5TRACE2("i", "VCi", value, vipl_id);
@@ -180,8 +195,14 @@ H5VLregister_connector_by_value(H5VL_class_value_t value, hid_t vipl_id)
     /* Check VOL initialization property list */
     if (H5P_DEFAULT == vipl_id)
         vipl_id = H5P_VOL_INITIALIZE_DEFAULT;
-    else if (TRUE != H5P_isa_class(vipl_id, H5P_VOL_INITIALIZE))
-        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a VOL initialize property list");
+    else {
+        H5_API_LOCK
+        ret = H5P_isa_class(vipl_id, H5P_VOL_INITIALIZE);
+        H5_API_UNLOCK
+
+        if (TRUE != ret)
+            HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a VOL initialize property list");
+    }
 
     /* Register connector */
     if ((ret_value = H5VL__register_connector_by_value(value, TRUE, vipl_id)) < 0)
