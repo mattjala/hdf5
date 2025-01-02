@@ -3935,8 +3935,11 @@ H5VL_file_open(H5VL_connector_prop_t *connector_prop, const char *name, unsigned
             find_connector_ud.filename       = name;
             find_connector_ud.fapl_id        = fapl_id;
 
+            H5_API_LOCK
             iter_ret = H5PL_iterate(H5PL_ITER_TYPE_VOL, H5VL__file_open_find_connector_cb,
                                     (void *)&find_connector_ud);
+            H5_API_UNLOCK
+
             if (iter_ret < 0)
                 HGOTO_ERROR(H5E_VOL, H5E_BADITER, NULL,
                             "failed to iterate over available VOL connector plugins");

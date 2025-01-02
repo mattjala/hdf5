@@ -1731,7 +1731,12 @@ H5VL__register_connector_by_name(const char *name, hbool_t app_ref, hid_t vipl_i
         /* Try loading the connector */
         key.vol.kind   = H5VL_GET_CONNECTOR_BY_NAME;
         key.vol.u.name = name;
-        if (NULL == (cls = (const H5VL_class_t *)H5PL_load(H5PL_TYPE_VOL, &key)))
+
+        H5_API_LOCK
+        cls = (const H5VL_class_t *)H5PL_load(H5PL_TYPE_VOL, &key);
+        H5_API_UNLOCK
+
+        if (NULL == cls)
             HGOTO_ERROR(H5E_VOL, H5E_CANTINIT, H5I_INVALID_HID, "unable to load VOL connector");
 
         /* Register the connector we loaded */
@@ -1795,7 +1800,12 @@ H5VL__register_connector_by_value(H5VL_class_value_t value, hbool_t app_ref, hid
         /* Try loading the connector */
         key.vol.kind    = H5VL_GET_CONNECTOR_BY_VALUE;
         key.vol.u.value = value;
-        if (NULL == (cls = (const H5VL_class_t *)H5PL_load(H5PL_TYPE_VOL, &key)))
+
+        H5_API_LOCK
+        cls = (const H5VL_class_t *)H5PL_load(H5PL_TYPE_VOL, &key);
+        H5_API_UNLOCK
+
+        if (NULL == cls)
             HGOTO_ERROR(H5E_VOL, H5E_CANTINIT, H5I_INVALID_HID, "unable to load VOL connector");
 
         /* Register the connector we loaded */
