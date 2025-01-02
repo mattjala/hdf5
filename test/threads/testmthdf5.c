@@ -110,6 +110,9 @@ int main(int argc, char *argv[])
         &params, sizeof(mt_test_params), no_threaded_test_flag, "MT reg/unreg of connectors while searching for connector");
 
     /* H5CX tests */
+    AddTest("mt_ctx_vol_conn_prop", mt_test_api_ctx_vol_conn_prop,
+        NULL, "MT usage of API context VOL connector property routines", &params, 0);
+
     AddTest("mt_ctx_plist_modify", mt_test_shared_plist_modify,
         NULL, "MT modification of property list shared through API context", &params, 0);
 

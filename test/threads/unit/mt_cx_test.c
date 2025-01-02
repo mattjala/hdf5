@@ -18,8 +18,93 @@
 
 #include <pthread.h>
 
+void *mt_test_api_ctx_vol_conn_prop_helper(void *args);
 void *mt_test_api_ctx_vol_wrap_ctx_helper(void *arg);
 void *mt_test_shared_plist_modify_helper(void *arg);
+
+/* Test that the API Context's handling of the VOL Connector property is safe when executing in parallel
+*/
+void mt_test_api_ctx_vol_conn_prop(void) {
+#ifndef H5_MT_TEST_VOL_DIR
+    printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
+    return;
+#else
+    H5VL_pass_through_info_t mt_passthru_info_expected = {H5VL_NATIVE, NULL};
+    H5VL_connector_prop_t vol_connector_prop = {0, &mt_passthru_info_expected};
+    hid_t mt_passthru_id = H5I_INVALID_HID;
+    herr_t ret = SUCCEED;
+    int res = 0;
+
+    if (GetTestMaxNumThreads() <= 0) {
+        printf("    No threadcount specified with -maxthreads; skipping test\n");
+        return;
+    }
+
+    /* Use the MT Native VOL Wrapper in order to 
+     * test the case where multi-threading proceeds into a connector
+     */
+
+    /* Allow MT Passthru VOL to be discovered by name */
+    ret = H5PLprepend(H5_MT_TEST_VOL_DIR);
+    CHECK(ret, FAIL, "H5PLprepend");
+
+    /* Register connector */
+    mt_passthru_id = H5VLregister_connector_by_name(MT_PASSTHRU_WRAPPER_NAME, H5P_DEFAULT);
+    CHECK(mt_passthru_id, H5I_INVALID_HID, "H5VLregister_connector");
+
+    vol_connector_prop.connector_id = mt_passthru_id;
+
+    mt_test_run_helper_in_parallel(mt_test_api_ctx_vol_conn_prop_helper, (void *)&vol_connector_prop);
+
+    /* Verify that the original VOL connector property buffer still exists with correct values */
+    VERIFY(vol_connector_prop.connector_id, mt_passthru_id, "H5CX");
+    res = memcmp(vol_connector_prop.connector_info, &mt_passthru_info_expected, sizeof(H5VL_pass_through_info_t));
+    VERIFY(res, 0, "H5CX");
+
+    /* Unregister connector */
+    ret = H5VLunregister_connector(mt_passthru_id);
+    CHECK(ret, FAIL, "H5VLunregister_connector");
+#endif
+
+    return;
+}
+
+void *mt_test_api_ctx_vol_conn_prop_helper(void *args) {
+    H5VL_connector_prop_t *vol_connector_prop_in = (H5VL_connector_prop_t *)args;
+    H5VL_connector_prop_t vol_connector_prop_out = {0, NULL};
+    H5VL_pass_through_info_t mt_passthru_info_expected = {H5VL_NATIVE, NULL};
+    H5VL_connector_prop_t vol_connector_prop_expected = {vol_connector_prop_in->connector_id,
+                                                         (void*) &mt_passthru_info_expected};
+    H5CX_state_t *api_state = NULL;
+    herr_t ret = SUCCEED;
+
+    /* Create context node to store VOL Connector Property */
+    ret = H5CX_push();
+    CHECK(ret, FAIL, "H5CX_push");
+
+    ret = H5CX_set_vol_connector_prop(vol_connector_prop_in);
+    CHECK(ret, FAIL, "H5CX_set_vol_connector_prop");
+
+    ret = H5CX_retrieve_state(&api_state);
+    CHECK(ret, FAIL, "H5CX_retrieve_state");
+    CHECK(api_state, NULL, "H5CX_retrieve_state");
+
+    ret = H5CX_free_state(api_state);
+    CHECK(ret, FAIL, "H5CX_free_state");
+
+    /* Check that the VOL Connector Property is still valid */
+    ret = H5CX_get_vol_connector_prop(&vol_connector_prop_out);
+    CHECK(ret, FAIL, "H5CX_get_vol_connector_prop");
+    VERIFY(vol_connector_prop_out.connector_id, vol_connector_prop_expected.connector_id, "H5CX_get_vol_connector_prop");
+
+    ret = memcmp(vol_connector_prop_out.connector_info, vol_connector_prop_expected.connector_info, sizeof(H5VL_pass_through_info_t));
+    VERIFY(ret, 0, "memcmp");
+
+    ret = H5CX_pop(false);
+    CHECK(ret, FAIL, "H5CX_pop");
+
+    return NULL;
+}
 
 /* Test that the API Context's handling of the VOL wrap context is safe when executing in parallel
  */
