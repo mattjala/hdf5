@@ -44,13 +44,14 @@ int main(int argc, char *argv[])
     int testExpress;
     int num_errs_occurred = 0;
     mt_test_params params;
-    int64_t test_framework_flags = ALLOW_MULTITHREAD;
+    int64_t threaded_test_flag = ALLOW_MULTITHREAD;
+    int64_t no_threaded_test_flag = 0;
 
     /* Silence compiler warnings */
     (void) params;
 
     /* Initialize testing framework */
-    TestInit(argv[0], NULL, NULL);
+    TestInit(argv[0], NULL, NULL, NULL, NULL, 0);
 
     testExpress = GetTestExpress();
 
@@ -75,49 +76,48 @@ int main(int argc, char *argv[])
 #ifdef H5_HAVE_MULTITHREAD
     /* H5VL Tests */
     AddTest("mt_reg_unreg", mt_test_registration,
-        NULL, "MT reg/unreg of a single connector", &params, test_framework_flags);
+        NULL, NULL, &params, sizeof(mt_test_params), threaded_test_flag, "MT reg/unreg of a single connector");
 
     AddTest("mt_reg_by_name", mt_test_registration_by_name,
-        NULL, "MT reg/unreg of a single connector by name", &params, test_framework_flags);
+        NULL, NULL, &params, sizeof(mt_test_params), threaded_test_flag, "MT reg/unreg of a single connector by name");
 
     AddTest("mt_reg_by_val", mt_test_registration_by_value,
-        NULL, "MT reg/unreg of a single connector by value", &params, test_framework_flags);
+        NULL, NULL, &params, sizeof(mt_test_params), threaded_test_flag, "MT reg/unreg of a single connector by value");
 
     AddTest("mt_dyn_op_reg", mt_test_dyn_op_registration,
-        NULL, "MT reg/unreg of dynamic optional VOL operations", &params, test_framework_flags);
+        NULL, NULL, &params, sizeof(mt_test_params), threaded_test_flag, "MT reg/unreg of dynamic optional VOL operations");
 
     AddTest("mt_fopen_fail", mt_test_file_open_failure_registration,
-        NULL, "MT dynamic VOL loading on file open failure", &params, test_framework_flags);
-    
-    AddTest("mt_lib_state", mt_test_lib_state_ops,
-        NULL, "MT usage of library state routines", &params, test_framework_flags);
+        NULL, NULL, &params, sizeof(mt_test_params), threaded_test_flag, "MT dynamic VOL loading on file open failure");
+
+    AddTest("mt_lib_state_ops", mt_test_lib_state_ops,
+        NULL, NULL, &params, sizeof(mt_test_params), threaded_test_flag, "MT usage of library state routines");
 
     AddTest("mt_vol_info", mt_test_vol_info,
-        NULL, "MT usage of VOL info routines", &params, test_framework_flags);
+        NULL, NULL, &params, sizeof(mt_test_params), threaded_test_flag, "MT usage of VOL info routines");
 
-    /* These tests do their own threading internally - provide no flags */
-    AddTest("mt_reg_op", mt_test_registration_operation,
-        mt_test_registration_operation_cleanup,
-        "MT reg/unreg of a connector and usage of its routines", &params, 0);
+    /* These H5VL tests do their own threading internally - do not provide threading flag */
+    AddTest("mt_reg_op", mt_test_registration_operation, NULL, mt_test_registration_operation_cleanup,
+        &params, sizeof(mt_test_params), no_threaded_test_flag,  "MT reg/unreg of a connector and usage of its routines");
 
-    AddTest("mt_prop_copy", mt_test_vol_property_copy,
-        NULL, "MT VOL property copying", &params, 0);
+    AddTest("mt_prop_copy", mt_test_vol_property_copy, NULL, NULL,
+        &params, sizeof(mt_test_params), no_threaded_test_flag, "MT VOL property copying");
 
-    AddTest("mp_vol_wrp_ctx", mt_test_vol_wrap_ctx,
-        mt_test_vol_wrap_ctx_cleanup, "MT usage of VOL wrap context routines", &params, 0);
+    AddTest("mp_vol_wrp_ctx", mt_test_vol_wrap_ctx, NULL, mt_test_vol_wrap_ctx_cleanup,
+        &params, sizeof(mt_test_params), no_threaded_test_flag, "MT usage of VOL wrap context routines");
 
-    AddTest("mt_reg_search", mt_test_register_and_search,
-        NULL, "MT reg/unreg of connectors while searching for connector", &params, 0);
+    AddTest("mt_reg_search", mt_test_register_and_search, NULL, NULL,
+        &params, sizeof(mt_test_params), no_threaded_test_flag, "MT reg/unreg of connectors while searching for connector");
 
     /* Misc MT tests */
-    AddTest("mt_library_init", mt_test_library_init,
-        NULL, "MT usage of H5open/H5close", &params, test_framework_flags);
+    AddTest("mt_library_init", mt_test_library_init, NULL, NULL,
+        &params, sizeof(mt_test_params), threaded_test_flag, "MT usage of H5open/H5close");
 
 #else
     printf("Multi-threading is disabled.  Skipping multi-threaded tests.\n");
 #endif /* H5_HAVE_MULTITHREAD */
     /* Display testing information */
-    TestInfo(argv[0]);
+    TestInfo(stdout);
 
     /* TODO: Refactor TestAlarmOn to accept specific timeout */
     TestAlarmOn();
@@ -130,11 +130,7 @@ int main(int argc, char *argv[])
 
     /* Display test summary, if requested */
     if (GetTestSummary())
-        TestSummary();
-
-    /* Clean up test files, if allowed */
-    if (GetTestCleanup() && !HDgetenv(HDF5_NOCLEANUP))
-        TestCleanup();
+        TestSummary(stdout);
 
     /* TODO: Refactor TestAlarmOff to accept specific timeout */
     TestAlarmOff();

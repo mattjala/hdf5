@@ -32,28 +32,26 @@
 /* Shared VOL Connector Property for testing */
 H5VL_connector_prop_t conn_prop_g;
 
-void *mt_test_registration_operation_helper(void *arg);
-void *mt_test_dyn_op_registration_helper(void *arg);
-void *mt_test_vol_property_copy_helper(void *arg);
-void *mt_test_vol_wrap_ctx_helper(void *arg);
+void *mt_test_registration_operation_helper(void *args);
+void *mt_test_vol_property_copy_helper(void *args);
+void *mt_test_vol_wrap_ctx_helper(void *args);
 
 
 /* Helper routines used by the tests */
 H5VL_subclass_t mt_test_dyn_op_get_vol_subclass(size_t index);
-void *mt_test_search_register_helper(void *arg);
-void *mt_test_search_search_by_name_helper(void *arg);
-void *mt_test_search_search_by_value_helper(void *arg);
+void *mt_test_search_register_helper(void *args);
+void *mt_test_search_search_by_name_helper(void *args);
+void *mt_test_search_search_by_value_helper(void *args);
 
 
 /* Concurrently register and unregister the same VOL connector from multiple
  * threads. */
-void mt_test_registration(void) {
+void mt_test_registration(const void *args) {
   hid_t *vol_ids;
   herr_t ret = SUCCEED;
-  const mt_test_params *params = NULL;
+  const mt_test_params *params = (const mt_test_params *) args;
   const H5VL_class_t *vol_class = NULL;
 
-  params = GetTestParameters();
   assert(params != NULL);
 
   vol_ids = (hid_t *)calloc(params->num_repetitions, sizeof(hid_t));
@@ -77,16 +75,15 @@ void mt_test_registration(void) {
 
 /* Concurrently register and unregister the same VOL connector by name from multiple
  * threads. */
-void mt_test_registration_by_name(void) {
+void mt_test_registration_by_name(const void *args) {
 #ifndef H5_MT_TEST_VOL_DIR
   printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
   return;
 #else
   hid_t *vol_ids;
   herr_t ret = SUCCEED;
-  const mt_test_params *params = NULL;
+  const mt_test_params *params = (const mt_test_params *) args;
 
-  params = GetTestParameters();
   assert(params != NULL);
 
   vol_ids = (hid_t *)calloc(params->num_repetitions, sizeof(hid_t));
@@ -116,16 +113,15 @@ void mt_test_registration_by_name(void) {
 
 /* Concurrently register and unregister the same VOL connector by value from multiple
  * threads. */
-void mt_test_registration_by_value(void) {
+void mt_test_registration_by_value(const void *args) {
 #ifndef H5_MT_TEST_VOL_DIR
   printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
   return;
 #else
   hid_t *vol_ids;
   herr_t ret = SUCCEED;
-  const mt_test_params *params = NULL;
+  const mt_test_params *params = (const mt_test_params *) args;
 
-  params = GetTestParameters();
   assert(params != NULL);
 
   vol_ids = (hid_t *)calloc(params->num_repetitions, sizeof(hid_t));
@@ -154,7 +150,7 @@ void mt_test_registration_by_value(void) {
 }
 
 /* Test concurrent registration and unregistration of dynamic VOL operations */
-void mt_test_dyn_op_registration(void) {
+void mt_test_dyn_op_registration(const void H5_ATTR_UNUSED *args) {
   herr_t registration_result = FAIL;
   hid_t vol_id = H5I_INVALID_HID;
   H5VL_subclass_t subcls = H5VL_SUBCLS_NONE;
@@ -238,18 +234,20 @@ H5VL_subclass_t mt_test_dyn_op_get_vol_subclass(size_t index) {
 }
 
 /* Test concurrent registration of a VOL connector with usage of one of its callbacks */
-void mt_test_registration_operation(void) {
+void mt_test_registration_operation(const void *args) {
   hid_t file_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
-  const mt_test_params *params = (const mt_test_params *) GetTestParameters();
-  assert(params != NULL);
-  alarm(params->subtest_timeout);
+  
+  assert(args != NULL);
+
+  mt_test_params params = *(const mt_test_params*)args;
+  alarm(params.subtest_timeout);
 
   /* Create test file  */
   file_id = H5Fcreate(MT_TEST_VOL_REGISTRATION_FILENAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
   CHECK(file_id, H5I_INVALID_HID, "H5Fcreate");
 
-  mt_test_run_helper_in_parallel(mt_test_registration_operation_helper, NULL);
+  mt_test_run_helper_in_parallel(mt_test_registration_operation_helper, (void*) &params);
   
   ret = H5Fclose(file_id);
   CHECK(ret, FAIL, "H5Fclose");
@@ -257,14 +255,13 @@ void mt_test_registration_operation(void) {
   return;
 }
 
-void *mt_test_registration_operation_helper(void H5_ATTR_UNUSED *arg) {
+void *mt_test_registration_operation_helper(void *args) {
   hid_t *vol_ids;
   hid_t fapl_id = H5I_INVALID_HID;
   H5VL_pass_through_info_t passthru_info;
   herr_t ret = 0;
-  const mt_test_params *params = NULL;
+  const mt_test_params *params = (const mt_test_params *) args;
 
-  params = GetTestParameters();
   assert(params != NULL);
 
   vol_ids = (hid_t *)calloc(params->num_repetitions, sizeof(hid_t));
@@ -306,7 +303,7 @@ void *mt_test_registration_operation_helper(void H5_ATTR_UNUSED *arg) {
   return NULL;
 }
 
-void mt_test_registration_operation_cleanup(void) {
+void mt_test_registration_operation_cleanup(void H5_ATTR_UNUSED *args) {
   herr_t ret = SUCCEED;
 
   ret = H5Fdelete(MT_TEST_VOL_REGISTRATION_FILENAME, H5P_DEFAULT);
@@ -317,7 +314,7 @@ void mt_test_registration_operation_cleanup(void) {
 
 /* Test that upon file open failure, loading an available VOL connector from
  * H5PL works in a multi-threaded environment */
-void mt_test_file_open_failure_registration(void) {
+void mt_test_file_open_failure_registration(const void H5_ATTR_UNUSED *args) {
 #ifndef H5_MT_TEST_VOL_DIR
   printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
   return;
@@ -380,11 +377,11 @@ done:
 
 /* Test that implicit copying of a VOL connector property on a FAPL is handled
  * correctly */
-void mt_test_vol_property_copy(void) {
+void mt_test_vol_property_copy(const void *args) {
   hid_t fapl_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
 
-  const mt_test_params *params = (const mt_test_params *) GetTestParameters();
+  const mt_test_params *params = (const mt_test_params *) args;
   assert(params != NULL);
   alarm(params->subtest_timeout);
 
@@ -402,15 +399,15 @@ void mt_test_vol_property_copy(void) {
   return;
 }
 
-void *mt_test_vol_property_copy_helper(void *arg) {
+void *mt_test_vol_property_copy_helper(void *args) {
   hid_t fapl_id = H5I_INVALID_HID;
   hid_t fapl_id2 = H5I_INVALID_HID;
   hid_t fapl_id3 = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
 
-  assert(arg != NULL);
+  assert(args != NULL);
 
-  fapl_id = (hid_t)arg;
+  fapl_id = (hid_t)args;
 
   /* Copy entire property list, duplicating VOL property */
 
@@ -434,15 +431,22 @@ void *mt_test_vol_property_copy_helper(void *arg) {
   return NULL;
 }
 
+typedef struct mt_test_reg_helper_args {
+  const mt_test_params *params;
+  H5VL_class_t vol_class;
+  char *vol_name;
+  H5VL_class_value_t vol_value;
+} mt_test_reg_helper_args;
 
 /* Spawn and run 3 groups of threads:
  * - Threads registering and unregistering a connector
  * - Threads searching for that connector by name
  * - Threads searching for that connector by value 
  */
-void mt_test_register_and_search(void) {
+void mt_test_register_and_search(const void *args) {
   int threads_per_group;
   int i;
+  mt_test_reg_helper_args helper_args;
 
   pthread_t *threads_register;
   pthread_t *threads_search_by_name;
@@ -450,14 +454,11 @@ void mt_test_register_and_search(void) {
 
   void *thread_return = NULL;
 
-  char *vol_name = NULL;
-  H5VL_class_value_t vol_value = -1;
-  H5VL_class_t vol_class;
   int ret = 0;
 
   int num_threads = GetTestMaxNumThreads();
 
-  const mt_test_params *params = (const mt_test_params *) GetTestParameters();
+  const mt_test_params *params = (const mt_test_params *) args;
   assert(params != NULL);
   alarm(params->subtest_timeout);
 
@@ -478,23 +479,26 @@ void mt_test_register_and_search(void) {
   threads_search_by_value = (pthread_t *)malloc((size_t) threads_per_group * sizeof(pthread_t));
   assert(threads_search_by_value != NULL);
 
-  /* Set up arguments to avoid warnings about cast from const */
-  vol_name = (char *)malloc(strlen(H5VL_PASSTHRU_NAME) + 1);
-  assert(vol_name != NULL);
+  /* Set up argsuments to avoid warnings about cast from const */
+  helper_args.vol_name = (char *)malloc(strlen(H5VL_PASSTHRU_NAME) + 1);
+  assert(helper_args.vol_name != NULL);
+  strcpy(helper_args.vol_name, H5VL_PASSTHRU_NAME);
 
-  memcpy(&vol_class, (const void *) &H5VL_pass_through_g, sizeof(H5VL_class_t));
+  memcpy(&helper_args.vol_class, (const void *) &H5VL_pass_through_g, sizeof(H5VL_class_t));
 
-  vol_value = H5VL_PASSTHRU_VALUE;
+  helper_args.vol_value = H5VL_PASSTHRU_VALUE;
+
+  helper_args.params = params;
 
   /* Spawn threads */
   for (i = 0; i < threads_per_group; i++) {
-    ret = pthread_create(&threads_register[i], NULL, mt_test_search_register_helper, (void*) &vol_class);
+    ret = pthread_create(&threads_register[i], NULL, mt_test_search_register_helper, (void*) &helper_args);
     VERIFY(ret, 0, "pthread_create");
 
-    ret = pthread_create(&threads_search_by_name[i], NULL, mt_test_search_search_by_name_helper, (void*)vol_name);
+    ret = pthread_create(&threads_search_by_name[i], NULL, mt_test_search_search_by_name_helper, (void*) &helper_args);
     VERIFY(ret, 0, "pthread_create");
 
-    ret = pthread_create(&threads_search_by_value[i], NULL, mt_test_search_search_by_value_helper, (void*) &vol_value);
+    ret = pthread_create(&threads_search_by_value[i], NULL, mt_test_search_search_by_value_helper, (void*) &helper_args);
     VERIFY(ret, 0, "pthread_create");
   }
 
@@ -512,24 +516,22 @@ void mt_test_register_and_search(void) {
     VERIFY(thread_return, NULL, "mt_test_search_search_by_value_helper");
   }
 
-  free(vol_name);
+  free(helper_args.vol_name);
   free(threads_register);
   free(threads_search_by_name);
   free(threads_search_by_value);
   return;
 }
 
-void *mt_test_search_register_helper(void *arg) {
+void *mt_test_search_register_helper(void *args) {
   hid_t vol_id = H5I_INVALID_HID;
-  const H5VL_class_t *vol_class = (const H5VL_class_t*) arg;
-  const mt_test_params *params = NULL;
+  mt_test_reg_helper_args *helper_args = (mt_test_reg_helper_args *) args;
   size_t i;
 
-  params = GetTestParameters();
-  assert(params != NULL);
+  assert(helper_args != NULL);
 
-  for (i = 0; i < params->num_repetitions; i++) {
-    if ((vol_id = H5VLregister_connector(vol_class, H5P_DEFAULT)) < 0)
+  for (i = 0; i < helper_args->params->num_repetitions; i++) {
+    if ((vol_id = H5VLregister_connector(&helper_args->vol_class, H5P_DEFAULT)) < 0)
       return (void *)-1;
 
     if (H5VLunregister_connector(vol_id) < 0)
@@ -541,19 +543,16 @@ void *mt_test_search_register_helper(void *arg) {
   return NULL;
 }
 
-void *mt_test_search_search_by_name_helper(void *arg) {
-  char *vol_name = (char *)arg;
+void *mt_test_search_search_by_name_helper(void *args) {
   hid_t vol_id = H5I_INVALID_HID;
   size_t i;
-  const mt_test_params *params = NULL;
+  mt_test_reg_helper_args *helper_args = (mt_test_reg_helper_args *) args;
+  assert(helper_args != NULL);
 
-  params = GetTestParameters();
-  assert(params != NULL);
-
-  for (i = 0; i < params->num_repetitions; i++) {
+  for (i = 0; i < helper_args->params->num_repetitions; i++) {
     /* Either failure or success is acceptable as long as no consistency/memory errors occur */
     H5E_BEGIN_TRY {
-      vol_id = H5VLget_connector_id_by_name(vol_name);
+      vol_id = H5VLget_connector_id_by_name(helper_args->vol_name);
     } H5E_END_TRY;
 
     /* If request succeeded, close the handle we opened */
@@ -568,19 +567,16 @@ void *mt_test_search_search_by_name_helper(void *arg) {
   return NULL;
 }
 
-void *mt_test_search_search_by_value_helper(void *arg) {
-  H5VL_class_value_t vol_value = *((H5VL_class_value_t *)arg);
+void *mt_test_search_search_by_value_helper(void *args) {
   hid_t vol_id = H5I_INVALID_HID;
   size_t i;
-  const mt_test_params *params = NULL;
+  mt_test_reg_helper_args *helper_args = (mt_test_reg_helper_args *) args;
+  assert(helper_args != NULL);
 
-  params = GetTestParameters();
-  assert(params != NULL);
-
-  for (i = 0; i < params->num_repetitions; i++) {
+  for (i = 0; i < helper_args->params->num_repetitions; i++) {
     /* Either failure or success is acceptable as long as no consistency/memory errors occur */
     H5E_BEGIN_TRY {
-      vol_id = H5VLget_connector_id_by_value(vol_value);
+      vol_id = H5VLget_connector_id_by_value(helper_args->vol_value);
     } H5E_END_TRY;
 
     /* If request succeeded, close the handle we opened */
@@ -596,7 +592,7 @@ void *mt_test_search_search_by_value_helper(void *arg) {
 }
 
 /* Test concurrent usage of library state routines */
-void mt_test_lib_state_ops(void) {
+void mt_test_lib_state_ops(const void H5_ATTR_UNUSED *args) {
   void *lib_state = NULL;
   herr_t ret = SUCCEED;
 
@@ -627,9 +623,9 @@ void mt_test_lib_state_ops(void) {
 
 /* Retrieve and free the VOL wrap context in multiple threads executing in parallel.
  *
- * TBD: This largely depends on the get_wrap_ctx()/free_wrap_ctx() callbacks of the active connector(s), and
+ * TBD: This largsely depends on the get_wrap_ctx()/free_wrap_ctx() callbacks of the active connector(s), and
  * so should probably have a counterpart placed in the API tests for use with various VOL connectors. */
-void mt_test_vol_wrap_ctx(void) {
+void mt_test_vol_wrap_ctx(const void *args) {
   hid_t file_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
   hid_t fapl_id = H5I_INVALID_HID;
@@ -638,7 +634,7 @@ void mt_test_vol_wrap_ctx(void) {
   H5VL_pass_through_info_t passthru_info = {H5VL_NATIVE, NULL};
   hid_t passthru_id = H5I_INVALID_HID;
 
-  const mt_test_params *params = (const mt_test_params *) GetTestParameters();
+  const mt_test_params *params = (const mt_test_params *) args;
   assert(params != NULL);
   alarm(params->subtest_timeout);
 
@@ -689,7 +685,7 @@ void mt_test_vol_wrap_ctx(void) {
   return;
 }
 
-void *mt_test_vol_wrap_ctx_helper(void H5_ATTR_UNUSED *arg) {
+void *mt_test_vol_wrap_ctx_helper(void H5_ATTR_UNUSED *args) {
   void *wrap_ctx = NULL;
   H5VL_object_t *vol_object = NULL;
 
@@ -699,8 +695,8 @@ void *mt_test_vol_wrap_ctx_helper(void H5_ATTR_UNUSED *arg) {
 
   herr_t ret = SUCCEED;
 
-  assert(arg != NULL);
-  fapl_id = (hid_t) arg;
+  assert(args != NULL);
+  fapl_id = (hid_t) args;
 
   /* Open a VOL object to retrieve the context from */
   file_id = H5Fopen(MT_TEST_VOL_WRAP_CTX_FILE_NAME, H5F_ACC_RDONLY, fapl_id);
@@ -727,7 +723,7 @@ void *mt_test_vol_wrap_ctx_helper(void H5_ATTR_UNUSED *arg) {
   return NULL;
 }
 
-void mt_test_vol_wrap_ctx_cleanup(void) {
+void mt_test_vol_wrap_ctx_cleanup(void H5_ATTR_UNUSED *args) {
 #ifdef H5_MT_TEST_VOL_DIR
   herr_t ret = SUCCEED;
   if (GetTestMaxNumThreads() > 0) {
@@ -740,9 +736,9 @@ void mt_test_vol_wrap_ctx_cleanup(void) {
 
 /* Retrieve and free the VOL information in multiple threads executing in parallel.
  *
- * TBD: This largely depends on the connector callbacks of the active connector(s), and
+ * TBD: This largsely depends on the connector callbacks of the active connector(s), and
  * so should probably have a counterpart placed in the API tests for use with various VOL connectors. */
-void mt_test_vol_info(void) {
+void mt_test_vol_info(const void H5_ATTR_UNUSED *args) {
   H5VL_pass_through_info_t vol_info = {H5VL_NATIVE, NULL};
   void *vol_info2 = NULL;
   hid_t vol_id = H5I_INVALID_HID;
