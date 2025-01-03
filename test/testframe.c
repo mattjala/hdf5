@@ -453,7 +453,7 @@ PerformTests(void)
     int max_num_threads = GetTestMaxNumThreads();
 
     for (unsigned Loop = 0; Loop < TestCount; Loop++) {
-        bool is_test_mt = (TestArray[Loop].TestFrameworkFlags & ALLOW_MULTITHREAD) && (max_num_threads > 1);
+        bool is_test_mt = (TestArray[Loop].TestFrameworkFlags & ALLOW_MULTITHREAD) && TEST_EXECUTION_THREADED;
         
         if (TestArray[Loop].TestSkipFlag) {
             MESSAGE(2, ("Skipping -- %s (%s) \n", TestArray[Loop].Description, TestArray[Loop].Name));

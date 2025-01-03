@@ -182,6 +182,7 @@ extern pthread_key_t test_thread_info_key_g;
         } else {                                                                                             \
             /* Store test desc for display after test completion */ \
             thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);                \
+            assert(_tinfo);                                                                                 \
             /* TBD - Only need to store this for 1 thread */\
             _tinfo->test_descriptions[_tinfo->num_tests - 1] = WHAT; \
         }                                                                                                   \
