@@ -1,10 +1,29 @@
 #include "h5test.h"
+#include "testframe.h"
+
+/* TODO: deal with incrementing number of test errors for framework */
+
+#ifdef H5_HAVE_MULTITHREAD
+#include <stdatomic.h>
+
 #include "H5Iprivate.h"
 #define H5I_FRIEND    /*suppress error about including H5Ipkg      */
 #include "H5Ipkg.h"
 
-#ifdef H5_HAVE_MULTITHREAD
-#include <stdatomic.h>
+#define NUM_ID_TYPES     256
+#define NUM_ID_OBJECTS   (1024 * 1024)
+#define NUM_ID_INSTANCES (1024 * 1024)
+
+#define DEFAULT_MAX_NUM_THREADS 32
+
+#define SERIAL_TEST_1__DISPLAY_FINAL_STATS              FALSE
+#define SERIAL_TEST_2__DISPLAY_FINAL_STATS              FALSE
+#define SERIAL_TEST_3__DISPLAY_FINAL_STATS              FALSE
+#define SERIAL_TEST_4__DISPLAY_FINAL_STATS              FALSE
+#define MT_TEST_FCN_1_SERIAL_TEST__DISPLAY_FINAL_STATS  FALSE
+
+#define MT_TEST_1__DISPLAY_FINAL_STATS                  FALSE
+#define MT_TEST_2__DISPLAY_FINAL_STATS                  FALSE
 
 /*********************************************************************************
  * struct id_type_t
@@ -420,13 +439,6 @@ typedef struct id_instance_t {
 
 } id_instance_t;
 
-
-#define NUM_ID_TYPES            256
-#define NUM_ID_OBJECTS          (1024 * 1024)
-#define NUM_ID_INSTANCES        (1024 * 1024)
-
-#define MAX_NUM_THREADS         32
-
 /***********************************************************************************
  *
  * struct mt_test_params_t
@@ -494,103 +506,95 @@ typedef struct mt_test_params_t {
 
 } mt_test_params_t;
 
-id_type_t     *types_array;
-id_object_t   *objects_array;
-id_instance_t *id_instance_array;
+static id_type_t     *types_array;
+static id_object_t   *objects_array;
+static id_instance_t *id_instance_array;
 
 
-void    init_globals(void);
-void    reset_globals(void);
+static herr_t init_globals(void);
+static void   reset_globals(void *params);
 
 
-herr_t  free_func(void * obj, void ** request);
-herr_t  realize_cb_0(void * future_object, hid_t * actual_object_id);
-herr_t  discard_cb_0(void * future_object);
+static herr_t free_func(void * obj, void ** request);
+static herr_t realize_cb_0(void * future_object, hid_t * actual_object_id);
+static herr_t discard_cb_0(void * future_object);
 
 
-int     register_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-void    try_register_type(int type_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     clear_type(id_type_t * id_type_ptr, hbool_t force, hbool_t cs, hbool_t ds, hbool_t rpt_failures, 
-                   int tid);
-void    try_clear_type(int type_index, hbool_t force, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     destroy_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     try_destroy_type(int type_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     register_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static void    try_register_type(int type_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     clear_type(id_type_t * id_type_ptr, hbool_t force, hbool_t cs, hbool_t ds, hbool_t rpt_failures,
+                          int tid);
+static void    try_clear_type(int type_index, hbool_t force, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     destroy_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     try_destroy_type(int type_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
 
 
-int     register_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr, 
-                    hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-void    try_register_id(int id_index, int obj_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     register_future_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr, 
-                           H5I_future_realize_func_t realize_cb, H5I_future_discard_func_t discard_cb,
+static int     register_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr,
                            hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     link_real_and_future_ids(id_object_t * future_id_obj_ptr, id_object_t * real_id_obj_ptr,
-                                 hbool_t rpt_failures);
-int     object_verify(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr, 
-                      hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     try_object_verify(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     get_type(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, 
-                 hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     remove_verify(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr, 
-                      hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     try_remove_verify(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     dec_ref(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr, 
-                hbool_t cs, hbool_t ds, hbool_t rpt_failure, int tid);
-int     try_dec_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     inc_ref(id_instance_t * id_inst_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     try_inc_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     get_ref(id_instance_t * id_inst_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     try_get_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     nmembers(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-htri_t  type_exists(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     inc_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     dec_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int     try_dec_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static void    try_register_id(int id_index, int obj_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     register_future_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr,
+                                  H5I_future_realize_func_t realize_cb, H5I_future_discard_func_t discard_cb,
+                                  hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     link_real_and_future_ids(id_object_t * future_id_obj_ptr, id_object_t * real_id_obj_ptr,
+                                        hbool_t rpt_failures);
+static int     object_verify(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr,
+                             hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     try_object_verify(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     get_type(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr,
+                        hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     remove_verify(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr,
+                             hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     try_remove_verify(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     dec_ref(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr,
+                       hbool_t cs, hbool_t ds, hbool_t rpt_failure, int tid);
+static int     try_dec_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     inc_ref(id_instance_t * id_inst_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     try_inc_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     get_ref(id_instance_t * id_inst_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     try_get_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     nmembers(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static htri_t  type_exists(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     inc_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     dec_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int     try_dec_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
 
 
-int  create_types(int types_start, int types_count, int types_stride, hbool_t cs, hbool_t ds, 
-                  hbool_t rpt_failures, int tid);
-int  dec_type_refs(int types_start, int types_count, int types_stride, 
-                   hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int  inc_type_refs(int types_start, int types_count, int types_stride, 
-                   hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int  destroy_types(int types_start, int types_count, int types_stride, 
-                   hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int  create_types(int types_start, int types_count, int types_stride, hbool_t cs, hbool_t ds,
+                         hbool_t rpt_failures, int tid);
+static int  dec_type_refs(int types_start, int types_count, int types_stride,
+                          hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int  inc_type_refs(int types_start, int types_count, int types_stride,
+                          hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int  destroy_types(int types_start, int types_count, int types_stride,
+                          hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
 
-int register_ids(int types_start, int types_count, int types_stride, int ids_start, int ids_count, int ids_stride,
-                 hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int  dec_refs(int types_start, int types_count, int types_stride, int ids_start, int ids_count, int ids_stride,
-                 hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int  inc_refs(int ids_start, int ids_count, int ids_stride, 
-              hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
-int verify_objects(int types_start, int types_count, int types_stride, 
-                   int ids_start, int ids_count, int ids_stride,
-                   hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int register_ids(int types_start, int types_count, int types_stride, int ids_start, int ids_count, int ids_stride,
+                        hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int dec_refs(int types_start, int types_count, int types_stride, int ids_start, int ids_count, int ids_stride,
+                    hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int inc_refs(int ids_start, int ids_count, int ids_stride,
+                    hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
+static int verify_objects(int types_start, int types_count, int types_stride,
+                          int ids_start, int ids_count, int ids_stride,
+                          hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
 
+static void serial_test_1(const void *params);
+static void serial_test_2(const void *params);
+static void serial_test_3(const void *params);
+static void serial_test_4(const void *params);
 
+static void * mt_test_fcn_1(void *params);
+static void * mt_test_fcn_2(void *params);
 
-#define SERIAL_TEST_1__DISPLAY_FINAL_STATS              FALSE
-#define SERIAL_TEST_2__DISPLAY_FINAL_STATS              FALSE
-#define SERIAL_TEST_3__DISPLAY_FINAL_STATS              FALSE
-#define SERIAL_TEST_4__DISPLAY_FINAL_STATS              FALSE
-#define MT_TEST_FCN_1_SERIAL_TEST__DISPLAY_FINAL_STATS  FALSE
+static void mt_test_fcn_1_serial_test(const void *params);
+static void mt_test_1(const void *params);
+static void mt_test_1_helper(int num_threads);
 
-#define MT_TEST_1__DISPLAY_FINAL_STATS                  FALSE
-#define MT_TEST_2__DISPLAY_FINAL_STATS                  FALSE
+static void mt_test_2(const void *params);
+static void mt_test_2_helper(int num_threads);
 
-
-void serial_test_1(void);
-void serial_test_2(int types_start, int types_count, int ids_start, int ids_count);
-void serial_test_3(void);
-void serial_test_4(void);
-
-void * mt_test_fcn_1(void * params);
-void * mt_test_fcn_2(void * params);
-
-void mt_test_fcn_1_serial_test(void);
-void mt_test_1(int num_threads);
-void mt_test_2(int num_threads);
-
-void init_globals(void)
+static herr_t
+init_globals(void)
 {
     int                         i;
     id_type_kernel_t            type_k  = ID_TYPE_T_K__INITIALIZER;
@@ -603,8 +607,8 @@ void init_globals(void)
 
     if ( ( NULL == types_array ) || ( NULL == objects_array ) || ( NULL == id_instance_array ) ) {
 
-        fprintf(stderr, "init_globals(): One or more array allocations failed -- exiting.\n");
-        exit(1);
+        fprintf(stderr, "init_globals(): One or more array allocations failed\n");
+        return FAIL;
     }
 
     for ( i = 0; i < NUM_ID_TYPES; i++ )
@@ -662,11 +666,12 @@ void init_globals(void)
         atomic_init(&(id_instance_array[i].failed_remove_verifies), 0ULL);
     }
 
-    return;
+    return SUCCEED;
 
 } /* init_globals() */
 
-void reset_globals(void)
+static void
+reset_globals(void H5_ATTR_UNUSED *params)
 {
     int i;
     struct id_type_kernel_t     type_k  = ID_TYPE_T_K__INITIALIZER;
@@ -749,7 +754,8 @@ void reset_globals(void)
  *      
  ***********************************************************************************************/
 
-herr_t free_func(void * obj, void H5_ATTR_UNUSED ** request)
+static herr_t
+free_func(void * obj, void H5_ATTR_UNUSED ** request)
 {
     int                           id_index;
     volatile id_object_t        * object_ptr = (id_object_t *)obj;
@@ -888,7 +894,8 @@ herr_t free_func(void * obj, void H5_ATTR_UNUSED ** request)
  *
  ***********************************************************************************************/
 
-herr_t realize_cb_0(void * future_object, hid_t * actual_object_id)
+static herr_t
+realize_cb_0(void * future_object, hid_t * actual_object_id)
 {
     hbool_t                     success = TRUE;
     hbool_t                     rpt_failures = FALSE;
@@ -1192,7 +1199,8 @@ herr_t realize_cb_0(void * future_object, hid_t * actual_object_id)
  *
  ***********************************************************************************************/
 
-herr_t discard_cb_0(void * future_object)
+static herr_t
+discard_cb_0(void * future_object)
 {
     hbool_t                       success = TRUE;
     hbool_t                       rpt_failures = TRUE;
@@ -1442,7 +1450,8 @@ herr_t discard_cb_0(void * future_object)
  *
  ***********************************************************************************************/
 
-int register_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+register_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t                   success = TRUE; /* will set to FALSE on failure */
     volatile id_type_kernel_t id_k;
@@ -1577,7 +1586,8 @@ int register_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_f
  *
  ***********************************************************************************************/
 
-void try_register_type(int type_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static void
+try_register_type(int type_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t                   success = TRUE; /* will set to FALSE on failure */
     hbool_t                   index_ok = TRUE; /* will set to FALSE if not */
@@ -1724,7 +1734,8 @@ void try_register_type(int type_index, hbool_t cs, hbool_t ds, hbool_t rpt_failu
  *
  ***********************************************************************************************/
 
-int clear_type(id_type_t * id_type_ptr, hbool_t force, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+clear_type(id_type_t * id_type_ptr, hbool_t force, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t          success = TRUE; /* will set to FALSE on failure */
     id_type_kernel_t id_type_k;
@@ -1817,7 +1828,8 @@ int clear_type(id_type_t * id_type_ptr, hbool_t force, hbool_t cs, hbool_t ds, h
  *
  ***********************************************************************************************/
 
-void try_clear_type(int type_index, hbool_t force, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static void
+try_clear_type(int type_index, hbool_t force, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t                   index_ok = TRUE;
     hbool_t                   success = TRUE; /* will set to FALSE on failure */
@@ -1898,7 +1910,8 @@ void try_clear_type(int type_index, hbool_t force, hbool_t cs, hbool_t ds, hbool
  *
  ***********************************************************************************************/
 
-int destroy_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+destroy_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t          success = TRUE; /* will set to FALSE on failure */
     hbool_t          destroy_succeeded;
@@ -2028,7 +2041,8 @@ int destroy_type(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_fa
  *
  ***********************************************************************************************/
 
-int try_destroy_type(int type_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+try_destroy_type(int type_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t                   success = TRUE; /* will set to FALSE on failure */
     int                       retries = -1;
@@ -2155,8 +2169,9 @@ int try_destroy_type(int type_index, hbool_t cs, hbool_t ds, hbool_t rpt_failure
  *
  ***********************************************************************************************/
 
-int register_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr, 
-                hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+register_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr,
+            hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FALSE on failure */
     H5I_type_t           type;
@@ -2420,7 +2435,8 @@ int register_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_
  *
  ***********************************************************************************************/
 
-void try_register_id(int id_index, int obj_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static void
+try_register_id(int id_index, int obj_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FALSE on failure */
     int                  type_index;
@@ -2695,9 +2711,10 @@ void try_register_id(int id_index, int obj_index, hbool_t cs, hbool_t ds, hbool_
  *
  ***********************************************************************************************/
 
-int register_future_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr, 
-                       H5I_future_realize_func_t realize_cb, H5I_future_discard_func_t discard_cb,
-                       hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+register_future_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr,
+                   H5I_future_realize_func_t realize_cb, H5I_future_discard_func_t discard_cb,
+                   hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FALSE on failure */
     H5I_type_t           type;
@@ -2965,8 +2982,9 @@ int register_future_id(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_
  *
  ***********************************************************************************************/
 
-int link_real_and_future_ids(id_object_t * future_id_obj_ptr, id_object_t * real_id_obj_ptr, 
-                             hbool_t rpt_failures)
+static int
+link_real_and_future_ids(id_object_t * future_id_obj_ptr, id_object_t * real_id_obj_ptr,
+                         hbool_t rpt_failures)
 {
     hbool_t                       done = FALSE;
     hbool_t                       success = TRUE;
@@ -3333,8 +3351,9 @@ int link_real_and_future_ids(id_object_t * future_id_obj_ptr, id_object_t * real
  *
  ***********************************************************************************************/
 
-int object_verify(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr, 
-                  hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+object_verify(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr,
+              hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FALSE on failure */
     H5I_type_t           type;
@@ -3552,7 +3571,8 @@ int object_verify(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_objec
  *
  ***********************************************************************************************/
 
-int try_object_verify(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+try_object_verify(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t                       success = TRUE; /* will set to FALSE on failure */
     int                           ambiguous_results = 0;
@@ -3725,8 +3745,9 @@ int try_object_verify(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures
  *
  ***********************************************************************************************/
 
-int get_type(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, 
-             hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+get_type(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr,
+         hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t success = TRUE; /* will set to FALSE on failure */
     H5I_type_t           type;
@@ -3848,8 +3869,9 @@ int get_type(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr,
  *
  ***********************************************************************************************/
 
-int remove_verify(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr, 
-                  hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+remove_verify(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr,
+              hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t success = TRUE; /* will set to FALSE on failure */
     H5I_type_t           type;
@@ -4090,7 +4112,8 @@ int remove_verify(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_objec
  *
  ***********************************************************************************************/
 
-int try_remove_verify(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+try_remove_verify(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FALSE on failure */
     int                  type_index;
@@ -4279,8 +4302,9 @@ int try_remove_verify(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures
  *
  ***********************************************************************************************/
 
-int dec_ref(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr, 
-            hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+dec_ref(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * id_obj_ptr,
+        hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t success = TRUE; /* will set to FALSE on failure */
     hid_t                id;
@@ -4482,7 +4506,8 @@ int dec_ref(id_type_t * id_type_ptr, id_instance_t * id_inst_ptr, id_object_t * 
  *
  ***********************************************************************************************/
 
-int try_dec_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+try_dec_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FALSE on failure */
     int                  ref_count;
@@ -4650,7 +4675,8 @@ int try_dec_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int 
  *
  ***********************************************************************************************/
 
-int inc_ref(id_instance_t * id_inst_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+inc_ref(id_instance_t * id_inst_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t success = TRUE; /* will set to FALSE on failure */
     hid_t                id;
@@ -4760,7 +4786,8 @@ int inc_ref(id_instance_t * id_inst_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_fai
  *
  ***********************************************************************************************/
 
-int try_inc_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+try_inc_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FALSE if H5Iinc_ref() fails */
     hid_t                id;
@@ -4875,7 +4902,8 @@ int try_inc_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int 
  *
  ***********************************************************************************************/
 
-int get_ref(id_instance_t * id_inst_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+get_ref(id_instance_t * id_inst_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FALSE on failure */
     hid_t                id;
@@ -4973,7 +5001,8 @@ int get_ref(id_instance_t * id_inst_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_fai
  *
  ***********************************************************************************************/
 
-int try_get_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+try_get_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FALSE on failure */
     hid_t                id;
@@ -5081,7 +5110,8 @@ int try_get_ref(int id_index, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int 
  *
  ***********************************************************************************************/
 
-int nmembers(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+nmembers(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FALSE on failure */
     hsize_t              num_members;    /* H5Inmembers() will overwrite this if it is called */
@@ -5177,7 +5207,8 @@ int nmembers(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failur
  *
  ***********************************************************************************************/
 
-htri_t type_exists(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static htri_t
+type_exists(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     htri_t               result = TRUE; /* will set to FAIL on failure */
     H5I_type_t           type;
@@ -5242,7 +5273,8 @@ htri_t type_exists(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_
  *
  ***********************************************************************************************/
 
-int inc_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+inc_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FAIL on failure */
     int                  ref_count;
@@ -5331,7 +5363,8 @@ int inc_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_fa
  *
  ***********************************************************************************************/
 
-int dec_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+dec_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FAIL on failure */
     herr_t               ref_count;
@@ -5420,7 +5453,8 @@ int dec_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_fa
  *
  ***********************************************************************************************/
 
-int try_dec_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+try_dec_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     hbool_t              success = TRUE; /* will set to FAIL on failure */
     herr_t               ref_count;
@@ -5512,8 +5546,9 @@ int try_dec_type_ref(id_type_t * id_type_ptr, hbool_t cs, hbool_t ds, hbool_t rp
  * 
  ***********************************************************************************************/
 
-int create_types(int types_start, int types_count, int types_stride, hbool_t cs, hbool_t ds, 
-                 hbool_t rpt_failures, int tid)
+static int
+create_types(int types_start, int types_count, int types_stride, hbool_t cs, hbool_t ds,
+             hbool_t rpt_failures, int tid)
 {
     int i;
     int err_cnt = 0;
@@ -5554,8 +5589,9 @@ int create_types(int types_start, int types_count, int types_stride, hbool_t cs,
  * 
  ***********************************************************************************************/
 
-int dec_type_refs(int types_start, int types_count, int types_stride, hbool_t cs, hbool_t ds, 
-                  hbool_t rpt_failures, int tid)
+static int
+dec_type_refs(int types_start, int types_count, int types_stride, hbool_t cs, hbool_t ds,
+              hbool_t rpt_failures, int tid)
 {
     int err_cnt = 0;
     int i;
@@ -5597,8 +5633,9 @@ int dec_type_refs(int types_start, int types_count, int types_stride, hbool_t cs
  * 
  ***********************************************************************************************/
 
-int inc_type_refs(int types_start, int types_count, int types_stride, 
-                  hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+inc_type_refs(int types_start, int types_count, int types_stride,
+              hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     int err_cnt = 0;
     int i;
@@ -5622,8 +5659,9 @@ int inc_type_refs(int types_start, int types_count, int types_stride,
 
 } /* inc_type_refs() */
 
-int destroy_types(int types_start, int types_count, int types_stride, 
-                  hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+destroy_types(int types_start, int types_count, int types_stride,
+              hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     int i;
     int err_cnt = 0;
@@ -5668,9 +5706,10 @@ int destroy_types(int types_start, int types_count, int types_stride,
  *
  *******************************************************************************************/
 
-int register_ids(int types_start, int types_count, int types_stride, 
-                 int ids_start, int ids_count, int ids_stride,
-                 hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+register_ids(int types_start, int types_count, int types_stride,
+             int ids_start, int ids_count, int ids_stride,
+             hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     int i;
     int j;
@@ -5725,8 +5764,9 @@ int register_ids(int types_start, int types_count, int types_stride,
  *
  *******************************************************************************************/
 
-int dec_refs(int types_start, int types_count, int types_stride, int ids_start, int ids_count, int ids_stride,
-             hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+dec_refs(int types_start, int types_count, int types_stride, int ids_start, int ids_count, int ids_stride,
+         hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     int i;
     int j;
@@ -5785,8 +5825,9 @@ int dec_refs(int types_start, int types_count, int types_stride, int ids_start, 
  *
  *******************************************************************************************/
 
-int inc_refs(int ids_start, int ids_count, int ids_stride, 
-             hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+inc_refs(int ids_start, int ids_count, int ids_stride,
+         hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     int err_cnt = 0;
     int j;
@@ -5827,9 +5868,10 @@ int inc_refs(int ids_start, int ids_count, int ids_stride,
  *
  *******************************************************************************************/
 
-int verify_objects(int types_start, int types_count, int types_stride, 
-                   int ids_start, int ids_count, int ids_stride,
-                   hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
+static int
+verify_objects(int types_start, int types_count, int types_stride,
+               int ids_start, int ids_count, int ids_stride,
+               hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid)
 {
     int i;
     int j;
@@ -5922,7 +5964,8 @@ int verify_objects(int types_start, int types_count, int types_stride,
  *
  *******************************************************************************************/
 
-void serial_test_1(void)
+static void
+serial_test_1(const void H5_ATTR_UNUSED *params)
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
@@ -6368,8 +6411,10 @@ void serial_test_1(void)
  *
  *******************************************************************************************/
 
-void serial_test_2(int types_start, int types_count, int ids_start, int ids_count)
+static void
+serial_test_2(const void *params)
 {
+    const mt_test_params_t *test_params = (const mt_test_params_t *)params;
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
     hbool_t rpt_failures = TRUE;
@@ -6379,11 +6424,20 @@ void serial_test_2(int types_start, int types_count, int ids_start, int ids_coun
     int expected;
     int num_mem;
     int tid = 0;
+    int types_start;
+    int types_count;
+    int ids_start;
+    int ids_count;
     uint64_t init_id_info_fl_len;
     uint64_t init_type_info_fl_len;
 
     TESTING("MT ID serial test #2");
     fflush(stdout);
+
+    types_start = test_params->types_start;
+    types_count = test_params->types_count;
+    ids_start   = test_params->ids_start;
+    ids_count   = test_params->ids_count;
 
     if ( H5open() < 0 ) {
 
@@ -6593,7 +6647,8 @@ void serial_test_2(int types_start, int types_count, int ids_start, int ids_coun
  *
  *******************************************************************************************/
 
-void serial_test_3(void)
+static void
+serial_test_3(const void H5_ATTR_UNUSED *params)
 {
     hbool_t display_op_stats = FALSE;
     hbool_t cs = FALSE;
@@ -6828,7 +6883,8 @@ void serial_test_3(void)
  *
  *******************************************************************************************/
 
-void serial_test_4(void)
+static void
+serial_test_4(const void H5_ATTR_UNUSED *params)
 {
     hbool_t display_op_stats = FALSE;
     hbool_t cs = FALSE;
@@ -7376,7 +7432,8 @@ void serial_test_4(void)
  *
  *******************************************************************************************/
 
-void * mt_test_fcn_1(void * _params)
+static void *
+mt_test_fcn_1(void * _params)
 {
     hbool_t display_op_stats = FALSE;
     hbool_t show_progress = FALSE;
@@ -7542,7 +7599,8 @@ void * mt_test_fcn_1(void * _params)
  *
  *******************************************************************************************/
 
-void * mt_test_fcn_2(void * _params)
+static void *
+mt_test_fcn_2(void * _params)
 {
     hbool_t            show_progress = FALSE;
     hbool_t            proceed = TRUE;
@@ -7873,25 +7931,11 @@ void * mt_test_fcn_2(void * _params)
  *      
  *******************************************************************************************/
 
-void mt_test_fcn_1_serial_test(void)
+static void
+mt_test_fcn_1_serial_test(const void *_params)
 {
     int err_cnt = 0;
-    mt_test_params_t params = { /* thread_id      = */     0,
-                                /* types_start    = */     0,
-                                /* types_count    = */     3,
-                                /* types_stride   = */     3,
-                                /* ids_start      = */     0,
-                                /* ids_count      = */ 10000,
-                                /* ids_stride     = */     1,
-                                /* objects_start  = */     0,
-                                /* objects_count  = */ 10000,
-                                /* objects_stride = */     1,
-                                /* cs             = */ FALSE,
-                                /* ds             = */ FALSE,
-                                /* rpt_failures   = */ FALSE,
-                                /* err_cnt        = */     0,
-                                /* ambig_cnt      = */     0
-                              };
+    mt_test_params_t *params = (mt_test_params_t *)_params; /* TODO: remove const in testing framework */
 
     TESTING("mt_test_fcn_1 serial test");
     fflush(stdout);
@@ -7900,20 +7944,20 @@ void mt_test_fcn_1_serial_test(void)
 
         err_cnt++;
 
-        if ( params.rpt_failures ) {
+        if ( params->rpt_failures ) {
 
-            fprintf(stderr, "mt_test_fcn_1_serial_test():%d: H5open() failed.\n", params.thread_id);
+            fprintf(stderr, "mt_test_fcn_1_serial_test():%d: H5open() failed.\n", params->thread_id);
         }
     }
 
-    err_cnt += create_types(params.types_start, params.types_count, params.types_stride, 
-                            params.cs, params.ds, params.rpt_failures, params.thread_id);
+    err_cnt += create_types(params->types_start, params->types_count, params->types_stride,
+                            params->cs, params->ds, params->rpt_failures, params->thread_id);
 
-    mt_test_fcn_1((void *)(&params));
-    err_cnt += params.err_cnt;
+    mt_test_fcn_1(params);
+    err_cnt += params->err_cnt;
 
-    err_cnt += destroy_types(params.types_start, params.types_count, params.types_stride,
-                             params.cs, params.ds, params.rpt_failures, params.thread_id);
+    err_cnt += destroy_types(params->types_start, params->types_count, params->types_stride,
+                             params->cs, params->ds, params->rpt_failures, params->thread_id);
 
     if ( MT_TEST_FCN_1_SERIAL_TEST__DISPLAY_FINAL_STATS ) {
 
@@ -7959,9 +8003,9 @@ void mt_test_fcn_1_serial_test(void)
 
         err_cnt++;
 
-        if ( params.rpt_failures ) {
+        if ( params->rpt_failures ) {
 
-            fprintf(stderr, "mt_test_fcn_1_serial_test():%d: H5close() failed.\n", params.thread_id);
+            fprintf(stderr, "mt_test_fcn_1_serial_test():%d: H5close() failed.\n", params->thread_id);
         }
     }
 
@@ -8000,7 +8044,24 @@ void mt_test_fcn_1_serial_test(void)
  *      
  *******************************************************************************************/
 
-void mt_test_1(int num_threads) 
+static void
+mt_test_1(const void *params)
+{
+    int max_num_threads = GetTestMaxNumThreads();
+
+    /* Restrict maximum number of threads for now */
+    if (max_num_threads > DEFAULT_MAX_NUM_THREADS || max_num_threads < 1)
+        max_num_threads = DEFAULT_MAX_NUM_THREADS;
+
+    /* Run this test for thread counts between and including 2 <-> max_num_threads */
+    for (int num_threads = 2; num_threads <= max_num_threads; num_threads++) {
+        mt_test_1_helper(num_threads);
+        reset_globals(params);
+    }
+}
+
+static void
+mt_test_1_helper(int num_threads)
 {
     char             banner[80];
     hbool_t          cs = FALSE;
@@ -8008,11 +8069,11 @@ void mt_test_1(int num_threads)
     hbool_t          rpt_failures = TRUE;
     int              i;
     int              err_cnt = 0;
-    pthread_t        threads[MAX_NUM_THREADS];
-    mt_test_params_t params[MAX_NUM_THREADS];
+    pthread_t        threads[DEFAULT_MAX_NUM_THREADS];
+    mt_test_params_t params[DEFAULT_MAX_NUM_THREADS];
 
     assert( 1 <= num_threads );
-    assert( num_threads <= MAX_NUM_THREADS );
+    assert( num_threads <= DEFAULT_MAX_NUM_THREADS );
 
     sprintf(banner, "multi-thread test 1 -- %d threads", num_threads);
 
@@ -8187,7 +8248,24 @@ void mt_test_1(int num_threads)
  *      
  *******************************************************************************************/
 
-void mt_test_2(int num_threads) 
+static void
+mt_test_2(const void *params)
+{
+    int max_num_threads = GetTestMaxNumThreads();
+
+    /* Restrict maximum number of threads for now */
+    if (max_num_threads > DEFAULT_MAX_NUM_THREADS || max_num_threads < 1)
+        max_num_threads = DEFAULT_MAX_NUM_THREADS;
+
+    /* Run this test for thread counts between 1 ... max_num_threads */
+    for (int num_threads = 1; num_threads <= max_num_threads; num_threads++) {
+        mt_test_2_helper(num_threads);
+        reset_globals(params);
+    }
+}
+
+static void
+mt_test_2_helper(int num_threads)
 {
     char             banner[80];
     hbool_t          cs = FALSE;
@@ -8217,11 +8295,11 @@ void mt_test_2(int num_threads)
     long long int    id_successful_remove_verifies = 0;
     long long int    id_failed_remove_verifies = 0;
     long long int    obj_accesses = 0;
-    pthread_t        threads[MAX_NUM_THREADS];
-    mt_test_params_t params[MAX_NUM_THREADS];
+    pthread_t        threads[DEFAULT_MAX_NUM_THREADS];
+    mt_test_params_t params[DEFAULT_MAX_NUM_THREADS];
 
     assert( 1 <= num_threads );
-    assert( num_threads <= MAX_NUM_THREADS );
+    assert( num_threads <= DEFAULT_MAX_NUM_THREADS );
 
     sprintf(banner, "multi-thread test 2 -- %d threads", num_threads);
 
@@ -8349,7 +8427,7 @@ void mt_test_2(int num_threads)
         obj_accesses += atomic_load(&(objects_array[i].accesses));
     }
 
-    if ( MT_TEST_1__DISPLAY_FINAL_STATS ) {
+    if ( MT_TEST_2__DISPLAY_FINAL_STATS ) {
 
         fprintf(stderr, "\nerror count = %d, ambiguous count = %d\n\n", err_cnt, ambig_cnt);
 
@@ -8439,6 +8517,7 @@ void mt_test_2(int num_threads)
 
 } /* mt_test_2() */
 
+#endif /* H5_HAVE_MULTITHREAD */
 
 /*******************************************************************************************
  *
@@ -8448,59 +8527,123 @@ void mt_test_2(int num_threads)
  *
  *******************************************************************************************/
 
-int main(void) 
+int
+main(int argc, char **argv)
 {
-    int num_threads;
+#ifdef H5_HAVE_MULTITHREAD
+    mt_test_params_t test_params;
+#endif
+    H5E_auto2_t default_err_func;
+    void       *default_err_data = NULL;
+    int         num_errs         = 0;
 
-    init_globals();
+    H5open();
 
-    serial_test_1();
+    /* Store current error stack printing function since TestInit unsets it */
+    H5Eget_auto2(H5E_DEFAULT, &default_err_func, &default_err_data);
 
-    reset_globals();
+    /* Initialize testing framework */
+    TestInit(argv[0], NULL, NULL, init_globals, NULL, 0);
 
-    serial_test_2(0, 32, 0, NUM_ID_INSTANCES);
+    /* Reset error stack printing function */
+    H5Eset_auto2(H5E_DEFAULT, default_err_func, default_err_data);
 
-    reset_globals();
+    /* Hide all output from testing framework and replace with our own */
+    SetTestVerbosity(VERBO_NONE);
 
-    serial_test_3();
+    /* Display testing information */
+    TestInfo(stdout);
 
-    reset_globals();
+#ifdef H5_HAVE_MULTITHREAD
+    /* Add tests */
 
-    serial_test_4();
+    AddTest("serial_test_1", serial_test_1, NULL, reset_globals, NULL, 0, 0,
+            "smoke check test for various H5I operations on IDs");
 
-    reset_globals();
+    test_params = (mt_test_params_t) {
+        /* thread_id      = */     0,
+        /* types_start    = */     0,
+        /* types_count    = */     32,
+        /* types_stride   = */     1,
+        /* ids_start      = */     0,
+        /* ids_count      = */ NUM_ID_INSTANCES,
+        /* ids_stride     = */     1,
+        /* objects_start  = */     0,
+        /* objects_count  = */     0,
+        /* objects_stride = */     1,
+        /* cs             = */ FALSE,
+        /* ds             = */ FALSE,
+        /* rpt_failures   = */ FALSE,
+        /* err_cnt        = */     0,
+        /* ambig_cnt      = */     0
+    };
+    AddTest("serial_test_2", serial_test_2, NULL, reset_globals, &test_params,
+            sizeof(mt_test_params_t), 0, "smoke check test for H5I ID registrations");
 
-    mt_test_fcn_1_serial_test();
+    AddTest("serial_test_3", serial_test_3, NULL, reset_globals, NULL, 0, 0,
+            "another smoke check test for H5I ID registrations");
+    AddTest("serial_test_4", serial_test_4, NULL, reset_globals, NULL, 0, 0,
+            "smoke check test for H5I future ID functionality");
 
-    reset_globals();
+    test_params = (mt_test_params_t) {
+        /* thread_id      = */     0,
+        /* types_start    = */     0,
+        /* types_count    = */     3,
+        /* types_stride   = */     3,
+        /* ids_start      = */     0,
+        /* ids_count      = */ 10000,
+        /* ids_stride     = */     1,
+        /* objects_start  = */     0,
+        /* objects_count  = */ 10000,
+        /* objects_stride = */     1,
+        /* cs             = */ FALSE,
+        /* ds             = */ FALSE,
+        /* rpt_failures   = */ FALSE,
+        /* err_cnt        = */     0,
+        /* ambig_cnt      = */     0
+    };
+    AddTest("mt_test_fcn_1_serial_test", mt_test_fcn_1_serial_test, NULL, reset_globals,
+            &test_params, sizeof(mt_test_params_t), 0,
+            "serial smoke check test for multi-thread helper function");
 
-    for ( num_threads = 2; num_threads <= 32; num_threads++) {
+    AddTest("mt_test_1", mt_test_1, NULL, NULL, NULL, 0, 0,
+            "multi-thread H5I smoke check test #1");
+    AddTest("mt_test_2", mt_test_2, NULL, NULL, NULL, 0, 0,
+            "multi-thread H5I smoke check test #2");
 
-        mt_test_1(num_threads);
-
-        reset_globals();
+    /* Parse command line arguments */
+    if (TestParseCmdLine(argc, argv) < 0) {
+        fprintf(stderr, "Error occurred while parsing command-line arguments\n");
+        goto exit;
     }
 
-    for ( num_threads = 1; num_threads <= 32; num_threads++) {
-
-        mt_test_2(num_threads);
-
-        reset_globals();
+    /* Perform tests */
+    if (PerformTests() < 0) {
+        fprintf(stderr, "Error occurred while running tests\n");
+        goto exit;
     }
 
     // H5I_dump_stats(stdout);
     // H5I_clear_stats();
 
-    return(0);
+    /* Display test summary if requested */
+    if (GetTestSummary())
+        TestSummary(stdout);
+#else
+    fprintf(stderr, "Multithread isn't enabled in library configuration -- no tests to run\n");
+#endif
 
-} /* main() */
-#else /* H5_HAVE_MULTITHREAD */
-int
-main(void)
-{
-    TESTING("multithread");
-    SKIPPED();
-    fprintf(stderr, "Multithread isn't enabled in configure.\n");
-    return (0);
+exit:
+    /* Retrieve number of testing errors before shutting down test infrastructure */
+    num_errs = GetTestNumErrs();
+
+    /* Release test infrastructure */
+    /* TODO: awkwardness dealing with number of errors if this fails */
+    if (TestShutdown() < 0)
+        fprintf(stderr, "Error while shutting down test infrastructure\n");
+
+    H5close();
+
+    /* Exit failure if errors encountered */
+    exit(num_errs > 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
-#endif /* H5_HAVE_MULTITHREAD */
