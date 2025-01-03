@@ -336,7 +336,6 @@ extern pthread_key_t test_thread_info_key_g;
     part_##part_name##_end:
 #define PART_ERROR(part_name)                                                                                \
     do {                                                                                                     \
-        INCR_FAILED_COUNT;                                                                                  \
         part_nerrors++;                                                                                      \
         goto part_##part_name##_end;                                                                         \
     } while (0)
