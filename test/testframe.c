@@ -170,6 +170,8 @@ TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
          herr_t (*TestPrivateParser)(int argc, char *argv[]), herr_t (*TestSetupFunc)(void),
          herr_t (*TestCleanupFunc)(void), int TestProcessID)
 {
+    char *env_var = NULL;
+
     /* Turn off automatic error reporting if requested */
     if (!TestEnableErrorStack) {
         if (H5Eset_auto2(H5E_DEFAULT, NULL, NULL) < 0) {
@@ -203,6 +205,28 @@ TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
     if (test_path_prefix == NULL) {
         if ((test_path_prefix = getenv(HDF5_API_TEST_PATH_PREFIX)) == NULL)
             test_path_prefix = "";
+    }
+
+    /* Get maximum number of test threads from environment, if set */
+    if ((env_var = getenv(HDF5_TEST_MAX_NUM_THREADS))) {
+        long max_threads;
+
+        errno = 0;
+        max_threads = strtol(env_var, NULL, 10);
+
+        if (errno != 0) {
+            if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr,"error while parsing value (%s) specified for maximum number of threads\n", env_var);
+            return FAIL;
+        }
+        if (max_threads > (long)INT_MAX) {
+            if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr, "value (%ld) specified for maximum number of threads too large\n",
+                        max_threads);
+            return FAIL;
+        }
+
+        SetTestMaxNumThreads((int)max_threads);
     }
 
     /* Set/reset global variables from h5test that may be used by
@@ -409,14 +433,7 @@ TestParseCmdLine(int argc, char *argv[])
                     ret_value = FAIL;
                     goto done;
                 }
-                if (max_threads <= 0) {
-                    if (TestFrameworkProcessID_g == 0)
-                        fprintf(stderr, "invalid value (%ld) specified for maximum number of threads\n",
-                                max_threads);
-                    ret_value = FAIL;
-                    goto done;
-                }
-                else if (max_threads > (long)INT_MAX) {
+                if (max_threads > (long)INT_MAX) {
                     if (TestFrameworkProcessID_g == 0)
                         fprintf(stderr, "value (%ld) specified for maximum number of threads too large\n",
                                 max_threads);
