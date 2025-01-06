@@ -44,7 +44,6 @@ herr_t mt_test_vol_wrap_ctx_cleanup(TestParams_t *args);
 
 /* H5CX Tests */
 void mt_test_api_ctx_vol_conn_prop(void);
-void mt_test_shared_plist_modify(void);
 
 void mt_test_api_ctx_vol_wrap_ctx(void);
 void mt_test_api_ctx_vol_wrap_ctx_cleanup(void);

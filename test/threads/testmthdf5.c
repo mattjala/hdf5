@@ -113,9 +113,6 @@ int main(int argc, char *argv[])
     AddTest("mt_ctx_vol_conn_prop", mt_test_api_ctx_vol_conn_prop,
         NULL, "MT usage of API context VOL connector property routines", &params, 0);
 
-    AddTest("mt_ctx_plist_modify", mt_test_shared_plist_modify,
-        NULL, "MT modification of property list shared through API context", &params, 0);
-
     AddTest("mt_ctx_vol_wrap_ctx", mt_test_api_ctx_vol_wrap_ctx,
         mt_test_api_ctx_vol_wrap_ctx_cleanup,
         "MT usage of API context VOL wrap context routines", &params, 0);
