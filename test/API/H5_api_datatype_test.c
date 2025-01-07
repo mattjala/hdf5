@@ -755,12 +755,18 @@ test_create_committed_datatype_empty_types(const void H5_ATTR_UNUSED *params)
     }
     END_MULTIPART;
 
+    TESTING_2("test cleanup");
+
     if (H5Gclose(group_id) < 0)
         TEST_ERROR;
     if (H5Gclose(container_group) < 0)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
+
+    PASSED();
+
+    return;
 
 error:
     H5E_BEGIN_TRY

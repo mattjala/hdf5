@@ -2570,6 +2570,8 @@ test_create_external_link_multi(const void H5_ATTR_UNUSED *params)
     }
     END_MULTIPART;
 
+    TESTING_2("test cleanup");
+
     if (remove_test_file(NULL, ext_link_filename1) < 0)
         TEST_ERROR;
     if (remove_test_file(NULL, ext_link_filename2) < 0)
@@ -2580,6 +2582,8 @@ test_create_external_link_multi(const void H5_ATTR_UNUSED *params)
     free(ext_link_filename1);
     free(ext_link_filename2);
     free(ext_link_filename3);
+
+    PASSED();
 
     return;
 
@@ -2882,6 +2886,8 @@ test_create_external_link_ping_pong(const void H5_ATTR_UNUSED *params)
     }
     END_MULTIPART;
 
+    TESTING_2("test cleanup");
+
     if (remove_test_file(NULL, ext_link_filename1) < 0)
         TEST_ERROR;
     if (remove_test_file(NULL, ext_link_filename2) < 0)
@@ -2889,6 +2895,8 @@ test_create_external_link_ping_pong(const void H5_ATTR_UNUSED *params)
 
     free(ext_link_filename1);
     free(ext_link_filename2);
+
+    PASSED();
 
     return;
 

@@ -309,8 +309,17 @@ extern pthread_key_t test_thread_info_key_g;
         int part_nerrors = 0;
 
 #define END_MULTIPART                                                                                        \
-    if (part_nerrors > 0)                                                                                    \
-        goto error;                                                                                          \
+        if (part_nerrors > 0) {                                                                              \
+            TESTING_2("test cleanup");                                                                       \
+            SKIPPED();                                                                                       \
+            goto error;                                                                                      \
+        }                                                                                                    \
+    }
+
+#define END_MULTIPART_NO_CLEANUP                                                                             \
+        if (part_nerrors) {                                                                                  \
+            goto error;                                                                                      \
+        }                                                                                                    \
     }
 
 /*

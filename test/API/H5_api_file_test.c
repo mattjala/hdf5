@@ -230,8 +230,12 @@ test_create_file_invalid_params(const void H5_ATTR_UNUSED *params)
     }
     END_MULTIPART;
 
+    TESTING_2("test cleanup");
+
     free(prefixed_filename);
     prefixed_filename = NULL;
+
+    PASSED();
 
     return;
 
@@ -404,7 +408,7 @@ test_open_file(const void H5_ATTR_UNUSED *params)
          * XXX: SWMR open flags
          */
     }
-    END_MULTIPART;
+    END_MULTIPART_NO_CLEANUP;
 
     return;
 
@@ -506,7 +510,7 @@ test_open_file_invalid_params(const void H5_ATTR_UNUSED *params)
         }
         PART_END(H5Fopen_invalid_flags);
     }
-    END_MULTIPART;
+    END_MULTIPART_NO_CLEANUP;
 
     return;
 
@@ -1107,8 +1111,12 @@ test_file_is_accessible(const void H5_ATTR_UNUSED *params)
     }
     END_MULTIPART;
 
+    TESTING_2("test cleanup");
+
     free(prefixed_filename);
     prefixed_filename = NULL;
+
+    PASSED();
 
     return;
 
@@ -1572,11 +1580,15 @@ test_get_file_intent(const void H5_ATTR_UNUSED *params)
     }
     END_MULTIPART;
 
+    TESTING_2("test cleanup");
+
     if (GetTestCleanup() && H5Fdelete(prefixed_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
 
     free(prefixed_filename);
     prefixed_filename = NULL;
+
+    PASSED();
 
     return;
 

@@ -1933,7 +1933,7 @@ test_incr_decr_object_refcount_invalid_params(const void H5_ATTR_UNUSED *params)
         }
         PART_END(H5Odecr_refcount_invalid_param);
     }
-    END_MULTIPART;
+    END_MULTIPART_NO_CLEANUP;
 
     return;
 
