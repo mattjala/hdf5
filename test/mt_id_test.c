@@ -1,8 +1,6 @@
 #include "h5test.h"
 #include "testframe.h"
 
-/* TODO: deal with incrementing number of test errors for framework */
-
 #ifdef H5_HAVE_MULTITHREAD
 #include <stdatomic.h>
 
@@ -578,19 +576,19 @@ static int verify_objects(int types_start, int types_count, int types_stride,
                           int ids_start, int ids_count, int ids_stride,
                           hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
 
-static void serial_test_1(const void *params);
-static void serial_test_2(const void *params);
-static void serial_test_3(const void *params);
-static void serial_test_4(const void *params);
+static void serial_test_1(void *params);
+static void serial_test_2(void *params);
+static void serial_test_3(void *params);
+static void serial_test_4(void *params);
 
 static void * mt_test_fcn_1(void *params);
 static void * mt_test_fcn_2(void *params);
 
-static void mt_test_fcn_1_serial_test(const void *params);
-static void mt_test_1(const void *params);
+static void mt_test_fcn_1_serial_test(void *params);
+static void mt_test_1(void *params);
 static void mt_test_1_helper(int num_threads);
 
-static void mt_test_2(const void *params);
+static void mt_test_2(void *params);
 static void mt_test_2_helper(int num_threads);
 
 static herr_t
@@ -5965,7 +5963,7 @@ verify_objects(int types_start, int types_count, int types_stride,
  *******************************************************************************************/
 
 static void
-serial_test_1(const void H5_ATTR_UNUSED *params)
+serial_test_1(void H5_ATTR_UNUSED *params)
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
@@ -6371,11 +6369,12 @@ serial_test_1(const void H5_ATTR_UNUSED *params)
 
     if ( 0 == err_cnt ) {
 
-         PASSED();
+        PASSED();
 
     } else {
 
-         H5_FAILED();
+        IncTestNumErrs();
+        H5_FAILED();
     }
 
     return;
@@ -6412,7 +6411,7 @@ serial_test_1(const void H5_ATTR_UNUSED *params)
  *******************************************************************************************/
 
 static void
-serial_test_2(const void *params)
+serial_test_2(void *params)
 {
     const mt_test_params_t *test_params = (const mt_test_params_t *)params;
     hbool_t cs = FALSE;
@@ -6601,11 +6600,12 @@ serial_test_2(const void *params)
 
     if ( 0 == err_cnt ) {
 
-         PASSED();
+        PASSED();
 
     } else {
 
-         H5_FAILED();
+        IncTestNumErrs();
+        H5_FAILED();
     }
 
     return;
@@ -6648,7 +6648,7 @@ serial_test_2(const void *params)
  *******************************************************************************************/
 
 static void
-serial_test_3(const void H5_ATTR_UNUSED *params)
+serial_test_3(void H5_ATTR_UNUSED *params)
 {
     hbool_t display_op_stats = FALSE;
     hbool_t cs = FALSE;
@@ -6796,11 +6796,12 @@ serial_test_3(const void H5_ATTR_UNUSED *params)
 
     if ( 0 == err_cnt ) {
 
-         PASSED();
+        PASSED();
 
     } else {
 
-         H5_FAILED();
+        IncTestNumErrs();
+        H5_FAILED();
     }
 
     return;
@@ -6884,7 +6885,7 @@ serial_test_3(const void H5_ATTR_UNUSED *params)
  *******************************************************************************************/
 
 static void
-serial_test_4(const void H5_ATTR_UNUSED *params)
+serial_test_4(void H5_ATTR_UNUSED *params)
 {
     hbool_t display_op_stats = FALSE;
     hbool_t cs = FALSE;
@@ -7387,11 +7388,12 @@ serial_test_4(const void H5_ATTR_UNUSED *params)
 
     if ( 0 == err_cnt ) {
 
-         PASSED();
+        PASSED();
 
     } else {
 
-         H5_FAILED();
+        IncTestNumErrs();
+        H5_FAILED();
     }
 
     return;
@@ -7932,10 +7934,10 @@ mt_test_fcn_2(void * _params)
  *******************************************************************************************/
 
 static void
-mt_test_fcn_1_serial_test(const void *_params)
+mt_test_fcn_1_serial_test(void *_params)
 {
     int err_cnt = 0;
-    mt_test_params_t *params = (mt_test_params_t *)_params; /* TODO: remove const in testing framework */
+    mt_test_params_t *params = (mt_test_params_t *)_params;
 
     TESTING("mt_test_fcn_1 serial test");
     fflush(stdout);
@@ -8011,11 +8013,12 @@ mt_test_fcn_1_serial_test(const void *_params)
 
     if ( 0 == err_cnt ) {
 
-         PASSED();
+        PASSED();
 
     } else {
 
-         H5_FAILED();
+        IncTestNumErrs();
+        H5_FAILED();
     }
 
     return;
@@ -8045,7 +8048,7 @@ mt_test_fcn_1_serial_test(const void *_params)
  *******************************************************************************************/
 
 static void
-mt_test_1(const void *params)
+mt_test_1(void *params)
 {
     int max_num_threads = GetTestMaxNumThreads();
 
@@ -8215,11 +8218,12 @@ mt_test_1_helper(int num_threads)
 
     if ( 0 == err_cnt ) {
 
-         PASSED();
+        PASSED();
 
     } else {
 
-         H5_FAILED();
+        IncTestNumErrs();
+        H5_FAILED();
     }
 
     return;
@@ -8249,7 +8253,7 @@ mt_test_1_helper(int num_threads)
  *******************************************************************************************/
 
 static void
-mt_test_2(const void *params)
+mt_test_2(void *params)
 {
     int max_num_threads = GetTestMaxNumThreads();
 
@@ -8510,7 +8514,8 @@ mt_test_2_helper(int num_threads)
 
     } else {
 
-         H5_FAILED();
+        IncTestNumErrs();
+        H5_FAILED();
     }
 
     return;
@@ -8638,9 +8643,10 @@ exit:
     num_errs = GetTestNumErrs();
 
     /* Release test infrastructure */
-    /* TODO: awkwardness dealing with number of errors if this fails */
-    if (TestShutdown() < 0)
+    if (TestShutdown() < 0) {
         fprintf(stderr, "Error while shutting down test infrastructure\n");
+        num_errs++;
+    }
 
     H5close();
 
