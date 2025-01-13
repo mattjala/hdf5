@@ -31,6 +31,9 @@
 #include "H5private.h"   /* Generic Functions                        */
 #include "H5Eprivate.h"  /* Error handling                           */
 #include "H5MMprivate.h" /* Memory management                        */
+#ifdef H5_HAVE_VIRTUAL_LOCK
+#include <stdatomic.h>
+#endif /* H5_HAVE_VIRTUAL_LOCK */
 
 #if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 
@@ -1115,5 +1118,99 @@ H5TS_create_thread(H5TS_thread_cb_t func, H5TS_attr_t *attr, void *udata)
 
     FUNC_LEAVE_NOAPI_NAMECHECK_ONLY(ret_value)
 } /* H5TS_create_thread */
+
+#ifdef H5_HAVE_VIRTUAL_LOCK
+
+/*--------------------------------------------------------------------------
+ * NAME
+ *    H5TS_vlock_acquire
+ *
+ * USAGE
+ *    H5TS_vlock_acquire(&vlock, op_type)
+ *
+ * DESCRIPTION
+ *    Attempt to acquire the provided virtual lock with the provided op type.
+ *    If the lock is already held by another thread in violation of
+ *    mutual exclusion, an assertion will be thrown.
+ *
+ *    Provided operation type should be H5TS_VLOCK_READER
+ *    or H5TS_VLOCK_WRITER.
+ *
+ * RETURNS
+ *    Non-negative on success / Negative on failure
+ *
+ * --------------------------------------------------------------------------*/
+void
+H5TS_vlock_acquire(H5TS_vlock_t *vlock, H5TS_vlock_op_type_t op_type) {
+    FUNC_ENTER_NOAPI_NAMECHECK_ONLY;
+
+    assert(vlock);
+    assert(atomic_load(&vlock->reader_count) == 0);
+    assert(atomic_load(&vlock->writer_count) == 0);
+
+    if (op_type == H5TS_VLOCK_READER)
+        atomic_fetch_add(&vlock->reader_count, 1);
+    else if (op_type == H5TS_VLOCK_WRITER)
+        atomic_fetch_add(&vlock->writer_count, 1);
+
+    FUNC_LEAVE_NOAPI_VOID_NAMECHECK_ONLY;
+}
+
+/*--------------------------------------------------------------------------
+ * NAME
+ *    H5TS_vlock_release
+ *
+ * USAGE
+ *    H5TS_vlock_release(&vlock)
+ *
+ * DESCRIPTION
+ *    Release the provided virtual lock.
+ *
+ * RETURNS
+ *    Non-negative on success / Negative on failure
+ *
+ * --------------------------------------------------------------------------*/
+void
+H5TS_vlock_release(H5TS_vlock_t *vlock, H5TS_vlock_op_type_t op_type) {
+    assert(vlock);
+
+    FUNC_ENTER_NOAPI_NAMECHECK_ONLY
+
+    if (op_type == H5TS_VLOCK_READER) {
+        assert(atomic_load(&vlock->reader_count) == 1);
+        atomic_fetch_sub(&vlock->reader_count, 1);
+    }
+    else if (op_type == H5TS_VLOCK_WRITER) {
+        assert(atomic_load(&vlock->writer_count) == 1);
+        atomic_fetch_sub(&vlock->writer_count, 1);
+    }
+
+    FUNC_LEAVE_NOAPI_VOID_NAMECHECK_ONLY;
+}
+
+/*--------------------------------------------------------------------------
+ * NAME
+ *    H5TS_vlock_init
+ * 
+ * USAGE
+ *    H5TS_vlock_init(&vlock)
+ * 
+ * DESCRIPTION
+ *    Initialize the provided virtual lock's reader/writer counts
+ * 
+ *--------------------------------------------------------------------------*/
+void
+H5TS_vlock_init(H5TS_vlock_t *vlock) {
+    assert(vlock);
+
+    FUNC_ENTER_NOAPI_NAMECHECK_ONLY
+
+    atomic_init(&vlock->reader_count, 0);
+    atomic_init(&vlock->writer_count, 0);
+
+    FUNC_LEAVE_NOAPI_VOID_NAMECHECK_ONLY
+}
+
+#endif /* H5_HAVE_VIRTUAL_LOCK */
 
 #endif /* H5_HAVE_THREADSAFE or H5_HAVE_MULTITHREAD */
