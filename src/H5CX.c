@@ -1658,8 +1658,6 @@ H5CX_get_vol_wrap_ctx(void **vol_wrap_ctx)
     assert(vol_wrap_ctx);
     head = H5CX_get_my_context(); /* Get the pointer to the head of the API context, for this thread */
 
-    H5TS_vlock_acquire(&(*head)->ctx.vlock, H5TS_VLOCK_READER);
-
     /* No error is expected at this point.  But in case an application calls H5VLwrap_register
      * which doesn't reset the API context and there is no context, returns a relevant error here
      */
@@ -1668,6 +1666,8 @@ H5CX_get_vol_wrap_ctx(void **vol_wrap_ctx)
 
     if (!(*head))
         HGOTO_ERROR(H5E_CONTEXT, H5E_CANTGET, FAIL, "unable to get the current API context");
+
+    H5TS_vlock_acquire(&(*head)->ctx.vlock, H5TS_VLOCK_READER);
 
     /* Check for value that was set */
     if ((*head)->ctx.vol_wrap_ctx_valid)
