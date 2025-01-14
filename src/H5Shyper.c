@@ -3487,6 +3487,9 @@ H5Sget_select_hyper_nblocks(hid_t spaceid)
     /* Check args */
     if (NULL == (space = (H5S_t *)H5I_object_verify(spaceid, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
+    
+    H5S_VLOCK_ACQUIRE_R(space);
+
     if (H5S_GET_SELECT_TYPE(space) != H5S_SEL_HYPERSLABS)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a hyperslab selection");
     if (space->select.sel_info.hslab->unlim_dim >= 0)
@@ -3496,6 +3499,9 @@ H5Sget_select_hyper_nblocks(hid_t spaceid)
     ret_value = (hssize_t)H5S__get_select_hyper_nblocks(space, TRUE);
 
 done:
+    if (space)
+        H5S_VLOCK_RELEASE_R(space);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sget_select_hyper_nblocks() */
 
@@ -4245,6 +4251,8 @@ H5S__hyper_deserialize(H5S_t **space, const uint8_t **p, const size_t p_size, hb
     if (!*space) {
         if (NULL == (tmp_space = H5S_create(H5S_SIMPLE)))
             HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCREATE, FAIL, "can't create dataspace");
+
+        H5S_VLOCK_ACQUIRE_W(tmp_space);
     } /* end if */
     else
         tmp_space = *space;
@@ -4491,6 +4499,9 @@ H5S__hyper_deserialize(H5S_t **space, const uint8_t **p, const size_t p_size, hb
         *space = tmp_space;
 
 done:
+    if (!*space && tmp_space)
+        H5S_VLOCK_RELEASE_W(tmp_space);
+
     /* Free temporary space if not passed to caller (only happens on error) */
     if (!*space && tmp_space)
         if (H5S_close(tmp_space) < 0)
@@ -4828,6 +4839,7 @@ H5Sget_select_hyper_blocklist(hid_t spaceid, hsize_t startblock, hsize_t numbloc
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid pointer");
     if (NULL == (space = (H5S_t *)H5I_object_verify(spaceid, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
+    H5S_VLOCK_ACQUIRE_R(space);
     if (H5S_GET_SELECT_TYPE(space) != H5S_SEL_HYPERSLABS)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a hyperslab selection");
     if (space->select.sel_info.hslab->unlim_dim >= 0)
@@ -4840,6 +4852,9 @@ H5Sget_select_hyper_blocklist(hid_t spaceid, hsize_t startblock, hsize_t numbloc
         ret_value = SUCCEED; /* Successfully got 0 blocks... */
 
 done:
+    if (space)
+        H5S_VLOCK_RELEASE_R(space);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sget_select_hyper_blocklist() */
 
@@ -10305,6 +10320,7 @@ H5Sselect_hyperslab(hid_t space_id, H5S_seloper_t op, const hsize_t start[], con
     /* Check args */
     if (NULL == (space = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
+    H5S_VLOCK_ACQUIRE_W(space);
     if (H5S_SCALAR == H5S_GET_EXTENT_TYPE(space))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "hyperslab doesn't support H5S_SCALAR space");
     if (H5S_NULL == H5S_GET_EXTENT_TYPE(space))
@@ -10326,6 +10342,8 @@ H5Sselect_hyperslab(hid_t space_id, H5S_seloper_t op, const hsize_t start[], con
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, FAIL, "unable to set hyperslab selection");
 
 done:
+    if (space)
+        H5S_VLOCK_RELEASE_W(space);
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sselect_hyperslab() */
 
@@ -10630,6 +10648,7 @@ H5Scombine_hyperslab(hid_t space_id, H5S_seloper_t op, const hsize_t start[], co
     /* Check args */
     if (NULL == (space = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a dataspace");
+    H5S_VLOCK_ACQUIRE_R(space);
     if (start == NULL || count == NULL)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, H5I_INVALID_HID, "hyperslab not specified");
     if (!(op >= H5S_SELECT_SET && op <= H5S_SELECT_NOTA))
@@ -10639,11 +10658,18 @@ H5Scombine_hyperslab(hid_t space_id, H5S_seloper_t op, const hsize_t start[], co
     if (H5S_combine_hyperslab(space, op, start, stride, count, block, &new_space) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, H5I_INVALID_HID, "unable to set hyperslab selection");
 
+    H5S_VLOCK_ACQUIRE_R(new_space);
+
     /* Register */
     if ((ret_value = H5I_register(H5I_DATASPACE, new_space, TRUE)) < 0)
         HGOTO_ERROR(H5E_ID, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register dataspace ID");
 
 done:
+    if (space)
+        H5S_VLOCK_RELEASE_R(space);
+    if (new_space)
+        H5S_VLOCK_RELEASE_R(new_space);
+
     if (ret_value < 0 && new_space)
         H5S_close(new_space);
 
@@ -10701,6 +10727,8 @@ H5S__combine_select(H5S_t *space1, H5S_seloper_t op, H5S_t *space2)
             HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCLIP, NULL, "can't clip hyperslab information");
     } /* end else */
 
+    H5S_VLOCK_ACQUIRE_W(new_space);
+
     /* Set unlim_dim */
     new_space->select.sel_info.hslab->unlim_dim = -1;
 
@@ -10708,6 +10736,9 @@ H5S__combine_select(H5S_t *space1, H5S_seloper_t op, H5S_t *space2)
     ret_value = new_space;
 
 done:
+    if (new_space)
+        H5S_VLOCK_RELEASE_W(new_space);
+
     if (ret_value == NULL && new_space)
         H5S_close(new_space);
 
@@ -10750,8 +10781,10 @@ H5Scombine_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
     /* Check args */
     if (NULL == (space1 = (H5S_t *)H5I_object_verify(space1_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a dataspace");
+    H5S_VLOCK_ACQUIRE_R(space1);
     if (NULL == (space2 = (H5S_t *)H5I_object_verify(space2_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a dataspace");
+    H5S_VLOCK_ACQUIRE_R(space2);
     if (!(op >= H5S_SELECT_OR && op <= H5S_SELECT_NOTA))
         HGOTO_ERROR(H5E_ARGS, H5E_UNSUPPORTED, H5I_INVALID_HID, "invalid selection operation");
 
@@ -10778,11 +10811,19 @@ H5Scombine_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
     if (NULL == (new_space = H5S__combine_select(space1, op, space2)))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, H5I_INVALID_HID, "unable to create hyperslab selection");
 
+    H5S_VLOCK_ACQUIRE_R(new_space);
+
     /* Register */
     if ((ret_value = H5I_register(H5I_DATASPACE, new_space, TRUE)) < 0)
         HGOTO_ERROR(H5E_ID, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register dataspace ID");
 
 done:
+    if (space1)
+        H5S_VLOCK_RELEASE_R(space1);
+    if (space2)
+        H5S_VLOCK_RELEASE_R(space2);
+    if (new_space)
+        H5S_VLOCK_RELEASE_R(new_space);
     if (ret_value < 0 && new_space)
         H5S_close(new_space);
 
@@ -10880,8 +10921,10 @@ H5Smodify_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
     /* Check args */
     if (NULL == (space1 = (H5S_t *)H5I_object_verify(space1_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
+    H5S_VLOCK_ACQUIRE_W(space1);
     if (NULL == (space2 = (H5S_t *)H5I_object_verify(space2_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
+    H5S_VLOCK_ACQUIRE_W(space2);
     if (!(op >= H5S_SELECT_OR && op <= H5S_SELECT_NOTA))
         HGOTO_ERROR(H5E_ARGS, H5E_UNSUPPORTED, FAIL, "invalid selection operation");
 
@@ -10924,6 +10967,10 @@ H5Smodify_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, FAIL, "unable to modify hyperslab selection");
 
 done:
+    if (space1)
+        H5S_VLOCK_RELEASE_W(space1);
+    if (space2)
+        H5S_VLOCK_RELEASE_W(space2);
     FUNC_LEAVE_API(ret_value)
 } /* end H5Smodify_select() */
 
@@ -12272,6 +12319,7 @@ H5S_hyper_get_unlim_block(const H5S_t *space, hsize_t block_index)
     /* Create output space, copy extent */
     if (NULL == (space_out = H5S_create(H5S_SIMPLE)))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCREATE, NULL, "unable to create output dataspace");
+    H5S_VLOCK_ACQUIRE_W(space_out);
     if (H5S__extent_copy_real(&space_out->extent, &space->extent, TRUE) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOPY, NULL, "unable to copy destination space extent");
 
@@ -12283,6 +12331,9 @@ H5S_hyper_get_unlim_block(const H5S_t *space, hsize_t block_index)
     ret_value = space_out;
 
 done:
+    if (space_out)
+        H5S_VLOCK_RELEASE_W(space_out);
+
     /* Free space on error */
     if (!ret_value)
         if (space_out && H5S_close(space_out) < 0)
@@ -12387,12 +12438,16 @@ H5Sis_regular_hyperslab(hid_t spaceid)
     /* Check args */
     if (NULL == (space = (H5S_t *)H5I_object_verify(spaceid, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
+    H5S_VLOCK_ACQUIRE_R(space);
     if (H5S_GET_SELECT_TYPE(space) != H5S_SEL_HYPERSLABS)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a hyperslab selection");
 
     ret_value = H5S__hyper_is_regular(space);
 
 done:
+    if (space)
+        H5S_VLOCK_RELEASE_R(space);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sis_regular_hyperslab() */
 
@@ -12436,6 +12491,7 @@ H5Sget_regular_hyperslab(hid_t spaceid, hsize_t start[] /*out*/, hsize_t stride[
     /* Check args */
     if (NULL == (space = (H5S_t *)H5I_object_verify(spaceid, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
+    H5S_VLOCK_ACQUIRE_R(space);
     if (H5S_GET_SELECT_TYPE(space) != H5S_SEL_HYPERSLABS)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a hyperslab selection");
     if (TRUE != H5S__hyper_is_regular(space))
@@ -12456,5 +12512,8 @@ H5Sget_regular_hyperslab(hid_t spaceid, hsize_t start[] /*out*/, hsize_t stride[
             block[u] = space->select.sel_info.hslab->diminfo.app[u].block;
 
 done:
+    if (space)
+        H5S_VLOCK_RELEASE_R(space);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sget_regular_hyperslab() */

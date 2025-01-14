@@ -643,6 +643,8 @@ H5S__all_deserialize(H5S_t **space, const uint8_t **p, const size_t p_size, hboo
     if (!*space) {
         if (NULL == (tmp_space = H5S_create(H5S_SIMPLE)))
             HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCREATE, FAIL, "can't create dataspace");
+         
+         H5S_VLOCK_ACQUIRE_W(tmp_space);
     } /* end if */
     else
         tmp_space = *space;
@@ -669,6 +671,9 @@ H5S__all_deserialize(H5S_t **space, const uint8_t **p, const size_t p_size, hboo
         *space = tmp_space;
 
 done:
+   if (!*space && tmp_space)
+      H5S_VLOCK_RELEASE_W(tmp_space);
+
     /* Free temporary space if not passed to caller (only happens on error) */
     if (!*space && tmp_space)
         if (H5S_close(tmp_space) < 0)
@@ -1161,10 +1166,15 @@ H5Sselect_all(hid_t spaceid)
     if (NULL == (space = (H5S_t *)H5I_object_verify(spaceid, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
 
+    H5S_VLOCK_ACQUIRE_W(space);
+
     /* Call internal routine to do the work */
     if (H5S_select_all(space, TRUE) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTDELETE, FAIL, "can't change selection");
 
 done:
+    if (space)
+      H5S_VLOCK_RELEASE_W(space);
+    
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sselect_all() */

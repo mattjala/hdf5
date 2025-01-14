@@ -92,6 +92,8 @@ H5Sencode1(hid_t obj_id, void *buf, size_t *nalloc)
     if (NULL == (dspace = (H5S_t *)H5I_object_verify(obj_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
 
+    H5S_VLOCK_ACQUIRE_W(dspace);
+
     /* Verify access property list and set up collective metadata if appropriate */
     if (H5CX_set_apl(&temp_fapl_id, H5P_CLS_FACC, H5I_INVALID_HID, TRUE) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, H5I_INVALID_HID, "can't set access property list info");
@@ -101,6 +103,8 @@ H5Sencode1(hid_t obj_id, void *buf, size_t *nalloc)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTENCODE, FAIL, "can't encode dataspace");
 
 done:
+    H5S_VLOCK_RELEASE_W(dspace);
+
     FUNC_LEAVE_API(ret_value)
 } /* H5Sencode1() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
