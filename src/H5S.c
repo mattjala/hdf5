@@ -1933,7 +1933,9 @@ H5Sextent_equal(hid_t space1_id, hid_t space2_id)
     if (NULL == (ds2 = (H5S_t *)H5I_object_verify(space2_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
 
-    H5S_VLOCK_ACQUIRE_R(ds2);
+    /* Avoid double locking if a space is being compared to itself */
+    if (memcmp(ds1, ds2, sizeof(H5S_t) != 0))
+        H5S_VLOCK_ACQUIRE_R(ds2);
 
     /* Check dataspaces for extent's equality */
     if ((ret_value = H5S_extent_equal((const H5S_t*) ds1, (const H5S_t*) ds2)) < 0)
@@ -1942,7 +1944,7 @@ H5Sextent_equal(hid_t space1_id, hid_t space2_id)
 done:
     if (ds1)
         H5S_VLOCK_RELEASE_R(ds1);
-    if (ds2)
+    if (ds2 && (memcmp(ds1, ds2, sizeof(H5S_t) != 0)))
         H5S_VLOCK_RELEASE_R(ds2);
 
     FUNC_LEAVE_API(ret_value)
