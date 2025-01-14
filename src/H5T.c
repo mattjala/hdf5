@@ -6102,3 +6102,68 @@ H5T_own_vol_obj(H5T_t *dt, H5VL_object_t *vol_obj)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T_own_vol_obj() */
+
+#if H5_HAVE_VIRTUAL_LOCK
+/*-------------------------------------------------------------------------
+ * Function:    H5T_vlock_init
+ *
+ * Purpose:     Initialize a virtual lock on a datatype
+ *
+ *              The virtual lock exists to to verify
+ *              the assumption of exclusive access to a datatype object.
+ *
+ *-------------------------------------------------------------------------
+ */
+void
+H5T_vlock_init(H5T_t *dt) {
+    assert(dt);
+
+    FUNC_ENTER_NOAPI_NAMECHECK_ONLY
+
+    H5TS_vlock_init(&dt->vlock);
+
+    FUNC_LEAVE_NOAPI_VOID_NAMECHECK_ONLY
+}
+
+/*-------------------------------------------------------------------------
+ * Function:    H5T_vlock_acquire
+ *
+ * Purpose:     Acquire a virtual lock on a datatype
+ *
+ *              The virtual lock exists to to verify
+ *              the assumption of exclusive access to a datatype object.
+ *
+ *-------------------------------------------------------------------------
+ */
+void
+H5T_vlock_acquire(H5T_t *dt, H5TS_vlock_op_type_t op_type) {
+    assert(dt);
+
+    FUNC_ENTER_NOAPI_NAMECHECK_ONLY
+
+    H5TS_vlock_acquire(&dt->vlock, op_type);
+
+    FUNC_LEAVE_NOAPI_VOID_NAMECHECK_ONLY
+}
+
+/*-------------------------------------------------------------------------
+ * Function:    H5T_vlock_release
+ *
+ * Purpose:     Release a virtual lock on a datatype
+ *
+ *              The virtual lock exists to to verify
+ *              the assumption of exclusive access to a datatype object.
+ *
+ * -------------------------------------------------------------------------
+ */
+void
+H5T_vlock_release(H5T_t *dt, H5TS_vlock_op_type_t op_type) {
+    assert(dt);
+
+    FUNC_ENTER_NOAPI_NAMECHECK_ONLY
+
+    H5TS_vlock_release(&dt->vlock, op_type);
+
+    FUNC_LEAVE_NOAPI_VOID_NAMECHECK_ONLY
+}
+#endif

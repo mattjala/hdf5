@@ -177,4 +177,22 @@ H5_DLL int         H5T_get_offset(const H5T_t *dt);
 /* Fixed-point functions */
 H5_DLL H5T_sign_t H5T_get_sign(H5T_t const *dt);
 
+#if H5_HAVE_VIRTUAL_LOCK
+H5_DLL void H5T_vlock_init(H5T_t *dt);
+H5_DLL void H5T_vlock_acquire(H5T_t *dt, H5TS_vlock_op_type_t op_type);
+H5_DLL void H5T_vlock_release(H5T_t *dt, H5TS_vlock_op_type_t op_type);
+
+#define H5T_VLOCK_INIT(dt) H5T_vlock_init(dt)
+#define H5T_VLOCK_ACQUIRE_W(dt) H5T_vlock_acquire(dt, H5TS_VLOCK_WRITER)
+#define H5T_VLOCK_ACQUIRE_R(dt) H5T_vlock_acquire(dt, H5TS_VLOCK_READER)
+#define H5T_VLOCK_RELEASE_W(dt) H5T_vlock_release(dt, H5TS_VLOCK_WRITER)
+#define H5T_VLOCK_RELEASE_R(dt) H5T_vlock_release(dt, H5TS_VLOCK_READER)
+#else /* H5_HAVE_VIRTUAL_LOCK */
+#define H5T_VLOCK_INIT(dt)
+#define H5T_VLOCK_ACQUIRE_W(dt)
+#define H5T_VLOCK_ACQUIRE_R(dt)
+#define H5T_VLOCK_RELEASE_W(dt)
+#define H5T_VLOCK_RELEASE_R(dt)
+#endif /* H5_HAVE_VIRTUAL_LOCK */
+
 #endif /* H5Tprivate_H */
