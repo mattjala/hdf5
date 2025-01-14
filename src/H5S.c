@@ -518,8 +518,8 @@ done:
 herr_t
 H5Sextent_copy(hid_t dst_id, hid_t src_id)
 {
-    H5S_t *src;
-    H5S_t *dst;
+    H5S_t *src = NULL;
+    H5S_t *dst = NULL;
     herr_t ret_value = SUCCEED;
 
     FUNC_ENTER_API(FAIL)
@@ -672,6 +672,7 @@ H5S_copy(const H5S_t *src, hbool_t share_selection, hbool_t copy_max)
     if (NULL == (dst = H5FL_CALLOC(H5S_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
 
+    H5S_VLOCK_INIT(dst);
     H5S_VLOCK_ACQUIRE_W(dst);
 
     /* Copy the source dataspace's extent */
@@ -740,7 +741,7 @@ H5S_get_simple_extent_npoints(const H5S_t *ds)
 hssize_t
 H5Sget_simple_extent_npoints(hid_t space_id)
 {
-    H5S_t   *ds;
+    H5S_t   *ds = NULL;
     hssize_t ret_value;
 
     FUNC_ENTER_API(FAIL)
@@ -835,7 +836,7 @@ done:
 int
 H5Sget_simple_extent_ndims(hid_t space_id)
 {
-    H5S_t *ds;
+    H5S_t *ds = NULL;
     int    ret_value = -1;
 
     FUNC_ENTER_API((-1))
@@ -915,7 +916,7 @@ done:
 int
 H5Sget_simple_extent_dims(hid_t space_id, hsize_t dims[] /*out*/, hsize_t maxdims[] /*out*/)
 {
-    H5S_t *ds;
+    H5S_t *ds = NULL;
     int    ret_value = -1;
 
     FUNC_ENTER_API((-1))
@@ -1101,6 +1102,7 @@ H5S_read(const H5O_loc_t *loc)
     if (NULL == (ds = H5FL_CALLOC(H5S_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
 
+    H5S_VLOCK_INIT(ds);
     H5S_VLOCK_ACQUIRE_W(ds);
 
     if (NULL == H5O_msg_read(loc, H5O_SDSPACE_ID, &(ds->extent)))
@@ -1172,7 +1174,7 @@ H5S__is_simple(const H5S_t *sdim)
 htri_t
 H5Sis_simple(hid_t space_id)
 {
-    H5S_t *space;     /* Dataspace to check */
+    H5S_t *space = NULL; /* Dataspace to check */
     htri_t ret_value; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -1222,7 +1224,7 @@ done:
 herr_t
 H5Sset_extent_simple(hid_t space_id, int rank, const hsize_t dims[/*rank*/], const hsize_t max[/*rank*/])
 {
-    H5S_t *space;               /* Dataspace to modify */
+    H5S_t *space = NULL;        /* Dataspace to modify */
     int    u;                   /* Local counting variable */
     herr_t ret_value = SUCCEED; /* Return value */
 
@@ -1456,7 +1458,7 @@ done:
 herr_t
 H5Sencode2(hid_t obj_id, void *buf, size_t *nalloc, hid_t fapl_id)
 {
-    H5S_t *dspace;
+    H5S_t *dspace = NULL;
     herr_t ret_value = SUCCEED;
 
     FUNC_ENTER_API(FAIL)
@@ -1570,7 +1572,7 @@ done:
 hid_t
 H5Sdecode(const void *buf)
 {
-    H5S_t *ds;
+    H5S_t *ds = NULL;
     hid_t  ret_value;
 
     FUNC_ENTER_API(H5I_INVALID_HID)
@@ -1611,7 +1613,7 @@ H5S_t *
 H5S_decode(const unsigned char **p)
 {
     H5F_t               *f = NULL;         /* Fake file structure*/
-    H5S_t               *ds;               /* Decoded dataspace */
+    H5S_t               *ds = NULL;        /* Decoded dataspace */
     H5S_extent_t        *extent;           /* Extent of decoded dataspace */
     const unsigned char *pp = (*p);        /* Local pointer for decoding */
     size_t               extent_size;      /* size of the extent message*/
@@ -1648,7 +1650,9 @@ H5S_decode(const unsigned char **p)
     if (NULL == (ds = H5FL_CALLOC(H5S_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL,
                     "memory allocation failed for dataspace conversion path table");
+    H5S_VLOCK_INIT(ds);
     H5S_VLOCK_ACQUIRE_W(ds);
+
     if (NULL == H5O_msg_copy(H5O_SDSPACE_ID, extent, &(ds->extent)))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOPY, NULL, "can't copy object");
     if (H5S__extent_release(extent) < 0)
@@ -1722,7 +1726,7 @@ H5S_get_simple_extent_type(const H5S_t *space)
 H5S_class_t
 H5Sget_simple_extent_type(hid_t sid)
 {
-    H5S_t      *space;
+    H5S_t      *space = NULL;
     H5S_class_t ret_value; /* Return value */
 
     FUNC_ENTER_API(H5S_NO_CLASS)
@@ -1760,7 +1764,7 @@ done:
 herr_t
 H5Sset_extent_none(hid_t space_id)
 {
-    H5S_t *space;               /* Dataspace to modify */
+    H5S_t *space = NULL;        /* Dataspace to modify */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -1913,8 +1917,8 @@ done:
 htri_t
 H5Sextent_equal(hid_t space1_id, hid_t space2_id)
 {
-    H5S_t *ds1; /* Dataspaces to compare */
-    H5S_t *ds2;
+    H5S_t *ds1 = NULL; /* Dataspaces to compare */
+    H5S_t *ds2 = NULL;
     htri_t       ret_value;
 
     FUNC_ENTER_API(FAIL)
