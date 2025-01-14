@@ -218,6 +218,9 @@ H5S__close_cb(void *_space, void H5_ATTR_UNUSED **request)
     /* Sanity check */
     assert(space);
 
+    /* Acquire write-lock before destroying the dataspace */
+    H5S_VLOCK_ACQUIRE_W(space);
+
     /* Close the dataspace object */
     if (H5S_close(space) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CLOSEERROR, FAIL, "unable to close dataspace");
@@ -292,6 +295,8 @@ H5S_create(H5S_class_t type)
     if (H5O_msg_reset_share(H5O_SDSPACE_ID, &(new_ds->extent.sh_loc)) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTRESET, NULL, "unable to reset shared component info");
 
+    H5S_VLOCK_INIT(new_ds);
+
     /* Set return value */
     ret_value = new_ds;
 
@@ -337,11 +342,16 @@ H5Screate(H5S_class_t type)
     if (NULL == (new_ds = H5S_create(type)))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCREATE, FAIL, "unable to create dataspace");
 
+    H5S_VLOCK_ACQUIRE_R(new_ds);
+
     /* Register */
     if ((ret_value = H5I_register(H5I_DATASPACE, new_ds, TRUE)) < 0)
         HGOTO_ERROR(H5E_ID, H5E_CANTREGISTER, FAIL, "unable to register dataspace ID");
 
 done:
+    if (new_ds)
+        H5S_VLOCK_RELEASE_R(new_ds);
+
     if (ret_value < 0)
         if (new_ds && H5S_close(new_ds) < 0)
             HDONE_ERROR(H5E_DATASPACE, H5E_CANTRELEASE, FAIL, "unable to release dataspace");
@@ -470,15 +480,25 @@ H5Scopy(hid_t space_id)
     if (NULL == (src = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a dataspace");
 
+    H5S_VLOCK_ACQUIRE_R(src);
+
     /* Copy */
     if (NULL == (dst = H5S_copy(src, FALSE, TRUE)))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, H5I_INVALID_HID, "unable to copy dataspace");
+
+    H5S_VLOCK_ACQUIRE_R(dst);
 
     /* Register */
     if ((ret_value = H5I_register(H5I_DATASPACE, dst, TRUE)) < 0)
         HGOTO_ERROR(H5E_ID, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register dataspace ID");
 
 done:
+    if (src)
+        H5S_VLOCK_RELEASE_R(src);
+
+    if (dst)
+        H5S_VLOCK_RELEASE_R(dst);
+
     if (ret_value < 0)
         if (dst && H5S_close(dst) < 0)
             HDONE_ERROR(H5E_DATASPACE, H5E_CANTRELEASE, H5I_INVALID_HID, "unable to release dataspace");
@@ -508,14 +528,22 @@ H5Sextent_copy(hid_t dst_id, hid_t src_id)
     /* Check args */
     if (NULL == (src = (H5S_t *)H5I_object_verify(src_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
+    H5S_VLOCK_ACQUIRE_R(src);
+
     if (NULL == (dst = (H5S_t *)H5I_object_verify(dst_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
+    H5S_VLOCK_ACQUIRE_W(dst);
 
     /* Copy */
     if (H5S_extent_copy(dst, src) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOPY, FAIL, "can't copy extent");
 
 done:
+    if (src)
+        H5S_VLOCK_RELEASE_R(src);
+    if (dst)
+        H5S_VLOCK_RELEASE_W(dst);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sextent_copy() */
 
@@ -644,6 +672,8 @@ H5S_copy(const H5S_t *src, hbool_t share_selection, hbool_t copy_max)
     if (NULL == (dst = H5FL_CALLOC(H5S_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
 
+    H5S_VLOCK_ACQUIRE_W(dst);
+
     /* Copy the source dataspace's extent */
     if (H5S__extent_copy_real(&(dst->extent), &(src->extent), copy_max) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOPY, NULL, "can't copy extent");
@@ -656,6 +686,9 @@ H5S_copy(const H5S_t *src, hbool_t share_selection, hbool_t copy_max)
     ret_value = dst;
 
 done:
+    if (dst)
+        H5S_VLOCK_RELEASE_W(dst);
+
     if (NULL == ret_value)
         if (dst)
             dst = H5FL_FREE(H5S_t, dst);
@@ -717,9 +750,14 @@ H5Sget_simple_extent_npoints(hid_t space_id)
     if (NULL == (ds = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
 
+    H5S_VLOCK_ACQUIRE_R(ds);
+
     ret_value = (hssize_t)H5S_GET_EXTENT_NPOINTS(ds);
 
 done:
+    if (ds)
+        H5S_VLOCK_RELEASE_R(ds);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sget_simple_extent_npoints() */
 
@@ -807,9 +845,14 @@ H5Sget_simple_extent_ndims(hid_t space_id)
     if (NULL == (ds = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, (-1), "not a dataspace");
 
+    H5S_VLOCK_ACQUIRE_R(ds);
+
     ret_value = (int)H5S_GET_EXTENT_NDIMS(ds);
 
 done:
+    if (ds)
+        H5S_VLOCK_RELEASE_R(ds);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sget_simple_extent_ndims() */
 
@@ -882,9 +925,14 @@ H5Sget_simple_extent_dims(hid_t space_id, hsize_t dims[] /*out*/, hsize_t maxdim
     if (NULL == (ds = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, (-1), "not a dataspace");
 
+    H5S_VLOCK_ACQUIRE_R(ds);
+
     ret_value = H5S_get_simple_extent_dims(ds, dims, maxdims);
 
 done:
+    if (ds)
+        H5S_VLOCK_RELEASE_R(ds);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sget_simple_extent_dims() */
 
@@ -1053,6 +1101,8 @@ H5S_read(const H5O_loc_t *loc)
     if (NULL == (ds = H5FL_CALLOC(H5S_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
 
+    H5S_VLOCK_ACQUIRE_W(ds);
+
     if (NULL == H5O_msg_read(loc, H5O_SDSPACE_ID, &(ds->extent)))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, NULL, "unable to load dataspace info from dataset header");
 
@@ -1064,6 +1114,9 @@ H5S_read(const H5O_loc_t *loc)
     ret_value = ds;
 
 done:
+    if (ds)
+        H5S_VLOCK_RELEASE_W(ds);
+
     if (ret_value == NULL)
         if (ds != NULL)
             ds = H5FL_FREE(H5S_t, ds);
@@ -1129,9 +1182,14 @@ H5Sis_simple(hid_t space_id)
     if (NULL == (space = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ID, H5E_BADID, FAIL, "not a dataspace");
 
+    H5S_VLOCK_ACQUIRE_R(space);
+
     ret_value = H5S__is_simple(space);
 
 done:
+    if (space)
+        H5S_VLOCK_RELEASE_R(space);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sis_simple() */
 
@@ -1174,6 +1232,9 @@ H5Sset_extent_simple(hid_t space_id, int rank, const hsize_t dims[/*rank*/], con
     /* Check args */
     if (NULL == (space = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ID, H5E_BADID, FAIL, "not a dataspace");
+    
+    H5S_VLOCK_ACQUIRE_W(space);
+
     if (rank > 0 && dims == NULL)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no dimensions specified");
     if (rank < 0 || rank > H5S_MAX_RANK)
@@ -1197,6 +1258,9 @@ H5Sset_extent_simple(hid_t space_id, int rank, const hsize_t dims[/*rank*/], con
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, FAIL, "unable to set simple extent");
 
 done:
+    if (space)
+        H5S_VLOCK_RELEASE_W(space);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sset_extent_simple() */
 
@@ -1323,11 +1387,16 @@ H5Screate_simple(int rank, const hsize_t dims[/*rank*/], const hsize_t maxdims[/
     if (NULL == (space = H5S_create_simple((unsigned)rank, dims, maxdims)))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCREATE, H5I_INVALID_HID, "can't create simple dataspace");
 
+    H5S_VLOCK_ACQUIRE_R(space);
+
     /* Register */
     if ((ret_value = H5I_register(H5I_DATASPACE, space, TRUE)) < 0)
         HGOTO_ERROR(H5E_ID, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register dataspace ID");
 
 done:
+    if (space)
+        H5S_VLOCK_RELEASE_R(space);
+
     if (ret_value < 0)
         if (space && H5S_close(space) < 0)
             HDONE_ERROR(H5E_DATASPACE, H5E_CANTRELEASE, H5I_INVALID_HID, "unable to release dataspace");
@@ -1358,10 +1427,16 @@ H5S_create_simple(unsigned rank, const hsize_t dims[/*rank*/], const hsize_t max
     /* Create the space and set the extent */
     if (NULL == (ret_value = H5S_create(H5S_SIMPLE)))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCREATE, NULL, "can't create simple dataspace");
+    
+    H5S_VLOCK_ACQUIRE_W(ret_value);
+
     if (H5S_set_extent_simple(ret_value, rank, dims, maxdims) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTINIT, NULL, "can't set dimensions");
 
 done:
+    if(ret_value)
+        H5S_VLOCK_RELEASE_W(ret_value);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5S_create_simple() */
 
@@ -1391,6 +1466,8 @@ H5Sencode2(hid_t obj_id, void *buf, size_t *nalloc, hid_t fapl_id)
     if (NULL == (dspace = (H5S_t *)H5I_object_verify(obj_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
 
+    H5S_VLOCK_ACQUIRE_W(dspace);
+
     /* Verify access property list and set up collective metadata if appropriate */
     if (H5CX_set_apl(&fapl_id, H5P_CLS_FACC, H5I_INVALID_HID, TRUE) < 0)
         HGOTO_ERROR(H5E_FILE, H5E_CANTSET, H5I_INVALID_HID, "can't set access property list info");
@@ -1399,6 +1476,9 @@ H5Sencode2(hid_t obj_id, void *buf, size_t *nalloc, hid_t fapl_id)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTENCODE, FAIL, "can't encode dataspace");
 
 done:
+    if (dspace)
+        H5S_VLOCK_RELEASE_W(dspace);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sencode2() */
 
@@ -1502,11 +1582,16 @@ H5Sdecode(const void *buf)
     if ((ds = H5S_decode((const unsigned char **)&buf)) == NULL)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTDECODE, H5I_INVALID_HID, "can't decode object");
 
+    H5S_VLOCK_ACQUIRE_W(ds);
+
     /* Register the type and return the ID */
     if ((ret_value = H5I_register(H5I_DATASPACE, ds, TRUE)) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register dataspace");
 
 done:
+    if (ds)
+        H5S_VLOCK_RELEASE_W(ds);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sdecode() */
 
@@ -1563,6 +1648,7 @@ H5S_decode(const unsigned char **p)
     if (NULL == (ds = H5FL_CALLOC(H5S_t)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL,
                     "memory allocation failed for dataspace conversion path table");
+    H5S_VLOCK_ACQUIRE_W(ds);
     if (NULL == H5O_msg_copy(H5O_SDSPACE_ID, extent, &(ds->extent)))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOPY, NULL, "can't copy object");
     if (H5S__extent_release(extent) < 0)
@@ -1583,6 +1669,9 @@ H5S_decode(const unsigned char **p)
     ret_value = ds;
 
 done:
+    if (ds)
+        H5S_VLOCK_RELEASE_W(ds);
+
     /* Release fake file structure */
     if (f && H5F_fake_free(f) < 0)
         HDONE_ERROR(H5E_DATASPACE, H5E_CANTRELEASE, NULL, "unable to release fake file struct");
@@ -1643,9 +1732,14 @@ H5Sget_simple_extent_type(hid_t sid)
     if (NULL == (space = (H5S_t *)H5I_object_verify(sid, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5S_NO_CLASS, "not a dataspace");
 
+    H5S_VLOCK_ACQUIRE_R(space);
+
     ret_value = H5S_GET_EXTENT_TYPE(space);
 
 done:
+    if (space)
+        H5S_VLOCK_RELEASE_R(space);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sget_simple_extent_type() */
 
@@ -1676,6 +1770,8 @@ H5Sset_extent_none(hid_t space_id)
     if (NULL == (space = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ID, H5E_BADID, FAIL, "not a dataspace");
 
+    H5S_VLOCK_ACQUIRE_W(space);
+
     /* Clear the previous extent from the dataspace */
     if (H5S__extent_release(&space->extent) < 0)
         HGOTO_ERROR(H5E_RESOURCE, H5E_CANTDELETE, FAIL, "can't release previous dataspace");
@@ -1683,6 +1779,9 @@ H5Sset_extent_none(hid_t space_id)
     space->extent.type = H5S_NULL;
 
 done:
+    if (space)
+        H5S_VLOCK_RELEASE_W(space);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sset_extent_none() */
 
@@ -1814,23 +1913,34 @@ done:
 htri_t
 H5Sextent_equal(hid_t space1_id, hid_t space2_id)
 {
-    const H5S_t *ds1; /* Dataspaces to compare */
-    const H5S_t *ds2;
+    H5S_t *ds1; /* Dataspaces to compare */
+    H5S_t *ds2;
     htri_t       ret_value;
 
     FUNC_ENTER_API(FAIL)
     H5TRACE2("t", "ii", space1_id, space2_id);
 
     /* check args */
-    if (NULL == (ds1 = (const H5S_t *)H5I_object_verify(space1_id, H5I_DATASPACE)) ||
-        NULL == (ds2 = (const H5S_t *)H5I_object_verify(space2_id, H5I_DATASPACE)))
+    if (NULL == (ds1 = (H5S_t *)H5I_object_verify(space1_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
 
+    H5S_VLOCK_ACQUIRE_R(ds1);
+
+    if (NULL == (ds2 = (H5S_t *)H5I_object_verify(space2_id, H5I_DATASPACE)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
+
+    H5S_VLOCK_ACQUIRE_R(ds2);
+
     /* Check dataspaces for extent's equality */
-    if ((ret_value = H5S_extent_equal(ds1, ds2)) < 0)
+    if ((ret_value = H5S_extent_equal((const H5S_t*) ds1, (const H5S_t*) ds2)) < 0)
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTCOMPARE, FAIL, "dataspace comparison failed");
 
 done:
+    if (ds1)
+        H5S_VLOCK_RELEASE_R(ds1);
+    if (ds2)
+        H5S_VLOCK_RELEASE_R(ds2);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Sextent_equal() */
 
