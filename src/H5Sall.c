@@ -1156,7 +1156,7 @@ done:
 herr_t
 H5Sselect_all(hid_t spaceid)
 {
-    H5S_t *space;               /* Dataspace to modify selection of */
+    H5S_t *space = NULL;        /* Dataspace to modify selection of */
     herr_t ret_value = SUCCEED; /* return value */
 
     FUNC_ENTER_API(FAIL)

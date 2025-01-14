@@ -81,7 +81,7 @@
 herr_t
 H5Sencode1(hid_t obj_id, void *buf, size_t *nalloc)
 {
-    H5S_t *dspace;
+    H5S_t *dspace       = NULL;
     hid_t  temp_fapl_id = H5P_DEFAULT;
     herr_t ret_value    = SUCCEED;
 

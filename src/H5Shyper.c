@@ -3478,7 +3478,7 @@ H5S__get_select_hyper_nblocks(const H5S_t *space, hbool_t app_ref)
 hssize_t
 H5Sget_select_hyper_nblocks(hid_t spaceid)
 {
-    H5S_t   *space;     /* Dataspace to modify selection of */
+    H5S_t   *space = NULL;    /* Dataspace to modify selection of */
     hssize_t ret_value; /* return value */
 
     FUNC_ENTER_API(FAIL)
@@ -4828,7 +4828,7 @@ herr_t
 H5Sget_select_hyper_blocklist(hid_t spaceid, hsize_t startblock, hsize_t numblocks,
                               hsize_t buf[/*numblocks*/] /*out*/)
 {
-    H5S_t *space;     /* Dataspace to modify selection of */
+    H5S_t *space = NULL;    /* Dataspace to modify selection of */
     herr_t ret_value; /* return value */
 
     FUNC_ENTER_API(FAIL)
@@ -10311,7 +10311,7 @@ herr_t
 H5Sselect_hyperslab(hid_t space_id, H5S_seloper_t op, const hsize_t start[], const hsize_t stride[],
                     const hsize_t count[], const hsize_t block[])
 {
-    H5S_t *space;               /* Dataspace to modify selection of */
+    H5S_t *space = NULL;        /* Dataspace to modify selection of */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -10638,7 +10638,7 @@ hid_t
 H5Scombine_hyperslab(hid_t space_id, H5S_seloper_t op, const hsize_t start[], const hsize_t stride[],
                      const hsize_t count[], const hsize_t block[])
 {
-    H5S_t *space;            /* Dataspace to modify selection of */
+    H5S_t *space = NULL;     /* Dataspace to modify selection of */
     H5S_t *new_space = NULL; /* New dataspace created */
     hid_t  ret_value;        /* Return value */
 
@@ -10770,8 +10770,8 @@ done:
 hid_t
 H5Scombine_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
 {
-    H5S_t *space1;           /* First Dataspace */
-    H5S_t *space2;           /* Second Dataspace */
+    H5S_t *space1 = NULL;    /* First Dataspace */
+    H5S_t *space2 = NULL;    /* Second Dataspace */
     H5S_t *new_space = NULL; /* New Dataspace */
     hid_t  ret_value;        /* Return value */
 
@@ -10911,8 +10911,8 @@ done:
 herr_t
 H5Smodify_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
 {
-    H5S_t *space1;              /* First Dataspace */
-    H5S_t *space2;              /* Second Dataspace */
+    H5S_t *space1 = NULL;       /* First Dataspace */
+    H5S_t *space2 = NULL;       /* Second Dataspace */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -12429,7 +12429,7 @@ H5S_hyper_get_first_inc_block(const H5S_t *space, hsize_t clip_size, hbool_t *pa
 htri_t
 H5Sis_regular_hyperslab(hid_t spaceid)
 {
-    H5S_t *space;     /* Dataspace to query */
+    H5S_t *space = NULL; /* Dataspace to query */
     htri_t ret_value; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -12481,7 +12481,7 @@ herr_t
 H5Sget_regular_hyperslab(hid_t spaceid, hsize_t start[] /*out*/, hsize_t stride[] /*out*/,
                          hsize_t count[] /*out*/, hsize_t block[] /*out*/)
 {
-    H5S_t   *space;               /* Dataspace to query */
+    H5S_t   *space = NULL;        /* Dataspace to query */
     unsigned u;                   /* Local index variable */
     herr_t   ret_value = SUCCEED; /* Return value */
 
