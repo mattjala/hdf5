@@ -1949,3 +1949,69 @@ H5S_set_version(H5F_t *f, H5S_t *ds)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5S_set_version() */
+
+#if H5_HAVE_VIRTUAL_LOCK
+/*-------------------------------------------------------------------------
+ * Function:    H5S_vlock_init
+ *
+ * Purpose:     Initialize a virtual lock on a dataspace
+ *
+ *              The virtual lock exists to to verify
+ *              the assumption of exclusive access to a dataspace object.
+ *
+ *-------------------------------------------------------------------------
+ */
+void
+H5S_vlock_init(H5S_t *space) {
+    assert(space);
+
+    FUNC_ENTER_NOAPI_NAMECHECK_ONLY
+
+    H5TS_vlock_init(&space->vlock);
+
+    FUNC_LEAVE_NOAPI_VOID_NAMECHECK_ONLY
+}
+
+/*-------------------------------------------------------------------------
+ * Function:    H5S_vlock_acquire
+ *
+ * Purpose:     Acquire a virtual lock on a dataspace
+ *
+ *              The virtual lock exists to to verify
+ *              the assumption of exclusive access to a dataspace object.
+ *
+ *-------------------------------------------------------------------------
+ */
+void
+H5S_vlock_acquire(H5S_t *space, H5TS_vlock_op_type_t op_type) {
+    assert(space);
+
+    FUNC_ENTER_NOAPI_NAMECHECK_ONLY
+
+    H5TS_vlock_acquire(&space->vlock, op_type);
+
+    FUNC_LEAVE_NOAPI_VOID_NAMECHECK_ONLY
+}
+
+/*-------------------------------------------------------------------------
+ * Function:    H5S_vlock_release
+ *
+ * Purpose:     Release a virtual lock on a dataspace
+ *
+ *              The virtual lock exists to to verify
+ *              the assumption of exclusive access to a dataspace object.
+ *
+ * -------------------------------------------------------------------------
+ */
+void
+H5S_vlock_release(H5S_t *space, H5TS_vlock_op_type_t op_type) {
+    assert(space);
+
+    FUNC_ENTER_NOAPI_NAMECHECK_ONLY
+
+    H5TS_vlock_release(&space->vlock, op_type);
+
+    FUNC_LEAVE_NOAPI_VOID_NAMECHECK_ONLY
+}
+
+#endif /* H5_HAVE_VIRTUAL_LOCK */

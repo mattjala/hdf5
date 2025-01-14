@@ -327,6 +327,9 @@ typedef struct {
 struct H5S_t {
     H5S_extent_t extent; /* Dataspace extent (must stay first) */
     H5S_select_t select; /* Dataspace selection */
+#if H5_HAVE_VIRTUAL_LOCK
+    H5TS_vlock_t vlock;
+#endif
 };
 
 /* Selection iteration methods */

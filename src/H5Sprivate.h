@@ -304,4 +304,23 @@ H5_DLL herr_t H5S_mpio_space_type(H5S_t *space, size_t elmt_size,
                                   hbool_t do_permute, hsize_t **permute_map, hbool_t *is_permuted);
 #endif /* H5_HAVE_PARALLEL */
 
+#if H5_HAVE_VIRTUAL_LOCK
+H5_DLL void H5S_vlock_init(H5S_t *space);
+H5_DLL void H5S_vlock_acquire(H5S_t *space, H5TS_vlock_op_type_t op_type);
+H5_DLL void H5S_vlock_release(H5S_t *space, H5TS_vlock_op_type_t op_type);
+
+#define H5S_VLOCK_INIT(space) H5S_vlock_init(space)
+#define H5S_VLOCK_ACQUIRE_W(space) H5S_vlock_acquire(space, H5TS_VLOCK_WRITER)
+#define H5S_VLOCK_ACQUIRE_R(space) H5S_vlock_acquire(space, H5TS_VLOCK_READER)
+#define H5S_VLOCK_RELEASE_W(space) H5S_vlock_release(space, H5TS_VLOCK_WRITER)
+#define H5S_VLOCK_RELEASE_R(space) H5S_vlock_release(space, H5TS_VLOCK_READER)
+
+#else /* H5_HAVE_VIRTUAL_LOCK */
+#define H5S_VLOCK_INIT(space)
+#define H5S_VLOCK_ACQUIRE_W
+#define H5S_VLOCK_ACQUIRE_R
+#define H5S_VLOCK_RELEASE_W
+#define H5S_VLOCK_RELEASE_R
+#endif /* H5_HAVE_VIRTUAL_LOCK */
+
 #endif /* H5Sprivate_H */
