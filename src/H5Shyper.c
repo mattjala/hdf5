@@ -10784,7 +10784,9 @@ H5Scombine_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
     H5S_VLOCK_ACQUIRE_R(space1);
     if (NULL == (space2 = (H5S_t *)H5I_object_verify(space2_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a dataspace");
-    H5S_VLOCK_ACQUIRE_R(space2);
+    /* Avoid locking if the two dataspaces are the same */
+    if (memcmp(space1, space2, sizeof(H5S_t)) != 0)
+        H5S_VLOCK_ACQUIRE_R(space2);
     if (!(op >= H5S_SELECT_OR && op <= H5S_SELECT_NOTA))
         HGOTO_ERROR(H5E_ARGS, H5E_UNSUPPORTED, H5I_INVALID_HID, "invalid selection operation");
 
@@ -10820,7 +10822,7 @@ H5Scombine_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
 done:
     if (space1)
         H5S_VLOCK_RELEASE_R(space1);
-    if (space2)
+    if (space2 && (memcmp(space1, space2, sizeof(H5S_t)) != 0))
         H5S_VLOCK_RELEASE_R(space2);
     if (new_space)
         H5S_VLOCK_RELEASE_R(new_space);
@@ -10924,7 +10926,9 @@ H5Smodify_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
     H5S_VLOCK_ACQUIRE_W(space1);
     if (NULL == (space2 = (H5S_t *)H5I_object_verify(space2_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a dataspace");
-    H5S_VLOCK_ACQUIRE_W(space2);
+    /* Avoid locking if the two dataspaces are the same */
+    if (memcmp(space1, space2, sizeof(H5S_t)) != 0)
+        H5S_VLOCK_ACQUIRE_W(space2);
     if (!(op >= H5S_SELECT_OR && op <= H5S_SELECT_NOTA))
         HGOTO_ERROR(H5E_ARGS, H5E_UNSUPPORTED, FAIL, "invalid selection operation");
 
@@ -10969,7 +10973,7 @@ H5Smodify_select(hid_t space1_id, H5S_seloper_t op, hid_t space2_id)
 done:
     if (space1)
         H5S_VLOCK_RELEASE_W(space1);
-    if (space2)
+    if (space2 && (memcmp(space1, space2, sizeof(H5S_t)) != 0))
         H5S_VLOCK_RELEASE_W(space2);
     FUNC_LEAVE_API(ret_value)
 } /* end H5Smodify_select() */
