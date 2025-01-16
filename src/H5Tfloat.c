@@ -43,7 +43,7 @@ herr_t
 H5Tget_fields(hid_t type_id, size_t *spos /*out*/, size_t *epos /*out*/, size_t *esize /*out*/,
               size_t *mpos /*out*/, size_t *msize /*out*/)
 {
-    H5T_t *dt;                  /* Datatype */
+    H5T_t *dt = NULL;           /* Datatype */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -96,7 +96,7 @@ done:
 herr_t
 H5Tset_fields(hid_t type_id, size_t spos, size_t epos, size_t esize, size_t mpos, size_t msize)
 {
-    H5T_t *dt;                  /* Datatype */
+    H5T_t *dt = NULL;           /* Datatype */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -156,7 +156,7 @@ done:
 size_t
 H5Tget_ebias(hid_t type_id)
 {
-    H5T_t *dt;        /* Datatype */
+    H5T_t *dt = NULL; /* Datatype */
     size_t ret_value; /* Return value */
 
     FUNC_ENTER_API(0)
@@ -194,7 +194,7 @@ done:
 herr_t
 H5Tset_ebias(hid_t type_id, size_t ebias)
 {
-    H5T_t *dt;                  /* Datatype */
+    H5T_t *dt = NULL;           /* Datatype */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -271,7 +271,7 @@ done:
 herr_t
 H5Tset_norm(hid_t type_id, H5T_norm_t norm)
 {
-    H5T_t *dt;                  /* Datatype */
+    H5T_t *dt = NULL;           /* Datatype */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -354,7 +354,7 @@ done:
 herr_t
 H5Tset_inpad(hid_t type_id, H5T_pad_t pad)
 {
-    H5T_t *dt;                  /* Datatype */
+    H5T_t *dt = NULL;           /* Datatype */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
