@@ -100,7 +100,7 @@ typedef struct H5TS_mutex_struct {
     unsigned int    attempt_lock_count;
 } H5TS_mutex_t;
 
-#ifdef H5_HAVE_VIRTUAL_LOCK
+#if H5_HAVE_VIRTUAL_LOCK
 /* Enum for the type of operation that holds a virtual lock */
 typedef enum {
     H5TS_VLOCK_READER,
@@ -162,7 +162,7 @@ H5_DLL herr_t H5TS_cancel_count_dec(void);
 /* (Only used in the multi-thread build) */
 H5_DLL herr_t H5TS_have_mutex(H5TS_mutex_t *mutex, bool *have_mutex_ptr);
 
-#ifdef H5_HAVE_VIRTUAL_LOCK
+#if H5_HAVE_VIRTUAL_LOCK
 /* Virtual lock routines */
 H5_DLL void H5TS_vlock_acquire(H5TS_vlock_t *vlock, H5TS_vlock_op_type_t op_type);
 H5_DLL void H5TS_vlock_release(H5TS_vlock_t *vlock, H5TS_vlock_op_type_t op_type);

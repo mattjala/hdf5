@@ -31,7 +31,7 @@
 #include "H5private.h"   /* Generic Functions                        */
 #include "H5Eprivate.h"  /* Error handling                           */
 #include "H5MMprivate.h" /* Memory management                        */
-#ifdef H5_HAVE_VIRTUAL_LOCK
+#if H5_HAVE_VIRTUAL_LOCK
 #include <stdatomic.h>
 #endif /* H5_HAVE_VIRTUAL_LOCK */
 
@@ -1119,7 +1119,7 @@ H5TS_create_thread(H5TS_thread_cb_t func, H5TS_attr_t *attr, void *udata)
     FUNC_LEAVE_NOAPI_NAMECHECK_ONLY(ret_value)
 } /* H5TS_create_thread */
 
-#ifdef H5_HAVE_VIRTUAL_LOCK
+#if H5_HAVE_VIRTUAL_LOCK
 
 /*--------------------------------------------------------------------------
  * NAME
