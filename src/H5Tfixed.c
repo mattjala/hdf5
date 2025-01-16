@@ -109,6 +109,8 @@ H5Tset_sign(hid_t type_id, H5T_sign_t sign)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not an integer datatype");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (H5T_STATE_TRANSIENT != dt->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTINIT, FAIL, "datatype is read-only");
     if (sign < H5T_SGN_NONE || sign >= H5T_NSGN)
@@ -124,5 +126,8 @@ H5Tset_sign(hid_t type_id, H5T_sign_t sign)
     dt->shared->u.atomic.u.i.sign = sign;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 }

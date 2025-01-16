@@ -2036,14 +2036,18 @@ H5T__conv_struct_init(H5T_t *src, H5T_t *dst, H5T_cdata_t *cdata)
                 H5T_t *type;
 
                 type = H5T_copy(src->shared->u.compnd.memb[i].type, H5T_COPY_ALL);
+                H5T_VLOCK_ACQUIRE_R(type);
                 tid  = H5I_register(H5I_DATATYPE, type, FALSE);
                 assert(tid >= 0);
                 priv->src_memb_id[i] = tid;
+                H5T_VLOCK_RELEASE_R(type);
 
                 type = H5T_copy(dst->shared->u.compnd.memb[src2dst[i]].type, H5T_COPY_ALL);
+                H5T_VLOCK_ACQUIRE_R(type);
                 tid  = H5I_register(H5I_DATATYPE, type, FALSE);
                 assert(tid >= 0);
                 priv->dst_memb_id[src2dst[i]] = tid;
+                H5T_VLOCK_RELEASE_R(type);
             } /* end if */
         }     /* end for */
     }         /* end if */

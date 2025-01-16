@@ -52,6 +52,8 @@ H5Tget_fields(hid_t type_id, size_t *spos /*out*/, size_t *epos /*out*/, size_t 
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
+    H5T_VLOCK_ACQUIRE_R(dt);
+
     while (dt->shared->parent)
         dt = dt->shared->parent; /*defer to parent*/
     if (H5T_FLOAT != dt->shared->type)
@@ -70,6 +72,9 @@ H5Tget_fields(hid_t type_id, size_t *spos /*out*/, size_t *epos /*out*/, size_t 
         *msize = dt->shared->u.atomic.u.f.msize;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tget_fields() */
 
@@ -100,6 +105,8 @@ H5Tset_fields(hid_t type_id, size_t spos, size_t epos, size_t esize, size_t mpos
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (H5T_STATE_TRANSIENT != dt->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTSET, FAIL, "datatype is read-only");
     while (dt->shared->parent)
@@ -129,6 +136,9 @@ H5Tset_fields(hid_t type_id, size_t spos, size_t epos, size_t esize, size_t mpos
     dt->shared->u.atomic.u.f.msize = msize;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tset_fields() */
 
@@ -155,6 +165,8 @@ H5Tget_ebias(hid_t type_id)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, 0, "not a datatype");
+    H5T_VLOCK_ACQUIRE_R(dt);
+
     while (dt->shared->parent)
         dt = dt->shared->parent; /*defer to parent*/
     if (H5T_FLOAT != dt->shared->type)
@@ -164,6 +176,9 @@ H5Tget_ebias(hid_t type_id)
     H5_CHECKED_ASSIGN(ret_value, size_t, dt->shared->u.atomic.u.f.ebias, uint64_t);
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tget_ebias() */
 
@@ -188,6 +203,8 @@ H5Tset_ebias(hid_t type_id, size_t ebias)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (H5T_STATE_TRANSIENT != dt->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTSET, FAIL, "datatype is read-only");
     while (dt->shared->parent)
@@ -199,6 +216,9 @@ H5Tset_ebias(hid_t type_id, size_t ebias)
     dt->shared->u.atomic.u.f.ebias = ebias;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tset_ebias() */
 
@@ -260,6 +280,8 @@ H5Tset_norm(hid_t type_id, H5T_norm_t norm)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (H5T_STATE_TRANSIENT != dt->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTSET, FAIL, "datatype is read-only");
     if (norm < H5T_NORM_IMPLIED || norm > H5T_NORM_NONE)
@@ -273,6 +295,9 @@ H5Tset_norm(hid_t type_id, H5T_norm_t norm)
     dt->shared->u.atomic.u.f.norm = norm;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tset_norm() */
 
@@ -338,6 +363,8 @@ H5Tset_inpad(hid_t type_id, H5T_pad_t pad)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (H5T_STATE_TRANSIENT != dt->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTSET, FAIL, "datatype is read-only");
     if (pad < H5T_PAD_ZERO || pad >= H5T_NPAD)
@@ -351,5 +378,8 @@ H5Tset_inpad(hid_t type_id, H5T_pad_t pad)
     dt->shared->u.atomic.u.f.pad = pad;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tset_inpad() */

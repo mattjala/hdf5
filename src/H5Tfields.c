@@ -49,11 +49,15 @@ H5Tget_nmembers(hid_t type_id)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
+    H5T_VLOCK_ACQUIRE_R(dt);
 
     if ((ret_value = H5T_get_nmembers(dt)) < 0)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "cannot return member number");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tget_nmembers() */
 
@@ -119,11 +123,15 @@ H5Tget_member_name(hid_t type_id, unsigned membno)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a datatype");
+    H5T_VLOCK_ACQUIRE_R(dt);
 
     if (NULL == (ret_value = H5T__get_member_name(dt, membno)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "unable to get member name");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 }
 

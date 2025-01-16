@@ -195,6 +195,7 @@ H5Tget_array_ndims(hid_t type_id)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype object");
+    H5T_VLOCK_ACQUIRE_R(dt);
     if (dt->shared->type != H5T_ARRAY)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not an array datatype");
 
@@ -202,6 +203,9 @@ H5Tget_array_ndims(hid_t type_id)
     ret_value = H5T__get_array_ndims(dt);
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tget_array_ndims */
 
@@ -250,6 +254,7 @@ H5Tget_array_dims2(hid_t type_id, hsize_t dims[] /*out*/)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype object");
+    H5T_VLOCK_ACQUIRE_R(dt);
     if (dt->shared->type != H5T_ARRAY)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not an array datatype");
 
@@ -257,6 +262,9 @@ H5Tget_array_dims2(hid_t type_id, hsize_t dims[] /*out*/)
     if ((ret_value = H5T__get_array_dims(dt, dims)) < 0)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "unable to get dimension sizes");
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tget_array_dims2() */
 
@@ -369,6 +377,8 @@ H5Tget_array_dims1(hid_t type_id, hsize_t dims[] /*out*/, int H5_ATTR_UNUSED per
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype object");
+    H5T_VLOCK_ACQUIRE_R(dt);
+
     if (dt->shared->type != H5T_ARRAY)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not an array datatype");
 
@@ -377,6 +387,9 @@ H5Tget_array_dims1(hid_t type_id, hsize_t dims[] /*out*/, int H5_ATTR_UNUSED per
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "unable to get dimension sizes");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tget_array_dims1() */
 #endif /* H5_NO_DEPRECATED_SYMBOLS */

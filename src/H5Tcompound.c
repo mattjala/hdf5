@@ -93,6 +93,7 @@ H5Tget_member_offset(hid_t type_id, unsigned membno)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)) || H5T_COMPOUND != dt->shared->type)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, 0, "not a compound datatype");
+    H5T_VLOCK_ACQUIRE_R(dt);
     if (membno >= dt->shared->u.compnd.nmembs)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, 0, "invalid member number");
 
@@ -100,6 +101,9 @@ H5Tget_member_offset(hid_t type_id, unsigned membno)
     ret_value = H5T_GET_MEMBER_OFFSET(dt->shared, membno);
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tget_member_offset() */
 
@@ -193,18 +197,24 @@ H5Tget_member_type(hid_t type_id, unsigned membno)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)) || H5T_COMPOUND != dt->shared->type)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a compound datatype");
+    H5T_VLOCK_ACQUIRE_R(dt);
     if (membno >= dt->shared->u.compnd.nmembs)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, H5I_INVALID_HID, "invalid member number");
 
     /* Retrieve the datatype for the member */
     if (NULL == (memb_dt = H5T__reopen_member_type(dt, membno)))
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, H5I_INVALID_HID, "unable to retrieve member type");
-
+    H5T_VLOCK_ACQUIRE_R(memb_dt);
     /* Get an ID for the datatype */
     if ((ret_value = H5I_register(H5I_DATATYPE, memb_dt, TRUE)) < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable register datatype ID");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+    if (memb_dt)
+        H5T_VLOCK_RELEASE_R(memb_dt);
+
     if (ret_value < 0)
         if (memb_dt && H5T_close(memb_dt) < 0)
             HDONE_ERROR(H5E_DATATYPE, H5E_CANTCLOSEOBJ, H5I_INVALID_HID, "can't close datatype");
@@ -332,6 +342,7 @@ H5Tinsert(hid_t parent_id, const char *name, size_t offset, hid_t member_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "can't insert compound datatype within itself");
     if (NULL == (parent = (H5T_t *)H5I_object_verify(parent_id, H5I_DATATYPE)) ||
         H5T_COMPOUND != parent->shared->type)
+    H5T_VLOCK_ACQUIRE_W(parent);
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a compound datatype");
     if (H5T_STATE_TRANSIENT != parent->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "parent type read-only");
@@ -339,12 +350,17 @@ H5Tinsert(hid_t parent_id, const char *name, size_t offset, hid_t member_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no member name");
     if (NULL == (member = (H5T_t *)H5I_object_verify(member_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
-
+    H5T_VLOCK_ACQUIRE_W(member);
     /* Insert */
     if (H5T__insert(parent, name, offset, member) < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINSERT, FAIL, "unable to insert member");
 
 done:
+    if (parent)
+        H5T_VLOCK_RELEASE_W(parent);
+    if (member)
+        H5T_VLOCK_RELEASE_W(member);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tinsert() */
 
@@ -371,12 +387,16 @@ H5Tpack(hid_t type_id)
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)) ||
         H5T_detect_class(dt, H5T_COMPOUND, TRUE) <= 0)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a compound datatype");
+    H5T_VLOCK_ACQUIRE_W(dt);
 
     /* Pack */
     if (H5T__pack(dt) < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to pack compound datatype");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tpack() */
 

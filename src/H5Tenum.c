@@ -54,15 +54,24 @@ H5Tenum_create(hid_t parent_id)
         H5T_INTEGER != parent->shared->type)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not an integer data type");
 
+    H5T_VLOCK_ACQUIRE_R(parent);
+
     /* Build new type */
     if (NULL == (dt = H5T__enum_create(parent)))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, H5I_INVALID_HID, "cannot create enum type");
+
+    H5T_VLOCK_ACQUIRE_R(dt);
 
     /* Register the type */
     if ((ret_value = H5I_register(H5I_DATATYPE, dt, TRUE)) < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register data type ID");
 
 done:
+    if (parent)
+        H5T_VLOCK_RELEASE_R(parent);
+    if (dt)
+        H5T_VLOCK_RELEASE_R(parent);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tenum_create() */
 
@@ -91,12 +100,16 @@ H5T__enum_create(const H5T_t *parent)
     /* Build new type */
     if (NULL == (ret_value = H5T__alloc()))
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
+    H5T_VLOCK_ACQUIRE_W(ret_value);
     ret_value->shared->type   = H5T_ENUM;
     ret_value->shared->parent = H5T_copy(parent, H5T_COPY_ALL);
     assert(ret_value->shared->parent);
     ret_value->shared->size = ret_value->shared->parent->shared->size;
 
 done:
+    if (ret_value)
+        H5T_VLOCK_RELEASE_W(ret_value);
+
     FUNC_LEAVE_NOAPI(ret_value)
 }
 
@@ -128,6 +141,8 @@ H5Tenum_insert(hid_t type, const char *name, const void *value)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (H5T_ENUM != dt->shared->type)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not an enumeration data type");
     if (!name || !*name)
@@ -140,6 +155,9 @@ H5Tenum_insert(hid_t type, const char *name, const void *value)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to insert new enumeration member");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 }
 
@@ -226,6 +244,7 @@ H5Tget_member_value(hid_t type, unsigned membno, void *value /*out*/)
 
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
+    H5T_VLOCK_ACQUIRE_R(dt);
     if (H5T_ENUM != dt->shared->type)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "operation not defined for data type class");
     if (membno >= dt->shared->u.enumer.nmembs)
@@ -236,6 +255,9 @@ H5Tget_member_value(hid_t type, unsigned membno, void *value /*out*/)
     if (H5T__get_member_value(dt, membno, value) < 0)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "unable to get member value");
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 }
 
@@ -294,6 +316,7 @@ H5Tenum_nameof(hid_t type, const void *value, char *name /*out*/, size_t size)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
+    H5T_VLOCK_ACQUIRE_R(dt);
     if (H5T_ENUM != dt->shared->type)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not an enumeration data type");
     if (!value)
@@ -305,6 +328,9 @@ H5Tenum_nameof(hid_t type, const void *value, char *name /*out*/, size_t size)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "nameof query failed");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 }
 
@@ -425,6 +451,7 @@ H5Tenum_valueof(hid_t type, const char *name, void *value /*out*/)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
+    H5T_VLOCK_ACQUIRE_R(dt);
     if (H5T_ENUM != dt->shared->type)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not an enumeration data type");
     if (!name || !*name)
@@ -436,6 +463,9 @@ H5Tenum_valueof(hid_t type, const char *name, void *value /*out*/)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "valueof query failed");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* H5Tenum_valueof() */
 

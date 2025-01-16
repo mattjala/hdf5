@@ -86,6 +86,7 @@ H5Tset_cset(hid_t type_id, H5T_cset_t cset)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
+    H5T_VLOCK_ACQUIRE_W(dt);
     if (H5T_STATE_TRANSIENT != dt->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTINIT, FAIL, "data type is read-only");
     if (cset < H5T_CSET_ASCII || cset >= H5T_NCSET)
@@ -102,5 +103,8 @@ H5Tset_cset(hid_t type_id, H5T_cset_t cset)
         dt->shared->u.vlen.cset = cset;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 }
