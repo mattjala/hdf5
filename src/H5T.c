@@ -596,7 +596,7 @@ static const H5I_class_t H5I_DATATYPE_CLS[1] = {{
 static herr_t
 H5T__init_inf(void)
 {
-    H5T_t        *dst_p;               /* Datatype type operate on */
+    H5T_t        *dst_p = NULL;        /* Datatype type operate on */
     H5T_atomic_t *dst;                 /* Datatype's atomic info   */
     uint8_t      *d;                   /* Pointer to value to set  */
     size_t        half_size;           /* Half the type size       */
@@ -1912,7 +1912,7 @@ done:
 herr_t
 H5Tclose(hid_t type_id)
 {
-    H5T_t *dt;                  /* Pointer to datatype to close */
+    H5T_t *dt = NULL;           /* Pointer to datatype to close */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -1955,7 +1955,7 @@ done:
 herr_t
 H5Tclose_async(const char *app_file, const char *app_func, unsigned app_line, hid_t type_id, hid_t es_id)
 {
-    H5T_t         *dt;                          /* Pointer to datatype to close */
+    H5T_t         *dt        = NULL;            /* Pointer to datatype to close */
     void          *token     = NULL;            /* Request token for async operation        */
     void         **token_ptr = H5_REQUEST_NULL; /* Pointer to request token for async operation        */
     H5VL_object_t *vol_obj   = NULL;            /* VOL object of dset_id */
@@ -2025,8 +2025,8 @@ done:
 htri_t
 H5Tequal(hid_t type1_id, hid_t type2_id)
 {
-    const H5T_t *dt1;       /* Pointer to first datatype */
-    const H5T_t *dt2;       /* Pointer to second datatype */
+    H5T_t *dt1 = NULL;       /* Pointer to first datatype */
+    H5T_t *dt2 = NULL;       /* Pointer to second datatype */
     htri_t       ret_value; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -2074,7 +2074,7 @@ done:
 herr_t
 H5Tlock(hid_t type_id)
 {
-    H5T_t *dt;                  /* Datatype to operate on */
+    H5T_t *dt = NULL;           /* Datatype to operate on */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -2110,7 +2110,7 @@ done:
 H5T_class_t
 H5Tget_class(hid_t type_id)
 {
-    H5T_t      *dt;        /* Pointer to datatype */
+    H5T_t      *dt = NULL; /* Pointer to datatype */
     H5T_class_t ret_value; /* Return value */
 
     FUNC_ENTER_API(H5T_NO_CLASS)
@@ -2179,7 +2179,7 @@ H5T_get_class(const H5T_t *dt, htri_t internal)
 htri_t
 H5Tdetect_class(hid_t type, H5T_class_t cls)
 {
-    H5T_t *dt;        /* Datatype to query */
+    H5T_t *dt = NULL; /* Datatype to query */
     htri_t ret_value; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -2288,7 +2288,7 @@ done:
 htri_t
 H5Tis_variable_str(hid_t dtype_id)
 {
-    H5T_t *dt;        /* Datatype to query */
+    H5T_t *dt = NULL; /* Datatype to query */
     htri_t ret_value; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -2344,7 +2344,7 @@ H5T_is_variable_str(const H5T_t *dt)
 size_t
 H5Tget_size(hid_t type_id)
 {
-    H5T_t *dt;        /* Datatype to query */
+    H5T_t *dt = NULL; /* Datatype to query */
     size_t ret_value; /* Return value */
 
     FUNC_ENTER_API(0)
@@ -2390,7 +2390,7 @@ done:
 herr_t
 H5Tset_size(hid_t type_id, size_t size)
 {
-    H5T_t *dt;                  /* Datatype to modify */
+    H5T_t *dt = NULL;           /* Datatype to modify */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -2437,7 +2437,7 @@ done:
 hid_t
 H5Tget_super(hid_t type)
 {
-    H5T_t *dt;                          /* Datatype to query */
+    H5T_t *dt = NULL;                   /* Datatype to query */
     H5T_t *super     = NULL;            /* Supertype */
     hid_t  ret_value = H5I_INVALID_HID; /* Return value */
 
@@ -2737,8 +2737,8 @@ done:
 herr_t
 H5Tregister(H5T_pers_t pers, const char *name, hid_t src_id, hid_t dst_id, H5T_conv_t func)
 {
-    H5T_t          *src;                 /*source data type descriptor    */
-    H5T_t          *dst;                 /*destination data type desc     */
+    H5T_t          *src = NULL;          /*source data type descriptor    */
+    H5T_t          *dst = NULL;          /*destination data type desc     */
     H5T_conv_func_t conv_func;           /* Conversion function wrapper */
     herr_t          ret_value = SUCCEED; /*return value                   */
 
@@ -2939,7 +2939,7 @@ done:
 H5T_conv_t
 H5Tfind(hid_t src_id, hid_t dst_id, H5T_cdata_t **pcdata /*out*/)
 {
-    H5T_t      *src, *dst;
+    H5T_t      *src = NULL, *dst = NULL;
     H5T_path_t *path;
     H5T_conv_t  ret_value; /* Return value */
 
@@ -2994,7 +2994,7 @@ done:
 htri_t
 H5Tcompiler_conv(hid_t src_id, hid_t dst_id)
 {
-    H5T_t *src, *dst;
+    H5T_t *src = NULL, *dst = NULL;
     htri_t ret_value; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -3045,9 +3045,9 @@ done:
 herr_t
 H5Tconvert(hid_t src_id, hid_t dst_id, size_t nelmts, void *buf, void *background, hid_t dxpl_id)
 {
-    H5T_path_t *tpath;               /* type conversion info    */
-    H5T_t      *src, *dst;           /* unregistered types      */
-    herr_t      ret_value = SUCCEED; /* Return value            */
+    H5T_path_t *tpath;                   /* type conversion info    */
+    H5T_t      *src = NULL, *dst = NULL; /* unregistered types      */
+    herr_t      ret_value = SUCCEED;     /* Return value            */
 
     FUNC_ENTER_API(FAIL)
     H5TRACE6("e", "iiz*x*xi", src_id, dst_id, nelmts, buf, background, dxpl_id);
@@ -3100,7 +3100,7 @@ done:
 herr_t
 H5Treclaim(hid_t type_id, hid_t space_id, hid_t dxpl_id, void *buf)
 {
-    H5S_t *space;     /* Dataspace for iteration */
+    H5S_t *space = NULL;     /* Dataspace for iteration */
     herr_t ret_value; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -3111,7 +3111,7 @@ H5Treclaim(hid_t type_id, hid_t space_id, hid_t dxpl_id, void *buf)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid argument");
     if (NULL == (space = (H5S_t *)H5I_object_verify(space_id, H5I_DATASPACE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "invalid dataspace");
-    H5T_VLOCK_ACQUIRE_R(space);
+    H5S_VLOCK_ACQUIRE_R(space);
     if (!(H5S_has_extent(space)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "dataspace does not have extent set");
 
@@ -3129,7 +3129,7 @@ H5Treclaim(hid_t type_id, hid_t space_id, hid_t dxpl_id, void *buf)
 
 done:
     if (space)
-        H5T_VLOCK_RELEASE_R(space);
+        H5S_VLOCK_RELEASE_R(space);
 
     FUNC_LEAVE_API(ret_value)
 } /* end H5Treclaim() */
@@ -3149,7 +3149,7 @@ done:
 herr_t
 H5Tencode(hid_t obj_id, void *buf, size_t *nalloc)
 {
-    H5T_t *dtype;
+    H5T_t *dtype = NULL;
     herr_t ret_value = SUCCEED;
 
     FUNC_ENTER_API(FAIL)
@@ -3188,7 +3188,7 @@ done:
 hid_t
 H5Tdecode(const void *buf)
 {
-    H5T_t *dt;
+    H5T_t *dt = NULL;
     hid_t  ret_value; /* Return value */
 
     FUNC_ENTER_API(FAIL)
