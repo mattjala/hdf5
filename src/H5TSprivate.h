@@ -21,9 +21,6 @@
 #ifndef H5TSprivate_H_
 #define H5TSprivate_H_
 
-// TODO
-#define H5_HAVE_VIRTUAL_LOCK 1
-
 #if defined(H5_HAVE_THREADSAFE) || defined(H5_HAVE_MULTITHREAD)
 /* Include package's public headers */
 #include "H5TSdevelop.h"

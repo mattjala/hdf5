@@ -2180,6 +2180,12 @@ else
     AC_DEFINE([MT_TEST_VOL_DIR], [""], [The directory containing the multi-threaded wrapper VOL connectors])
 fi
 
+if test "X$MULTITHREAD" = "Xyes" -a "X$BUILD_MODE" = "Xdebug"; then
+  AC_DEFINE([HAVE_VIRTUAL_LOCK], [1], [Define if we enable the virtual lock])
+else
+  AC_DEFINE([HAVE_VIRTUAL_LOCK], [0], [Define if we enable the virtual lock])
+fi
+
 ## ----------------------------------------------------------------------
 ## Check for MONOTONIC_TIMER support (used in clock_gettime).  This has
 ## to be done after any POSIX defines to ensure that the test gets
