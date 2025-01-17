@@ -1256,7 +1256,7 @@ H5O__copy_search_comm_dt_check(H5O_loc_t *obj_oloc, H5O_copy_search_comm_dt_ud_t
         /* Read the destination datatype */
         if (NULL == (key->dt = (H5T_t *)H5O_msg_read(obj_oloc, H5O_DTYPE_ID, NULL)))
             HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "can't read DTYPE message");
-
+        H5T_VLOCK_INIT(key->dt);
         /* Get destination object fileno */
         H5F_GET_FILENO(obj_oloc->file, key->fileno);
 
@@ -1281,7 +1281,7 @@ H5O__copy_search_comm_dt_check(H5O_loc_t *obj_oloc, H5O_copy_search_comm_dt_ud_t
         /* Read the destination datatype */
         if (NULL == (key->dt = (H5T_t *)H5O_msg_read(obj_oloc, H5O_DTYPE_ID, NULL)))
             HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "can't read DTYPE message");
-
+        H5T_VLOCK_INIT(key->dt);
         /* Check if the datatype is committed and search the skip list if so */
         if (H5T_is_named(key->dt)) {
             /* Get datatype object fileno */
@@ -1424,7 +1424,7 @@ H5O__copy_search_comm_dt(H5F_t *file_src, H5O_t *oh_src, H5O_loc_t *oloc_dst /*i
     /* Read the source datatype */
     if (NULL == (key->dt = (H5T_t *)H5O_msg_read_oh(file_src, oh_src, H5O_DTYPE_ID, NULL)))
         HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "can't read DTYPE message");
-
+    H5T_VLOCK_INIT(key->dt);
     /* Get destination object fileno */
     H5F_GET_FILENO(oloc_dst->file, key->fileno);
 
@@ -1588,6 +1588,7 @@ H5O__copy_insert_comm_dt(H5F_t *file_src, H5O_t *oh_src, H5O_loc_t *oloc_dst, H5
      * object could be changed in the post-copy. */
     if (NULL == (key->dt = (H5T_t *)H5O_msg_read_oh(file_src, oh_src, H5O_DTYPE_ID, NULL)))
         HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, FAIL, "can't read DTYPE message");
+    H5T_VLOCK_INIT(key->dt);
 
     /* Get destination object fileno */
     H5F_GET_FILENO(oloc_dst->file, key->fileno);

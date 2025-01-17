@@ -229,6 +229,7 @@ H5T__get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_ali
             if (0 == H5T_cmp(ret_value, dt, FALSE)) {
                 align    = H5T_HOBJREF_ALIGN_g;
                 ref_size = sizeof(hobj_ref_t);
+                H5T_VLOCK_RELEASE_R(dt);
             } /* end if */
             else {
                 H5T_VLOCK_RELEASE_R(dt);
