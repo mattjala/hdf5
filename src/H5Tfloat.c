@@ -165,10 +165,10 @@ H5Tget_ebias(hid_t type_id)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, 0, "not a datatype");
-    H5T_VLOCK_ACQUIRE_R(dt);
 
     while (dt->shared->parent)
         dt = dt->shared->parent; /*defer to parent*/
+    H5T_VLOCK_ACQUIRE_R(dt);
     if (H5T_FLOAT != dt->shared->type)
         HGOTO_ERROR(H5E_DATATYPE, H5E_BADTYPE, 0, "operation not defined for datatype class");
 

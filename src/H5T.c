@@ -2903,11 +2903,12 @@ H5Tunregister(H5T_pers_t pers, const char *name, hid_t src_id, hid_t dst_id, H5T
     /* Check arguments */
     if (src_id > 0 && (NULL == (src = (H5T_t *)H5I_object_verify(src_id, H5I_DATATYPE))))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "src is not a data type");
-    H5T_VLOCK_ACQUIRE_R(src);
+    if (src)
+        H5T_VLOCK_ACQUIRE_R(src);
     if (dst_id > 0 && (NULL == (dst = (H5T_t *)H5I_object_verify(dst_id, H5I_DATATYPE))))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "dst is not a data type");
     /* Avoid double-locking the same datatype twice */
-    if (memcmp(src, dst, sizeof(H5T_t)) != 0)
+    if (dst && memcmp(src, dst, sizeof(H5T_t)) != 0)
         H5T_VLOCK_ACQUIRE_R(dst);
     if (H5T__unregister(pers, name, src, dst, func) < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTDELETE, FAIL, "internal unregister function failed");
@@ -3676,6 +3677,7 @@ H5T__complete_copy(H5T_t *new_dt, const H5T_t *old_dt, H5T_shared_t *reopened_fo
                             (ssize_t)(new_dt->shared->u.compnd.memb[i].type->shared->size -
                                       old_dt->shared->u.compnd.memb[old_match].type->shared->size);
                     } /* end if */
+                    H5T_VLOCK_RELEASE_R(tmp);
                 }     /* end for */
 
                 /* Range check against datatype size */
@@ -3776,7 +3778,7 @@ H5T__complete_copy(H5T_t *new_dt, const H5T_t *old_dt, H5T_shared_t *reopened_fo
         H5O_msg_reset_share(H5O_DTYPE_ID, new_dt);
 
 done:
-    if (tmp)
+    if (tmp && ret_value < 0)
         H5T_VLOCK_RELEASE_R(tmp);
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -4467,7 +4469,7 @@ H5T__set_size(H5T_t *dt, size_t size)
 
 done:
     if (base)
-        H5T_VLOCK_RELEASE_R(dt);
+        H5T_VLOCK_RELEASE_R(base);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T__set_size() */
@@ -5862,7 +5864,7 @@ H5T_set_loc(H5T_t *dt, H5VL_object_t *file, H5T_loc_t loc)
                     /* Set the member type pointer (for convenience) */
                     memb_type = dt->shared->u.compnd.memb[i].type;
 
-                    H5T_VLOCK_ACQUIRE_R(memb_type);
+                    H5T_VLOCK_ACQUIRE_W(memb_type);
 
                     /* Recurse if it's VL, compound, enum or array */
                     /* (If the force_conv flag is _not_ set, the type cannot change in size, so don't recurse)
@@ -5894,7 +5896,7 @@ H5T_set_loc(H5T_t *dt, H5VL_object_t *file, H5T_loc_t loc)
                         } /* end if */
                     }     /* end if */
 
-                    H5T_VLOCK_RELEASE_R(memb_type);
+                    H5T_VLOCK_RELEASE_W(memb_type);
                 }         /* end for */
 
                 /* Range check against datatype size */
@@ -5948,7 +5950,7 @@ H5T_set_loc(H5T_t *dt, H5VL_object_t *file, H5T_loc_t loc)
 
 done:
     if (memb_type && ret_value < 0)
-        H5T_VLOCK_RELEASE_R(memb_type);
+        H5T_VLOCK_RELEASE_W(memb_type);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T_set_loc() */

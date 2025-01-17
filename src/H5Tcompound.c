@@ -330,8 +330,8 @@ H5T__get_member_size(const H5T_t *dt, unsigned membno)
 herr_t
 H5Tinsert(hid_t parent_id, const char *name, size_t offset, hid_t member_id)
 {
-    H5T_t *parent;              /* The compound parent datatype */
-    H5T_t *member;              /* The member datatype	*/
+    H5T_t *parent = NULL;       /* The compound parent datatype */
+    H5T_t *member = NULL;       /* The member datatype	*/
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
@@ -340,9 +340,11 @@ H5Tinsert(hid_t parent_id, const char *name, size_t offset, hid_t member_id)
     /* Check args */
     if (parent_id == member_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "can't insert compound datatype within itself");
-    if (NULL == (parent = (H5T_t *)H5I_object_verify(parent_id, H5I_DATATYPE)) ||
-        H5T_COMPOUND != parent->shared->type)
+    if (NULL == (parent = (H5T_t *)H5I_object_verify(parent_id, H5I_DATATYPE)))
+        HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a compound datatype");
     H5T_VLOCK_ACQUIRE_W(parent);
+
+    if  (H5T_COMPOUND != parent->shared->type)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a compound datatype");
     if (H5T_STATE_TRANSIENT != parent->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "parent type read-only");

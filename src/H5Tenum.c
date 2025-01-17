@@ -70,7 +70,7 @@ done:
     if (parent)
         H5T_VLOCK_RELEASE_R(parent);
     if (dt)
-        H5T_VLOCK_RELEASE_R(parent);
+        H5T_VLOCK_RELEASE_R(dt);
 
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tenum_create() */
