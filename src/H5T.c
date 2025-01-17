@@ -3413,6 +3413,7 @@ H5T__create(H5T_class_t type, size_t size)
                 HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, NULL, "no applicable native integer type");
             if (NULL == (dt = H5T__alloc()))
                 HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
+            H5T_VLOCK_ACQUIRE_W(dt);
             dt->shared->type = type;
             if (NULL == (sub_t_obj = (H5T_t *)H5I_object(subtype)))
                 HGOTO_ERROR(H5E_DATATYPE, H5E_CANTGET, NULL, "unable to get datatype object");
@@ -3489,6 +3490,7 @@ H5T__initiate_copy(const H5T_t *old_dt)
     /* Allocate space */
     if (NULL == (new_dt = H5FL_MALLOC_MT(H5T_t)))
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTALLOC, NULL, "H5T_t memory allocation failed");
+    H5T_VLOCK_INIT(new_dt);
     H5T_VLOCK_ACQUIRE_W(new_dt);
     if (NULL == (new_dt->shared = H5FL_MALLOC_MT(H5T_shared_t)))
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTALLOC, NULL, "H5T_shared_t memory allocation failed");
