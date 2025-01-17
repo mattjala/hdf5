@@ -40,7 +40,7 @@
 int
 H5Tget_nmembers(hid_t type_id)
 {
-    H5T_t *dt;        /* Datatype to query */
+    H5T_t *dt = NULL; /* Datatype to query */
     int    ret_value; /* Return value */
 
     FUNC_ENTER_API(FAIL)

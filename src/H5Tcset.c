@@ -77,7 +77,7 @@ done:
 herr_t
 H5Tset_cset(hid_t type_id, H5T_cset_t cset)
 {
-    H5T_t *dt;
+    H5T_t *dt = NULL;
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)

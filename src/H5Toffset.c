@@ -54,7 +54,7 @@ static herr_t H5T__set_offset(const H5T_t *dt, size_t offset);
 int
 H5Tget_offset(hid_t type_id)
 {
-    H5T_t *dt;
+    H5T_t *dt = NULL;
     int    ret_value;
 
     FUNC_ENTER_API(-1)
@@ -158,7 +158,7 @@ done:
 herr_t
 H5Tset_offset(hid_t type_id, size_t offset)
 {
-    H5T_t *dt;
+    H5T_t *dt = NULL;
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)

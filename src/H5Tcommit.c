@@ -577,7 +577,7 @@ done:
 htri_t
 H5Tcommitted(hid_t type_id)
 {
-    H5T_t *type;      /* Datatype to query */
+    H5T_t *type = NULL; /* Datatype to query */
     htri_t ret_value; /* Return value */
 
     FUNC_ENTER_API_NO_MUTEX(FAIL)
@@ -852,7 +852,7 @@ done:
 herr_t
 H5Tflush(hid_t type_id)
 {
-    H5T_t *dt;                  /* Datatype for this operation */
+    H5T_t *dt = NULL;           /* Datatype for this operation */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API_NO_MUTEX(FAIL)
@@ -905,7 +905,7 @@ done:
 herr_t
 H5Trefresh(hid_t type_id)
 {
-    H5T_t *dt;                  /* Datatype for this operation */
+    H5T_t *dt = NULL;           /* Datatype for this operation */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API_NO_MUTEX(FAIL)

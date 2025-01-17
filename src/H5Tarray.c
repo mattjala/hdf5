@@ -186,7 +186,7 @@ done:
 int
 H5Tget_array_ndims(hid_t type_id)
 {
-    H5T_t *dt;        /* pointer to array datatype	*/
+    H5T_t *dt = NULL; /* pointer to array datatype	*/
     int    ret_value; /* return value			*/
 
     FUNC_ENTER_API(FAIL)
@@ -245,7 +245,7 @@ H5T__get_array_ndims(const H5T_t *dt)
 int
 H5Tget_array_dims2(hid_t type_id, hsize_t dims[] /*out*/)
 {
-    H5T_t *dt;        /* pointer to array data type	*/
+    H5T_t *dt = NULL; /* pointer to array data type	*/
     int    ret_value; /* return value			*/
 
     FUNC_ENTER_API(FAIL)
@@ -368,7 +368,7 @@ done:
 int
 H5Tget_array_dims1(hid_t type_id, hsize_t dims[] /*out*/, int H5_ATTR_UNUSED perm[] /*out*/)
 {
-    H5T_t *dt;        /* Array datatype to query	*/
+    H5T_t *dt = NULL; /* Array datatype to query	*/
     int    ret_value; /* return value			*/
 
     FUNC_ENTER_API(FAIL)

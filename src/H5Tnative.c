@@ -67,7 +67,7 @@ static herr_t H5T__cmp_offset(size_t *comp_size, size_t *offset, size_t elem_siz
 hid_t
 H5Tget_native_type(hid_t type_id, H5T_direction_t direction)
 {
-    H5T_t *dt;               /* Datatype to create native datatype from */
+    H5T_t *dt        = NULL; /* Datatype to create native datatype from */
     H5T_t *new_dt    = NULL; /* Datatype for native datatype created */
     size_t comp_size = 0;    /* Compound datatype's size */
     hid_t  ret_value;        /* Return value */
@@ -560,7 +560,7 @@ static H5T_t *
 H5T__get_native_integer(size_t prec, H5T_sign_t sign, H5T_direction_t direction, size_t *struct_align,
                         size_t *offset, size_t *comp_size)
 {
-    H5T_t *dt;                 /* Appropriate native datatype to copy */
+    H5T_t *dt = NULL;          /* Appropriate native datatype to copy */
     hid_t  tid         = (-1); /* Datatype ID of appropriate native datatype */
     size_t align       = 0;    /* Alignment necessary for native datatype */
     size_t native_size = 0;    /* Datatype size of the native type */

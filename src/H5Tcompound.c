@@ -84,7 +84,7 @@ static H5T_t *H5T__reopen_member_type(const H5T_t *dt, unsigned membno);
 size_t
 H5Tget_member_offset(hid_t type_id, unsigned membno)
 {
-    H5T_t *dt;        /* Datatype to query */
+    H5T_t *dt = NULL; /* Datatype to query */
     size_t ret_value; /* Return value */
 
     FUNC_ENTER_API(0)
@@ -187,7 +187,7 @@ done:
 hid_t
 H5Tget_member_type(hid_t type_id, unsigned membno)
 {
-    H5T_t *dt;             /* Datatype to query */
+    H5T_t *dt = NULL;      /* Datatype to query */
     H5T_t *memb_dt = NULL; /* Member datatype */
     hid_t  ret_value;      /* Return value */
 
@@ -379,7 +379,7 @@ done:
 herr_t
 H5Tpack(hid_t type_id)
 {
-    H5T_t *dt;                  /* Datatype to modify */
+    H5T_t *dt = NULL;           /* Datatype to modify */
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
