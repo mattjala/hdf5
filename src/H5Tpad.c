@@ -45,6 +45,8 @@ H5Tget_pad(hid_t type_id, H5T_pad_t *lsb /*out*/, H5T_pad_t *msb /*out*/)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
+    H5T_VLOCK_ACQUIRE_R(dt);
+
     while (dt->shared->parent)
         dt = dt->shared->parent; /*defer to parent*/
     if (!H5T_IS_ATOMIC(dt->shared))
@@ -57,6 +59,9 @@ H5Tget_pad(hid_t type_id, H5T_pad_t *lsb /*out*/, H5T_pad_t *msb /*out*/)
         *msb = dt->shared->u.atomic.msb_pad;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 }
 
@@ -81,6 +86,8 @@ H5Tset_pad(hid_t type_id, H5T_pad_t lsb, H5T_pad_t msb)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (H5T_STATE_TRANSIENT != dt->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTINIT, FAIL, "data type is read-only");
     if (lsb < H5T_PAD_ZERO || lsb >= H5T_NPAD || msb < H5T_PAD_ZERO || msb >= H5T_NPAD)
@@ -97,5 +104,8 @@ H5Tset_pad(hid_t type_id, H5T_pad_t lsb, H5T_pad_t msb)
     dt->shared->u.atomic.msb_pad = msb;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 }

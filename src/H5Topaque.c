@@ -44,6 +44,8 @@ H5Tset_tag(hid_t type_id, const char *tag)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (H5T_STATE_TRANSIENT != dt->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTINIT, FAIL, "data type is read-only");
     while (dt->shared->parent)
@@ -60,6 +62,9 @@ H5Tset_tag(hid_t type_id, const char *tag)
     dt->shared->u.opaque.tag = H5MM_strdup(tag);
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 }
 
@@ -85,6 +90,8 @@ H5Tget_tag(hid_t type_id)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a data type");
+    H5T_VLOCK_ACQUIRE_R(dt);
+
     while (dt->shared->parent)
         dt = dt->shared->parent; /*defer to parent*/
     if (H5T_OPAQUE != dt->shared->type)
@@ -95,5 +102,8 @@ H5Tget_tag(hid_t type_id)
         HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "memory allocation failed");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 }

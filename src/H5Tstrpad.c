@@ -97,6 +97,8 @@ H5Tset_strpad(hid_t type_id, H5T_str_t strpad)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (H5T_STATE_TRANSIENT != dt->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTINIT, FAIL, "datatype is read-only");
     if (strpad < H5T_STR_NULLTERM || strpad >= H5T_NSTR)
@@ -113,5 +115,8 @@ H5Tset_strpad(hid_t type_id, H5T_str_t strpad)
         dt->shared->u.vlen.pad = strpad;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 }

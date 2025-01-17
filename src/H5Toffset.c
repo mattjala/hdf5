@@ -64,11 +64,16 @@ H5Tget_offset(hid_t type_id)
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not an atomic data type");
 
+    H5T_VLOCK_ACQUIRE_R(dt);
+
     /* Get offset */
     if ((ret_value = H5T_get_offset(dt)) < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_UNSUPPORTED, FAIL, "can't get offset for specified datatype");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tget_offset() */
 
@@ -162,6 +167,8 @@ H5Tset_offset(hid_t type_id, size_t offset)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not an atomic data type");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (H5T_STATE_TRANSIENT != dt->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTINIT, FAIL, "data type is read-only");
     if (H5T_STRING == dt->shared->type && offset != 0)
@@ -177,6 +184,9 @@ H5Tset_offset(hid_t type_id, size_t offset)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "unable to set offset");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 }
 

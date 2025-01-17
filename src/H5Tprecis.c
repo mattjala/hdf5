@@ -52,12 +52,16 @@ H5Tget_precision(hid_t type_id)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, 0, "not a datatype");
+    H5T_VLOCK_ACQUIRE_R(dt);
 
     /* Get precision */
     if ((ret_value = H5T_get_precision(dt)) == 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_UNSUPPORTED, 0, "can't get precision for specified datatype");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tget_precision() */
 
@@ -129,6 +133,8 @@ H5Tset_precision(hid_t type_id, size_t prec)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (H5T_STATE_TRANSIENT != dt->shared->state)
         HGOTO_ERROR(H5E_ARGS, H5E_CANTSET, FAIL, "datatype is read-only");
     if (NULL != dt->vol_obj)
@@ -147,6 +153,9 @@ H5Tset_precision(hid_t type_id, size_t prec)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTSET, FAIL, "unable to set precision");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 }
 

@@ -78,18 +78,26 @@ H5Tget_native_type(hid_t type_id, H5T_direction_t direction)
     /* Check arguments */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a data type");
+    H5T_VLOCK_ACQUIRE_R(dt);
+
     if (direction != H5T_DIR_DEFAULT && direction != H5T_DIR_ASCEND && direction != H5T_DIR_DESCEND)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not valid direction value");
 
     /* Get the native type */
     if (NULL == (new_dt = H5T__get_native_type(dt, direction, NULL, NULL, &comp_size)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "cannot retrieve native type");
+    H5T_VLOCK_ACQUIRE_R(new_dt);
 
     /* Get an ID for the new type */
     if ((ret_value = H5I_register(H5I_DATATYPE, new_dt, TRUE)) < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTREGISTER, H5I_INVALID_HID, "unable to register data type");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+    if (new_dt)
+        H5T_VLOCK_RELEASE_R(new_dt);
+
     /* Error cleanup */
     if (ret_value < 0)
         if (new_dt && H5T_close_real(new_dt) < 0)
@@ -213,20 +221,21 @@ H5T__get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_ali
 
             if (NULL == (ret_value = H5T_copy(dtype, H5T_COPY_TRANSIENT)))
                 HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "cannot copy reference type");
-
             /* Decide if the data type is object reference. */
             if (NULL == (dt = (H5T_t *)H5I_object(H5T_STD_REF_OBJ_g)))
                 HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a data type");
-
+            H5T_VLOCK_ACQUIRE_R(dt);
             /* Update size, offset and compound alignment for parent. */
             if (0 == H5T_cmp(ret_value, dt, FALSE)) {
                 align    = H5T_HOBJREF_ALIGN_g;
                 ref_size = sizeof(hobj_ref_t);
             } /* end if */
             else {
+                H5T_VLOCK_RELEASE_R(dt);
                 /* Decide if the data type is dataset region reference. */
                 if (NULL == (dt = (H5T_t *)H5I_object(H5T_STD_REF_DSETREG_g)))
                     HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a data type");
+                H5T_VLOCK_ACQUIRE_R(dt);
 
                 if (0 == H5T_cmp(ret_value, dt, FALSE)) {
                     align    = H5T_HDSETREGREF_ALIGN_g;
@@ -237,6 +246,7 @@ H5T__get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_ali
                     align    = H5T_REF_ALIGN_g;
                     ref_size = sizeof(H5R_ref_t);
                 } /* end else */
+                H5T_VLOCK_RELEASE_R(dt);
             }     /* end else */
 
             if (H5T__cmp_offset(comp_size, offset, ref_size, (size_t)1, align, struct_align) < 0)
@@ -265,6 +275,7 @@ H5T__get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_ali
             for (u = 0; u < nmemb; u++) {
                 if (NULL == (memb_type = H5T_get_member_type(dtype, u)))
                     HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "member type retrieval failed");
+                H5T_VLOCK_ACQUIRE_R(memb_type);
 
                 if (NULL == (comp_mname[u] = H5T__get_member_name(dtype, u)))
                     HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "member type retrieval failed");
@@ -273,8 +284,12 @@ H5T__get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_ali
                                                                  &(memb_offset[u]), &children_size)))
                     HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "member identifier retrieval failed");
 
+                H5T_VLOCK_RELEASE_R(memb_type);
+
                 if (H5T_close_real(memb_type) < 0)
                     HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "cannot close datatype");
+                
+                memb_type = NULL;
             } /* end for */
 
             /* The alignment for whole compound type */
@@ -489,6 +504,9 @@ H5T__get_native_type(H5T_t *dtype, H5T_direction_t direction, size_t *struct_ali
     } /* end switch */
 
 done:
+    if (memb_type)
+        H5T_VLOCK_RELEASE_R(memb_type);
+
     /* Error cleanup */
     if (NULL == ret_value) {
         if (new_type)
@@ -663,14 +681,23 @@ H5T__get_native_integer(size_t prec, H5T_sign_t sign, H5T_direction_t direction,
     if (NULL == (dt = (H5T_t *)H5I_object(tid)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a data type");
 
+    H5T_VLOCK_ACQUIRE_R(dt);
+
     if (NULL == (ret_value = H5T_copy(dt, H5T_COPY_TRANSIENT)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "cannot copy type");
+
+    H5T_VLOCK_ACQUIRE_R(ret_value);
 
     /* compute size and offset of compound type member. */
     if (H5T__cmp_offset(comp_size, offset, native_size, (size_t)1, align, struct_align) < 0)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "cannot compute compound offset");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+    if (ret_value)
+        H5T_VLOCK_RELEASE_R(ret_value);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T__get_native_integer() */
 H5_GCC_DIAG_ON("duplicated-branches")
@@ -773,14 +800,23 @@ H5T__get_native_float(size_t size, H5T_direction_t direction, size_t *struct_ali
     assert(tid >= 0);
     if (NULL == (dt = (H5T_t *)H5I_object(tid)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a data type");
+    H5T_VLOCK_ACQUIRE_R(dt);
+
     if ((ret_value = H5T_copy(dt, H5T_COPY_TRANSIENT)) == NULL)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "cannot retrieve float type");
+
+    H5T_VLOCK_ACQUIRE_R(ret_value);
 
     /* compute offset of compound type member. */
     if (H5T__cmp_offset(comp_size, offset, native_size, (size_t)1, align, struct_align) < 0)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "cannot compute compound offset");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+    if (ret_value)
+        H5T_VLOCK_RELEASE_R(ret_value);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T__get_native_float() */
 H5_GCC_DIAG_ON("duplicated-branches")
@@ -872,14 +908,23 @@ H5T__get_native_bitfield(size_t prec, H5T_direction_t direction, size_t *struct_
     if (NULL == (dt = (H5T_t *)H5I_object(tid)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a data type");
 
+    H5T_VLOCK_ACQUIRE_R(dt);
+
     if ((ret_value = H5T_copy(dt, H5T_COPY_TRANSIENT)) == NULL)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "cannot copy type");
+
+    H5T_VLOCK_ACQUIRE_R(ret_value);
 
     /* compute size and offset of compound type member. */
     if (H5T__cmp_offset(comp_size, offset, native_size, (size_t)1, align, struct_align) < 0)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "cannot compute compound offset");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+    if (ret_value)
+        H5T_VLOCK_RELEASE_R(ret_value);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T__get_native_bitfield() */
 H5_GCC_DIAG_ON("duplicated-branches")

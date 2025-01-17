@@ -186,6 +186,8 @@ H5Tset_order(hid_t type_id, H5T_order_t order)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_DATATYPE, H5E_BADTYPE, FAIL, "not a datatype");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     if (order < H5T_ORDER_LE || order > H5T_ORDER_NONE || order == H5T_ORDER_MIXED)
         HGOTO_ERROR(H5E_DATATYPE, H5E_BADVALUE, FAIL, "illegal byte order");
     if (NULL != dt->vol_obj)
@@ -198,6 +200,9 @@ H5Tset_order(hid_t type_id, H5T_order_t order)
         HGOTO_ERROR(H5E_DATATYPE, H5E_UNSUPPORTED, FAIL, "can't set order");
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tset_order() */
 

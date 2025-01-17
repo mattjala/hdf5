@@ -151,16 +151,23 @@ H5Tvlen_create(hid_t base_id)
     /* Check args */
     if (NULL == (base = (H5T_t *)H5I_object_verify(base_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not an valid base datatype");
+    H5T_VLOCK_ACQUIRE_R(base);
 
     /* Create up VL datatype */
     if ((dt = H5T__vlen_create(base)) == NULL)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, FAIL, "invalid VL location");
+    H5T_VLOCK_ACQUIRE_R(dt);
 
     /* Register the type */
     if ((ret_value = H5I_register(H5I_DATATYPE, dt, TRUE)) < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTREGISTER, FAIL, "unable to register datatype");
 
 done:
+    if (base)
+        H5T_VLOCK_RELEASE_R(base);
+    if (dt)
+        H5T_VLOCK_RELEASE_R(dt);
+
     FUNC_LEAVE_API(ret_value)
 } /* end H5Tvlen_create() */
 
@@ -190,6 +197,8 @@ H5T__vlen_create(const H5T_t *base)
     /* Build new type */
     if (NULL == (dt = H5T__alloc()))
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTALLOC, NULL, "memory allocation failed");
+    H5T_VLOCK_ACQUIRE_W(dt);
+
     dt->shared->type = H5T_VLEN;
 
     /*
@@ -214,6 +223,9 @@ H5T__vlen_create(const H5T_t *base)
     ret_value = dt;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     if (!ret_value)
         if (dt && H5T_close_real(dt) < 0)
             HDONE_ERROR(H5E_DATATYPE, H5E_CANTRELEASE, NULL, "unable to release datatype info");
