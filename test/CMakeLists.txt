@@ -984,6 +984,13 @@ if (HDF5_ENABLE_MULTITHREAD)
     ${HDF5_MT_PASSTHRU_WRAPPER_HEADERS}
   )
   
+  target_include_directories(mt_passthru_wrapper_vol_connector
+  PRIVATE
+    #${HDF5_SRC_DIR}
+    ${HDF5_SRC_BINARY_DIR}
+    ${HDF5_SRC_INCLUDE_DIRS}
+  )
+
   target_link_libraries(mt_passthru_wrapper_vol_connector
     PUBLIC
       ${HDF5_LIB_TARGET}
@@ -1008,7 +1015,9 @@ if (HDF5_ENABLE_MULTITHREAD)
 
   target_include_directories(mt_native_wrapper_vol_connector
     PRIVATE
-      ${HDF5_SRC_DIR}
+      #${HDF5_SRC_DIR}
+      ${HDF5_SRC_BINARY_DIR}
+      ${HDF5_SRC_INCLUDE_DIRS}
   )
 
   target_link_libraries(mt_native_wrapper_vol_connector
