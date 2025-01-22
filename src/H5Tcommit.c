@@ -587,14 +587,10 @@ H5Tcommitted(hid_t type_id)
     if (NULL == (type = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
 
-    H5T_VLOCK_ACQUIRE_R(type);
-
     /* Set return value */
     ret_value = H5T_is_named(type);
 
 done:
-    if (type)
-        H5T_VLOCK_RELEASE_R(type);
 
     FUNC_LEAVE_API_NO_MUTEX(ret_value)
 } /* end H5Tcommitted() */
@@ -792,7 +788,6 @@ H5Tget_create_plist(hid_t dtype_id)
     /* Check arguments */
     if (NULL == (type = (H5T_t *)H5I_object_verify(dtype_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, H5I_INVALID_HID, "not a datatype");
-    H5T_VLOCK_ACQUIRE_R(type);
 
     /* Check if the datatype is committed */
     if (FAIL == (is_named = H5T_is_named(type)))
@@ -834,9 +829,6 @@ H5Tget_create_plist(hid_t dtype_id)
     } /* end else */
 
 done:
-    if (type)
-        H5T_VLOCK_RELEASE_R(type);
-
     FUNC_LEAVE_API_NO_MUTEX(ret_value)
 } /* end H5Tget_create_plist() */
 
@@ -861,7 +853,6 @@ H5Tflush(hid_t type_id)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
-    H5T_VLOCK_ACQUIRE_R(dt);
 
     if (!H5T_is_named(dt))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a committed datatype");
@@ -887,8 +878,6 @@ H5Tflush(hid_t type_id)
     }
 
 done:
-    if (dt)
-        H5T_VLOCK_RELEASE_R(dt);
 
     FUNC_LEAVE_API_NO_MUTEX(ret_value)
 } /* H5Tflush */
