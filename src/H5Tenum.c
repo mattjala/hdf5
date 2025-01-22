@@ -442,7 +442,7 @@ done:
 herr_t
 H5Tenum_valueof(hid_t type, const char *name, void *value /*out*/)
 {
-    H5T_t *dt;
+    H5T_t *dt = NULL;
     herr_t ret_value = SUCCEED; /* Return value */
 
     FUNC_ENTER_API(FAIL)
