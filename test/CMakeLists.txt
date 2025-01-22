@@ -983,11 +983,20 @@ if (HDF5_ENABLE_MULTITHREAD)
     ${HDF5_MT_PASSTHRU_WRAPPER_SOURCES}
     ${HDF5_MT_PASSTHRU_WRAPPER_HEADERS}
   )
-  
-  target_link_libraries(mt_passthru_wrapper_vol_connector
+
+  if (BUILD_SHARED_LIBS)
+    target_link_libraries(mt_passthru_wrapper_vol_connector
     PUBLIC
-      ${HDF5_LIB_TARGET}
-  )
+      ${HDF5_LIBSH_TARGET}
+    )
+  endif ()
+
+  if (BUILD_STATIC_LIBS)
+    target_link_libraries(mt_passthru_wrapper_vol_connector
+      PUBLIC
+        ${HDF5_LIB_TARGET}
+    )
+  endif ()
 
   target_compile_options(mt_passthru_wrapper_vol_connector PRIVATE "${HDF5_CMAKE_C_FLAGS}")
 
@@ -1011,10 +1020,19 @@ if (HDF5_ENABLE_MULTITHREAD)
       ${HDF5_SRC_DIR}
   )
 
-  target_link_libraries(mt_native_wrapper_vol_connector
-    PUBLIC
-      ${HDF5_LIB_TARGET}
-  )
+  if (BUILD_SHARED_LIBS)
+    target_link_libraries(mt_native_wrapper_vol_connector
+      PUBLIC
+      ${HDF5_LIBSH_TARGET}
+    )
+  endif ()
+
+  if (BUILD_STATIC_LIBS)    
+    target_link_libraries(mt_native_wrapper_vol_connector
+      PUBLIC
+        ${HDF5_LIB_TARGET}
+    )
+  endif ()
 
   target_compile_options(mt_native_wrapper_vol_connector PRIVATE "${HDF5_CMAKE_C_FLAGS}")
 
