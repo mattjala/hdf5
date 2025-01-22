@@ -914,7 +914,6 @@ H5Trefresh(hid_t type_id)
     /* Check args */
     if (NULL == (dt = (H5T_t *)H5I_object_verify(type_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
-    H5T_VLOCK_ACQUIRE_W(dt);
 
     if (!H5T_is_named(dt))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a committed datatype");
@@ -940,8 +939,6 @@ H5Trefresh(hid_t type_id)
     }
 
 done:
-    if (dt)
-        H5T_VLOCK_RELEASE_W(dt);
 
     FUNC_LEAVE_API_NO_MUTEX(ret_value)
 } /* H5Trefresh */
@@ -1409,7 +1406,10 @@ H5T_save_refresh_state(hid_t tid, H5O_shared_t *cached_H5O_shared)
     vol_dt = H5T_get_actual_type(dt);
     if (NULL == vol_dt)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "tid is not not a named datatype ID");
-    H5T_VLOCK_ACQUIRE_W(vol_dt);
+    /* Avoid double-locking if datatypes are the same */
+    if (memcmp(dt, vol_dt, sizeof(H5T_t)) != 0)
+        H5T_VLOCK_ACQUIRE_W(vol_dt);
+
     /* Increase the count on the file object */
     vol_dt->shared->fo_count += 1;
 
@@ -1423,8 +1423,8 @@ H5T_save_refresh_state(hid_t tid, H5O_shared_t *cached_H5O_shared)
 done:
     if (dt)
         H5T_VLOCK_RELEASE_R(dt);
-    if (vol_dt)
-        H5T_VLOCK_RELEASE_W(dt);
+    if (vol_dt && (memcmp(dt, vol_dt, sizeof(H5T_t)) != 0))
+        H5T_VLOCK_RELEASE_W(vol_dt);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5T_save_refresh_state() */
@@ -1457,7 +1457,9 @@ H5T_restore_refresh_state(hid_t tid, H5O_shared_t *cached_H5O_shared)
     if (NULL == vol_dt)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "tid is not not a named datatype ID");
 
-    H5T_VLOCK_ACQUIRE_W(vol_dt);
+    /* Avoid double-locking if datatypes are the same */
+    if (memcmp(dt, vol_dt, sizeof(H5T_t)) != 0)
+        H5T_VLOCK_ACQUIRE_W(vol_dt);
 
     /* Restore the H5O_shared_t data */
     H5MM_memcpy(&(vol_dt->sh_loc), cached_H5O_shared, sizeof(H5O_shared_t));
@@ -1472,7 +1474,7 @@ H5T_restore_refresh_state(hid_t tid, H5O_shared_t *cached_H5O_shared)
 done:
     if (dt)
         H5T_VLOCK_RELEASE_R(dt);
-    if (vol_dt)
+    if (vol_dt && (memcmp(dt, vol_dt, sizeof(H5T_t)) != 0))
         H5T_VLOCK_RELEASE_W(vol_dt);
 
     FUNC_LEAVE_NOAPI(ret_value)
