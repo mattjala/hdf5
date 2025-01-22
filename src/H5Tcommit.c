@@ -1098,6 +1098,7 @@ H5T_open(const H5G_loc_t *loc)
         /* Open the datatype object */
         if (NULL == (dt = H5T__open_oid(loc)))
             HGOTO_ERROR(H5E_DATATYPE, H5E_NOTFOUND, NULL, "not found");
+        H5T_VLOCK_ACQUIRE_W(dt);
 
         /* Add the datatype to the list of opened objects in the file */
         if (H5FO_insert(dt->sh_loc.file, dt->sh_loc.u.loc.oh_addr, dt->shared, FALSE) < 0)
@@ -1117,6 +1118,9 @@ H5T_open(const H5G_loc_t *loc)
     else {
         if (NULL == (dt = H5FL_MALLOC_MT(H5T_t)))
             HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, NULL, "can't allocate space for datatype");
+        H5T_VLOCK_INIT(dt);
+        H5T_VLOCK_ACQUIRE_W(dt);
+
         dt->vol_obj = NULL;
 
 #if defined(H5_USING_MEMCHECKER) || !defined(NDEBUG)
@@ -1165,6 +1169,9 @@ H5T_open(const H5G_loc_t *loc)
     ret_value = dt;
 
 done:
+    if (dt)
+        H5T_VLOCK_RELEASE_W(dt);
+
     if (ret_value == NULL) {
         if (dt) {
             if (shared_fo == NULL) { /* Need to free shared file object */
