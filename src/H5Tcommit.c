@@ -1215,7 +1215,6 @@ H5T__open_oid(const H5G_loc_t *loc)
     if (NULL == (dt = (H5T_t *)H5O_msg_read(loc->oloc, H5O_DTYPE_ID, NULL)))
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, NULL, "unable to load type message from object header");
 
-    H5T_VLOCK_INIT(dt);
     H5T_VLOCK_ACQUIRE_W(dt);
 
     /* Mark the type as named and open */
