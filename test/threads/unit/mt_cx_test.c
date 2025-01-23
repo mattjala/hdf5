@@ -23,7 +23,7 @@ void *mt_test_api_ctx_vol_wrap_ctx_helper(void *arg);
 
 /* Test that the API Context's handling of the VOL Connector property is safe when executing in parallel
 */
-void mt_test_api_ctx_vol_conn_prop(void) {
+void mt_test_api_ctx_vol_conn_prop(void H5_ATTR_UNUSED *args) {
 #ifndef H5_MT_TEST_VOL_DIR
     printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
     return;
@@ -107,7 +107,7 @@ void *mt_test_api_ctx_vol_conn_prop_helper(void *args) {
 
 /* Test that the API Context's handling of the VOL wrap context is safe when executing in parallel
  */
-void mt_test_api_ctx_vol_wrap_ctx(void) {
+void mt_test_api_ctx_vol_wrap_ctx(void H5_ATTR_UNUSED *args) {
 #ifndef H5_MT_TEST_VOL_DIR
     printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
     return;
