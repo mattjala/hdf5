@@ -317,10 +317,10 @@ H5_DLL void H5S_vlock_release(H5S_t *space, H5TS_vlock_op_type_t op_type);
 
 #else /* H5_HAVE_VIRTUAL_LOCK */
 #define H5S_VLOCK_INIT(space)
-#define H5S_VLOCK_ACQUIRE_W
-#define H5S_VLOCK_ACQUIRE_R
-#define H5S_VLOCK_RELEASE_W
-#define H5S_VLOCK_RELEASE_R
+#define H5S_VLOCK_ACQUIRE_W(dt) (void) dt
+#define H5S_VLOCK_ACQUIRE_R(dt) (void) dt
+#define H5S_VLOCK_RELEASE_W(dt) (void) dt
+#define H5S_VLOCK_RELEASE_R(dt) (void) dt
 #endif /* H5_HAVE_VIRTUAL_LOCK */
 
 #endif /* H5Sprivate_H */

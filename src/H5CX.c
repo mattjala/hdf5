@@ -444,11 +444,11 @@ static void H5CX__vlock_release(H5CX_t *ctx, H5TS_vlock_op_type_t op_type);
 
 #else /* H5_HAVE_VIRTUAL_LOCK */
 
-#define H5CX_VLOCK_INIT(ctx)
-#define H5CX_VLOCK_ACQUIRE_W(ctx)
-#define H5CX_VLOCK_ACQUIRE_R(ctx)
-#define H5CX_VLOCK_RELEASE_W(ctx)
-#define H5CX_VLOCK_RELEASE_R(ctx)
+#define H5CX_VLOCK_INIT(ctx) (void) ctx
+#define H5CX_VLOCK_ACQUIRE_W(ctx) (void) ctx
+#define H5CX_VLOCK_ACQUIRE_R(ctx) (void) ctx
+#define H5CX_VLOCK_RELEASE_W(ctx) (void) ctx
+#define H5CX_VLOCK_RELEASE_R(ctx) (void) ctx
 
 #endif /* H5_HAVE_VIRTUAL_LOCK */
 
