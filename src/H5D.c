@@ -137,14 +137,10 @@ H5D__create_api_common(hid_t loc_id, const char *name, hid_t type_id, hid_t spac
     }
 
     /* Set the DCPL for the API context */
-    H5_API_LOCK
     H5CX_set_dcpl(dcpl_id);
-    H5_API_UNLOCK
 
     /* Set the LCPL for the API context */
-    H5_API_LOCK
     H5CX_set_lcpl(lcpl_id);
-    H5_API_UNLOCK
 
     /* Create the dataset */
     if (NULL == (dset = H5VL_dataset_create(*vol_obj_ptr, &loc_params, name, lcpl_id, type_id, space_id,
@@ -329,14 +325,10 @@ H5Dcreate_anon(hid_t loc_id, hid_t type_id, hid_t space_id, hid_t dcpl_id, hid_t
     }
 
     /* Set the DCPL for the API context */
-    H5_API_LOCK
     H5CX_set_dcpl(dcpl_id);
-    H5_API_UNLOCK
 
     /* Verify access property list and set up collective metadata if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_apl(&dapl_id, H5P_CLS_DACC, loc_id, TRUE);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, H5I_INVALID_HID, "can't set access property list info");
@@ -2078,9 +2070,7 @@ H5D__set_extent_api_common(hid_t dset_id, const hsize_t size[], void **token_ptr
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "size array cannot be NULL");
 
     /* Set up collective metadata if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_loc(dset_id);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, FAIL, "can't set collective metadata read info");
@@ -2188,9 +2178,7 @@ H5Dflush(hid_t dset_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "dset_id parameter is not a valid dataset identifier");
 
     /* Set up collective metadata if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_loc(dset_id);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, FAIL, "can't set collective metadata read info");
@@ -2234,9 +2222,7 @@ H5Drefresh(hid_t dset_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "dset_id parameter is not a valid dataset identifier");
 
     /* Set up collective metadata if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_loc(dset_id);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, FAIL, "can't set collective metadata read info");
@@ -2282,9 +2268,7 @@ H5Dformat_convert(hid_t dset_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "dset_id parameter is not a valid dataset identifier");
 
     /* Set up collective metadata if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_loc(dset_id);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_DATASET, H5E_CANTSET, FAIL, "can't set collective metadata read info");

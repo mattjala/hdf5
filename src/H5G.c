@@ -188,9 +188,7 @@ H5G__create_api_common(hid_t loc_id, const char *name, hid_t lcpl_id, hid_t gcpl
     }
 
     /* Set the LCPL for the API context */
-    H5_API_LOCK
     H5CX_set_lcpl(lcpl_id);
-    H5_API_UNLOCK
 
     /* Create the group */
     if (NULL == (grp = H5VL_group_create(*vol_obj_ptr, &loc_params, name, lcpl_id, gcpl_id, gapl_id,
@@ -370,9 +368,7 @@ H5Gcreate_anon(hid_t loc_id, hid_t gcpl_id, hid_t gapl_id)
     }
 
     /* Verify access property list and set up collective metadata if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_apl(&gapl_id, H5P_CLS_GACC, loc_id, TRUE);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_SYM, H5E_CANTSET, H5I_INVALID_HID, "can't set access property list info");
@@ -1040,9 +1036,7 @@ H5Gflush(hid_t group_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a group ID");
 
     /* Set up collective metadata if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_loc(group_id);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_SYM, H5E_CANTSET, FAIL, "can't set collective metadata read info");
@@ -1083,9 +1077,7 @@ H5Grefresh(hid_t group_id)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a group ID");
 
     /* Set up collective metadata if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_loc(group_id);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_SYM, H5E_CANTSET, FAIL, "can't set collective metadata read info");

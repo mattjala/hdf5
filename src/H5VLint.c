@@ -2593,9 +2593,7 @@ H5VL_free_lib_state(void *state)
     assert(state);
 
     /* Free the API context state */
-    H5_API_LOCK
     ret_value = H5CX_free_state((H5CX_state_t *)state);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTRELEASE, FAIL, "can't free API context state");
@@ -3062,9 +3060,7 @@ H5VL_setup_args(hid_t loc_id, H5I_type_t id_type, H5VL_object_t **vol_obj)
         HGOTO_ERROR(H5E_VOL, H5E_BADTYPE, FAIL, "not the correct type of ID");
 
     /* Set up collective metadata (if appropriate) */
-    H5_API_LOCK
     ret_value = H5CX_set_loc(loc_id);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't set collective metadata read");
@@ -3098,9 +3094,7 @@ H5VL_setup_loc_args(hid_t loc_id, H5VL_object_t **vol_obj, H5VL_loc_params_t *lo
         HGOTO_ERROR(H5E_VOL, H5E_BADTYPE, FAIL, "not the correct type of ID");
 
     /* Set up collective metadata (if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_loc(loc_id);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't set collective metadata read");
@@ -3137,9 +3131,7 @@ H5VL_setup_acc_args(hid_t loc_id, const H5P_libclass_t *libclass, hbool_t is_col
     assert(loc_params);
 
     /* Verify access property list and set up collective metadata if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_apl(acspl_id, libclass, loc_id, is_collective);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't set access property list info");
@@ -3216,9 +3208,7 @@ H5VL_setup_name_args(hid_t loc_id, const char *name, hbool_t is_collective, hid_
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "name parameter cannot be an empty string");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, is_collective);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't set access property list info");
@@ -3270,9 +3260,7 @@ H5VL_setup_idx_args(hid_t loc_id, const char *name, H5_index_t idx_type, H5_iter
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid iteration order specified");
 
     /* Verify access property list and set up collective metadata if appropriate */
-    H5_API_LOCK
     ret_value = H5CX_set_apl(&lapl_id, H5P_CLS_LACC, loc_id, is_collective);
-    H5_API_UNLOCK
 
     if (ret_value < 0)
         HGOTO_ERROR(H5E_VOL, H5E_CANTSET, FAIL, "can't set access property list info");
