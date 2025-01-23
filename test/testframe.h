@@ -104,6 +104,13 @@
             printf A;                                                                                        \
     } while (0)
 
+/* Environment variable for specifying the maximum number of threads
+ * that a test can spawn in addition to the main thread. The value
+ * is interpreted as a 'long' value. Refer to GetTestMaxNumThreads()
+ * for the allowed values.
+ */
+#define HDF5_TEST_MAX_NUM_THREADS "HDF5_TEST_MAX_NUM_THREADS"
+
 /************/
 /* Typedefs */
 /************/
