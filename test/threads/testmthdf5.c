@@ -123,7 +123,10 @@ int main(int argc, char *argv[])
     TestAlarmOn();
 
     /* Parse command line arguments */
-    TestParseCmdLine(argc, argv);
+    if (TestParseCmdLine(argc, argv) < 0) {
+        fprintf(stderr, "Error occurred while parsing command-line arguments\n");
+        goto exit;
+    }
 
     /* Perform requested testing */
     PerformTests();
@@ -132,6 +135,7 @@ int main(int argc, char *argv[])
     if (GetTestSummary())
         TestSummary(stdout);
 
+exit:
     /* TODO: Refactor TestAlarmOff to accept specific timeout */
     TestAlarmOff();
 

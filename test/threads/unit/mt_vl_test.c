@@ -46,7 +46,7 @@ void *mt_test_search_search_by_value_helper(void *args);
 
 /* Concurrently register and unregister the same VOL connector from multiple
  * threads. */
-void mt_test_registration(const void *args) {
+void mt_test_registration(void *args) {
   hid_t *vol_ids;
   herr_t ret = SUCCEED;
   const mt_test_params *params = (const mt_test_params *) args;
@@ -75,7 +75,7 @@ void mt_test_registration(const void *args) {
 
 /* Concurrently register and unregister the same VOL connector by name from multiple
  * threads. */
-void mt_test_registration_by_name(const void *args) {
+void mt_test_registration_by_name(void *args) {
 #ifndef H5_MT_TEST_VOL_DIR
   printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
   return;
@@ -96,7 +96,7 @@ void mt_test_registration_by_name(const void *args) {
     vol_ids[i] = H5VLregister_connector_by_name(NULL_VOL_CONNECTOR_NAME, H5P_DEFAULT);
 
     if (vol_ids[i] == H5I_INVALID_HID)
-      TestErrPrintf("Failed to register VOL connector by name (Make sure test is run from 'test' directory)\n");
+      TestErrPrintf("Failed to register VOL connector by name\n");
   }
 
   for (size_t i = 0; i < params->num_repetitions; i++) {
@@ -113,7 +113,7 @@ void mt_test_registration_by_name(const void *args) {
 
 /* Concurrently register and unregister the same VOL connector by value from multiple
  * threads. */
-void mt_test_registration_by_value(const void *args) {
+void mt_test_registration_by_value(void *args) {
 #ifndef H5_MT_TEST_VOL_DIR
   printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
   return;
@@ -135,7 +135,7 @@ void mt_test_registration_by_value(const void *args) {
                                                       H5P_DEFAULT);
     
     if (vol_ids[i] == H5I_INVALID_HID)
-      TestErrPrintf("Failed to register VOL connector by value (Make sure test is run from 'test' directory)\n");
+      TestErrPrintf("Failed to register VOL connector by value\n");
   }
 
   for (size_t i = 0; i < params->num_repetitions; i++) {
@@ -150,7 +150,7 @@ void mt_test_registration_by_value(const void *args) {
 }
 
 /* Test concurrent registration and unregistration of dynamic VOL operations */
-void mt_test_dyn_op_registration(const void H5_ATTR_UNUSED *args) {
+void mt_test_dyn_op_registration(void H5_ATTR_UNUSED *args) {
   herr_t registration_result = FAIL;
   hid_t vol_id = H5I_INVALID_HID;
   H5VL_subclass_t subcls = H5VL_SUBCLS_NONE;
@@ -234,7 +234,7 @@ H5VL_subclass_t mt_test_dyn_op_get_vol_subclass(size_t index) {
 }
 
 /* Test concurrent registration of a VOL connector with usage of one of its callbacks */
-void mt_test_registration_operation(const void *args) {
+void mt_test_registration_operation(void *args) {
   hid_t file_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
   
@@ -314,7 +314,7 @@ void mt_test_registration_operation_cleanup(void H5_ATTR_UNUSED *args) {
 
 /* Test that upon file open failure, loading an available VOL connector from
  * H5PL works in a multi-threaded environment */
-void mt_test_file_open_failure_registration(const void H5_ATTR_UNUSED *args) {
+void mt_test_file_open_failure_registration(void H5_ATTR_UNUSED *args) {
 #ifndef H5_MT_TEST_VOL_DIR
   printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
   return;
@@ -348,7 +348,7 @@ void mt_test_file_open_failure_registration(const void H5_ATTR_UNUSED *args) {
   H5E_END_TRY;
 
   if (file_id < 0) {
-    TestErrPrintf("Failed to load and use dynamic VOL connector (Make sure test is run from 'test' directory)\n");
+    TestErrPrintf("Failed to load and use dynamic VOL connector\n");
   }
 
   /* Clean up library-internal state for fake file */
@@ -377,7 +377,7 @@ done:
 
 /* Test that implicit copying of a VOL connector property on a FAPL is handled
  * correctly */
-void mt_test_vol_property_copy(const void *args) {
+void mt_test_vol_property_copy(void *args) {
   hid_t fapl_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
 
@@ -443,7 +443,7 @@ typedef struct mt_test_reg_helper_args {
  * - Threads searching for that connector by name
  * - Threads searching for that connector by value 
  */
-void mt_test_register_and_search(const void *args) {
+void mt_test_register_and_search(void *args) {
   int threads_per_group;
   int i;
   mt_test_reg_helper_args helper_args;
@@ -592,7 +592,7 @@ void *mt_test_search_search_by_value_helper(void *args) {
 }
 
 /* Test concurrent usage of library state routines */
-void mt_test_lib_state_ops(const void H5_ATTR_UNUSED *args) {
+void mt_test_lib_state_ops(void H5_ATTR_UNUSED *args) {
   void *lib_state = NULL;
   herr_t ret = SUCCEED;
 
@@ -625,7 +625,7 @@ void mt_test_lib_state_ops(const void H5_ATTR_UNUSED *args) {
  *
  * TBD: This largsely depends on the get_wrap_ctx()/free_wrap_ctx() callbacks of the active connector(s), and
  * so should probably have a counterpart placed in the API tests for use with various VOL connectors. */
-void mt_test_vol_wrap_ctx(const void *args) {
+void mt_test_vol_wrap_ctx(void *args) {
   hid_t file_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
   hid_t fapl_id = H5I_INVALID_HID;
@@ -738,7 +738,7 @@ void mt_test_vol_wrap_ctx_cleanup(void H5_ATTR_UNUSED *args) {
  *
  * TBD: This largsely depends on the connector callbacks of the active connector(s), and
  * so should probably have a counterpart placed in the API tests for use with various VOL connectors. */
-void mt_test_vol_info(const void H5_ATTR_UNUSED *args) {
+void mt_test_vol_info(void H5_ATTR_UNUSED *args) {
   H5VL_pass_through_info_t vol_info = {H5VL_NATIVE, NULL};
   void *vol_info2 = NULL;
   hid_t vol_id = H5I_INVALID_HID;
