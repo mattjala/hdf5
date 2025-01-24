@@ -13,6 +13,10 @@ set (HDF5_TEST_MT_HEADERS
     testmthdf5.h
 )
 
+add_test(NAME testmthdf5_maxthreads_none COMMAND testmthdf5)
+add_test(NAME testmthdf5_maxthreads_1 COMMAND testmthdf5 -maxthreads 1)
+add_test(NAME testmthdf5_maxthreads_16 COMMAND testmthdf5 -maxthreads 16)
+
 #--------------------------------
 # Build the main MT test executable
 #--------------------------------
