@@ -41,12 +41,12 @@ jobs:
                         - "mt_native_wrapper_vol_connector"                                         # MT Native Wrapper
                         - "pass_through under_vol=0\\;under_info={}"                                # Passthru -> Native
                         - "pass_through under_vol=162\\;under_info={}"                              # Passthru -> MT Native Wrapper
-                        - "mt_passthru_wrapper_vol_connector under_vol=0\\;under_info={}"           # MT Passthru -> Native
-                        - "mt_passthru_wrapper_vol_connector under_vol=162\\;under_info={}"         # MT Passthru -> MT Native Wrapper
+                        - "mt_passthru_vol_connector under_vol=0\\;under_info={}"           # MT Passthru -> Native
+                        - "mt_passthru_vol_connector under_vol=162\\;under_info={}"         # MT Passthru -> MT Native Wrapper
                         - "pass_through under_vol=163\\;under_info={under_vol=0\\;under_info={}}"   # Passthru -> MT Passthru -> Native
                         - "pass_through under_vol=163\\;under_info={under_vol=162\\;under_info={}}" # Passthru -> MT Passthru -> MT Native Wrapper
-                        - "mt_passthru_wrapper_vol_connector under_vol=1\\;under_info={under_vol=0\\;under_info={}}" # MT Passthru -> Passthru -> Native
-                        - "mt_passthru_wrapper_vol_connector under_vol=1\\;under_info={under_vol=162\\;under_info={}}" # MT Passthru -> Passthru -> MT Native Wrapper
+                        - "mt_passthru_vol_connector under_vol=1\\;under_info={under_vol=0\\;under_info={}}" # MT Passthru -> Passthru -> Native
+                        - "mt_passthru_vol_connector under_vol=1\\;under_info={under_vol=162\\;under_info={}}" # MT Passthru -> Passthru -> MT Native Wrapper
 
             fail-fast: false
 
