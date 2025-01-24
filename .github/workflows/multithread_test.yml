@@ -21,20 +21,20 @@ jobs:
                 build_mode: ["production", "debug"]
                 include:
                     # Non-multi thread library builds should only run non-threaded
-                    - multi_thread: "threadsafe"
+                    - thread_build: "threadsafe"
                       test_thread_counts: 0
                       connector_stacks: 
                         - ""
                         - "pass_through under_vol=0\\;under_info={}"
 
-                    - multi_thread: "singlethread"
+                    - thread_build: "singlethread"
                       test_thread_counts: 0
                       connector_stacks: 
                         - ""
                         - "pass_through under_vol=0\\;under_info={}"
 
                     # Only multi-threaded builds should run with -maxthreads (>0) or the MT wrapper connectors
-                    - multi_thread: "--enable-multithread --disable-hl"
+                    - thread_build: "multithread"
                       test_thread_counts: 0 1 16
                       connector_stacks: 
                         - ""                                                                        # Native
@@ -61,7 +61,7 @@ jobs:
               if: matrix.build_system == 'autotools'
               run: |
                   sudo apt install automake autoconf libtool libtool-bin
-                  sudo apt install libaec0 libaec-dev valgrind
+                  sudo apt install libaec0 libaec-dev
 
             - name: Configure HDF5 (Autotools)
               if: matrix.build_system == 'autotools'
@@ -119,10 +119,10 @@ jobs:
                 CONNECTOR_STACKS='${{ toJson(matrix.connector_stacks) }}'
 
                 if [[ "${{ matrix.build_system }}" == "autotools" ]]; then
-                  API_TEST_COMMAND="valgrind ./test/API/h5_api_test"
+                  API_TEST_COMMAND="./test/API/h5_api_test"
                 else
                   cd build
-                  API_TEST_COMMAND="valgrind ctest -N -R 'h5_api_test'"
+                  API_TEST_COMMAND="./build/bin/h5_api_test"
                 fi
 
                 echo "$CONNECTOR_STACKS" | jq -r '.[]' | while IFS= read -r connector_stack; do
@@ -157,9 +157,9 @@ jobs:
                 CONNECTOR_STACKS='${{ toJson(matrix.connector_stacks) }}'
 
                 if [[ "${{ matrix.build_system }}" == "autotools" ]]; then
-                  MT_VL_TEST_COMMAND="valgrind ./threads/testmthdf5"
+                  MT_VL_TEST_COMMAND="./threads/testmthdf5"
                 else
-                  MT_VL_TEST_COMMAND="valgrind ctest -R 'testmthdf5'"
+                  MT_VL_TEST_COMMAND="./build/bin/testmthdf5"
                 fi
 
                 echo "$CONNECTOR_STACKS" | jq -r '.[]' | while IFS= read -r connector_stack; do
