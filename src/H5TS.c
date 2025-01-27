@@ -1178,10 +1178,12 @@ H5TS_vlock_release(H5TS_vlock_t *vlock, H5TS_vlock_op_type_t op_type) {
 
     if (op_type == H5TS_VLOCK_READER) {
         assert(atomic_load(&vlock->reader_count) == 1);
+        assert(atomic_load(&vlock->writer_count) == 0);
         atomic_fetch_sub(&vlock->reader_count, 1);
     }
     else if (op_type == H5TS_VLOCK_WRITER) {
         assert(atomic_load(&vlock->writer_count) == 1);
+        assert(atomic_load(&vlock->reader_count) == 0);
         atomic_fetch_sub(&vlock->writer_count, 1);
     }
 
