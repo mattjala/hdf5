@@ -2041,8 +2041,8 @@ H5Tequal(hid_t type1_id, hid_t type2_id)
     if (NULL == (dt2 = (H5T_t *)H5I_object_verify(type2_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a datatype");
 
-    /* Avoid double locking if the IDs refer to the same datatype */
-    if (memcmp(dt1, dt2, sizeof(H5T_t)) != 0)
+    /* Avoid double-locking if the IDs refer to the same datatype */
+    if (dt1 != dt2)
         H5T_VLOCK_ACQUIRE_R(dt2);
 
     ret_value = (0 == H5T_cmp(dt1, dt2, FALSE)) ? TRUE : FALSE;
@@ -2050,7 +2050,7 @@ H5Tequal(hid_t type1_id, hid_t type2_id)
 done:
     if (dt1)
         H5T_VLOCK_RELEASE_R(dt1);
-    if (dt2 && memcmp(dt1, dt2, sizeof(H5T_t)) != 0)
+    if (dt2 && dt1 != dt2)
         H5T_VLOCK_RELEASE_R(dt2);
 
     FUNC_LEAVE_API(ret_value)
@@ -2755,8 +2755,8 @@ H5Tregister(H5T_pers_t pers, const char *name, hid_t src_id, hid_t dst_id, H5T_c
     H5T_VLOCK_ACQUIRE_R(src);
     if (NULL == (dst = (H5T_t *)H5I_object_verify(dst_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
-    /* Avoid double virtual-locking the same datatype */
-    if (memcmp(src, dst, sizeof(H5T_t)) != 0)
+    /* Avoid double-locking the same datatype twice */
+    if (src != dst)
         H5T_VLOCK_ACQUIRE_R(dst);
     if (!func)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "no conversion function specified");
@@ -2772,7 +2772,7 @@ H5Tregister(H5T_pers_t pers, const char *name, hid_t src_id, hid_t dst_id, H5T_c
 done:
     if (src)
         H5T_VLOCK_RELEASE_R(src);
-    if (dst && memcmp(src, dst, sizeof(H5T_t)) != 0)
+    if (dst && src != dst)
         H5T_VLOCK_RELEASE_R(dst);
 
     FUNC_LEAVE_API(ret_value)
@@ -2908,7 +2908,7 @@ H5Tunregister(H5T_pers_t pers, const char *name, hid_t src_id, hid_t dst_id, H5T
     if (dst_id > 0 && (NULL == (dst = (H5T_t *)H5I_object_verify(dst_id, H5I_DATATYPE))))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "dst is not a data type");
     /* Avoid double-locking the same datatype twice */
-    if (dst && memcmp(src, dst, sizeof(H5T_t)) != 0)
+    if (dst && src != dst)
         H5T_VLOCK_ACQUIRE_R(dst);
     if (H5T__unregister(pers, name, src, dst, func) < 0)
         HGOTO_ERROR(H5E_DATATYPE, H5E_CANTDELETE, FAIL, "internal unregister function failed");
@@ -2916,7 +2916,7 @@ H5Tunregister(H5T_pers_t pers, const char *name, hid_t src_id, hid_t dst_id, H5T
 done:
     if (src)
         H5T_VLOCK_RELEASE_R(src);
-    if (dst && memcmp(src, dst, sizeof(H5T_t)) != 0)
+    if (dst && src != dst)
         H5T_VLOCK_RELEASE_R(dst);
 
     FUNC_LEAVE_API(ret_value)
@@ -2954,7 +2954,7 @@ H5Tfind(hid_t src_id, hid_t dst_id, H5T_cdata_t **pcdata /*out*/)
     if (NULL == (dst = (H5T_t *)H5I_object_verify(dst_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, NULL, "not a data type");
     /* Avoid double-locking the same datatype twice */
-    if (memcmp(src, dst, sizeof(H5T_t)) != 0)
+    if (src != dst)
         H5T_VLOCK_ACQUIRE_R(dst);
     if (!pcdata)
         HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, NULL, "no address to receive cdata pointer");
@@ -2972,7 +2972,7 @@ H5Tfind(hid_t src_id, hid_t dst_id, H5T_cdata_t **pcdata /*out*/)
 done:
     if (src)
         H5T_VLOCK_RELEASE_R(src);
-    if (dst && memcmp(src, dst, sizeof(H5T_t)) != 0)
+    if (dst && src != dst)
         H5T_VLOCK_RELEASE_R(dst);
 
     FUNC_LEAVE_API(ret_value)
@@ -3008,7 +3008,7 @@ H5Tcompiler_conv(hid_t src_id, hid_t dst_id)
     if (NULL == (dst = (H5T_t *)H5I_object_verify(dst_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
     /* Avoid double-locking the same datatype twice */
-    if (dst && memcmp(src, dst, sizeof(H5T_t)) != 0)
+    if (dst && src != dst)
         H5T_VLOCK_ACQUIRE_R(dst);
     /* Find it */
     if ((ret_value = H5T__compiler_conv(src, dst)) < 0)
@@ -3017,7 +3017,7 @@ H5Tcompiler_conv(hid_t src_id, hid_t dst_id)
 done:
     if (src)
         H5T_VLOCK_RELEASE_R(src);
-    if (dst && memcmp(src, dst, sizeof(H5T_t)) != 0)
+    if (dst && src != dst)
         H5T_VLOCK_RELEASE_R(dst);
 
     FUNC_LEAVE_API(ret_value)
@@ -3060,7 +3060,7 @@ H5Tconvert(hid_t src_id, hid_t dst_id, size_t nelmts, void *buf, void *backgroun
     if (NULL == (dst = (H5T_t *)H5I_object_verify(dst_id, H5I_DATATYPE)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a data type");
     /* Avoid double-locking the same datatype */
-    if (memcmp(src, dst, sizeof(H5T_t)) != 0)
+    if (src != dst)
         H5T_VLOCK_ACQUIRE_R(dst);
     if (H5P_DEFAULT == dxpl_id)
         dxpl_id = H5P_DATASET_XFER_DEFAULT;
@@ -3080,7 +3080,7 @@ H5Tconvert(hid_t src_id, hid_t dst_id, size_t nelmts, void *buf, void *backgroun
 done:
     if (src)
         H5T_VLOCK_RELEASE_R(src);
-    if (dst && memcmp(src, dst, sizeof(H5T_t)) != 0)
+    if (dst && src != dst)
         H5T_VLOCK_RELEASE_R(dst);
 
     FUNC_LEAVE_API(ret_value)

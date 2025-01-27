@@ -1396,7 +1396,7 @@ H5T_save_refresh_state(hid_t tid, H5O_shared_t *cached_H5O_shared)
     if (NULL == vol_dt)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "tid is not not a named datatype ID");
     /* Avoid double-locking if datatypes are the same */
-    if (memcmp(dt, vol_dt, sizeof(H5T_t)) != 0)
+    if (dt != vol_dt)
         H5T_VLOCK_ACQUIRE_W(vol_dt);
 
     /* Increase the count on the file object */
@@ -1412,7 +1412,7 @@ H5T_save_refresh_state(hid_t tid, H5O_shared_t *cached_H5O_shared)
 done:
     if (dt)
         H5T_VLOCK_RELEASE_R(dt);
-    if (vol_dt && (memcmp(dt, vol_dt, sizeof(H5T_t)) != 0))
+    if (vol_dt && dt != vol_dt)
         H5T_VLOCK_RELEASE_W(vol_dt);
 
     FUNC_LEAVE_NOAPI(ret_value)
@@ -1447,7 +1447,7 @@ H5T_restore_refresh_state(hid_t tid, H5O_shared_t *cached_H5O_shared)
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "tid is not not a named datatype ID");
 
     /* Avoid double-locking if datatypes are the same */
-    if (memcmp(dt, vol_dt, sizeof(H5T_t)) != 0)
+    if (dt != vol_dt)
         H5T_VLOCK_ACQUIRE_W(vol_dt);
 
     /* Restore the H5O_shared_t data */
@@ -1463,7 +1463,7 @@ H5T_restore_refresh_state(hid_t tid, H5O_shared_t *cached_H5O_shared)
 done:
     if (dt)
         H5T_VLOCK_RELEASE_R(dt);
-    if (vol_dt && (memcmp(dt, vol_dt, sizeof(H5T_t)) != 0))
+    if (vol_dt && dt != vol_dt)
         H5T_VLOCK_RELEASE_W(vol_dt);
 
     FUNC_LEAVE_NOAPI(ret_value)
