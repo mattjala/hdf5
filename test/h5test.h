@@ -67,6 +67,9 @@ typedef struct thread_info_t {
     char* test_thread_filename; /* The name of the test container file */
 } thread_info_t;
 
+#ifdef H5_HAVE_MULTITHREAD
+extern pthread_key_t test_thread_info_key_g;
+
 /* Whether or not the tests are configured to execute using threaded infrastructure.
  * Note that if GetTestMaxNumThreads() == 1, then the tests are still only run in a single thread,
  * but that thread is a new thread spawned by the main thread. */
@@ -75,14 +78,13 @@ typedef struct thread_info_t {
 /* Whether the tests are configured to concurrently execute in more than one thread */
 #define TEST_EXECUTION_CONCURRENT (GetTestMaxNumThreads() > 1)
 
-#ifdef H5_HAVE_MULTITHREAD
-extern pthread_key_t test_thread_info_key_g;
-
 #define IS_MAIN_TEST_THREAD (!TEST_EXECUTION_CONCURRENT ||\
     ((pthread_getspecific(test_thread_info_key_g)) && (((thread_info_t*)pthread_getspecific(test_thread_info_key_g))->thread_idx == 0)))
 
 #else
 #define IS_MAIN_TEST_THREAD true
+#define TEST_EXECUTION_THREADED false
+#define TEST_EXECUTION_CONCURRENT false
 #endif /* H5_HAVE_MULTITHREAD */
 
 /* Flag values for TestFrameworkFlags */
