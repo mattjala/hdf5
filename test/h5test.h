@@ -413,7 +413,7 @@ H5TEST_DLLVAR  H5_ATOMIC(size_t) n_tests_skipped_g;
 H5TEST_DLLVAR uint64_t vol_cap_flags_g;
 
 /* Prefix to use for filepaths in API tests */
-extern const char *test_path_prefix;
+H5TEST_DLLVAR const char *test_path_prefix;
 
 /**
  * --------------------------------------------------------------------------
