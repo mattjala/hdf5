@@ -717,7 +717,7 @@ H5_mt_test_thread_setup(int thread_idx) {
 
     /* TBD: This is currently only useful for API tests. Modification of existing testframe tests would be necessary
      * for them to use thread-local filenames to avoid conflicts during multi-threaded execution */
-    if (NULL == (tinfo->test_thread_filename = generate_threadlocal_filename(GetTestFilenamePrefix(), thread_idx, TEST_FILE_NAME))) {
+    if (NULL == (tinfo->test_thread_filename = generate_threadlocal_filename(TestFilenamePrefix_g, thread_idx, TEST_FILE_NAME))) {
         TestErrPrintf("    couldn't allocate memory for test file name\n");
         goto error;
     }
@@ -1095,16 +1095,6 @@ SetTestMaxNumThreads(int max_num_threads)
 }
 
 /*
- * Returns the prefix string for test filenames.
- */
-H5_ATTR_PURE const char *
-GetTestFilenamePrefix(void)
-{
-    return (const char *) TestFilenamePrefix_g;
-}
-
-
-/*
  * Set the prefix string for test filenames.
  */
 herr_t
@@ -1327,7 +1317,7 @@ done:
 herr_t api_prefix_filename(const char *filename, char **filename_out) {
     herr_t ret_value = SUCCEED;
 
-    if (prefix_filename(GetTestFilenamePrefix(), filename, filename_out) < 0) {
+    if (prefix_filename(TestFilenamePrefix_g, filename, filename_out) < 0) {
         printf("    couldn't prefix filename\n");
         ret_value = FAIL;
     }

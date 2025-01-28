@@ -776,22 +776,6 @@ H5TEST_DLL herr_t SetTestMaxNumThreads(int max_num_threads);
  * --------------------------------------------------------------------------
  * \ingroup H5TEST
  *
- * \brief Gets the filename prefix used for test files
- *
- * \return The filename prefix string used for test files
- *
- * \details GetTestFilenamePrefix() returns the filename prefix string that
- *          may be used when creating files during testing. This prefix
- *          is typically used by parallel/multi-threaded tests to
- *          avoid file creation/access conflicts.
- *
- */
-H5TEST_DLL const char *GetTestFilenamePrefix(void);
-
-/**
- * --------------------------------------------------------------------------
- * \ingroup H5TEST
- *
  * \brief Sets the filename prefix used for test files
  *
  * \param[in] prefix The filename prefix string to use for test files
@@ -803,7 +787,7 @@ H5TEST_DLL const char *GetTestFilenamePrefix(void);
  *          is typically used by parallel/multi-threaded tests to
  *          avoid file creation/access conflicts.
  *
- * \see GetTestFilenamePrefix()
+ * \see TestFilenamePrefix_g
  *
  */
 H5TEST_DLL herr_t SetTestFilenamePrefix(const char *prefix);
