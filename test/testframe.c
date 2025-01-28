@@ -1235,3 +1235,102 @@ error:
     free(test_filename);
     return NULL;
 }
+
+/*
+ * Add a prefix to the given filename. The caller
+ * is responsible for freeing the returned filename
+ * pointer with free().
+ * 
+ * If the tests are being run in separate thread(s)
+ * then the framework-assigned thread index will be inserted as well.
+ */
+herr_t
+prefix_filename(const char *prefix, const char *filename, char **filename_out)
+{
+    char  *out_buf       = NULL;
+    herr_t ret_value     = SUCCEED;
+    int    chars_written = 0;
+#ifdef H5_HAVE_MULTITHREAD
+    thread_info_t *tinfo = NULL;
+#endif
+
+    if (!prefix) {
+        printf("    invalid file prefix\n");
+        ret_value = FAIL;
+        goto done;
+    }
+    if (!filename || (*filename == '\0')) {
+        printf("    invalid filename\n");
+        ret_value = FAIL;
+        goto done;
+    }
+    if (!filename_out) {
+        printf("    invalid filename_out buffer\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if (TEST_EXECUTION_THREADED) {
+#ifdef H5_HAVE_MULTITHREAD
+
+        if ((tinfo = (thread_info_t *)pthread_getspecific(test_thread_info_key_g)) == NULL) {
+            printf("    failed to retrieve thread-specific info\n");
+            ret_value = FAIL;
+            goto done;
+        }
+
+        if ((out_buf = generate_threadlocal_filename(prefix, tinfo->thread_idx, filename)) == NULL) {
+            printf("    failed to generate thread-specific filename\n");
+            ret_value = FAIL;
+            goto done;
+        }
+
+#else
+        printf("    thread-specific filename requested, but multithread support not enabled\n");
+        ret_value = FAIL;
+        goto done;
+#endif
+    } else {
+        if (NULL == (out_buf = malloc(H5_TEST_FILENAME_MAX_LENGTH))) {
+            printf("    couldn't allocated filename buffer\n");
+            ret_value = FAIL;
+            goto done;
+        }
+
+        if ((chars_written = HDsnprintf(out_buf, H5_TEST_FILENAME_MAX_LENGTH, "%s%s", prefix, filename)) <
+            0) {
+            printf("    couldn't prefix filename\n");
+            ret_value = FAIL;
+            goto done;
+        }
+    }
+
+    if ((size_t)chars_written >= H5_TEST_FILENAME_MAX_LENGTH) {
+        printf("    filename buffer too small\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    *filename_out = out_buf;
+
+done:
+    if (ret_value < 0)
+        free(out_buf);
+
+    return ret_value;
+}
+
+/*
+ * Wrapper around prefix_filename() to provide the 
+ * testframe-provided filename prefix
+ */
+herr_t api_prefix_filename(const char *filename, char **filename_out) {
+    herr_t ret_value = SUCCEED;
+
+    if (prefix_filename(GetTestFilenamePrefix(), filename, filename_out) < 0) {
+        printf("    couldn't prefix filename\n");
+        ret_value = FAIL;
+    }
+
+    return ret_value;
+}

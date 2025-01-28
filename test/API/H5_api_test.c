@@ -46,9 +46,9 @@
 
 char H5_api_test_filename_g[H5_TEST_FILENAME_MAX_LENGTH];
 
-static int H5_api_test_create_containers(const char *filename, uint64_t vol_cap_flags);
+static int H5_api_test_create_containers(const char *filename_prefix, const char *filename, uint64_t vol_cap_flags);
 static int H5_api_test_create_single_container(const char *filename, uint64_t vol_cap_flags);
-static int H5_api_test_destroy_container_files(void);
+static int H5_api_test_destroy_container_files(const char *filename_prefix);
 
 /* X-macro to define the following for each test:
  * - enum type
@@ -231,7 +231,7 @@ main(int argc, char **argv)
 
     if (!TEST_EXECUTION_THREADED) {
         /* Populate global test filename */
-        if ((chars_written = HDsnprintf(H5_api_test_filename_g, H5_TEST_FILENAME_MAX_LENGTH, "%s%s", GetTestFilenamePrefix(),
+        if ((chars_written = HDsnprintf(H5_api_test_filename_g, H5_TEST_FILENAME_MAX_LENGTH, "%s%s", test_path_prefix,
                 TEST_FILE_NAME)) < 0) {
             fprintf(stderr, "Error while creating test file name\n");
             err_occurred = TRUE;
@@ -276,7 +276,7 @@ main(int argc, char **argv)
            vol_connector_info ? vol_connector_info : "");
     printf("Test parameters:\n");
     printf("  - Test file name: '%s'\n", TEST_FILE_NAME);
-    printf("  - Test file prefix: '%s'\n", GetTestFilenamePrefix());
+    printf("  - Test file prefix: '%s'\n", test_path_prefix);
     printf("  - Test seed: %u\n", seed);
     printf("\n");
 
@@ -346,7 +346,7 @@ main(int argc, char **argv)
 
     /* Create the file(s) that will be used for all of the tests,
      * except for those which test file creation.*/
-    if (H5_api_test_create_containers(TEST_FILE_NAME, vol_cap_flags_g) < 0) {
+    if (H5_api_test_create_containers(test_path_prefix, TEST_FILE_NAME, vol_cap_flags_g) < 0) {
         fprintf(stderr, "Unable to create testing container file with basename '%s'\n", TEST_FILE_NAME);
         err_occurred = true;
         goto done;
@@ -364,7 +364,7 @@ main(int argc, char **argv)
     printf("Deleting container file(s) for tests\n\n");
 
     if (GetTestCleanup()) {
-        if (H5_api_test_destroy_container_files() < 0) {
+        if (H5_api_test_destroy_container_files(test_path_prefix) < 0) {
             fprintf(stderr, "Error cleaning up global API test info\n");
             err_occurred = true;
             goto done;
@@ -417,7 +417,7 @@ done:
 /* Create the API container test file(s), one per thread.
  * Returns negative on failure, 0 on success */
 static int
-H5_api_test_create_containers(const char *filename, uint64_t vol_cap_flags)
+H5_api_test_create_containers(const char *filename_prefix, const char *filename, uint64_t vol_cap_flags)
 {
     char *tl_filename = NULL;
 
@@ -429,7 +429,7 @@ H5_api_test_create_containers(const char *filename, uint64_t vol_cap_flags)
     if (TEST_EXECUTION_THREADED) {
 #ifdef H5_HAVE_MULTITHREAD
         for (int i = 0; i < GetTestMaxNumThreads(); i++) {
-            if ((tl_filename = generate_threadlocal_filename(GetTestFilenamePrefix(), i, filename)) == NULL) {
+            if ((tl_filename = generate_threadlocal_filename(filename_prefix, i, filename)) == NULL) {
                 printf("    failed to generate thread-local API test filename\n");
                 goto error;
             }
@@ -536,7 +536,7 @@ error:
 /* Delete the API test container file(s).
  * Returns negative on failure, 0 on success */
 static int
-H5_api_test_destroy_container_files(void) {
+H5_api_test_destroy_container_files(const char *filename_prefix) {
 
     char *filename = NULL;
 
@@ -552,7 +552,7 @@ H5_api_test_destroy_container_files(void) {
 #endif
         
         for (int i = 0; i < GetTestMaxNumThreads(); i++) {
-            if ((filename = generate_threadlocal_filename(GetTestFilenamePrefix(), i, TEST_FILE_NAME)) == NULL) {
+            if ((filename = generate_threadlocal_filename(filename_prefix, i, TEST_FILE_NAME)) == NULL) {
                 printf("    failed to generate thread-local API test filename\n");
                 goto error;
             }

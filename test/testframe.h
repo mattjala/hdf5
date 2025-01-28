@@ -871,6 +871,13 @@ H5TEST_DLL void TestAlarmOff(void);
  */
 char *generate_threadlocal_filename(const char *prefix, int thread_idx, const char *base_filename);
 
+// TODO: Documentation
+
+/* Helper function to prefix a filename with a prefix string. */
+herr_t prefix_filename(const char *prefix, const char *filename, char **filename_out);
+
+herr_t api_prefix_filename(const char *filename, char **filename_out);
+
 #ifdef __cplusplus
 }
 #endif
