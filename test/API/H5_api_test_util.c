@@ -86,6 +86,9 @@ static hid_t generate_random_datatype_reference(H5T_class_t parent_class, hbool_
 static hid_t generate_random_datatype_enum(H5T_class_t parent_class, hbool_t is_compact, size_t depth);
 static hid_t generate_random_datatype_array(H5T_class_t parent_class, hbool_t is_compact, size_t depth);
 
+/* Helper function to prefix a filename with a prefix string. */
+static herr_t prefix_filename(const char *prefix, const char *filename, char **filename_out);
+
 /*
  * Helper function to generate a random HDF5 datatype in order to thoroughly
  * test support for datatypes. The parent_class parameter is to support
@@ -652,7 +655,7 @@ error:
  * If the API tests are being run in separate thread(s)
  * then the framework-assigned thread index will be inserted as well.
  */
-herr_t
+static herr_t
 prefix_filename(const char *prefix, const char *filename, char **filename_out)
 {
     char  *out_buf       = NULL;
@@ -726,6 +729,17 @@ done:
         free(out_buf);
 
     return ret_value;
+}
+
+/*
+ * Wrapper around prefix_filename() to provide the 
+ * testframe-provided filename prefix
+ */
+herr_t api_prefix_filename(const char *filename, char **filename_out) {
+    if (prefix_filename(GetTestFilenamePrefix(), filename, filename_out) < 0) {
+        printf("    couldn't prefix filename\n");
+        return FAIL;
+    }
 }
 
 /*

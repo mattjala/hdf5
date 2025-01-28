@@ -4194,7 +4194,7 @@ test_object_copy_between_files(void H5_ATTR_UNUSED *params)
     /*
      * Create the second file for the between file copying tests.
      */
-    if (prefix_filename(test_path_prefix, OBJECT_COPY_BETWEEN_FILES_TEST_FILE_NAME, &obj_copy_filename) < 0) {
+    if (api_prefix_filename(OBJECT_COPY_BETWEEN_FILES_TEST_FILE_NAME, &obj_copy_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create filename for object copy test file\n");
         goto error;
@@ -5072,7 +5072,7 @@ test_object_visit(void H5_ATTR_UNUSED *params)
         goto error;
     }
 
-    if (prefix_filename(test_path_prefix, OBJECT_VISIT_TEST_FILE_NAME, &visit_filename) < 0) {
+    if (api_prefix_filename(OBJECT_VISIT_TEST_FILE_NAME, &visit_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create filename for visiting test file\n");
         goto error;

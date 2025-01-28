@@ -44,6 +44,8 @@
 #endif
 extern char H5_api_test_filename_g[];
 
+#define HDF5_API_TEST_PATH_PREFIX "HDF5_API_TEST_PATH_PREFIX"
+
 /* The names of a set of container groups which hold objects
  * created by each of the different types of tests.
  */

@@ -44,6 +44,12 @@
 #define MAXTESTDESC 128
 
 /**
+ * \def MAXPREFIXLEN
+ * The maximum length for a filename prefix, including the NUL terminator
+ */
+#define MAXPREFIXLEN 128
+
+/**
  * \def H5_ALARM_SEC
  * Number of seconds to wait before killing a test (requires alarm(2))
  */
@@ -129,23 +135,22 @@ extern "C" {
  *
  * \brief Initializes the testing framework
  *
- * \param[in]  ProgName          The chosen name for the test executable to
- *                               be used
- * \param[in]  TestPrivateUsage  Pointer to a function which prints out
- *                               additional usage help text that is specific
- *                               to the test program
- * \param[in]  TestPrivateParser Pointer to a function which parses
- *                               command-line arguments which are specific to
- *                               the test program
- * \param[in]  TestSetupFunc     Pointer to a function which will be called
- *                               as part of TestInit()
- * \param[in]  TestCleanupFunc   Pointer to a function which will be called
- *                               when the testing framework is being shut
- *                               down
- * \param[in]  TestProcessID     ID for the process calling TestInit(). Used
- *                               to control printing of output in parallel
- *                               test programs.
- *
+ * \param[in]  ProgName            The chosen name for the test executable to
+ *                                 be used
+ * \param[in]  TestPrivateUsage    Pointer to a function which prints out
+ *                                 additional usage help text that is specific
+ *                                 to the test program
+ * \param[in]  TestPrivateParser   Pointer to a function which parses
+ *                                 command-line arguments which are specific to
+ *                                 the test program
+ * \param[in]  TestSetupFunc       Pointer to a function which will be called
+ *                                 as part of TestInit()
+ * \param[in]  TestCleanupFunc     Pointer to a function which will be called
+ *                                 when the testing framework is being shut
+ *                                 down
+ * \param[in]  TestProcessID       ID for the process calling TestInit(). Used
+ *                                 to control printing of output in parallel
+ *                                 test programs.
  * \return \herr_t
  *
  * \details TestInit() initializes the testing framework by setting up all
@@ -192,7 +197,7 @@ extern "C" {
  *          For parallel tests, the rank value of the MPI process, as obtained
  *          by calling MPI_Comm_rank(), should be passed. Test framework output
  *          is only printed from the process with ID 0.
- *
+ * 
  * \see TestShutdown(), TestUsage(), TestParseCmdLine()
  *
  */
@@ -766,6 +771,42 @@ H5TEST_DLL int GetTestMaxNumThreads(void);
  *
  */
 H5TEST_DLL herr_t SetTestMaxNumThreads(int max_num_threads);
+
+/**
+ * --------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
+ * \brief Gets the filename prefix used for test files
+ *
+ * \return The filename prefix string used for test files
+ *
+ * \details GetTestFilenamePrefix() returns the filename prefix string that
+ *          may be used when creating files during testing. This prefix
+ *          is typically used by parallel/multi-threaded tests to
+ *          avoid file creation/access conflicts.
+ *
+ */
+H5TEST_DLL const char *GetTestFilenamePrefix(void);
+
+/**
+ * --------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
+ * \brief Sets the filename prefix used for test files
+ *
+ * \param[in] prefix The filename prefix string to use for test files
+ *
+ * \return \herr_t
+ *
+ * \details SetTestFilenamePrefix() sets the filename prefix string that
+ *          will be used when creating files during testing. This prefix
+ *          is typically used by parallel/multi-threaded tests to
+ *          avoid file creation/access conflicts.
+ *
+ * \see GetTestFilenamePrefix()
+ *
+ */
+H5TEST_DLL herr_t SetTestFilenamePrefix(const char *prefix);
 
 /**
  * --------------------------------------------------------------------------

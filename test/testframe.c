@@ -53,7 +53,7 @@ static void (*TestPrivateUsage_g)(FILE *stream)              = NULL;
 static herr_t (*TestPrivateParser_g)(int argc, char *argv[]) = NULL;
 static herr_t (*TestCleanupFunc_g)(void)                     = NULL;
 
-const char *test_path_prefix = NULL;
+static char TestFilenamePrefix_g[MAXPREFIXLEN];
 
 static H5_ATOMIC(int) TestNumErrs_g        = 0;    /* Total number of errors that occurred for whole test program */
 static bool           TestEnableErrorStack = true; /* Whether to show error stacks from the library */
@@ -193,11 +193,8 @@ TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
     /* Set process ID for later use */
     TestFrameworkProcessID_g = TestProcessID;
 
-    /* Set up test path prefix for filenames, with default being empty */
-    if (test_path_prefix == NULL) {
-        if ((test_path_prefix = getenv(HDF5_API_TEST_PATH_PREFIX)) == NULL)
-            test_path_prefix = "";
-    }
+    /* Initialize the test filename prefix */
+    SetTestFilenamePrefix(NULL);
 
     /* Set/reset global variables from h5test that may be used by
      * tests integrated with the testing framework
@@ -716,7 +713,7 @@ H5_mt_test_thread_setup(int thread_idx) {
 
     /* TBD: This is currently only useful for API tests. Modification of existing testframe tests would be necessary
      * for them to use thread-local filenames to avoid conflicts during multi-threaded execution */
-    if (NULL == (tinfo->test_thread_filename = generate_threadlocal_filename(test_path_prefix, thread_idx, TEST_FILE_NAME))) {
+    if (NULL == (tinfo->test_thread_filename = generate_threadlocal_filename(GetTestFilenamePrefix(), thread_idx, TEST_FILE_NAME))) {
         TestErrPrintf("    couldn't allocate memory for test file name\n");
         goto error;
     }
@@ -1091,6 +1088,49 @@ SetTestMaxNumThreads(int max_num_threads)
     TestMaxNumThreads_g = max_num_threads;
 
     return SUCCEED;
+}
+
+/*
+ * Returns the prefix string for test filenames.
+ */
+H5_ATTR_PURE const char *
+GetTestFilenamePrefix(void)
+{
+    return (const char *) TestFilenamePrefix_g;
+}
+
+
+/*
+ * Set the prefix string for test filenames.
+ */
+herr_t
+SetTestFilenamePrefix(const char *prefix)
+{
+    herr_t ret_value = SUCCEED;
+
+    /* If requested, set the prefix to the empty string */
+    if (!prefix || strlen(prefix) == 0) {
+        TestFilenamePrefix_g[0] = '\0';
+        ret_value = SUCCEED;
+        goto done;
+    }
+
+    /* Check for too long prefix */
+    if (strlen(prefix) >= MAXPREFIXLEN) {
+        if (TestFrameworkProcessID_g == 0)
+            fprintf(stderr, "%s: filename prefix too large \
+            (actual length %zu exceeds maximum length %zu)\n", __func__,
+                    strlen(prefix), (size_t) MAXPREFIXLEN);
+        ret_value = FAIL;
+        goto done;
+    }
+
+    strncpy(TestFilenamePrefix_g, prefix, strlen(prefix));
+    TestFilenamePrefix_g[strlen(prefix) + 1] = '\0';
+    ret_value = SUCCEED;
+
+done:
+    return ret_value;
 }
 
 /* Enable a test timer that will kill long-running tests, the time is configurable
