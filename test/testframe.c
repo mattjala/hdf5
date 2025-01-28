@@ -44,6 +44,10 @@ typedef struct TestThreadArgs {
  * Global variables used by testing framework.
  */
 
+/* Limit the number of threads for string-management purposes */
+#define MAX_THREAD_IDX 999
+#define MAX_THREAD_IDX_LEN 3
+
 static TestStruct *TestArray = NULL; /* Array of tests */
 static unsigned    TestAlloc = 0;    /* Size of the Test array */
 static unsigned    TestCount = 0;    /* Number of tests currently added to test array */
@@ -1196,3 +1200,38 @@ error:
     return -1;
 }
 #endif
+
+/* Generate a heap-allocated filename of the form <prefix><thread_idx><filename> */
+char *generate_threadlocal_filename(const char *prefix, int thread_idx, const char *base_filename) {
+    int chars_written = 0;
+    char *test_filename =  NULL;
+
+    if (thread_idx > MAX_THREAD_IDX) {
+        fprintf(stderr, "    thread index exceeded expected size\n");
+        goto error;
+    }
+
+    if (MAX_THREAD_IDX_LEN + strlen(base_filename) >= H5_TEST_FILENAME_MAX_LENGTH) {
+        fprintf(stderr, "    test file name exceeded expected size\n");
+        goto error;
+    }
+
+    if (NULL == (test_filename = (char *)calloc(1, H5_TEST_FILENAME_MAX_LENGTH))) {
+        fprintf(stderr, "    couldn't allocate memory for test file name\n");
+        goto error;
+    }
+
+    /* Write prefix, thread index, and filename into buffer */
+    if ((chars_written = snprintf(test_filename,
+                                  H5_TEST_FILENAME_MAX_LENGTH, "%s%d%s",
+                                  prefix, thread_idx, base_filename)) < 0) {
+        fprintf(stderr, "    couldn't create test file name\n");
+        goto error;
+    }
+
+    return test_filename;
+
+error:
+    free(test_filename);
+    return NULL;
+}

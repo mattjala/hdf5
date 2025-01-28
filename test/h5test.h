@@ -1436,8 +1436,6 @@ H5TEST_DLL void h5_reset(void);
 
 /* TODO: documentation */
 
-/* Generate a heap-allocated filename of the form <prefix><thread_idx><filename> */
-char *generate_threadlocal_filename(const char *prefix, int thread_idx, const char *filename);
 /* A VOL class struct to verify registering optional operations */
 H5TEST_DLLVAR herr_t reg_opt_op_optional(void *obj, H5VL_optional_args_t *args, hid_t dxpl_id, void **req);
 H5TEST_DLLVAR herr_t reg_opt_link_optional(void *obj, const H5VL_loc_params_t *loc_params,

@@ -853,6 +853,24 @@ H5TEST_DLL herr_t TestAlarmOn(void);
  */
 H5TEST_DLL void TestAlarmOff(void);
 
+/* Generate a heap-allocated filename of the form <prefix><thread_idx><filename> */
+/**
+ * ---------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
+ * \brief Generate a heap-allocated filename of the form <prefix><thread_idx><filename>
+ *
+ * \param[in] prefix  Prefix to prepend to the filename
+ *
+ * \param[in] thread_idx  Thread index to append to the filename
+ *
+ * \param[in] base_filename  Base filename to append to the filename
+ *
+ * \return char*  Heap-allocated filename
+ *
+ */
+char *generate_threadlocal_filename(const char *prefix, int thread_idx, const char *base_filename);
+
 #ifdef __cplusplus
 }
 #endif
