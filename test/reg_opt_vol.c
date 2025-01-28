@@ -16,7 +16,6 @@
 
 /* Headers needed */
 #define H5VL_FRIEND
-#define H5VL_TESTING
 
 #include "H5private.h"   /* Generic Functions      */
 #include "H5Ppublic.h"   /* Property Lists         */
