@@ -126,7 +126,9 @@ if HAVE_SHARED_CONDITIONAL
   # The libh5test library provides common support code for the tests.
   # The filter_plugin* libraries are for use in filter_plugin.c.
   # Build them as shared libraries if that option was enabled in configure.
-  noinst_LTLIBRARIES=libh5test.la libfilter_plugin1_dsets.la libfilter_plugin2_dsets.la libfilter_plugin3_dsets.la libfilter_plugin4_groups.la libnull_vfd_plugin.la libnull_vol_connector.la libmt_vl_test_vol_connector.la libmt_native_wrapper_vol_connector.la libmt_passthru_wrapper_vol_connector.la
+  noinst_LTLIBRARIES=libh5test.la libfilter_plugin1_dsets.la libfilter_plugin2_dsets.la libfilter_plugin3_dsets.la \
+    libfilter_plugin4_groups.la libnull_vfd_plugin.la libnull_vol_connector.la libmt_vl_test_vol_connector.la \
+    libmt_native_wrapper_vol_connector.la libmt_passthru_wrapper_vol_connector.la libreg_opt_vol.la
   libfilter_plugin1_dsets_la_SOURCES=filter_plugin1_dsets.c
   libfilter_plugin2_dsets_la_SOURCES=filter_plugin2_dsets.c
   libfilter_plugin3_dsets_la_SOURCES=filter_plugin3_dsets.c
@@ -157,6 +159,9 @@ if HAVE_SHARED_CONDITIONAL
   libmt_native_wrapper_vol_connector_la_LDFLAGS=$(AM_LDFLAGS) -avoid-version -module -shared -export-dynamic -rpath /nowhere
   libmt_passthru_wrapper_vol_connector_la_SOURCES=mt_passthru_wrapper_vol_connector.c ../src/H5VLpassthru.c
   libmt_passthru_wrapper_vol_connector_la_LDFLAGS=$(AM_LDFLAGS) -avoid-version -module -shared -export-dynamic -rpath /nowhere
+  # reg_opt_vol is used for testing dynamic optional operations in the H5VL module
+  libreg_opt_vol_la_SOURCES=reg_opt_vol.c
+  libreg_opt_vol_la_LDFLAGS=$(AM_LDFLAGS) -avoid-version -module -shared -export-dynamic -rpath /nowhere
 else
   # The libh5test library provides common support code for the tests.
   noinst_LTLIBRARIES=libh5test.la
@@ -166,6 +171,9 @@ libh5test_la_SOURCES=h5test.c testframe.c cache_common.c swmr_common.c external_
 
 # Use libh5test.la to compile all of the tests
 LDADD=libh5test.la $(LIBHDF5)
+
+# The vol test needs to link to the reg opt VOL
+vol_LDADD = libreg_opt_vol.la $(LDADD)
 
 # List the source files for tests that have more than one
 ttsafe_SOURCES=ttsafe.c ttsafe_dcreate.c ttsafe_error.c ttsafe_cancel.c       \

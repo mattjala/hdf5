@@ -4,6 +4,7 @@
 #include "mt_vl_test_vol_connector.c"
 #include "mt_vl_test_vol_connector.h"
 #include "null_vol_connector.h"
+#include "reg_opt_vol.h"
 #include <pthread.h>
 
 #include "../testmthdf5.h"
@@ -159,7 +160,7 @@ herr_t mt_test_dyn_op_registration(TestParams_t H5_ATTR_UNUSED *args) {
   int chars_written = -1;
   int ret = 0;
 
-  vol_id = H5VLregister_connector(&reg_opt_vol_g, H5P_DEFAULT);
+  vol_id = REG_OPT_VOL;
   CHECK(vol_id, H5I_INVALID_HID, "H5VLregister_connector");
 
   for (size_t i = 0; i < NUM_VALID_SUBCLASSES * OPERATIONS_PER_SUBCLASS; i++) {

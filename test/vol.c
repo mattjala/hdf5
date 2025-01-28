@@ -26,6 +26,7 @@
 #define H5VL_FRIEND     /* Suppress error about including H5VLpkg    */
 #define H5VL_TESTING
 #include "H5VLpkg.h" /* Virtual Object Layer                 */
+#include "reg_opt_vol.h"
 
 /* Filename */
 static const char *FILENAME[] = {"vol_test_file", NULL};
@@ -1696,7 +1697,7 @@ test_register_opt_operation(void)
     /* Register the VOL connectors for testing */
     if ((fake_vol_id = H5VLregister_connector(&fake_vol_g, H5P_DEFAULT)) < 0)
         TEST_ERROR;
-    if ((reg_opt_vol_id = H5VLregister_connector(&reg_opt_vol_g, H5P_DEFAULT)) < 0)
+    if ((reg_opt_vol_id = REG_OPT_VOL) < 0)
         TEST_ERROR;
 
     /* Test registering invalid optional VOL subclass operations */

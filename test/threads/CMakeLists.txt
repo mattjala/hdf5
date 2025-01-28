@@ -42,6 +42,7 @@ if (NOT BUILD_SHARED_LIBS)
     testmthdf5
     PRIVATE
       ${HDF5_TEST_LIB_TARGET}
+      reg_opt_vol
     )
 else ()
   TARGET_C_PROPERTIES (testmthdf5 SHARED)
@@ -49,6 +50,7 @@ else ()
     testmthdf5
     PRIVATE
       ${HDF5_TEST_LIBSH_TARGET}
+      reg_opt_vol
   )
 endif ()
 set_target_properties(

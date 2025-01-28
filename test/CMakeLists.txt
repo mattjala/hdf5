@@ -258,7 +258,8 @@ if (BUILD_SHARED_LIBS)
   #-----------------------------------------------------------------------------
   set (VOL_PLUGIN_LIBS
       null_vol_connector
-      mt_vl_test_vol_connector # TBD: Place in different directory?
+      reg_opt_vol
+      mt_vl_test_vol_connector
   )
 
   foreach (vol_lib ${VOL_PLUGIN_LIBS})
@@ -445,6 +446,11 @@ macro (ADD_H5_EXE file)
     TARGET_C_PROPERTIES (${file} SHARED)
     target_link_libraries (${file} PRIVATE ${HDF5_TEST_LIBSH_TARGET})
   endif ()
+
+  if (${file} STREQUAL "vol")
+    target_link_libraries (${file} PRIVATE reg_opt_vol)
+  endif ()
+
   set_target_properties (${file} PROPERTIES FOLDER test)
 
   #-----------------------------------------------------------------------------
