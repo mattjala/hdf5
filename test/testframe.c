@@ -1127,6 +1127,42 @@ done:
     return ret_value;
 }
 
+// TODO: Documentation
+const char*
+GetThreadlocalContainerFilename(void) {
+    thread_info_t *tinfo = NULL;
+    const char *ret_value = NULL;
+
+#ifndef H5_HAVE_MULTITHREAD
+    ret_value = NULL;
+    goto done;
+#else
+    if (!TEST_EXECUTION_THREADED) {
+        ret_value = NULL;
+        goto done;
+    }
+
+    if (NULL == (tinfo = pthread_getspecific(test_thread_info_key_g))) {
+        if (TestFrameworkProcessID_g == 0)
+            fprintf(stderr, "%s: threadlocal container filename requested \
+                but no threadlocal info set\n", __func__);
+        ret_value = NULL;
+        goto done;
+    }
+
+    if (NULL == (ret_value = tinfo->test_thread_filename)) {
+        if (TestFrameworkProcessID_g == 0)
+            fprintf(stderr, "%s: threadlocal container filename requested \
+                but no name set\n", __func__);
+        ret_value = NULL;
+        goto done;
+    }
+#endif /* H5_HAVE_MULTITHREAD */
+
+done:
+    return ret_value;
+}
+
 /* Enable a test timer that will kill long-running tests, the time is configurable
  * via an environment variable.
  *

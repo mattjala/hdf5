@@ -37,11 +37,7 @@
 /******************************************************************************/
 
 /* Final name of the API test container file (for this thread) */
-#ifdef H5_HAVE_MULTITHREAD
-#define H5_API_TEST_FILENAME (TEST_EXECUTION_THREADED ? ((thread_info_t*) pthread_getspecific(test_thread_info_key_g))->test_thread_filename : H5_api_test_filename_g)
-#else
-#define H5_API_TEST_FILENAME H5_api_test_filename_g
-#endif
+#define H5_API_TEST_FILENAME (GetThreadlocalContainerFilename() ? GetThreadlocalContainerFilename() : H5_api_test_filename_g)
 extern char H5_api_test_filename_g[];
 
 #define HDF5_API_TEST_PATH_PREFIX "HDF5_API_TEST_PATH_PREFIX"

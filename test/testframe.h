@@ -862,6 +862,10 @@ herr_t prefix_filename(const char *prefix, const char *filename, char **filename
 
 herr_t api_prefix_filename(const char *filename, char **filename_out);
 
+// TODO: Documentation
+const char*
+GetThreadlocalContainerFilename(void);
+
 #ifdef __cplusplus
 }
 #endif
