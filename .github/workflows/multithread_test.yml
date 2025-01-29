@@ -67,9 +67,9 @@ jobs:
               if: matrix.build_system == 'autotools'
               working-directory: ${{github.workspace}}
               run: |
-                    HDF5_ENABLE_API_TESTS=$([[ "${{ matrix.api_tests_enabled }}" == "true" ]] && echo "--enable-api-tests" || echo "--disable-api-tests")
-                    HDF5_MULTITHREAD=$([[ "${{ matrix.thread_build }}" == "multithread" ]] && echo "--enable-multithread" || echo "--disable-multithread")
-                    HDF5_THREADSAFE=$([[ "${{ matrix.thread_build }}" == "threadsafe" ]] && echo "--enable-threadsafe" || echo "--disable-threadsafe")
+                    HDF5_ENABLE_API_TESTS="${{ matrix.api_tests_enabled && '--enable-api-tests' || '--disable-api-tests'}}"
+                    HDF5_MULTITHREAD="${{ matrix.thread_build == 'multithread' && '--enable-multithread' || '--disable-multithread'}}"
+                    HDF5_THREADSAFE="${{ matrix.thread_build == 'threadsafe' && '--enable-threadsafe' || '--disable-threadsafe'}}"
 
                     sh ./autogen.sh
                     ./configure --enable-shared --enable-tests --disable-hl $HDF5_THREADSAFE $HDF5_MULTITHREAD $HDF5_ENABLE_API_TESTS --enable-build-mode=${{ matrix.build_mode }}
@@ -85,10 +85,10 @@ jobs:
               working-directory: ${{github.workspace}}
               run: |
                     # Deal with different arguments in CMake vs Autotools
-                    HDF5_BUILD_TYPE=$([[ "${{ matrix.build_mode }}" == "debug" ]] && echo "Debug" || echo "Release")
-                    HDF5_ENABLE_MULTITHREAD=$([[ "${{ matrix.thread_build }}" == "multithread" ]] && echo "ON" || echo "OFF")
-                    HDF5_ENABLE_THREADSAFE=$([[ "${{ matrix.thread_build }}" == "threadsafe" ]] && echo "ON" || echo "OFF")
-                    HDF5_TEST_API=$([[ "${{ matrix.api_tests_enabled }}" == "true" ]] && echo "ON" || echo "OFF")
+                    HDF5_BUILD_TYPE="${{ matrix.build_mode == 'debug' && 'Debug' || 'Release' }}"
+                    HDF5_ENABLE_MULTITHREAD="${{ matrix.thread_build == 'multithread' && 'ON' || 'OFF'}}"
+                    HDF5_ENABLE_THREADSAFE="${{ matrix.thread_build == 'threadsafe' && 'ON' || 'OFF'}}"
+                    HDF5_TEST_API="${{ matrix.api_tests_enabled && 'ON' || 'OFF'}}"
                     
                     sudo apt install cmake
                     mkdir build
@@ -107,12 +107,12 @@ jobs:
               if: matrix.build_system == 'cmake'
               working-directory: ${{github.workspace}}/build
               run: |
-                    HDF5_BUILD_TYPE=$([[ "${{ matrix.build_mode }}" == "debug" ]] && echo "Debug" || echo "Release")
+                    HDF5_BUILD_TYPE="${{ matrix.build_mode == 'debug' && 'Debug' || 'Release' }}"
 
                     cmake --build . -j --config $HDF5_BUILD_TYPE
         
             - name: API Tests
-              if: matrix.api_tests_enabled == true
+              if: matrix.api_tests_enabled
               working-directory: ${{github.workspace}}
               run: |
                 failure=0
@@ -121,7 +121,6 @@ jobs:
                 if [[ "${{ matrix.build_system }}" == "autotools" ]]; then
                   API_TEST_COMMAND="./test/API/h5_api_test"
                 else
-                  cd build
                   API_TEST_COMMAND="./build/bin/h5_api_test"
                 fi
 
@@ -151,13 +150,13 @@ jobs:
 
             - name: MT VL Tests
               if: matrix.thread_build == 'multithread'
-              working-directory: ${{github.workspace}}/test/
+              working-directory: ${{github.workspace}}
               run: |
                 failure=0
                 CONNECTOR_STACKS='${{ toJson(matrix.connector_stacks) }}'
 
                 if [[ "${{ matrix.build_system }}" == "autotools" ]]; then
-                  MT_VL_TEST_COMMAND="./threads/testmthdf5"
+                  MT_VL_TEST_COMMAND="./test/threads/testmthdf5"
                 else
                   MT_VL_TEST_COMMAND="./build/bin/testmthdf5"
                 fi
@@ -198,4 +197,4 @@ jobs:
               working-directory: ${{github.workspace}}/build
               run: |
                 unset HDF5_VOL_CONNECTOR
-                ctest -V -E "h5_api_test"
+                ctest -V -E "h5_api_test|testmthdf5"
