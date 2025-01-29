@@ -48,12 +48,6 @@ extern pthread_key_t test_thread_info_key_g;
 #define MAXTESTDESC 128
 
 /**
- * \def MAXPREFIXLEN
- * The maximum length for a filename prefix, including the NUL terminator
- */
-#define MAXPREFIXLEN 128
-
-/**
  * \def H5_ALARM_SEC
  * Number of seconds to wait before killing a test (requires alarm(2))
  */

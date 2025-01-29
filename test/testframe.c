@@ -59,7 +59,7 @@ static herr_t (*TestPrivateParser_g)(int argc, char *argv[]) = NULL;
 static herr_t (*TestCleanupFunc_g)(void)                     = NULL;
 
 // TODO: Convert to heap allocation
-static char TestFilenamePrefix_g[MAXPREFIXLEN];
+static char *TestFilenamePrefix_g = NULL;
 static char *TestBaseFilename_g = NULL;
 
 static H5_ATOMIC(int) TestNumErrs_g        = 0;    /* Total number of errors that occurred for whole test program */
@@ -200,9 +200,6 @@ TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
 
     /* Set process ID for later use */
     TestFrameworkProcessID_g = TestProcessID;
-
-    /* Initialize the test filename prefix */
-    SetTestFilenamePrefix(NULL);
 
     /* Set/reset global variables from h5test that may be used by
      * tests integrated with the testing framework
@@ -866,6 +863,7 @@ TestShutdown(void)
             free(TestArray[Loop].TestParameters);
 
     free(TestArray);
+    free(TestFilenamePrefix_g);
     free(TestBaseFilename_g);
 
     return SUCCEED;
@@ -1114,25 +1112,21 @@ SetTestFilenamePrefix(const char *prefix)
 {
     herr_t ret_value = SUCCEED;
 
-    /* If requested, set the prefix to the empty string */
-    if (!prefix || strlen(prefix) == 0) {
-        TestFilenamePrefix_g[0] = '\0';
-        ret_value = SUCCEED;
-        goto done;
+    if (TestFilenamePrefix_g) {
+        free(TestFilenamePrefix_g);
+        TestFilenamePrefix_g = NULL;
     }
 
-    /* Check for too long prefix */
-    if (strlen(prefix) >= MAXPREFIXLEN) {
-        if (TestFrameworkProcessID_g == 0)
-            fprintf(stderr, "%s: filename prefix too large \
-            (actual length %zu exceeds maximum length %zu)\n", __func__,
-                    strlen(prefix), (size_t) MAXPREFIXLEN);
-        ret_value = FAIL;
-        goto done;
+    if (prefix) {
+        TestFilenamePrefix_g = strdup(prefix);
+        if (!TestFilenamePrefix_g) {
+            if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr, "%s: failed to allocate memory for filename prefix\n", __func__);
+            ret_value = FAIL;
+            goto done;
+        }
     }
 
-    strncpy(TestFilenamePrefix_g, prefix, strlen(prefix));
-    TestFilenamePrefix_g[strlen(prefix) + 1] = '\0';
     ret_value = SUCCEED;
 
 done:
@@ -1287,7 +1281,8 @@ char *generate_threadlocal_filename(const char *prefix, int thread_idx, const ch
     /* Write prefix, thread index, and filename into buffer */
     if ((chars_written = snprintf(test_filename,
                                   H5_TEST_FILENAME_MAX_LENGTH, "%s%d%s",
-                                  prefix, thread_idx, base_filename)) < 0) {
+                                  (prefix ? prefix : ""),
+                                  thread_idx, base_filename)) < 0) {
         fprintf(stderr, "    couldn't create test file name\n");
         goto error;
     }
