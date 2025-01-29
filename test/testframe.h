@@ -968,6 +968,9 @@ const char*
 GetThreadlocalContainerFilename(void);
 
 // TODO: Documentation
+herr_t SetBaseFilename(const char *filename);
+
+// TODO: Documentation
 void SetThreadlocalTestDescription(const char *desc);
 
 #ifdef __cplusplus

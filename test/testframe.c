@@ -58,7 +58,9 @@ static void (*TestPrivateUsage_g)(FILE *stream)              = NULL;
 static herr_t (*TestPrivateParser_g)(int argc, char *argv[]) = NULL;
 static herr_t (*TestCleanupFunc_g)(void)                     = NULL;
 
+// TODO: Convert to heap allocation
 static char TestFilenamePrefix_g[MAXPREFIXLEN];
+static char *TestBaseFilename_g = NULL;
 
 static H5_ATOMIC(int) TestNumErrs_g        = 0;    /* Total number of errors that occurred for whole test program */
 static bool           TestEnableErrorStack = true; /* Whether to show error stacks from the library */
@@ -719,10 +721,17 @@ H5_mt_test_thread_setup(int thread_idx) {
 
     /* TBD: This is currently only useful for API tests. Modification of existing testframe tests would be necessary
      * for them to use thread-local filenames to avoid conflicts during multi-threaded execution */
-    if (NULL == (tinfo->test_thread_filename = generate_threadlocal_filename(TestFilenamePrefix_g, thread_idx, TEST_FILE_NAME))) {
-        TestErrPrintf("    couldn't allocate memory for test file name\n");
-        goto error;
+
+    /* Only set up container name if provided by testframe client */
+    if (TestBaseFilename_g != NULL) {
+        if (NULL == (tinfo->test_thread_filename = generate_threadlocal_filename(TestFilenamePrefix_g, thread_idx, TestBaseFilename_g))) {
+            TestErrPrintf("    couldn't allocate memory for test file name\n");
+            goto error;
+        }
+    } else {
+        tinfo->test_thread_filename = NULL;
     }
+
 
     if ((tinfo->test_outcomes = (test_outcome_t *)calloc(H5_MAX_NUM_SUBTESTS, sizeof(test_outcome_t))) == NULL) {
         TestErrPrintf("    couldn't allocate memory for test outcomes\n");
@@ -857,6 +866,7 @@ TestShutdown(void)
             free(TestArray[Loop].TestParameters);
 
     free(TestArray);
+    free(TestBaseFilename_g);
 
     return SUCCEED;
 }
@@ -1160,6 +1170,31 @@ GetThreadlocalContainerFilename(void) {
         goto done;
     }
 #endif /* H5_HAVE_MULTITHREAD */
+
+done:
+    return ret_value;
+}
+
+// TODO: Documentation
+herr_t
+SetBaseFilename(const char *filename) {
+    herr_t ret_value = SUCCEED;
+
+    if (TestBaseFilename_g) {
+        free(TestBaseFilename_g);
+        TestBaseFilename_g = NULL;
+    }
+
+    if (filename) {
+        TestBaseFilename_g = strdup(filename);
+        if (NULL == TestBaseFilename_g) {
+            if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr, "%s: failed to allocate memory for \
+                    base filename %s\n", __func__, filename);
+            ret_value = FAIL;
+            goto done;
+        }
+    }
 
 done:
     return ret_value;

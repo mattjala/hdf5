@@ -286,8 +286,6 @@ H5TEST_DLLVAR MPI_Info h5_io_info_g; /* MPI INFO object for IO */
 extern "C" {
 #endif
 
-#define TEST_FILE_NAME "H5_api_test.h5"
-
 /*
  * Ugly hack to cast away const for freeing const-qualified pointers.
  * Should only be used sparingly, where the alternative (like keeping

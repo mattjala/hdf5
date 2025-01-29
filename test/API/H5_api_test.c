@@ -221,6 +221,12 @@ main(int argc, char **argv)
         goto done;
     }
 
+    if (SetBaseFilename(HDF5_API_TEST_CONTAINER_BASE_FILENAME) < 0) {
+        fprintf(stderr, "Error while setting base file name\n");
+        err_occurred = true;
+        goto done;
+    }
+
 #ifndef H5_HAVE_MULTITHREAD
     if (TEST_EXECUTION_THREADED) {
         fprintf(stderr, "HDF5 must be built with multi-thread support to run threaded API tests\n");
@@ -229,20 +235,18 @@ main(int argc, char **argv)
     }
 #endif
 
-    if (!TEST_EXECUTION_THREADED) {
-        /* Populate global test filename */
-        if ((chars_written = HDsnprintf(H5_api_test_filename_g, H5_TEST_FILENAME_MAX_LENGTH, "%s%s", test_path_prefix,
-                TEST_FILE_NAME)) < 0) {
-            fprintf(stderr, "Error while creating test file name\n");
-            err_occurred = TRUE;
-            goto done;
-        }
+    /* Populate global test container filename for single-threaded execution */
+    if ((chars_written = HDsnprintf(H5_api_test_filename_g, H5_TEST_FILENAME_MAX_LENGTH, "%s%s", test_path_prefix,
+            HDF5_API_TEST_CONTAINER_BASE_FILENAME)) < 0) {
+        fprintf(stderr, "Error while creating test file name\n");
+        err_occurred = TRUE;
+        goto done;
+    }
 
-        if ((size_t)chars_written >= H5_TEST_FILENAME_MAX_LENGTH) {
-            fprintf(stderr, "Test file name exceeded expected size\n");
-            err_occurred = TRUE;
-            goto done;
-        }
+    if ((size_t)chars_written >= H5_TEST_FILENAME_MAX_LENGTH) {
+        fprintf(stderr, "Test file name exceeded expected size\n");
+        err_occurred = TRUE;
+        goto done;
     }
 
     if (NULL == (vol_connector_string = getenv(HDF5_VOL_CONNECTOR))) {
@@ -275,7 +279,7 @@ main(int argc, char **argv)
     printf("Running API tests with VOL connector '%s' and info string '%s'\n\n", vol_connector_name,
            vol_connector_info ? vol_connector_info : "");
     printf("Test parameters:\n");
-    printf("  - Test file name: '%s'\n", TEST_FILE_NAME);
+    printf("  - Test file name: '%s'\n", HDF5_API_TEST_CONTAINER_BASE_FILENAME);
     printf("  - Test file prefix: '%s'\n", test_path_prefix);
     printf("  - Test seed: %u\n", seed);
     printf("\n");
@@ -346,8 +350,8 @@ main(int argc, char **argv)
 
     /* Create the file(s) that will be used for all of the tests,
      * except for those which test file creation.*/
-    if (H5_api_test_create_containers(test_path_prefix, TEST_FILE_NAME, vol_cap_flags_g) < 0) {
-        fprintf(stderr, "Unable to create testing container file with basename '%s'\n", TEST_FILE_NAME);
+    if (H5_api_test_create_containers(test_path_prefix, HDF5_API_TEST_CONTAINER_BASE_FILENAME, vol_cap_flags_g) < 0) {
+        fprintf(stderr, "Unable to create testing container file with basename '%s'\n", HDF5_API_TEST_CONTAINER_BASE_FILENAME);
         err_occurred = true;
         goto done;
     }
@@ -552,7 +556,7 @@ H5_api_test_destroy_container_files(const char *filename_prefix) {
 #endif
         
         for (int i = 0; i < GetTestMaxNumThreads(); i++) {
-            if ((filename = generate_threadlocal_filename(filename_prefix, i, TEST_FILE_NAME)) == NULL) {
+            if ((filename = generate_threadlocal_filename(filename_prefix, i, HDF5_API_TEST_CONTAINER_BASE_FILENAME)) == NULL) {
                 printf("    failed to generate thread-local API test filename\n");
                 goto error;
             }
@@ -573,7 +577,7 @@ H5_api_test_destroy_container_files(const char *filename_prefix) {
     } else {
         H5E_BEGIN_TRY {
             
-            if (api_prefix_filename(TEST_FILE_NAME, &filename) < 0) {
+            if (api_prefix_filename(HDF5_API_TEST_CONTAINER_BASE_FILENAME, &filename) < 0) {
                 printf("    failed to prefix filename\n");
                 goto error;
             }
