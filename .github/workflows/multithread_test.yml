@@ -126,10 +126,10 @@ jobs:
                 fi
 
                 echo "$CONNECTOR_STACKS" | jq -r '.[]' | while IFS= read -r connector_stack; do
-                    if [ -n "$connector_stack" ]; then
-                      HDF5_PLUGIN_PATH=${{github.workspace}}/test/.libs
-                      HDF5_VOL_CONNECTOR=$connector_stack
-                    fi
+                  if [ -n "$connector_stack" ]; then
+                    HDF5_PLUGIN_PATH=${{github.workspace}}/test/.libs
+                    HDF5_VOL_CONNECTOR=$connector_stack
+                  fi
   
                   for num_threads in ${{ matrix.test_thread_counts }}; do
                     echo "::group:: API Tests with $num_threads threads, HDF5_VOL_CONNECTOR=$connector_stack"
@@ -140,14 +140,14 @@ jobs:
                       eval "$API_TEST_COMMAND" -maxthreads $num_threads || failure=1
                     fi
                     echo "::endgroup::"
+
+                    # Fail the step if any test failed
+                    if [ $failure -ne 0 ]; then
+                      echo "Some tests failed. Exiting with error."
+                      exit 1
+                    fi
                   done
                 done
-                
-                # Fail the step if any test failed
-                if [ $failure -ne 0 ]; then
-                  echo "Some tests failed. Exiting with error."
-                  exit 1
-                fi
 
             - name: MT VL Tests
               if: matrix.thread_build == 'multithread'
@@ -163,10 +163,10 @@ jobs:
                 fi
 
                 echo "$CONNECTOR_STACKS" | jq -r '.[]' | while IFS= read -r connector_stack; do
-                    if [ -n "$connector_stack" ]; then
-                      HDF5_PLUGIN_PATH=${{github.workspace}}/test/.libs
-                      HDF5_VOL_CONNECTOR=$connector_stack
-                    fi
+                  if [ -n "$connector_stack" ]; then
+                    HDF5_PLUGIN_PATH=${{github.workspace}}/test/.libs
+                    HDF5_VOL_CONNECTOR=$connector_stack
+                  fi
                       
                   for num_threads in ${{ matrix.test_thread_counts }}; do
                     echo "::group:: MT HDF5 Tests with $num_threads, HDF5_VOL_CONNECTOR=$connector_stack"
@@ -177,14 +177,14 @@ jobs:
                       eval "$MT_VL_TEST_COMMAND" -maxthreads $num_threads || failure=1
                     fi
                     echo "::endgroup::"
+                  
+                    # Fail the step if any test failed
+                    if [ $failure -ne 0 ]; then
+                      echo "Some tests failed. Exiting with error."
+                      exit 1
+                    fi
                   done
                 done
-
-                # Fail the step if any test failed
-                if [ $failure -ne 0 ]; then
-                  echo "Some tests failed. Exiting with error."
-                  exit 1
-                fi
 
             - name: Other HDF5 Tests (Native Only, Autotools)
               if: matrix.build_system == 'autotools'
