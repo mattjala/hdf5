@@ -135,6 +135,13 @@ extern pthread_key_t test_thread_info_key_g;
 #define TEST_EXECUTION_CONCURRENT false
 #endif /* H5_HAVE_MULTITHREAD */
 
+/* Individual granular test results */
+#define TEST_UNINIT  ((uint8_t) 0x00)
+#define TEST_PASS    ((uint8_t) 0x01)
+#define TEST_SKIP    ((uint8_t) 0x02)
+#define TEST_FAIL    ((uint8_t) 0x03)
+#define TEST_INVALID ((uint8_t) 0x04)
+
 /*
  * Muli-thread-compatible testing macros for use in multithreaded tests
  */
