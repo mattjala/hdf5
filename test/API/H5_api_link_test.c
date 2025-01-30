@@ -683,7 +683,7 @@ test_create_hard_link_invalid_params(void H5_ATTR_UNUSED *params)
         goto error;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link test file name\n");
         goto error;
@@ -939,7 +939,7 @@ test_create_hard_link_invalid_params(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
 
@@ -954,7 +954,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -1981,7 +1981,7 @@ test_create_external_link(void H5_ATTR_UNUSED *params)
         return;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -2050,7 +2050,7 @@ test_create_external_link(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
 
@@ -2065,7 +2065,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -2098,7 +2098,7 @@ test_create_external_link_dangling(void H5_ATTR_UNUSED *params)
         return;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -2191,7 +2191,7 @@ test_create_external_link_dangling(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(ext_file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -2206,7 +2206,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(file_id);
         H5Fclose(ext_file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -2247,7 +2247,7 @@ test_create_external_link_multi(void H5_ATTR_UNUSED *params)
         {
             TESTING_2("Create the first external file to be pointed to");
 
-            if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename1) < 0) {
+            if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename1) < 0) {
                 H5_FAILED();
                 printf("    couldn't create external link filename\n");
                 PART_ERROR(H5Lcreate_external_first_file);
@@ -2311,7 +2311,7 @@ test_create_external_link_multi(void H5_ATTR_UNUSED *params)
         {
             TESTING_2("Create the second external file to be pointed to");
 
-            if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME2, &ext_link_filename2) < 0) {
+            if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME2, &ext_link_filename2) < 0) {
                 H5_FAILED();
                 printf("    couldn't create external link filename\n");
                 PART_ERROR(H5Lcreate_external_second_file);
@@ -2371,7 +2371,7 @@ test_create_external_link_multi(void H5_ATTR_UNUSED *params)
         {
             TESTING_2("Create the third external file to be pointed to");
 
-            if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME3, &ext_link_filename3) < 0) {
+            if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME3, &ext_link_filename3) < 0) {
                 H5_FAILED();
                 printf("    couldn't create external link filename\n");
                 PART_ERROR(H5Lcreate_external_third_file);
@@ -2572,11 +2572,11 @@ test_create_external_link_multi(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test cleanup");
 
-    if (remove_test_file(NULL, ext_link_filename1) < 0)
+    if (H5Fdelete(ext_link_filename1, H5P_DEFAULT) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename2) < 0)
+    if (H5Fdelete(ext_link_filename2, H5P_DEFAULT) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename3) < 0)
+    if (H5Fdelete(ext_link_filename3, H5P_DEFAULT) < 0)
         TEST_ERROR;
 
     free(ext_link_filename1);
@@ -2596,9 +2596,9 @@ error:
         H5Gclose(group_id3);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename1);
-        remove_test_file(NULL, ext_link_filename2);
-        remove_test_file(NULL, ext_link_filename3);
+        H5Fdelete(ext_link_filename1, H5P_DEFAULT);
+        H5Fdelete(ext_link_filename2, H5P_DEFAULT);
+        H5Fdelete(ext_link_filename3, H5P_DEFAULT);
         free(ext_link_filename1);
         free(ext_link_filename2);
         free(ext_link_filename3);
@@ -2641,13 +2641,13 @@ test_create_external_link_ping_pong(void H5_ATTR_UNUSED *params)
         return;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_PING_PONG_NAME1, &ext_link_filename1) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_PING_PONG_NAME1, &ext_link_filename1) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_PING_PONG_NAME2, &ext_link_filename2) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_PING_PONG_NAME2, &ext_link_filename2) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -2888,9 +2888,9 @@ test_create_external_link_ping_pong(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test cleanup");
 
-    if (remove_test_file(NULL, ext_link_filename1) < 0)
+    if (H5Fdelete(ext_link_filename1, H5P_DEFAULT) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename2) < 0)
+    if (H5Fdelete(ext_link_filename2, H5P_DEFAULT) < 0)
         TEST_ERROR;
 
     free(ext_link_filename1);
@@ -2906,8 +2906,8 @@ error:
         H5Gclose(group_id);
         H5Gclose(group_id2);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename1);
-        remove_test_file(NULL, ext_link_filename2);
+        H5Fdelete(ext_link_filename1, H5P_DEFAULT);
+        H5Fdelete(ext_link_filename2, H5P_DEFAULT);
         free(ext_link_filename1);
         free(ext_link_filename2);
     }
@@ -2942,7 +2942,7 @@ test_create_external_link_invalid_params(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(EXTERNAL_LINK_INVALID_PARAMS_TEST_FILE_NAME, &ext_link_filename) <
+    if (GenerateTestFilename(EXTERNAL_LINK_INVALID_PARAMS_TEST_FILE_NAME, &ext_link_filename) <
         0) {
         H5_FAILED();
         printf("    couldn't create filename for external link test\n");
@@ -3192,7 +3192,7 @@ test_create_external_link_invalid_params(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
 
@@ -3206,7 +3206,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -3614,7 +3614,7 @@ test_delete_link(void H5_ATTR_UNUSED *params)
         goto error;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -6993,7 +6993,7 @@ test_delete_link(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(ext_file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
 
@@ -7010,7 +7010,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -7661,7 +7661,7 @@ test_copy_link(void H5_ATTR_UNUSED *params)
         goto error;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link test file name\n");
         goto error;
@@ -8799,7 +8799,7 @@ test_copy_link(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(ext_file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
 
@@ -8816,7 +8816,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -8948,7 +8948,7 @@ test_copy_link_invalid_params(void H5_ATTR_UNUSED *params)
         goto error;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -9182,7 +9182,7 @@ test_copy_link_invalid_params(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(ext_file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -9198,7 +9198,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -9267,7 +9267,7 @@ test_move_link(void H5_ATTR_UNUSED *params)
         goto error;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -10647,7 +10647,7 @@ test_move_link(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(ext_file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -10663,7 +10663,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(file_id);
         H5Fclose(ext_file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -11160,7 +11160,7 @@ test_move_link_invalid_params(void H5_ATTR_UNUSED *params)
         goto error;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    failed to generate external link filename\n");
         goto error;
@@ -11442,7 +11442,7 @@ test_move_link_invalid_params(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(ext_file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
 
@@ -11459,7 +11459,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -11534,7 +11534,7 @@ test_get_link_val(void H5_ATTR_UNUSED *params)
         goto error;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -13502,7 +13502,7 @@ test_get_link_val(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(ext_file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -13518,7 +13518,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -13938,7 +13938,7 @@ test_get_link_info(void H5_ATTR_UNUSED *params)
         goto error;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link target filename\n");
         goto error;
@@ -16487,7 +16487,7 @@ test_get_link_info(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -16503,7 +16503,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -16907,7 +16907,7 @@ test_get_link_name(void H5_ATTR_UNUSED *params)
         goto error;
     }
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -19006,7 +19006,7 @@ test_get_link_name(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -19022,7 +19022,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(ext_file_id);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -20058,7 +20058,7 @@ test_link_iterate_external_links(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -20411,7 +20411,7 @@ test_link_iterate_external_links(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -20425,7 +20425,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -20496,7 +20496,7 @@ test_link_iterate_mixed_links(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -20980,7 +20980,7 @@ test_link_iterate_mixed_links(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -20997,7 +20997,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -21038,7 +21038,7 @@ test_link_iterate_invalid_params(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -21398,7 +21398,7 @@ test_link_iterate_invalid_params(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -21414,7 +21414,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -22473,7 +22473,7 @@ test_link_visit_external_links_no_cycles(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -22819,7 +22819,7 @@ test_link_visit_external_links_no_cycles(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -22834,7 +22834,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -22909,7 +22909,7 @@ test_link_visit_mixed_links_no_cycles(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -23336,7 +23336,7 @@ test_link_visit_mixed_links_no_cycles(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -23355,7 +23355,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -24557,7 +24557,7 @@ test_link_visit_mixed_links_cycles(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -24947,7 +24947,7 @@ test_link_visit_mixed_links_cycles(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -24963,7 +24963,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY
@@ -25002,7 +25002,7 @@ test_link_visit_invalid_params(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
+    if (GenerateTestFilename(EXTERNAL_LINK_TEST_FILE_NAME, &ext_link_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create external link filename\n");
         goto error;
@@ -25414,7 +25414,7 @@ test_link_visit_invalid_params(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, ext_link_filename) < 0)
+    if (H5Fdelete(ext_link_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(ext_link_filename);
     PASSED();
@@ -25432,7 +25432,7 @@ error:
         H5Gclose(group_id);
         H5Gclose(container_group);
         H5Fclose(file_id);
-        remove_test_file(NULL, ext_link_filename);
+        H5Fdelete(ext_link_filename, H5P_DEFAULT);
         free(ext_link_filename);
     }
     H5E_END_TRY

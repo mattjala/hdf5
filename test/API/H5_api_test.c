@@ -221,7 +221,7 @@ main(int argc, char **argv)
         goto done;
     }
 
-    if (SetBaseFilename(HDF5_API_TEST_CONTAINER_BASE_FILENAME) < 0) {
+    if (SetTestContainerBaseFilename(HDF5_API_TEST_CONTAINER_BASE_FILENAME) < 0) {
         fprintf(stderr, "Error while setting base file name\n");
         err_occurred = true;
         goto done;
@@ -433,7 +433,7 @@ H5_api_test_create_containers(const char *filename_prefix, const char *filename,
     if (TEST_EXECUTION_THREADED) {
 #ifdef H5_HAVE_MULTITHREAD
         for (int i = 0; i < GetTestMaxNumThreads(); i++) {
-            if ((tl_filename = generate_threadlocal_filename(filename_prefix, i, filename)) == NULL) {
+            if ((tl_filename = GenerateIndexedFilename(filename_prefix, i, filename)) == NULL) {
                 printf("    failed to generate thread-local API test filename\n");
                 goto error;
             }
@@ -556,7 +556,7 @@ H5_api_test_destroy_container_files(const char *filename_prefix) {
 #endif
         
         for (int i = 0; i < GetTestMaxNumThreads(); i++) {
-            if ((filename = generate_threadlocal_filename(filename_prefix, i, HDF5_API_TEST_CONTAINER_BASE_FILENAME)) == NULL) {
+            if ((filename = GenerateIndexedFilename(filename_prefix, i, HDF5_API_TEST_CONTAINER_BASE_FILENAME)) == NULL) {
                 printf("    failed to generate thread-local API test filename\n");
                 goto error;
             }
@@ -577,7 +577,7 @@ H5_api_test_destroy_container_files(const char *filename_prefix) {
     } else {
         H5E_BEGIN_TRY {
             
-            if (api_prefix_filename(HDF5_API_TEST_CONTAINER_BASE_FILENAME, &filename) < 0) {
+            if (GenerateTestFilename(HDF5_API_TEST_CONTAINER_BASE_FILENAME, &filename) < 0) {
                 printf("    failed to prefix filename\n");
                 goto error;
             }

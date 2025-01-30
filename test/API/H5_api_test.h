@@ -37,7 +37,7 @@
 /******************************************************************************/
 
 /* Final name of the API test container file (for this thread) */
-#define H5_API_TEST_FILENAME (GetThreadlocalContainerFilename() ? GetThreadlocalContainerFilename() : H5_api_test_filename_g)
+#define H5_API_TEST_FILENAME (GetTestContainerFilename() ? GetTestContainerFilename() : H5_api_test_filename_g)
 extern char H5_api_test_filename_g[];
 
 /*

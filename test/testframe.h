@@ -932,39 +932,83 @@ H5TEST_DLL herr_t TestAlarmOn(void);
  */
 H5TEST_DLL void TestAlarmOff(void);
 
-/* Generate a heap-allocated filename of the form <prefix><thread_idx><filename> */
 /**
  * ---------------------------------------------------------------------------
  * \ingroup H5TEST
  *
- * \brief Generate a heap-allocated filename of the form <prefix><thread_idx><filename>
+ * \brief Generate a heap-allocated filename of the form <prefix><index><filename>
  *
  * \param[in] prefix  Prefix to prepend to the filename
  *
- * \param[in] thread_idx  Thread index to append to the filename
+ * \param[in] index  Index to prepend to the filename
  *
- * \param[in] base_filename  Base filename to append to the filename
+ * \param[in] base_filename Base filename to be prepended onto
  *
  * \return char*  Heap-allocated filename
  *
  */
-char *generate_threadlocal_filename(const char *prefix, int thread_idx, const char *base_filename);
+char *GenerateIndexedFilename(const char *prefix, int index, const char *base_filename);
 
-// TODO: Documentation
+/**
+ * ---------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
+ * \brief Generate a heap-allocated thread-unique filename, with the prefix
+ *        (if any) provided to the test framework
+ *
+ * \param[in] filename  Base filename
+ *
+ * \param[out] filename_out  Heap-allocated thread-unique filename
+ *
+ * \return herr_t Non-negative on success; negative on failure
+ *
+ */
+herr_t GenerateTestFilename(const char *filename, char **filename_out);
 
-/* Helper function to prefix a filename with a prefix string. */
-herr_t prefix_filename(const char *prefix, const char *filename, char **filename_out);
+/**
+ * ---------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
+ * \brief Retrieve a pointer to the thread-unique test container filename.
+ *
+ * \details If no base container filename was specified with SetTestContainerBaseFilename,
+ *          this filename will be NULL.
+ *
+ * \return char*  Thread-unique filename, or NULL if no base filename was
+ *                specified.
+ *
+ */
+const char* GetTestContainerFilename(void);
 
-herr_t api_prefix_filename(const char *filename, char **filename_out);
+/**
+ * ---------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
+ * \brief Set the base filename for a test container file.
+ * 
+ * \details This filename will
+ *          be used to generate thread-unique filenames for the test
+ *          container in each thread.
+ *
+ * \return herr_t Non-negative on success; negative on failure
+ *
+ */
+herr_t SetTestContainerBaseFilename(const char *filename);
 
-// TODO: Documentation
-const char*
-GetThreadlocalContainerFilename(void);
-
-// TODO: Documentation
-herr_t SetBaseFilename(const char *filename);
-
-// TODO: Documentation
+/**
+ * ---------------------------------------------------------------------------
+ * \ingroup H5TEST
+ * 
+ * \brief Store the provided test description in the thread-local information
+ *        structure. 
+ *
+ * \details This routine is intended to only be used when
+ *          tests are run in a multi-threaded manner.
+ *
+ *          TBD: This routine should not be publicly exposed, but must
+ *          be for now in order to satisfy a dependency in h5test.
+ * 
+ */
 void SetThreadlocalTestDescription(const char *desc);
 
 #ifdef __cplusplus

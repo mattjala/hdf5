@@ -4194,7 +4194,7 @@ test_object_copy_between_files(void H5_ATTR_UNUSED *params)
     /*
      * Create the second file for the between file copying tests.
      */
-    if (api_prefix_filename(OBJECT_COPY_BETWEEN_FILES_TEST_FILE_NAME, &obj_copy_filename) < 0) {
+    if (GenerateTestFilename(OBJECT_COPY_BETWEEN_FILES_TEST_FILE_NAME, &obj_copy_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create filename for object copy test file\n");
         goto error;
@@ -4728,7 +4728,7 @@ test_object_copy_between_files(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, obj_copy_filename) < 0)
+    if (H5Fdelete(obj_copy_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(obj_copy_filename);
     PASSED();
@@ -4753,7 +4753,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(file_id2);
         H5Fclose(file_id);
-        remove_test_file(NULL, obj_copy_filename);
+        H5Fdelete(obj_copy_filename, H5P_DEFAULT);
         free(obj_copy_filename);
     }
     H5E_END_TRY
@@ -5072,7 +5072,7 @@ test_object_visit(void H5_ATTR_UNUSED *params)
         goto error;
     }
 
-    if (api_prefix_filename(OBJECT_VISIT_TEST_FILE_NAME, &visit_filename) < 0) {
+    if (GenerateTestFilename(OBJECT_VISIT_TEST_FILE_NAME, &visit_filename) < 0) {
         H5_FAILED();
         printf("    couldn't create filename for visiting test file\n");
         goto error;
@@ -5694,7 +5694,7 @@ test_object_visit(void H5_ATTR_UNUSED *params)
         TEST_ERROR;
     if (H5Fclose(file_id2) < 0)
         TEST_ERROR;
-    if (remove_test_file(NULL, visit_filename) < 0)
+    if (H5Fdelete(visit_filename, H5P_DEFAULT) < 0)
         TEST_ERROR;
     free(visit_filename);
 
@@ -5719,7 +5719,7 @@ error:
         H5Gclose(container_group);
         H5Fclose(file_id);
         H5Fclose(file_id2);
-        remove_test_file(NULL, visit_filename);
+        H5Fdelete(visit_filename, H5P_DEFAULT);
         free(visit_filename);
     }
     H5E_END_TRY;

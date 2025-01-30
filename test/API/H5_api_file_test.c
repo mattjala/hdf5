@@ -61,7 +61,7 @@ test_create_file(void H5_ATTR_UNUSED *params)
         return;
     }
 
-    if (api_prefix_filename(FILE_CREATE_TEST_FILENAME, &prefixed_filename) < 0) {
+    if (GenerateTestFilename(FILE_CREATE_TEST_FILENAME, &prefixed_filename) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -118,7 +118,7 @@ test_create_file_invalid_params(void H5_ATTR_UNUSED *params)
         return;
     }
 
-    if (api_prefix_filename(FILE_CREATE_INVALID_PARAMS_FILE_NAME, &prefixed_filename) < 0) {
+    if (GenerateTestFilename(FILE_CREATE_INVALID_PARAMS_FILE_NAME, &prefixed_filename) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -274,7 +274,7 @@ test_create_file_excl(void H5_ATTR_UNUSED *params)
         return;
     }
 
-    if (api_prefix_filename(FILE_CREATE_EXCL_FILE_NAME, &prefixed_filename) < 0) {
+    if (GenerateTestFilename(FILE_CREATE_EXCL_FILE_NAME, &prefixed_filename) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -542,7 +542,7 @@ test_open_nonexistent_file(void H5_ATTR_UNUSED *params)
         return;
     }
 
-    if (api_prefix_filename(NONEXISTENT_FILENAME, &prefixed_filename) < 0) {
+    if (GenerateTestFilename(NONEXISTENT_FILENAME, &prefixed_filename) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -616,7 +616,7 @@ test_file_permission(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(FILE_PERMISSION_TEST_FILENAME, &prefixed_filename) < 0) {
+    if (GenerateTestFilename(FILE_PERMISSION_TEST_FILENAME, &prefixed_filename) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -939,7 +939,7 @@ test_flush_file(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(FILE_FLUSH_TEST_FILENAME, &prefixed_filename) < 0) {
+    if (GenerateTestFilename(FILE_FLUSH_TEST_FILENAME, &prefixed_filename) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -1057,7 +1057,7 @@ test_file_is_accessible(void H5_ATTR_UNUSED *params)
         return;
     }
 
-    if (api_prefix_filename(fake_filename, &prefixed_filename) < 0) {
+    if (GenerateTestFilename(fake_filename, &prefixed_filename) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -1159,12 +1159,12 @@ test_file_property_lists(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(FILE_PROPERTY_LIST_TEST_FNAME1, &prefixed_filename1) < 0) {
+    if (GenerateTestFilename(FILE_PROPERTY_LIST_TEST_FNAME1, &prefixed_filename1) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
     }
-    if (api_prefix_filename(FILE_PROPERTY_LIST_TEST_FNAME2, &prefixed_filename2) < 0) {
+    if (GenerateTestFilename(FILE_PROPERTY_LIST_TEST_FNAME2, &prefixed_filename2) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -1461,7 +1461,7 @@ test_get_file_intent(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(FILE_INTENT_TEST_FILENAME, &prefixed_filename) < 0) {
+    if (GenerateTestFilename(FILE_INTENT_TEST_FILENAME, &prefixed_filename) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -1641,12 +1641,12 @@ test_get_file_obj_count(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(GET_OBJ_COUNT_TEST_FILENAME1, &prefixed_filename1) < 0) {
+    if (GenerateTestFilename(GET_OBJ_COUNT_TEST_FILENAME1, &prefixed_filename1) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
     }
-    if (api_prefix_filename(GET_OBJ_COUNT_TEST_FILENAME2, &prefixed_filename2) < 0) {
+    if (GenerateTestFilename(GET_OBJ_COUNT_TEST_FILENAME2, &prefixed_filename2) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -1991,7 +1991,7 @@ test_file_open_overlap(void H5_ATTR_UNUSED *params)
         return;
     }
 
-    if (api_prefix_filename(OVERLAPPING_FILENAME, &prefixed_filename) < 0) {
+    if (GenerateTestFilename(OVERLAPPING_FILENAME, &prefixed_filename) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -2130,7 +2130,7 @@ test_file_mounts(void H5_ATTR_UNUSED *params)
         return;
     }
 
-    if (api_prefix_filename(FILE_MOUNT_TEST_FILENAME, &prefixed_filename) < 0) {
+    if (GenerateTestFilename(FILE_MOUNT_TEST_FILENAME, &prefixed_filename) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;
@@ -2232,7 +2232,7 @@ test_get_file_name(void H5_ATTR_UNUSED *params)
 
     TESTING_2("test setup");
 
-    if (api_prefix_filename(GET_FILE_NAME_TEST_FNAME, &prefixed_filename) < 0) {
+    if (GenerateTestFilename(GET_FILE_NAME_TEST_FNAME, &prefixed_filename) < 0) {
         H5_FAILED();
         printf("    couldn't prefix filename\n");
         goto error;

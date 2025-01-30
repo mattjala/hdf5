@@ -16,6 +16,7 @@
 
 #include "testframe.h"
 #include "h5test.h"
+#include <math.h>
 
 /*
  * Definitions for the testing structure.
@@ -45,10 +46,6 @@ typedef struct TestThreadArgs {
  * Global variables used by testing framework.
  */
 
-/* Limit the number of threads for string-management purposes */
-#define MAX_THREAD_IDX 999
-#define MAX_THREAD_IDX_LEN 3
-
 static TestStruct *TestArray = NULL; /* Array of tests */
 static unsigned    TestAlloc = 0;    /* Size of the Test array */
 static unsigned    TestCount = 0;    /* Number of tests currently added to test array */
@@ -58,7 +55,6 @@ static void (*TestPrivateUsage_g)(FILE *stream)              = NULL;
 static herr_t (*TestPrivateParser_g)(int argc, char *argv[]) = NULL;
 static herr_t (*TestCleanupFunc_g)(void)                     = NULL;
 
-// TODO: Convert to heap allocation
 static char *TestFilenamePrefix_g = NULL;
 static char *TestBaseFilename_g = NULL;
 
@@ -73,9 +69,14 @@ static bool TestDoCleanUp_g = true;  /* Do cleanup or not. Default is yes. */
 int TestFrameworkProcessID_g = 0;         /* MPI process rank value for parallel tests */
 int TestVerbosity_g          = VERBO_DEF; /* Default Verbosity is Low */
 
+/* Helper routine to populate a buffer with the testframe-index of the current thread */
+static herr_t GetThreadIndexString(char *thread_idx_buf, size_t *buf_size);
+
+/* Perform the provided test in multiple threads */
 static void PerformThreadedTest(TestStruct Test);
 
 #ifdef H5_HAVE_MULTITHREAD
+/* Execute a single thread of a multi-threaded test */
 static void *ThreadTestWrapper(void *test);
 static int   H5_mt_test_thread_setup(int thread_idx);
 static int   H5_mt_test_global_setup(void);
@@ -512,6 +513,7 @@ PerformTests(void)
 
 #ifdef H5_HAVE_MULTITHREAD
 
+/* Perform the provided test in a multi-threaded fashion */
 static void
 PerformThreadedTest(TestStruct threaded_test) {
     pthread_t *threads;
@@ -721,7 +723,7 @@ H5_mt_test_thread_setup(int thread_idx) {
 
     /* Only set up container name if provided by testframe client */
     if (TestBaseFilename_g != NULL) {
-        if (NULL == (tinfo->test_thread_filename = generate_threadlocal_filename(TestFilenamePrefix_g, thread_idx, TestBaseFilename_g))) {
+        if (NULL == (tinfo->test_thread_filename = GenerateIndexedFilename(TestFilenamePrefix_g, thread_idx, TestBaseFilename_g))) {
             TestErrPrintf("    couldn't allocate memory for test file name\n");
             goto error;
         }
@@ -1133,9 +1135,11 @@ done:
     return ret_value;
 }
 
-// TODO: Documentation
+/* 
+ * Retrieve a pointer to the thread-unique test container filename.
+ */
 const char*
-GetThreadlocalContainerFilename(void) {
+GetTestContainerFilename(void) {
     thread_info_t *tinfo = NULL;
     const char *ret_value = NULL;
 
@@ -1169,9 +1173,11 @@ done:
     return ret_value;
 }
 
-// TODO: Documentation
+/*
+ * Set the base filename for a test container file.
+ */
 herr_t
-SetBaseFilename(const char *filename) {
+SetTestContainerBaseFilename(const char *filename) {
     herr_t ret_value = SUCCEED;
 
     if (TestBaseFilename_g) {
@@ -1258,113 +1264,146 @@ error:
 }
 #endif
 
-/* Generate a heap-allocated filename of the form <prefix><thread_idx><filename> */
-char *generate_threadlocal_filename(const char *prefix, int thread_idx, const char *base_filename) {
+/* Helper routine to retrieve the testframe-assigned index of the current thread
+ * 
+ * thread_idx_buf is a pointer to a caller-allocated buffer to store the thread index
+ *  as a string, or NULL to retrieve the size of the string.
+ * 
+ * size is the size of the buffer pointed to by thread_idx_buf, if any.
+ * 
+ * If thread_idx_buf is NULL, the length of the thread index string in bytes will 
+ * be return in 'size'. A buffer of that size plus 1 for a NULL terminator, must be
+ * provided by the caller on a subsequent call to retrieve the thread index string.
+ * 
+ */
+static herr_t
+GetThreadIndexString(char *thread_idx_buf, size_t *size) {
+    herr_t ret_value = SUCCEED;
     int chars_written = 0;
-    char *test_filename =  NULL;
+    double thread_idx_log = 0.0;
 
-    if (thread_idx > MAX_THREAD_IDX) {
-        fprintf(stderr, "    thread index exceeded expected size\n");
-        goto error;
+    /* Only set up thread index if library is built for multi-threading
+     * and test execution is multi-threaded */
+#ifndef H5_HAVE_MULTITHREAD
+    thread_idx_buf = NULL;
+    *size = 0;
+#else
+    thread_info_t *tinfo = NULL;
+
+    /* If tests are not being executed in a multi-threaded manner, indicate
+     * prefix is empty */
+    if (!TEST_EXECUTION_THREADED) {
+        *size = 0;
+        ret_value = SUCCEED;
+        goto done;
     }
 
-    if (MAX_THREAD_IDX_LEN + strlen(base_filename) >= H5_TEST_FILENAME_MAX_LENGTH) {
-        fprintf(stderr, "    test file name exceeded expected size\n");
-        goto error;
+    if (NULL == (tinfo = (thread_info_t *) pthread_getspecific(test_thread_info_key_g))) {
+        if (TestFrameworkProcessID_g == 0)
+            fprintf(stderr, "%s: threadlocal info not populated\n", __func__);
+        ret_value = FAIL;
+        goto done;
     }
 
-    if (NULL == (test_filename = (char *)calloc(1, H5_TEST_FILENAME_MAX_LENGTH))) {
-        fprintf(stderr, "    couldn't allocate memory for test file name\n");
-        goto error;
+    /* If thread_idx_buf is NULL, indicate the size of the thread idx string */
+    if (thread_idx_buf == NULL) {
+        if (tinfo->thread_idx > 0)
+            thread_idx_log = log10(tinfo->thread_idx);
+
+        *size = (size_t)thread_idx_log + 1;
+    } else {
+        /* If thread_idx_buf is not NULL, write the thread index to the buffer */
+        if ((chars_written = snprintf(thread_idx_buf,
+            *size, "%d", tinfo->thread_idx))  < 0) {
+            if (TestFrameworkProcessID_g == 0)
+                    fprintf(stderr, "%s: couldn't write to thread index buffer\n", __func__);
+            ret_value = FAIL;
+            goto done;
+        }
+
+        if (chars_written >= (int) *size) {
+            if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr, "%s: thread index buffer too small\n", __func__);
+            ret_value = FAIL;
+            goto done;
+        }
     }
+   
+#endif /* H5_HAVE_MULTITHREAD */
 
-    /* Write prefix, thread index, and filename into buffer */
-    if ((chars_written = snprintf(test_filename,
-                                  H5_TEST_FILENAME_MAX_LENGTH, "%s%d%s",
-                                  (prefix ? prefix : ""),
-                                  thread_idx, base_filename)) < 0) {
-        fprintf(stderr, "    couldn't create test file name\n");
-        goto error;
-    }
-
-    return test_filename;
-
-error:
-    free(test_filename);
-    return NULL;
+done:
+    return ret_value;
 }
 
 /*
- * Add a prefix to the given filename. The caller
- * is responsible for freeing the returned filename
- * pointer with free().
- * 
- * If the tests are being run in separate thread(s)
- * then the framework-assigned thread index will be inserted as well.
+ * Generate a heap-allocated thread-unique filename, with the prefix
+ * (if any) provided to the test framework 
  */
-herr_t
-prefix_filename(const char *prefix, const char *filename, char **filename_out)
-{
-    char  *out_buf       = NULL;
-    herr_t ret_value     = SUCCEED;
-    int    chars_written = 0;
-#ifdef H5_HAVE_MULTITHREAD
-    thread_info_t *tinfo = NULL;
-#endif
+herr_t GenerateTestFilename(const char *filename, char **filename_out) {
+    char  *out_buf        = NULL;
+    char  *thread_idx_buf = NULL;
+    herr_t ret_value      = SUCCEED;
+    int    chars_written  = 0;
+    size_t  thread_idx_len = 0;
 
-    if (!prefix) {
-        printf("    invalid file prefix\n");
-        ret_value = FAIL;
-        goto done;
-    }
     if (!filename || (*filename == '\0')) {
-        printf("    invalid filename\n");
+        printf("    invalid base filename\n");
         ret_value = FAIL;
         goto done;
     }
+
     if (!filename_out) {
-        printf("    invalid filename_out buffer\n");
+        printf("    invalid filename_out pointer\n");
         ret_value = FAIL;
         goto done;
     }
 
-    if (TEST_EXECUTION_THREADED) {
-#ifdef H5_HAVE_MULTITHREAD
-
-        if ((tinfo = (thread_info_t *)pthread_getspecific(test_thread_info_key_g)) == NULL) {
-            printf("    failed to retrieve thread-specific info\n");
-            ret_value = FAIL;
-            goto done;
-        }
-
-        if ((out_buf = generate_threadlocal_filename(prefix, tinfo->thread_idx, filename)) == NULL) {
-            printf("    failed to generate thread-specific filename\n");
-            ret_value = FAIL;
-            goto done;
-        }
-
-#else
-        printf("    thread-specific filename requested, but multithread support not enabled\n");
+    /* Get necessary thread index buffer size (if any) */
+    if (GetThreadIndexString(NULL, &thread_idx_len) < 0) {
+        printf("    failed to get thread index length\n");
         ret_value = FAIL;
         goto done;
-#endif
-    } else {
-        if (NULL == (out_buf = malloc(H5_TEST_FILENAME_MAX_LENGTH))) {
-            printf("    couldn't allocated filename buffer\n");
+    }
+
+    if (thread_idx_len > 0) {
+        /* Add space for null byte */
+        thread_idx_len++;
+
+        if ((thread_idx_buf = malloc(thread_idx_len)) == NULL) {
+            printf("    couldn't allocate thread index buffer\n");
             ret_value = FAIL;
             goto done;
         }
 
-        if ((chars_written = HDsnprintf(out_buf, H5_TEST_FILENAME_MAX_LENGTH, "%s%s", prefix, filename)) <
-            0) {
-            printf("    couldn't prefix filename\n");
+        if (GetThreadIndexString(thread_idx_buf, &thread_idx_len ) < 0) {
+            printf("    failed to generate thread index buffer\n");
             ret_value = FAIL;
             goto done;
         }
+    }
+   
+
+    if (thread_idx_len + strlen(filename) + strlen(TestFilenamePrefix_g) >= H5_TEST_FILENAME_MAX_LENGTH) {
+        printf("    filename exceeded maximum size\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if (NULL == (out_buf = malloc(H5_TEST_FILENAME_MAX_LENGTH))) {
+        printf("    couldn't allocated filename buffer\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if ((chars_written = HDsnprintf(out_buf, H5_TEST_FILENAME_MAX_LENGTH,"%s%s%s",
+        TestFilenamePrefix_g, (thread_idx_buf ? thread_idx_buf : ""), filename)) < 0) {
+        printf("    couldn't construct test filename\n");
+        ret_value = FAIL;
+        goto done;
     }
 
     if ((size_t)chars_written >= H5_TEST_FILENAME_MAX_LENGTH) {
-        printf("    filename buffer too small\n");
+        printf("    filename exceeded maximum size\n");
         ret_value = FAIL;
         goto done;
     }
@@ -1372,6 +1411,8 @@ prefix_filename(const char *prefix, const char *filename, char **filename_out)
     *filename_out = out_buf;
 
 done:
+    free(thread_idx_buf);
+
     if (ret_value < 0)
         free(out_buf);
 
@@ -1379,21 +1420,9 @@ done:
 }
 
 /*
- * Wrapper around prefix_filename() to provide the 
- * testframe-provided filename prefix
+ *  Store the provided test description in the thread-local information
+ *  structure. 
  */
-herr_t api_prefix_filename(const char *filename, char **filename_out) {
-    herr_t ret_value = SUCCEED;
-
-    if (prefix_filename(TestFilenamePrefix_g, filename, filename_out) < 0) {
-        printf("    couldn't prefix filename\n");
-        ret_value = FAIL;
-    }
-
-    return ret_value;
-}
-
-// TODO
 void
 SetThreadlocalTestDescription(const char *desc) {
     /* Store test desc for display after test completion */
@@ -1405,4 +1434,45 @@ SetThreadlocalTestDescription(const char *desc) {
     _tinfo->test_descriptions[_tinfo->num_tests - 1] = desc;
 
     return;
+}
+
+/* Generate a heap-allocated filename of the form <prefix><index><filename> */
+char *GenerateIndexedFilename(const char *prefix, int index, const char *base_filename) {
+    int chars_written = 0;
+    double index_log = 0;
+    size_t index_len = 0;
+    char *test_filename =  NULL;
+
+    assert(prefix);
+    assert(base_filename);
+    assert(index >= 0);
+
+    if (index > 0)
+        index_log = log10(index);
+
+    index_len = (size_t) index_log + 1;
+
+    if (strlen(prefix) + index_len + strlen(base_filename) >= H5_TEST_FILENAME_MAX_LENGTH) {
+        fprintf(stderr, "    test file name exceeded expected size\n");
+        goto error;
+    }
+
+    if (NULL == (test_filename = (char *)malloc(H5_TEST_FILENAME_MAX_LENGTH))) {
+        fprintf(stderr, "    couldn't allocate memory for test file name\n");
+        goto error;
+    }
+
+    /* Write prefix, thread index, and filename into buffer */
+    if ((chars_written = snprintf(test_filename,
+                                  H5_TEST_FILENAME_MAX_LENGTH, "%s%d%s",
+                                  prefix, index, base_filename)) < 0) {
+        fprintf(stderr, "    couldn't create test file name\n");
+        goto error;
+    }
+
+    return test_filename;
+
+error:
+    free(test_filename);
+    return NULL;
 }
