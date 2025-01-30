@@ -3829,7 +3829,7 @@ H5FD__mpio_delete(const char *filename, hid_t fapl_id)
 
     assert(filename);
 
-    if (NULL == (plist = H5P_object_verify(fapl_id, H5P_FILE_ACCESS)))
+    if (NULL == (plist = H5P_object_verify(fapl_id, H5P_FILE_ACCESS, true)))
         HGOTO_ERROR(H5E_ARGS, H5E_BADTYPE, FAIL, "not a file access property list");
     assert(H5FD_MPIO == H5P_peek_driver(plist));
 
