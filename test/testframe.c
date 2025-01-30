@@ -79,6 +79,9 @@ static herr_t GetThreadIndexString(char *thread_idx_buf, size_t *buf_size);
 /* Perform the provided test in multiple threads */
 static void PerformThreadedTest(TestStruct Test);
 
+/* String manipulation helper */
+char *StringConcatenate(const char *str1, const char *str2, const char *str3, size_t max_len);
+
 #ifdef H5_HAVE_MULTITHREAD
 /* Execute a single thread of a multi-threaded test */
 static void *ThreadTestWrapper(void *test);
@@ -88,6 +91,8 @@ static void  H5_test_thread_info_key_destructor(void *value);
 static void UpdateTestStats(TestThreadArgs *test_args);
 pthread_key_t test_thread_info_key_g;
 #endif
+
+#define NONNEGATIVE_INTEGER_NUM_DIGITS(n) (n == 0 ? 1 : (size_t)(log10((double)n) + 1))
 
 /*
  * Add a new test to the list of tests to be executed
@@ -238,8 +243,6 @@ TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
 static herr_t
 TestInitFilenames(const char *prefix, const char *container_basename) {
     herr_t ret_value = SUCCEED;
-    size_t container_filename_len = 0;
-    int chars_written = 0;
     
     /* Allocate memory for local copy of values */
     if (prefix && strlen(prefix) > 0) {
@@ -260,28 +263,17 @@ TestInitFilenames(const char *prefix, const char *container_basename) {
 
     /* Set up global prefixed container name if necessary */
     if (TestContainerBaseFilename_g) {
-        container_filename_len = strlen(TestContainerBaseFilename_g)
-            + (TestFilenamePrefix_g ? strlen(TestFilenamePrefix_g) : 0) + 1;
-        
-        if ((TestContainerSerialFilename_g = malloc(container_filename_len)) == NULL) {
-            if (TestFrameworkProcessID_g == 0)
-                fprintf(stderr, "%s: couldn't allocate space for container filename\n", __func__);
-            return FAIL;
-        }
+        TestContainerSerialFilename_g =
+            StringConcatenate(TestFilenamePrefix_g,
+                              TestContainerBaseFilename_g,
+                              NULL,
+                              H5_TEST_FILENAME_MAX_LENGTH);
 
-        /* Populate allocated TestContainerSerialFilename_g with prefix and base filename */
-        if ((chars_written = snprintf(TestContainerSerialFilename_g, container_filename_len,
-            "%s%s", (TestFilenamePrefix_g ? TestFilenamePrefix_g : ""),
-            TestContainerBaseFilename_g)) < 0) {
-                if (TestFrameworkProcessID_g == 0)
-                    fprintf(stderr, "%s: couldn't write container filename\n", __func__);
-                return FAIL;
-        }
-
-        if (chars_written >= (int) container_filename_len) {
+        if (TestContainerSerialFilename_g == NULL) {
             if (TestFrameworkProcessID_g == 0)
-                fprintf(stderr, "%s: container filename too long\n", __func__);
-            return FAIL;
+                fprintf(stderr, "%s: couldn't assemble container filename\n", __func__);
+            ret_value = FAIL;
+            goto done;
         }
     }
 
@@ -1286,37 +1278,22 @@ error:
 }
 #endif
 
-/* Helper routine to retrieve the testframe-assigned index of the current thread
+/* Helper routine to retrieve the testframe-assigned index
+ * of the current thread. If threading is not enabled,
+ * a negative thread index is returned.
  * 
- * thread_idx_buf is a pointer to a caller-allocated buffer to store the thread index
- *  as a string, or NULL to retrieve the size of the string.
- * 
- * size is the size of the buffer pointed to by thread_idx_buf, if any.
- * 
- * If thread_idx_buf is NULL, the length of the thread index string in bytes will 
- * be return in 'size'. A buffer of that size plus 1 for a NULL terminator, must be
- * provided by the caller on a subsequent call to retrieve the thread index string.
- * 
+ * Return: Non-negative
  */
 static herr_t
-GetThreadIndexString(char *thread_idx_buf, size_t *size) {
+GetThreadIndex(int *thread_idx) {
     herr_t ret_value = SUCCEED;
-    int chars_written = 0;
-    double thread_idx_log = 0.0;
-
-    /* Only set up thread index if library is built for multi-threading
-     * and test execution is multi-threaded */
 #ifndef H5_HAVE_MULTITHREAD
-    thread_idx_buf = NULL;
-    *size = 0;
+    *thread_idx = -1;
 #else
     thread_info_t *tinfo = NULL;
 
-    /* If tests are not being executed in a multi-threaded manner, indicate
-     * prefix is empty */
     if (!TEST_EXECUTION_THREADED) {
-        *size = 0;
-        ret_value = SUCCEED;
+        *thread_idx = -1;
         goto done;
     }
 
@@ -1327,31 +1304,65 @@ GetThreadIndexString(char *thread_idx_buf, size_t *size) {
         goto done;
     }
 
+    *thread_idx = tinfo->thread_idx;
+#endif
+done:
+    return ret_value;
+}
+
+/* Helper routine to retrieve the testframe-assigned index of the current thread
+ * as a string
+ * 
+ * thread_idx_buf is a pointer to a caller-allocated buffer to store the thread index
+ *  as a string, or NULL to retrieve the size of the string.
+ * 
+ * size is the size of the buffer pointed to by thread_idx_buf, if any.
+ * 
+ * If thread_idx_buf is NULL, the length of the thread index string in bytes will 
+ * be return in 'size'. A buffer of that size must be
+ * provided by the caller on a subsequent call to retrieve the thread index string.
+ * 
+ */
+static herr_t
+GetThreadIndexString(char *thread_idx_buf, size_t *size) {
+    herr_t ret_value = SUCCEED;
+    int chars_written = 0;
+    int thread_idx = 0;
+
+    if (GetThreadIndex(&thread_idx) < 0) {
+        if (TestFrameworkProcessID_g == 0)
+            fprintf(stderr, "%s: error retrieving thread index\n", __func__);
+        ret_value = FAIL;
+        goto done;
+    }
+
+    /* If threading is disabled, the thread index string will be empty */
+    if (thread_idx < 0) {
+        *size = 0;
+        goto done;
+    }
+
     /* If thread_idx_buf is NULL, indicate the size of the thread idx string */
     if (thread_idx_buf == NULL) {
-        if (tinfo->thread_idx > 0)
-            thread_idx_log = log10(tinfo->thread_idx);
-
-        *size = (size_t)thread_idx_log + 1;
-    } else {
-        /* If thread_idx_buf is not NULL, write the thread index to the buffer */
-        if ((chars_written = snprintf(thread_idx_buf,
-            *size, "%d", tinfo->thread_idx))  < 0) {
-            if (TestFrameworkProcessID_g == 0)
-                    fprintf(stderr, "%s: couldn't write to thread index buffer\n", __func__);
-            ret_value = FAIL;
-            goto done;
-        }
-
-        if (chars_written >= (int) *size) {
-            if (TestFrameworkProcessID_g == 0)
-                fprintf(stderr, "%s: thread index buffer too small\n", __func__);
-            ret_value = FAIL;
-            goto done;
-        }
+        *size = NONNEGATIVE_INTEGER_NUM_DIGITS(thread_idx) + 1;
+        goto done;
     }
-   
-#endif /* H5_HAVE_MULTITHREAD */
+
+    /* If thread_idx_buf is not NULL, write the thread index to the buffer */
+    if (thread_idx_buf && 
+        (chars_written = snprintf(thread_idx_buf, *size, "%d", thread_idx))  < 0) {
+        if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr, "%s: couldn't write to thread index buffer\n", __func__);
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if (chars_written >= (int) *size) {
+        if (TestFrameworkProcessID_g == 0)
+            fprintf(stderr, "%s: thread index buffer too small\n", __func__);
+        ret_value = FAIL;
+        goto done;
+    }
 
 done:
     return ret_value;
@@ -1362,10 +1373,8 @@ done:
  * (if any) provided to the test framework 
  */
 herr_t GenerateTestFilename(const char *filename, char **filename_out) {
-    char  *out_buf        = NULL;
     char  *thread_idx_buf = NULL;
     herr_t ret_value      = SUCCEED;
-    int    chars_written  = 0;
     size_t  thread_idx_len = 0;
 
     if (!filename || (*filename == '\0')) {
@@ -1397,47 +1406,22 @@ herr_t GenerateTestFilename(const char *filename, char **filename_out) {
             goto done;
         }
 
-        if (GetThreadIndexString(thread_idx_buf, &thread_idx_len ) < 0) {
+        if (GetThreadIndexString(thread_idx_buf, &thread_idx_len) < 0) {
             printf("    failed to generate thread index buffer\n");
             ret_value = FAIL;
             goto done;
         }
     }
 
-    if (thread_idx_len + strlen(filename) +
-        (TestFilenamePrefix_g ? strlen(TestFilenamePrefix_g) : 0)
-        >= H5_TEST_FILENAME_MAX_LENGTH) {
-        printf("    filename exceeded maximum size\n");
+    if ((*filename_out = StringConcatenate(TestFilenamePrefix_g, thread_idx_buf,
+        filename, H5_TEST_FILENAME_MAX_LENGTH)) == NULL) {
+        printf("    couldn't concatenate filename elements\n");
         ret_value = FAIL;
         goto done;
     }
-
-    if (NULL == (out_buf = malloc(H5_TEST_FILENAME_MAX_LENGTH))) {
-        printf("    couldn't allocated filename buffer\n");
-        ret_value = FAIL;
-        goto done;
-    }
-
-    if ((chars_written = HDsnprintf(out_buf, H5_TEST_FILENAME_MAX_LENGTH,"%s%s%s",
-        TestFilenamePrefix_g, (thread_idx_buf ? thread_idx_buf : ""), filename)) < 0) {
-        printf("    couldn't construct test filename\n");
-        ret_value = FAIL;
-        goto done;
-    }
-
-    if ((size_t)chars_written >= H5_TEST_FILENAME_MAX_LENGTH) {
-        printf("    filename exceeded maximum size\n");
-        ret_value = FAIL;
-        goto done;
-    }
-
-    *filename_out = out_buf;
 
 done:
     free(thread_idx_buf);
-
-    if (ret_value < 0)
-        free(out_buf);
 
     return ret_value;
 }
@@ -1462,56 +1446,77 @@ SetThreadlocalTestDescription(const char *desc) {
 /* Generate a heap-allocated filename of the form <prefix><index><filename> 
  * If index is negative, it will be omitted from the filename */
 char *GenerateIndexedFilename(const char *prefix, int index, const char *base_filename) {
-    int chars_written = 0;
-    double index_log = 0;
+    char *test_filename = NULL;
+    char *index_str = NULL;
     size_t index_len = 0;
-    char *test_filename =  NULL;
+    int chars_written = 0;
 
     assert(base_filename);
 
-    /* Compute index length if non-negative */
+    /* Compute index string if non-negative */
     if (index >= 0) {
-        if (index > 0)
-            index_log = log10(index);
+        index_len = NONNEGATIVE_INTEGER_NUM_DIGITS(index);
 
-        index_len = (size_t) index_log + 1;
-    }
-
-    if ((prefix ? strlen(prefix) : 0) + index_len + strlen(base_filename)
-        >= H5_TEST_FILENAME_MAX_LENGTH) {
-        fprintf(stderr, "    test file name exceeded expected size\n");
-        goto error;
-    }
-
-    if (NULL == (test_filename = (char *)malloc(H5_TEST_FILENAME_MAX_LENGTH))) {
-        fprintf(stderr, "    couldn't allocate memory for test file name\n");
-        goto error;
-    }
-
-    /* Write filename into buffer */
-    if (index >= 0) {
-        if ((chars_written = snprintf(test_filename,
-                                  H5_TEST_FILENAME_MAX_LENGTH,
-                                  "%s%d%s",
-                                  (prefix ? prefix : ""),
-                                  index, base_filename)) < 0) {
-            fprintf(stderr, "    couldn't create test file name\n");
+        if (((index_str = malloc(index_len + 1)) == NULL)) {
+            fprintf(stderr, "    couldn't allocate index string\n");
             goto error;
         }
-    } else {
-        if ((chars_written = snprintf(test_filename,
-                                  H5_TEST_FILENAME_MAX_LENGTH,
-                                  "%s%s",
-                                  (prefix ? prefix : ""),
-                                  base_filename)) < 0) {
-            fprintf(stderr, "    couldn't create test file name\n");
+
+        if ((chars_written = snprintf(index_str, index_len + 1, "%d", index)) < 0) {
+            fprintf(stderr, "    index string exceeded expected length\n");
             goto error;
         }
+    }
+
+    if ((test_filename = StringConcatenate(prefix, (const char *) index_str,
+        base_filename, H5_TEST_FILENAME_MAX_LENGTH)) == NULL) {
+        fprintf(stderr, "    couldn't concatenate filename elements\n");
+        goto error;
     }
 
     return test_filename;
 
 error:
+    free(index_str);
     free(test_filename);
     return NULL;
+}
+
+/* String manipulation helper */
+char *StringConcatenate(const char *str1, const char *str2, const char *str3, size_t max_len) {
+    int chars_written = 0;
+    char *out_str = NULL;
+    size_t out_len = 0;
+
+    /* Default max length to length of input strings plus one */
+    if (max_len == 0) {
+        out_len += (str1 ? strlen(str1) : 0);
+        out_len += (str2 ? strlen(str2) : 0);
+        out_len += (str3 ? strlen(str3) : 0);
+        out_len += 1; /* for null terminator */
+    } else {
+        out_len = max_len;
+    }
+
+    if ((out_str = malloc(out_len)) == NULL) {
+        fprintf(stderr, "    couldn't allocate memory for output string\n");
+        return NULL;
+    }
+
+    if ((chars_written = HDsnprintf(out_str, out_len, "%s%s%s", 
+        (str1 ? str1 : ""),
+        (str2 ? str2 : ""),
+        (str3 ? str3 : ""))) < 0) {
+        fprintf(stderr, "    couldn't concatenate strings\n");
+        free(out_str);
+        return NULL;
+    }
+    
+    if (chars_written >= (int) out_len) {
+        fprintf(stderr, "    output string exceeded expected size\n");
+        free(out_str);
+        return NULL;
+    }
+
+    return out_str;
 }
