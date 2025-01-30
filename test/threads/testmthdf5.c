@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     (void) params;
 
     /* Initialize testing framework */
-    TestInit(argv[0], NULL, NULL, NULL, NULL, 0);
+    TestInit(argv[0], NULL, NULL, NULL, NULL, NULL, NULL, 0);
 
     testExpress = GetTestExpress();
 

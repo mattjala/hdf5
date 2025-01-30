@@ -2535,7 +2535,7 @@ main(int argc, char **argv)
 
     /* Initialize testing framework */
     if (mpi_rank < 2) {
-        if (TestInit(argv[0], usage, parse_options, NULL, NULL, mpi_rank) < 0) {
+        if (TestInit(argv[0], usage, parse_options, NULL, NULL, NULL, NULL, mpi_rank) < 0) {
             fprintf(stderr, "couldn't initialize testing framework\n");
             MPI_Abort(MPI_COMM_WORLD, -1);
         }

@@ -37,8 +37,7 @@
 /******************************************************************************/
 
 /* Final name of the API test container file (for this thread) */
-#define H5_API_TEST_FILENAME (GetTestContainerFilename() ? GetTestContainerFilename() : H5_api_test_filename_g)
-extern char H5_api_test_filename_g[];
+#define H5_API_TEST_FILENAME GetTestContainerFilename()
 
 /*
  * Environment variable specifying a prefix string to add to

@@ -56,7 +56,8 @@ static herr_t (*TestPrivateParser_g)(int argc, char *argv[]) = NULL;
 static herr_t (*TestCleanupFunc_g)(void)                     = NULL;
 
 static char *TestFilenamePrefix_g = NULL;
-static char *TestBaseFilename_g = NULL;
+static char *TestContainerSerialFilename_g = NULL;
+static char *TestContainerBaseFilename_g = NULL;
 
 static H5_ATOMIC(int) TestNumErrs_g        = 0;    /* Total number of errors that occurred for whole test program */
 static bool           TestEnableErrorStack = true; /* Whether to show error stacks from the library */
@@ -68,6 +69,9 @@ static bool TestDoCleanUp_g = true;  /* Do cleanup or not. Default is yes. */
 
 int TestFrameworkProcessID_g = 0;         /* MPI process rank value for parallel tests */
 int TestVerbosity_g          = VERBO_DEF; /* Default Verbosity is Low */
+
+/* Helper to set up global filename variables */
+static herr_t TestInitFilenames(const char *prefix, const char *container_basename);
 
 /* Helper routine to populate a buffer with the testframe-index of the current thread */
 static herr_t GetThreadIndexString(char *thread_idx_buf, size_t *buf_size);
@@ -177,7 +181,8 @@ AddTest(const char *TestName, void (*TestFunc)(void *), void (*TestSetupFunc)(vo
 herr_t
 TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
          herr_t (*TestPrivateParser)(int argc, char *argv[]), herr_t (*TestSetupFunc)(void),
-         herr_t (*TestCleanupFunc)(void), int TestProcessID)
+         herr_t (*TestCleanupFunc)(void), const char *TestFilenamePrefix,
+         const char *TestContainerFilename, int TestProcessID)
 {
     /* Turn off automatic error reporting if requested */
     if (!TestEnableErrorStack) {
@@ -202,6 +207,13 @@ TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
     /* Set process ID for later use */
     TestFrameworkProcessID_g = TestProcessID;
 
+    /* Set filename values for later use */
+    if (TestInitFilenames(TestFilenamePrefix, TestContainerFilename) < 0) {
+        if (TestFrameworkProcessID_g == 0)
+            fprintf(stderr, "%s: error initializing filenames\n", __func__);
+        return FAIL;
+    }
+
     /* Set/reset global variables from h5test that may be used by
      * tests integrated with the testing framework
      */
@@ -218,6 +230,72 @@ TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
     }
 
     return SUCCEED;
+}
+
+/*
+ * Helper to set up global filename variables 
+ */
+static herr_t
+TestInitFilenames(const char *prefix, const char *container_basename) {
+    herr_t ret_value = SUCCEED;
+    size_t container_filename_len = 0;
+    int chars_written = 0;
+    
+    /* Allocate memory for local copy of values */
+    if (prefix && strlen(prefix) > 0) {
+        if ((TestFilenamePrefix_g = strdup(prefix)) == NULL) {
+            if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr, "%s: couldn't copy filename prefix\n", __func__);
+            ret_value = FAIL;
+            goto done;
+        }
+    }
+    
+    if (container_basename && strlen(container_basename) > 0) {
+        if ((TestContainerBaseFilename_g = strdup(container_basename)) == NULL) {
+            if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr, "%s: couldn't copy container filename\n", __func__);
+        }
+    }
+
+    /* Set up global prefixed container name if necessary */
+    if (TestContainerBaseFilename_g) {
+        container_filename_len = strlen(TestContainerBaseFilename_g)
+            + (TestFilenamePrefix_g ? strlen(TestFilenamePrefix_g) : 0) + 1;
+        
+        if ((TestContainerSerialFilename_g = malloc(container_filename_len)) == NULL) {
+            if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr, "%s: couldn't allocate space for container filename\n", __func__);
+            return FAIL;
+        }
+
+        /* Populate allocated TestContainerSerialFilename_g with prefix and base filename */
+        if ((chars_written = snprintf(TestContainerSerialFilename_g, container_filename_len,
+            "%s%s", (TestFilenamePrefix_g ? TestFilenamePrefix_g : ""),
+            TestContainerBaseFilename_g)) < 0) {
+                if (TestFrameworkProcessID_g == 0)
+                    fprintf(stderr, "%s: couldn't write container filename\n", __func__);
+                return FAIL;
+        }
+
+        if (chars_written >= (int) container_filename_len) {
+            if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr, "%s: container filename too long\n", __func__);
+            return FAIL;
+        }
+    }
+
+done:
+    if (ret_value < 0) {
+        free(TestFilenamePrefix_g);
+        free(TestContainerBaseFilename_g);
+        free(TestContainerSerialFilename_g);
+        TestFilenamePrefix_g = NULL;
+        TestContainerBaseFilename_g = NULL;
+        TestContainerSerialFilename_g = NULL;
+    }
+
+    return ret_value;
 }
 
 /*
@@ -722,8 +800,8 @@ H5_mt_test_thread_setup(int thread_idx) {
      * for them to use thread-local filenames to avoid conflicts during multi-threaded execution */
 
     /* Only set up container name if provided by testframe client */
-    if (TestBaseFilename_g != NULL) {
-        if (NULL == (tinfo->test_thread_filename = GenerateIndexedFilename(TestFilenamePrefix_g, thread_idx, TestBaseFilename_g))) {
+    if (TestContainerBaseFilename_g != NULL) {
+        if (NULL == (tinfo->test_thread_filename = GenerateIndexedFilename(TestFilenamePrefix_g, thread_idx, TestContainerBaseFilename_g))) {
             TestErrPrintf("    couldn't allocate memory for test file name\n");
             goto error;
         }
@@ -866,7 +944,8 @@ TestShutdown(void)
 
     free(TestArray);
     free(TestFilenamePrefix_g);
-    free(TestBaseFilename_g);
+    free(TestContainerBaseFilename_g);
+    free(TestContainerSerialFilename_g);
 
     return SUCCEED;
 }
@@ -1106,35 +1185,6 @@ SetTestMaxNumThreads(int max_num_threads)
     return SUCCEED;
 }
 
-/*
- * Set the prefix string for test filenames.
- */
-herr_t
-SetTestFilenamePrefix(const char *prefix)
-{
-    herr_t ret_value = SUCCEED;
-
-    if (TestFilenamePrefix_g) {
-        free(TestFilenamePrefix_g);
-        TestFilenamePrefix_g = NULL;
-    }
-
-    if (prefix) {
-        TestFilenamePrefix_g = strdup(prefix);
-        if (!TestFilenamePrefix_g) {
-            if (TestFrameworkProcessID_g == 0)
-                fprintf(stderr, "%s: failed to allocate memory for filename prefix\n", __func__);
-            ret_value = FAIL;
-            goto done;
-        }
-    }
-
-    ret_value = SUCCEED;
-
-done:
-    return ret_value;
-}
-
 /* 
  * Retrieve a pointer to the thread-unique test container filename.
  */
@@ -1144,11 +1194,10 @@ GetTestContainerFilename(void) {
     const char *ret_value = NULL;
 
 #ifndef H5_HAVE_MULTITHREAD
-    ret_value = NULL;
-    goto done;
+    ret_value = TestContainerSerialFilename_g;
 #else
     if (!TEST_EXECUTION_THREADED) {
-        ret_value = NULL;
+        ret_value = TestContainerSerialFilename_g;
         goto done;
     }
 
@@ -1168,33 +1217,6 @@ GetTestContainerFilename(void) {
         goto done;
     }
 #endif /* H5_HAVE_MULTITHREAD */
-
-done:
-    return ret_value;
-}
-
-/*
- * Set the base filename for a test container file.
- */
-herr_t
-SetTestContainerBaseFilename(const char *filename) {
-    herr_t ret_value = SUCCEED;
-
-    if (TestBaseFilename_g) {
-        free(TestBaseFilename_g);
-        TestBaseFilename_g = NULL;
-    }
-
-    if (filename) {
-        TestBaseFilename_g = strdup(filename);
-        if (NULL == TestBaseFilename_g) {
-            if (TestFrameworkProcessID_g == 0)
-                fprintf(stderr, "%s: failed to allocate memory for \
-                    base filename %s\n", __func__, filename);
-            ret_value = FAIL;
-            goto done;
-        }
-    }
 
 done:
     return ret_value;
@@ -1381,9 +1403,10 @@ herr_t GenerateTestFilename(const char *filename, char **filename_out) {
             goto done;
         }
     }
-   
 
-    if (thread_idx_len + strlen(filename) + strlen(TestFilenamePrefix_g) >= H5_TEST_FILENAME_MAX_LENGTH) {
+    if (thread_idx_len + strlen(filename) +
+        (TestFilenamePrefix_g ? strlen(TestFilenamePrefix_g) : 0)
+        >= H5_TEST_FILENAME_MAX_LENGTH) {
         printf("    filename exceeded maximum size\n");
         ret_value = FAIL;
         goto done;
@@ -1436,23 +1459,26 @@ SetThreadlocalTestDescription(const char *desc) {
     return;
 }
 
-/* Generate a heap-allocated filename of the form <prefix><index><filename> */
+/* Generate a heap-allocated filename of the form <prefix><index><filename> 
+ * If index is negative, it will be omitted from the filename */
 char *GenerateIndexedFilename(const char *prefix, int index, const char *base_filename) {
     int chars_written = 0;
     double index_log = 0;
     size_t index_len = 0;
     char *test_filename =  NULL;
 
-    assert(prefix);
     assert(base_filename);
-    assert(index >= 0);
 
-    if (index > 0)
-        index_log = log10(index);
+    /* Compute index length if non-negative */
+    if (index >= 0) {
+        if (index > 0)
+            index_log = log10(index);
 
-    index_len = (size_t) index_log + 1;
+        index_len = (size_t) index_log + 1;
+    }
 
-    if (strlen(prefix) + index_len + strlen(base_filename) >= H5_TEST_FILENAME_MAX_LENGTH) {
+    if ((prefix ? strlen(prefix) : 0) + index_len + strlen(base_filename)
+        >= H5_TEST_FILENAME_MAX_LENGTH) {
         fprintf(stderr, "    test file name exceeded expected size\n");
         goto error;
     }
@@ -1462,12 +1488,25 @@ char *GenerateIndexedFilename(const char *prefix, int index, const char *base_fi
         goto error;
     }
 
-    /* Write prefix, thread index, and filename into buffer */
-    if ((chars_written = snprintf(test_filename,
-                                  H5_TEST_FILENAME_MAX_LENGTH, "%s%d%s",
-                                  prefix, index, base_filename)) < 0) {
-        fprintf(stderr, "    couldn't create test file name\n");
-        goto error;
+    /* Write filename into buffer */
+    if (index >= 0) {
+        if ((chars_written = snprintf(test_filename,
+                                  H5_TEST_FILENAME_MAX_LENGTH,
+                                  "%s%d%s",
+                                  (prefix ? prefix : ""),
+                                  index, base_filename)) < 0) {
+            fprintf(stderr, "    couldn't create test file name\n");
+            goto error;
+        }
+    } else {
+        if ((chars_written = snprintf(test_filename,
+                                  H5_TEST_FILENAME_MAX_LENGTH,
+                                  "%s%s",
+                                  (prefix ? prefix : ""),
+                                  base_filename)) < 0) {
+            fprintf(stderr, "    couldn't create test file name\n");
+            goto error;
+        }
     }
 
     return test_filename;

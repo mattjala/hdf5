@@ -243,6 +243,10 @@ extern "C" {
  * \param[in]  TestCleanupFunc     Pointer to a function which will be called
  *                                 when the testing framework is being shut
  *                                 down
+ * \param[in]  TestFilenamePrefix  Optional prefix which tests may apply
+ *                                 to their filenames.
+ * \param[in]  TestContainerFilename Optional filename for a container file
+ *                                   that may be shared between tests.
  * \param[in]  TestProcessID       ID for the process calling TestInit(). Used
  *                                 to control printing of output in parallel
  *                                 test programs.
@@ -284,6 +288,15 @@ extern "C" {
  *          before the testing framework starts being shut down.
  *          \p TestCleanupFunc may be NULL.
  *
+ *          \p TestFilenamePrefix is an optional prefix that tests may use to
+ *          uniquely identify files created by this test program, or to place
+ *          test files within a particular path.
+ * 
+ *          \p TestContainerFilename is an optional filename for a container
+ *          file that may be shared between tests. If provided, a thread-unique
+ *          and potentially-prefixed version of this container name may be
+ *          retrieved through GetTestContainerFilename().
+ * 
  *          \p TestProcessID is an integer value that is used to distinguish
  *          between processes when multiple are involved in running a test
  *          program. This is primarily useful for controlling testing
@@ -298,7 +311,8 @@ extern "C" {
  */
 H5TEST_DLL herr_t TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
                            int (*TestPrivateParser)(int argc, char *argv[]), herr_t (*TestSetupFunc)(void),
-                           herr_t (*TestCleanupFunc)(void), int TestProcessID);
+                           herr_t (*TestCleanupFunc)(void), const char *TestFilenamePrefix,
+                           const char *TestContainerFilename, int TestProcessID);
 
 /**
  * --------------------------------------------------------------------------
@@ -867,25 +881,6 @@ H5TEST_DLL int GetTestMaxNumThreads(void);
  */
 H5TEST_DLL herr_t SetTestMaxNumThreads(int max_num_threads);
 
-/**
- * --------------------------------------------------------------------------
- * \ingroup H5TEST
- *
- * \brief Sets the filename prefix used for test files
- *
- * \param[in] prefix The filename prefix string to use for test files
- *
- * \return \herr_t
- *
- * \details SetTestFilenamePrefix() sets the filename prefix string that
- *          will be used when creating files during testing. This prefix
- *          is typically used by parallel/multi-threaded tests to
- *          avoid file creation/access conflicts.
- *
- * \see TestFilenamePrefix_g
- *
- */
-H5TEST_DLL herr_t SetTestFilenamePrefix(const char *prefix);
 
 /**
  * --------------------------------------------------------------------------
@@ -936,11 +931,13 @@ H5TEST_DLL void TestAlarmOff(void);
  * ---------------------------------------------------------------------------
  * \ingroup H5TEST
  *
- * \brief Generate a heap-allocated filename of the form <prefix><index><filename>
+ * \brief Generate a heap-allocated filename of the form [<prefix>][<index>]<filename>
  *
- * \param[in] prefix  Prefix to prepend to the filename
+ * \param[in] prefix Prefix to prepend to the filename. If NULL, no prefix
+ *                   will be added.
  *
- * \param[in] index  Index to prepend to the filename
+ * \param[in] index  Index to prepend to the filename. If negative, no index
+ *                   will be added.
  *
  * \param[in] base_filename Base filename to be prepended onto
  *
@@ -955,6 +952,12 @@ char *GenerateIndexedFilename(const char *prefix, int index, const char *base_fi
  *
  * \brief Generate a heap-allocated thread-unique filename, with the prefix
  *        (if any) provided to the test framework
+ * 
+ * \details The generated filename will contain the prefix provided to
+ *          the test framework, if any.
+ *          
+ *          If the test execution is multi-threaded, the returned filename
+ *          will be unique to this thread.
  *
  * \param[in] filename  Base filename
  *
@@ -979,21 +982,6 @@ herr_t GenerateTestFilename(const char *filename, char **filename_out);
  *
  */
 const char* GetTestContainerFilename(void);
-
-/**
- * ---------------------------------------------------------------------------
- * \ingroup H5TEST
- *
- * \brief Set the base filename for a test container file.
- * 
- * \details This filename will
- *          be used to generate thread-unique filenames for the test
- *          container in each thread.
- *
- * \return herr_t Non-negative on success; negative on failure
- *
- */
-herr_t SetTestContainerBaseFilename(const char *filename);
 
 /**
  * ---------------------------------------------------------------------------

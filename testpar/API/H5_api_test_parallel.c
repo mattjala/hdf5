@@ -328,7 +328,7 @@ main(int argc, char **argv)
     H5Eget_auto2(H5E_DEFAULT, &default_err_func, &default_err_data);
 
     /* Initialize testing framework */
-    if (TestInit(argv[0], usage, NULL, NULL, NULL, mpi_rank) < 0) {
+    if (TestInit(argv[0], usage, NULL, NULL, NULL, NULL, NULL, mpi_rank) < 0) {
         if (MAINPROCESS)
             fprintf(stderr, "Couldn't initialize testing framework\n");
         goto error;
