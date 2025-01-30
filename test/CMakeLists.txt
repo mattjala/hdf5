@@ -983,11 +983,23 @@ if (HDF5_ENABLE_MULTITHREAD)
     ${HDF5_MT_PASSTHRU_WRAPPER_SOURCES}
     ${HDF5_MT_PASSTHRU_WRAPPER_HEADERS}
   )
-  
-  target_link_libraries(mt_passthru_wrapper_vol_connector
-    PUBLIC
-      ${HDF5_LIB_TARGET}
+
+  target_include_directories (mt_passthru_wrapper_vol_connector
+    PRIVATE
+      "${HDF5_SRC_INCLUDE_DIRS};${HDF5_SRC_BINARY_DIR};$<$<BOOL:${HDF5_ENABLE_PARALLEL}>:${MPI_C_INCLUDE_DIRS}>"
   )
+
+  if (BUILD_SHARED_LIBS)
+    target_link_libraries(mt_passthru_wrapper_vol_connector
+      PUBLIC
+        ${HDF5_LIBSH_TARGET}
+    )
+  else ()
+    target_link_libraries(mt_passthru_wrapper_vol_connector
+      PUBLIC
+        ${HDF5_LIB_TARGET}
+    )
+  endif ()
 
   target_compile_options(mt_passthru_wrapper_vol_connector PRIVATE "${HDF5_CMAKE_C_FLAGS}")
 
@@ -1006,15 +1018,22 @@ if (HDF5_ENABLE_MULTITHREAD)
     ${HDF5_MT_NATIVE_WRAPPER_HEADERS}
   )
 
-  target_include_directories(mt_native_wrapper_vol_connector
+  target_include_directories (mt_native_wrapper_vol_connector
     PRIVATE
-      ${HDF5_SRC_DIR}
+      "${HDF5_SRC_INCLUDE_DIRS};${HDF5_SRC_BINARY_DIR};$<$<BOOL:${HDF5_ENABLE_PARALLEL}>:${MPI_C_INCLUDE_DIRS}>"
   )
 
-  target_link_libraries(mt_native_wrapper_vol_connector
-    PUBLIC
-      ${HDF5_LIB_TARGET}
-  )
+  if (BUILD_SHARED_LIBS)
+    target_link_libraries(mt_native_wrapper_vol_connector
+      PUBLIC
+        ${HDF5_LIBSH_TARGET}
+    )
+  else ()
+    target_link_libraries(mt_native_wrapper_vol_connector
+      PUBLIC
+        ${HDF5_LIB_TARGET}
+    )
+  endif ()
 
   target_compile_options(mt_native_wrapper_vol_connector PRIVATE "${HDF5_CMAKE_C_FLAGS}")
 
