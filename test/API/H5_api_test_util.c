@@ -644,7 +644,7 @@ error:
     return H5I_INVALID_HID;
 }
 
-// TODO
+/* Perform setup within the API test container file */
 void
 H5_api_test_setup_container(void H5_ATTR_UNUSED *params) {
     const char *filename = NULL;

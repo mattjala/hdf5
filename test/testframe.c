@@ -73,12 +73,12 @@ int TestVerbosity_g          = VERBO_DEF; /* Default Verbosity is Low */
 /* Helper to set up global filename variables */
 static herr_t TestInitFilenames(const char *prefix, const char *container_basename);
 
-// TODO
-static herr_t TestInitContainers(void);
-static herr_t TestShutdownContainers(void);
+/* Helpers to create/cleanup container file(s) for test program */
+static herr_t TestCreateContainers(void);
+static herr_t TestCleanupContainers(void);
 
-static herr_t TestInitSingleContainer(int index);
-static herr_t TestShutdownSingleContainer(int index);
+static herr_t TestCreateSingleContainer(int index);
+static herr_t TestCleanupSingleContainer(int index);
 
 /* Helper routine to populate a buffer with the testframe-index of the current thread */
 static herr_t GetThreadIndexString(char *thread_idx_buf, size_t *buf_size);
@@ -534,7 +534,7 @@ PerformTests(void)
 
     /* Create test containers if container filename is set */
     if (TestContainerBaseFilename_g != NULL) {
-        if (TestInitContainers() < 0) {
+        if (TestCreateContainers() < 0) {
             if (TestFrameworkProcessID_g == 0)
                 fprintf(stderr, "%s: error initializing test containers\n", __func__);
             return FAIL;
@@ -942,7 +942,7 @@ TestShutdown(void)
 {
     if (GetTestCleanup() && TestContainerBaseFilename_g) {
         /* Tear down test container(s), if created */
-        if (TestShutdownContainers() < 0) {
+        if (TestCleanupContainers() < 0) {
             if (TestFrameworkProcessID_g == 0)
                 fprintf(stderr, "%s: error occurred while tearing down test containers\n", __func__);
             return FAIL;
@@ -1554,8 +1554,11 @@ char *StringConcatenate(const char *str1, const char *str2, const char *str3, si
     return out_str;
 }
 
-// TODO
-static herr_t TestInitContainers(void) {
+/* Create container file(s) for the test program.
+ *
+ * If test execution is threaded, this will create
+ * a unique container for each thread. */
+static herr_t TestCreateContainers(void) {
     herr_t ret_value = SUCCEED;
 
     assert(TestContainerBaseFilename_g);
@@ -1568,14 +1571,14 @@ static herr_t TestInitContainers(void) {
 #endif
 
         for (int i = 0; i < GetTestMaxNumThreads(); i++) {
-            if (TestInitSingleContainer(i) < 0) {
+            if (TestCreateSingleContainer(i) < 0) {
                 fprintf(stderr, "    failed to initialize test container %d\n", i);
                 ret_value = FAIL;
                 goto done;
             }
         }
     } else {
-        if (TestInitSingleContainer(-1) < 0) {
+        if (TestCreateSingleContainer(-1) < 0) {
             fprintf(stderr, "    failed to initialize test container\n");
             ret_value = FAIL;
             goto done;
@@ -1586,8 +1589,8 @@ done:
     return ret_value;
 }
 
-// TODO
-static herr_t TestInitSingleContainer(int index) {
+/* Set up a single thread's container file for the test program. */
+static herr_t TestCreateSingleContainer(int index) {
     herr_t ret_value = SUCCEED;
     hid_t file_id = H5I_INVALID_HID;
     char *filename = NULL;
@@ -1615,8 +1618,11 @@ done:
     return ret_value;
 }
 
-// TODO
-static herr_t TestShutdownContainers(void) {
+/* Remove container file(s) for the test program.
+ *
+ * If test execution is threaded, this will remove
+ * each thread's unique container file */
+static herr_t TestCleanupContainers(void) {
     herr_t ret_value = SUCCEED;
 
     assert(TestContainerBaseFilename_g);
@@ -1629,14 +1635,14 @@ static herr_t TestShutdownContainers(void) {
 #endif
 
         for (int i = 0; i < GetTestMaxNumThreads(); i++) {
-            if (TestShutdownSingleContainer(i) < 0) {
+            if (TestCleanupSingleContainer(i) < 0) {
                 fprintf(stderr, "    failed to shutdown test container %d\n", i);
                 ret_value = FAIL;
                 goto done;
             }
         }
     } else {
-        if (TestShutdownSingleContainer(-1) < 0) {
+        if (TestCleanupSingleContainer(-1) < 0) {
             fprintf(stderr, "    failed to shutdown test container\n");
             ret_value = FAIL;
             goto done;
@@ -1647,8 +1653,8 @@ done:
     return ret_value;
 }
 
-// TODO
-static herr_t TestShutdownSingleContainer(int index) {
+/* Remove a single thread's container file. */
+static herr_t TestCleanupSingleContainer(int index) {
     herr_t ret_value = SUCCEED;
     char *filename = NULL;
 
