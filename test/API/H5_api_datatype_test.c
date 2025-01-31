@@ -2654,6 +2654,8 @@ H5_api_datatype_test_add(void)
     AddTest("print_datatype_test_header", print_datatype_test_header, NULL, NULL, NULL, 0, 0,
             "Prints header for datatype tests");
 
+    AddTest("H5_api_test_setup_container", H5_api_test_setup_container, NULL, NULL, NULL,
+        0, testframe_flags, "setup API test container");
     AddTest("test_create_committed_datatype", test_create_committed_datatype, NULL, NULL, NULL, 0,
             testframe_flags, "creation of a committed datatype");
     AddTest("test_create_committed_datatype_invalid_params", test_create_committed_datatype_invalid_params,

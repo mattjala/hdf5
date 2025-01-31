@@ -2709,6 +2709,8 @@ H5_api_async_test_add(void)
     AddTest("print_async_test_header", print_async_test_header, NULL, NULL, NULL, 0, 0,
             "Prints header for async tests");
 
+    AddTest("H5_api_test_setup_container", H5_api_test_setup_container, NULL, NULL, NULL,
+        0, testframe_flags, "setup API test container");
     AddTest("test_one_dataset_io", test_one_dataset_io, NULL, NULL, NULL, 0,
             testframe_flags, "single dataset I/O");
     AddTest("test_multi_dataset_io", test_multi_dataset_io, NULL, NULL, NULL, 0,

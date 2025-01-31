@@ -643,3 +643,97 @@ generate_random_dataspace(int rank, const hsize_t *max_dims, hsize_t *dims_out, 
 error:
     return H5I_INVALID_HID;
 }
+
+// TODO
+void
+H5_api_test_setup_container(void H5_ATTR_UNUSED *params) {
+    const char *filename = NULL;
+    hid_t file_id  = H5I_INVALID_HID;
+    hid_t group_id = H5I_INVALID_HID;
+
+    TESTING("API Test Container Setup");
+
+    /* Make sure the connector supports the API functions necessary for container setup */
+    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC) || !(vol_cap_flags_g & H5VL_CAP_FLAG_GROUP_BASIC)) {
+        SKIPPED();
+        printf("    API functions for basic file/group operations aren't supported with this connector\n");
+        return;
+    }
+
+    if ((filename = GetTestContainerFilename()) == NULL) {
+        H5_FAILED();
+        printf("    couldn't retrieve container name\n");
+        goto error;
+    }
+
+    if ((file_id = H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
+        H5_FAILED();
+        printf("    couldn't open test container file '%s'\n", filename);
+        goto error;
+    }
+
+    /* If first group already exists, short-circuit because setup has already 
+     * been completed */
+    if ((group_id = H5Gopen2(file_id, GROUP_TEST_GROUP_NAME, H5P_DEFAULT)) >= 0) {
+        H5Gclose(group_id);
+        goto done;
+    }
+
+    /* Create container groups for each of the test interfaces
+        * (group, attribute, dataset, etc.).
+        */
+    if ((group_id = H5Gcreate2(file_id, GROUP_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >=
+        0) {
+        H5Gclose(group_id);
+    }
+
+    if ((group_id = H5Gcreate2(file_id, ATTRIBUTE_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT,
+                                H5P_DEFAULT)) >= 0) {
+        H5Gclose(group_id);
+    }
+
+    if ((group_id =
+                H5Gcreate2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0) {
+        H5Gclose(group_id);
+    }
+
+    if ((group_id =
+                H5Gcreate2(file_id, DATATYPE_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0) {
+        H5Gclose(group_id);
+    }
+
+    if ((group_id = H5Gcreate2(file_id, LINK_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >=
+        0) {
+        H5Gclose(group_id);
+    }
+
+    if ((group_id = H5Gcreate2(file_id, OBJECT_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >=
+        0) {
+        H5Gclose(group_id);
+    }
+
+    if ((group_id = H5Gcreate2(file_id, MISCELLANEOUS_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT,
+                                H5P_DEFAULT)) >= 0) {
+        H5Gclose(group_id);
+    }
+
+    if (H5Fclose(file_id) < 0) {
+        H5_FAILED();
+        printf("    failed to close testing container %s\n", filename);
+        goto error;
+    }
+
+done:
+    PASSED();
+
+    return;
+error:
+    H5E_BEGIN_TRY
+    {
+        H5Gclose(group_id);
+        H5Fclose(file_id);
+    }
+    H5E_END_TRY
+
+    return;
+}

@@ -14275,6 +14275,8 @@ H5_api_dataset_test_add(void)
     AddTest("print_dataset_test_header", print_dataset_test_header, NULL, NULL, NULL, 0,
             0, "Prints header for dataset tests");
 
+    AddTest("H5_api_test_setup_container", H5_api_test_setup_container, NULL, NULL, NULL,
+        0, testframe_flags, "setup API test container");
     AddTest("test_create_dataset_under_root", test_create_dataset_under_root, NULL, NULL, NULL, 0,
             testframe_flags, "dataset creation under root group");
     AddTest("test_create_dataset_under_existing_group", test_create_dataset_under_existing_group, NULL, NULL,

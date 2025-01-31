@@ -7363,6 +7363,8 @@ H5_api_object_test_add(void)
     AddTest("print_object_test_header", print_object_test_header, NULL, NULL, NULL, 0,
             0, "Prints header for object tests");
 
+    AddTest("H5_api_test_setup_container", H5_api_test_setup_container, NULL, NULL, NULL,
+        0, testframe_flags, "setup API test container");
     AddTest("test_open_object", test_open_object, NULL, NULL, NULL, 0,
             testframe_flags, "object opening");
     AddTest("test_open_object_invalid_params", test_open_object_invalid_params, NULL, NULL, NULL, 0,

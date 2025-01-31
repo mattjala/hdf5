@@ -2584,6 +2584,8 @@ H5_api_file_test_add(void)
     AddTest("print_file_test_header", print_file_test_header, NULL, NULL, NULL, 0, 0,
             "Prints header for file tests");
 
+    AddTest("H5_api_test_setup_container", H5_api_test_setup_container, NULL, NULL, NULL,
+        0, testframe_flags, "setup API test container");
     AddTest("test_create_file", test_create_file, NULL, NULL, NULL, 0,
             testframe_flags, "H5Fcreate");
     AddTest("test_create_file_invalid_params", test_create_file_invalid_params, NULL, NULL, NULL, 0,

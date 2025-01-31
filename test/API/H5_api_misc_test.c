@@ -1048,6 +1048,8 @@ H5_api_misc_test_add(void)
     AddTest("print_misc_test_header", print_misc_test_header, NULL, NULL, NULL, 0, 0,
             "Prints header for miscellaneous tests");
 
+    AddTest("H5_api_test_setup_container", H5_api_test_setup_container, NULL, NULL, NULL,
+        0, testframe_flags, "setup API test container");
     AddTest("test_open_link_without_leading_slash", test_open_link_without_leading_slash, NULL, NULL, NULL, 0,
             testframe_flags, "opening a link without a leading slash");
     AddTest("test_object_creation_by_absolute_path", test_object_creation_by_absolute_path, NULL, NULL, NULL,

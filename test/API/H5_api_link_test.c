@@ -26992,6 +26992,8 @@ H5_api_link_test_add(void)
     AddTest("print_link_test_header", print_link_test_header, NULL, NULL, NULL, 0, 0,
             "Prints header for link tests");
 
+    AddTest("H5_api_test_setup_container", H5_api_test_setup_container, NULL, NULL, NULL,
+        0, testframe_flags, "setup API test container");
     AddTest("test_create_hard_link", test_create_hard_link, NULL, NULL, NULL, 0,
             testframe_flags, "hard link creation");
     AddTest("test_create_hard_link_long_name", test_create_hard_link_long_name, NULL, NULL, NULL, 0,

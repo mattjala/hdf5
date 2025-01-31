@@ -11559,7 +11559,9 @@ H5_api_attribute_test_add(void)
     /* Add a fake test to print out a header to distinguish different test interfaces */
     AddTest("print_attribute_test_header", print_attribute_test_header, NULL, NULL, NULL, 0,
             0, "Prints header for attribute tests");
-
+    
+    AddTest("H5_api_test_setup_container", H5_api_test_setup_container, NULL, NULL, NULL,
+        0, testframe_flags, "setup API test container");
     AddTest("test_create_attribute_on_root", test_create_attribute_on_root, NULL, NULL, NULL, 0,
             testframe_flags, "attribute creation on the root group");
     AddTest("test_create_attribute_on_dataset", test_create_attribute_on_dataset, NULL, NULL, NULL, 0,

@@ -44,10 +44,6 @@
 #include <pthread.h>
 #endif
 
-static int H5_api_test_create_containers(const char *filename_prefix, const char *filename, uint64_t vol_cap_flags);
-static int H5_api_test_create_single_container(const char *filename, uint64_t vol_cap_flags);
-static int H5_api_test_destroy_container_files(const char *filename_prefix);
-
 /* X-macro to define the following for each test:
  * - enum type
  * - name
@@ -319,14 +315,6 @@ main(int argc, char **argv)
         goto done;
     }
 
-    /* Create the file(s) that will be used for all of the tests,
-     * except for those which test file creation.*/
-    if (H5_api_test_create_containers(test_path_prefix, HDF5_API_TEST_CONTAINER_BASE_FILENAME, vol_cap_flags_g) < 0) {
-        fprintf(stderr, "Unable to create testing container file with basename '%s'\n", HDF5_API_TEST_CONTAINER_BASE_FILENAME);
-        err_occurred = true;
-        goto done;
-    }
-
     /* Perform tests */
     PerformTests();
 
@@ -335,16 +323,6 @@ main(int argc, char **argv)
     /* Display test summary, if requested */
     if (GetTestSummary())
         TestSummary(stdout);
-
-    printf("Deleting container file(s) for tests\n\n");
-
-    if (GetTestCleanup()) {
-        if (H5_api_test_destroy_container_files(test_path_prefix) < 0) {
-            fprintf(stderr, "Error cleaning up global API test info\n");
-            err_occurred = true;
-            goto done;
-        }
-    }
 
     if (n_tests_run_g > 0) {
         printf("%zu/%zu (%.2f%%) API tests passed with VOL connector '%s'\n", n_tests_passed_g, n_tests_run_g,
@@ -387,194 +365,4 @@ done:
         exit(EXIT_FAILURE);
     else
         exit(EXIT_SUCCESS);
-}
-
-/* Create the API container test file(s), one per thread.
- * Returns negative on failure, 0 on success */
-static int
-H5_api_test_create_containers(const char *filename_prefix, const char *filename, uint64_t vol_cap_flags)
-{
-    char *temp_filename = NULL;
-
-    if (!(vol_cap_flags & H5VL_CAP_FLAG_FILE_BASIC)) {
-        printf("   VOL connector doesn't support file creation\n");
-        goto error;
-    }
-
-    if (TEST_EXECUTION_THREADED) {
-#ifndef H5_HAVE_MULTITHREAD
-        printf("    thread-specific filename requested, but multithread support not enabled\n");
-        goto error;
-#endif
-        for (int i = 0; i < GetTestMaxNumThreads(); i++) {
-            if ((temp_filename = GenerateIndexedFilename(filename_prefix, i, filename)) == NULL) {
-                printf("    failed to generate thread-local API test filename\n");
-                goto error;
-            }
-
-            if (H5_api_test_create_single_container((const char *)temp_filename, vol_cap_flags) < 0) {
-                printf("    failed to create thread-local API test container");
-                goto error;
-            }
-
-            free(temp_filename);
-            temp_filename = NULL;
-        }
-    } else { /* Test execution is single-threaded */
-        if ((temp_filename = GenerateIndexedFilename(filename_prefix, -1, filename)) == NULL) {
-            printf("    failed to generate API test filename\n");
-            goto error;
-        }
-        
-        if (H5_api_test_create_single_container((const char *)temp_filename, vol_cap_flags) < 0) {
-            printf("    failed to create test container\n");
-            goto error;
-        }
-
-        free(temp_filename);
-    }
-
-    return 0;
-
-error:
-    free(temp_filename);
-    return -1;
-}
-
-/* Helper for H5_api_test_create_containers().
- * Returns negative on failure, 0 on success */
-static int
-H5_api_test_create_single_container(const char *filename, uint64_t vol_cap_flags) {
-    hid_t file_id  = H5I_INVALID_HID;
-    hid_t group_id = H5I_INVALID_HID;
-
-    if ((file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-        printf("    couldn't create testing container file '%s'\n", filename);
-        goto error;
-    }
-
-    printf("    created container file\n");
-
-    if (vol_cap_flags & H5VL_CAP_FLAG_GROUP_BASIC) {
-        /* Create container groups for each of the test interfaces
-         * (group, attribute, dataset, etc.).
-         */
-        if ((group_id = H5Gcreate2(file_id, GROUP_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >=
-            0) {
-            H5Gclose(group_id);
-        }
-
-        if ((group_id = H5Gcreate2(file_id, ATTRIBUTE_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT,
-                                   H5P_DEFAULT)) >= 0) {
-            H5Gclose(group_id);
-        }
-
-        if ((group_id =
-                 H5Gcreate2(file_id, DATASET_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0) {
-            H5Gclose(group_id);
-        }
-
-        if ((group_id =
-                 H5Gcreate2(file_id, DATATYPE_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >= 0) {
-            H5Gclose(group_id);
-        }
-
-        if ((group_id = H5Gcreate2(file_id, LINK_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >=
-            0) {
-            H5Gclose(group_id);
-        }
-
-        if ((group_id = H5Gcreate2(file_id, OBJECT_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) >=
-            0) {
-            H5Gclose(group_id);
-        }
-
-        if ((group_id = H5Gcreate2(file_id, MISCELLANEOUS_TEST_GROUP_NAME, H5P_DEFAULT, H5P_DEFAULT,
-                                   H5P_DEFAULT)) >= 0) {
-            H5Gclose(group_id);
-        }
-    }
-
-    if (H5Fclose(file_id) < 0) {
-        printf("    failed to close testing container %s\n", filename);
-        goto error;
-    }
-
-    return 0;
-error:
-    H5E_BEGIN_TRY
-    {
-        H5Gclose(group_id);
-        H5Fclose(file_id);
-    }
-    H5E_END_TRY
-
-    return -1;
-
-}
-
-/* Delete the API test container file(s).
- * Returns negative on failure, 0 on success */
-static int
-H5_api_test_destroy_container_files(const char *filename_prefix) {
-
-    char *filename = NULL;
-
-    if (!(vol_cap_flags_g & H5VL_CAP_FLAG_FILE_BASIC)) {
-        printf("   container should not have been created\n");
-        goto error;
-    }
-
-    if (TEST_EXECUTION_THREADED) {
-#ifndef H5_HAVE_MULTITHREAD
-        printf("    thread-specific cleanup requested, but multithread support not enabled\n");
-        goto error;
-#endif
-        
-        for (int i = 0; i < GetTestMaxNumThreads(); i++) {
-            if ((filename = GenerateIndexedFilename(filename_prefix, i, HDF5_API_TEST_CONTAINER_BASE_FILENAME)) == NULL) {
-                printf("    failed to generate thread-local API test filename\n");
-                goto error;
-            }
-
-            H5E_BEGIN_TRY {
-                if (H5Fis_accessible(filename, H5P_DEFAULT) > 0) {
-                    if (H5Fdelete(filename, H5P_DEFAULT) < 0) {
-                        printf("    failed to destroy thread-local API test container");
-                        goto error;
-                    }
-                }
-            }
-            H5E_END_TRY
-
-            free(filename);
-            filename = NULL;
-        }
-    } else {
-        H5E_BEGIN_TRY {
-            
-            if ((filename = GenerateIndexedFilename(filename_prefix, -1,
-                HDF5_API_TEST_CONTAINER_BASE_FILENAME)) == NULL) {
-                printf("    failed to prefix filename\n");
-                goto error;
-            }
-
-            if (H5Fis_accessible(filename, H5P_DEFAULT) > 0) {
-                if (H5Fdelete(filename, H5P_DEFAULT) < 0) {
-                    printf("    failed to destroy thread-local API test container");
-                    goto error;
-                }
-            }
-        }
-        H5E_END_TRY
-    }
-
-    free(filename);
-    filename = NULL;
-    return 0;
-
-error:
-    free(filename);
-    filename = NULL;
-    return -1;
 }

@@ -2384,6 +2384,8 @@ H5_api_group_test_add(void)
     AddTest("print_group_test_header", print_group_test_header, NULL, NULL, NULL, 0, 0,
             "Prints header for group tests");
 
+    AddTest("H5_api_test_setup_container", H5_api_test_setup_container, NULL, NULL, NULL,
+        0, testframe_flags, "setup API test container");
     AddTest("test_create_group_under_root", test_create_group_under_root, NULL, NULL, NULL, 0,
             testframe_flags, "creation of group under the root group");
     AddTest("test_create_group_under_existing_group", test_create_group_under_existing_group, NULL, NULL,
