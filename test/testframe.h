@@ -108,6 +108,8 @@ extern pthread_key_t test_thread_info_key_g;
             printf A;                                                                                        \
     } while (0)
 
+#define HD5_TEST_FILENAME_MAX_LENGTH 1024
+
 /* Flag values for TestFrameworkFlags */
 #define ALLOW_MULTITHREAD 0x00000001 /* Allow test to be run in spawned thread(s) based on runtime configuration */
 

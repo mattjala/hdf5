@@ -277,7 +277,7 @@ TestInitFilenames(const char *prefix, const char *container_basename) {
             StringConcatenate(TestFilenamePrefix_g,
                               TestContainerBaseFilename_g,
                               NULL,
-                              H5_TEST_FILENAME_MAX_LENGTH);
+                              HD5_TEST_FILENAME_MAX_LENGTH);
 
         if (TestContainerSerialFilename_g == NULL) {
             if (TestFrameworkProcessID_g == 0)
@@ -1446,7 +1446,7 @@ herr_t GenerateTestFilename(const char *filename, char **filename_out) {
     }
 
     if ((*filename_out = StringConcatenate(TestFilenamePrefix_g, thread_idx_buf,
-        filename, H5_TEST_FILENAME_MAX_LENGTH)) == NULL) {
+        filename, HD5_TEST_FILENAME_MAX_LENGTH)) == NULL) {
         printf("    couldn't concatenate filename elements\n");
         ret_value = FAIL;
         goto done;
@@ -1506,7 +1506,7 @@ GenerateIndexedFilename(const char *prefix, int index, const char *base_filename
     }
 
     if ((test_filename = StringConcatenate(prefix, (const char *) index_str,
-        base_filename, H5_TEST_FILENAME_MAX_LENGTH)) == NULL) {
+        base_filename, HD5_TEST_FILENAME_MAX_LENGTH)) == NULL) {
         fprintf(stderr, "    couldn't concatenate filename elements\n");
         goto error;
     }
