@@ -32,6 +32,7 @@ typedef struct TestStruct {
     int64_t        TestFrameworkFlags;
 } TestStruct;
 
+
 typedef struct TestThreadArgs {
     int        ThreadIndex;
     TestStruct *Test;
@@ -78,6 +79,7 @@ static int   H5_mt_test_thread_setup(int thread_idx);
 static int   H5_mt_test_global_setup(void);
 static void  H5_test_thread_info_key_destructor(void *value);
 static void UpdateTestStats(TestThreadArgs *test_args);
+pthread_key_t test_thread_info_key_g;
 #endif
 
 /*
@@ -1359,4 +1361,18 @@ herr_t api_prefix_filename(const char *filename, char **filename_out) {
     }
 
     return ret_value;
+}
+
+// TODO
+void
+SetThreadlocalTestDescription(const char *desc) {
+    /* Store test desc for display after test completion */
+    thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);
+    assert(_tinfo);
+    assert(desc);
+
+    /* TBD - Only need to store this for 1 thread */
+    _tinfo->test_descriptions[_tinfo->num_tests - 1] = desc;
+
+    return;
 }

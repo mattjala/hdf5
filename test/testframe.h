@@ -27,6 +27,10 @@
 
 #include "H5private.h"
 
+#ifdef H5_HAVE_MULTITHREAD
+extern pthread_key_t test_thread_info_key_g;
+#endif
+
 /**********/
 /* Macros */
 /**********/
@@ -110,9 +114,99 @@
             printf A;                                                                                        \
     } while (0)
 
+/* Flag values for TestFrameworkFlags */
+#define ALLOW_MULTITHREAD 0x00000001 /* Allow test to be run in spawned thread(s) based on runtime configuration */
+
+#ifdef H5_HAVE_MULTITHREAD
+/* Whether or not the tests are configured to execute using threaded infrastructure.
+ * Note that if GetTestMaxNumThreads() == 1, then the tests are still only run in a single thread,
+ * but that thread is a new thread spawned by the main thread. */
+#define TEST_EXECUTION_THREADED (GetTestMaxNumThreads() >= 1)
+
+/* Whether the tests are configured to concurrently execute in more than one thread */
+#define TEST_EXECUTION_CONCURRENT (GetTestMaxNumThreads() > 1)
+
+#define IS_MAIN_TEST_THREAD (!TEST_EXECUTION_CONCURRENT ||\
+    ((pthread_getspecific(test_thread_info_key_g)) && (((thread_info_t*)pthread_getspecific(test_thread_info_key_g))->thread_idx == 0)))
+
+#else
+#define IS_MAIN_TEST_THREAD true
+#define TEST_EXECUTION_THREADED false
+#define TEST_EXECUTION_CONCURRENT false
+#endif /* H5_HAVE_MULTITHREAD */
+
+/*
+ * Muli-thread-compatible testing macros for use in multithreaded tests
+ */
+#ifdef H5_HAVE_MULTITHREAD
+
+#define INCR_RUN_COUNT                                                                                 \
+    if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
+        ((thread_info_t*)pthread_getspecific(test_thread_info_key_g))->num_tests++;                      \
+        assert(((thread_info_t*)pthread_getspecific(test_thread_info_key_g))->num_tests <= H5_MAX_NUM_SUBTESTS); \
+    } else {                                                                                                 \
+        H5_ATOMIC_ADD(n_tests_run_g, 1);                                                                                  \
+    }
+
+/* If running multi-threaded tests, store outcomes on threadlocal variable for later aggregation. */
+/* The global variables are atomic based on build configuration, not runtime thread count,
+ * and so the ATOMIC_ADD macros must be used even in the single-thread runtime. */
+#define INCR_FAILED_COUNT                                                                                  \
+    if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
+        thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);                \
+        assert(_tinfo->num_tests > 0);                                                                   \
+        assert(_tinfo->test_outcomes[_tinfo->num_tests - 1] == TEST_UNINIT);                                \
+        _tinfo->test_outcomes[_tinfo->num_tests - 1] = TEST_FAIL;                                          \
+    } else {                                                                                                 \
+        H5_ATOMIC_ADD(n_tests_failed_g, 1);                                                                                  \
+    }
+
+#define INCR_PASSED_COUNT                                                                                 \
+    if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
+        thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);                \
+        assert(_tinfo->num_tests > 0);                                                                   \
+        assert(_tinfo->test_outcomes[_tinfo->num_tests - 1] == TEST_UNINIT);                                \
+        _tinfo->test_outcomes[_tinfo->num_tests - 1] = TEST_PASS;                                          \
+    } else {                                                                                                 \
+        H5_ATOMIC_ADD(n_tests_passed_g, 1);                                                                                  \
+    }
+
+#define INCR_SKIPPED_COUNT                                                                               \
+    if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
+        thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);                \
+        assert(_tinfo->num_tests > 0);                                                                   \
+        assert(_tinfo->test_outcomes[_tinfo->num_tests - 1] == TEST_UNINIT);                                \
+        _tinfo->test_outcomes[_tinfo->num_tests - 1] = TEST_SKIP;                                          \
+    } else {                                                                                                 \
+        H5_ATOMIC_ADD(n_tests_skipped_g, 1);                                                                                 \
+    }
+
+#else
+
+#define INCR_RUN_COUNT     H5_ATOMIC_ADD(n_tests_run_g, 1);
+#define INCR_FAILED_COUNT  H5_ATOMIC_ADD(n_tests_failed_g, 1);
+#define INCR_PASSED_COUNT  H5_ATOMIC_ADD(n_tests_passed_g, 1);
+#define INCR_SKIPPED_COUNT H5_ATOMIC_ADD(n_tests_skipped_g, 1);
+#endif
+
 /************/
 /* Typedefs */
 /************/
+
+/* The results are defined like this to make it simple for
+ * a fail in one thread to supersede passes/skips in other threads
+ * by using greater-than comparisons
+ */
+typedef uint8_t test_outcome_t;
+
+/* Information for an individual thread running the API tests */
+typedef struct thread_info_t {
+    int thread_idx; /* The test-framework-assigned index of the thread */
+    size_t num_tests; /* Number of individual tests contained within a top-level test */
+    test_outcome_t *test_outcomes;
+    const char **test_descriptions;
+    char* test_thread_filename; /* The name of the test container file */
+} thread_info_t;
 
 /*************/
 /* Variables */
@@ -865,6 +959,9 @@ herr_t api_prefix_filename(const char *filename, char **filename_out);
 // TODO: Documentation
 const char*
 GetThreadlocalContainerFilename(void);
+
+// TODO: Documentation
+void SetThreadlocalTestDescription(const char *desc);
 
 #ifdef __cplusplus
 }

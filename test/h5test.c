@@ -120,10 +120,6 @@ uint64_t vol_cap_flags_g            = H5VL_CAP_FLAG_NONE;
 /* Value of currently registered optional dynamic VOL operation */
 int reg_opt_curr_op_val = 0;
 
-#ifdef H5_HAVE_MULTITHREAD
-pthread_key_t test_thread_info_key_g;
-#endif
-
 /* Whether h5_cleanup should clean up temporary testing files */
 static bool do_test_file_cleanup_g = true;
 
