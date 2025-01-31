@@ -1,3 +1,23 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Copyright by The HDF Group.                                               *
+ * All rights reserved.                                                      *
+ *                                                                           *
+ * This file is part of HDF5.  The full HDF5 copyright notice, including     *
+ * terms governing use, modification, and redistribution, is contained in    *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://www.hdfgroup.org/licenses.               *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/* Purpose: Tests for API Context behavior in multi-threaded environments.
+ *          While API Context functionality is implicitly validated through
+ *          other multi-threaded tests, this file contains
+ *          unit tests targeting for specific uncommon
+ *          usage patterns.
+ */
+
+
 #include "H5CXprivate.h"
 #include "H5Iprivate.h"
 #include "H5VLint.c"
@@ -22,6 +42,9 @@ void *mt_test_api_ctx_vol_conn_prop_helper(void *args);
 void *mt_test_api_ctx_vol_wrap_ctx_helper(void *arg);
 
 /* Test that the API Context's handling of the VOL Connector property is safe when executing in parallel
+ *
+ * Specifically, verify that the API Context State routines properly deep
+ * copy the VOL Connector property and leave the original value unmodified.
 */
 void mt_test_api_ctx_vol_conn_prop(void H5_ATTR_UNUSED *args) {
 #ifndef H5_MT_TEST_VOL_DIR
@@ -106,6 +129,9 @@ void *mt_test_api_ctx_vol_conn_prop_helper(void *args) {
 }
 
 /* Test that the API Context's handling of the VOL wrap context is safe when executing in parallel
+ *
+ * Specifically, verify that the API Context State routines properly deep
+ * copy the VOL wrap context and leave the original value unmodified.
  */
 void mt_test_api_ctx_vol_wrap_ctx(void H5_ATTR_UNUSED *args) {
 #ifndef H5_MT_TEST_VOL_DIR
