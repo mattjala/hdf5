@@ -73,6 +73,9 @@ int TestVerbosity_g          = VERBO_DEF; /* Default Verbosity is Low */
 /* Helper to set up global filename variables */
 static herr_t TestInitFilenames(const char *prefix, const char *container_basename);
 
+/* Generate a heap-allocated filename of the form <prefix><index><filename> */
+static char *GenerateIndexedFilename(const char *prefix, int index, const char *base_filename);
+
 /* Helpers to create/cleanup container file(s) for test program */
 static herr_t TestCreateContainers(void);
 static herr_t TestCleanupContainers(void);
@@ -87,7 +90,7 @@ static herr_t GetThreadIndexString(char *thread_idx_buf, size_t *buf_size);
 static void PerformThreadedTest(TestStruct Test);
 
 /* String manipulation helper */
-char *StringConcatenate(const char *str1, const char *str2, const char *str3, size_t max_len);
+static char *StringConcatenate(const char *str1, const char *str2, const char *str3, size_t max_len);
 
 #ifdef H5_HAVE_MULTITHREAD
 /* Execute a single thread of a multi-threaded test */
@@ -1478,7 +1481,8 @@ SetThreadlocalTestDescription(const char *desc) {
 
 /* Generate a heap-allocated filename of the form <prefix><index><filename> 
  * If index is negative, it will be omitted from the filename */
-char *GenerateIndexedFilename(const char *prefix, int index, const char *base_filename) {
+static char *
+GenerateIndexedFilename(const char *prefix, int index, const char *base_filename) {
     char *test_filename = NULL;
     char *index_str = NULL;
     size_t index_len = 0;
@@ -1515,11 +1519,19 @@ error:
     return NULL;
 }
 
-/* String manipulation helper */
-char *StringConcatenate(const char *str1, const char *str2, const char *str3, size_t max_len) {
+/* Helper to combine up to three strings into a new heap-allocated buffer.
+ *
+ * At least one string must be non-NULL.
+ * If max_len is nonzero, max_len is the maximum size of the allocated buffer.
+ */
+static char *
+StringConcatenate(const char *str1, const char *str2, const char *str3, size_t max_len) {
     int chars_written = 0;
     char *out_str = NULL;
     size_t out_len = 0;
+
+    /* At least one string should be provided */
+    assert(str1 || str2 || str3);
 
     /* Default max length to length of input strings plus one */
     if (max_len == 0) {
@@ -1558,7 +1570,8 @@ char *StringConcatenate(const char *str1, const char *str2, const char *str3, si
  *
  * If test execution is threaded, this will create
  * a unique container for each thread. */
-static herr_t TestCreateContainers(void) {
+static herr_t
+TestCreateContainers(void) {
     herr_t ret_value = SUCCEED;
 
     assert(TestContainerBaseFilename_g);
@@ -1590,7 +1603,8 @@ done:
 }
 
 /* Set up a single thread's container file for the test program. */
-static herr_t TestCreateSingleContainer(int index) {
+static herr_t
+TestCreateSingleContainer(int index) {
     herr_t ret_value = SUCCEED;
     hid_t file_id = H5I_INVALID_HID;
     char *filename = NULL;
@@ -1622,7 +1636,8 @@ done:
  *
  * If test execution is threaded, this will remove
  * each thread's unique container file */
-static herr_t TestCleanupContainers(void) {
+static herr_t
+TestCleanupContainers(void) {
     herr_t ret_value = SUCCEED;
 
     assert(TestContainerBaseFilename_g);
@@ -1654,7 +1669,8 @@ done:
 }
 
 /* Remove a single thread's container file. */
-static herr_t TestCleanupSingleContainer(int index) {
+static herr_t
+TestCleanupSingleContainer(int index) {
     herr_t ret_value = SUCCEED;
     char *filename = NULL;
 

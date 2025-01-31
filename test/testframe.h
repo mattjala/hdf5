@@ -924,25 +924,6 @@ H5TEST_DLL void TestAlarmOff(void);
  * ---------------------------------------------------------------------------
  * \ingroup H5TEST
  *
- * \brief Generate a heap-allocated filename of the form [<prefix>][<index>]<filename>
- *
- * \param[in] prefix Prefix to prepend to the filename. If NULL, no prefix
- *                   will be added.
- *
- * \param[in] index  Index to prepend to the filename. If negative, no index
- *                   will be added.
- *
- * \param[in] base_filename Base filename to be prepended onto
- *
- * \return char*  Heap-allocated filename
- *
- */
-char *GenerateIndexedFilename(const char *prefix, int index, const char *base_filename);
-
-/**
- * ---------------------------------------------------------------------------
- * \ingroup H5TEST
- *
  * \brief Generate a heap-allocated thread-unique filename, with the prefix
  *        (if any) provided to the test framework
  * 
