@@ -47,7 +47,7 @@ main(int argc, char *argv[])
     H5Pclose(fapl_id);
 
     /* Initialize testing framework */
-    if (TestInit(argv[0], NULL, NULL, NULL, NULL, NULL, NULL, 0) < 0) {
+    if (TestInit(argv[0], NULL, NULL, NULL, NULL, NULL, NULL, H5P_DEFAULT, 0) < 0) {
         fprintf(stderr, "couldn't initialize testing framework\n");
         exit(EXIT_FAILURE);
     }

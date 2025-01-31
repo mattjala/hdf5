@@ -18,5 +18,5 @@
 hid_t  generate_random_datatype(H5T_class_t parent_class, bool is_compact);
 hid_t  generate_random_dataspace(int rank, const hsize_t *max_dims, hsize_t *dims_out, bool is_compact);
 
-void H5_api_test_setup_container(void H5_ATTR_UNUSED *params);
+void H5_api_test_setup_container(void *params);
 #endif /* H5_API_TEST_UTIL_H_ */

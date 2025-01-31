@@ -58,6 +58,7 @@ static herr_t (*TestCleanupFunc_g)(void)                     = NULL;
 static char *TestFilenamePrefix_g = NULL;
 static char *TestContainerSerialFilename_g = NULL;
 static char *TestContainerBaseFilename_g = NULL;
+static hid_t TestContainerFaplId_g = H5P_DEFAULT;
 
 static H5_ATOMIC(int) TestNumErrs_g        = 0;    /* Total number of errors that occurred for whole test program */
 static bool           TestEnableErrorStack = true; /* Whether to show error stacks from the library */
@@ -197,7 +198,8 @@ herr_t
 TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
          herr_t (*TestPrivateParser)(int argc, char *argv[]), herr_t (*TestSetupFunc)(void),
          herr_t (*TestCleanupFunc)(void), const char *TestFilenamePrefix,
-         const char *TestContainerFilename, int TestProcessID)
+         const char *TestContainerFilename, hid_t TestContainerFaplId,
+         int TestProcessID)
 {
     /* Turn off automatic error reporting if requested */
     if (!TestEnableErrorStack) {
@@ -227,6 +229,14 @@ TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
         if (TestFrameworkProcessID_g == 0)
             fprintf(stderr, "%s: error initializing filenames\n", __func__);
         return FAIL;
+    }
+
+    if (TestContainerFaplId > 0) {
+        if ((TestContainerFaplId_g = H5Pcopy(TestContainerFaplId)) < 0) {
+            if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr, "%s: error copying file access property list\n", __func__);
+            return FAIL;
+        }
     }
 
     /* Set/reset global variables from h5test that may be used by
@@ -963,6 +973,12 @@ TestShutdown(void)
         for (unsigned Loop = 0; Loop < TestCount; Loop++)
             free(TestArray[Loop].TestParameters);
 
+    if (TestContainerFaplId_g > 0 && H5Pclose(TestContainerFaplId_g) < 0) {
+        if (TestFrameworkProcessID_g == 0)
+            fprintf(stderr, "%s: error occurred while closing test container file access property list\n", __func__);
+        return FAIL;
+    }
+
     free(TestArray);
     free(TestFilenamePrefix_g);
     free(TestContainerBaseFilename_g);
@@ -1615,7 +1631,7 @@ TestCreateSingleContainer(int index) {
         goto done;
     }
 
-    if ((file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+    if ((file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, TestContainerFaplId_g)) < 0) {
         fprintf(stderr, "    failed to create container file %s\n", filename);
         ret_value = FAIL;
         goto done;
@@ -1680,8 +1696,8 @@ TestCleanupSingleContainer(int index) {
         goto done;
     }
 
-    if (H5Fis_accessible(filename, H5P_DEFAULT) > 0) {
-        if (H5Fdelete(filename, H5P_DEFAULT) < 0) {
+    if (H5Fis_accessible(filename, TestContainerFaplId_g) > 0) {
+        if (H5Fdelete(filename, TestContainerFaplId_g) < 0) {
             fprintf(stderr, "    failed to delete container file %s\n", filename);
             ret_value = FAIL;
             goto done;

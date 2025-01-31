@@ -327,8 +327,18 @@ main(int argc, char **argv)
     /* Store current error stack printing function since TestInit unsets it */
     H5Eget_auto2(H5E_DEFAULT, &default_err_func, &default_err_data);
 
+    BEGIN_INDEPENDENT_OP(create_fapl)
+    {
+        if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, false)) < 0) {
+            if (MAINPROCESS)
+                fprintf(stderr, "Unable to create FAPL\n");
+            INDEPENDENT_OP_ERROR(create_fapl);
+        }
+    }
+    END_INDEPENDENT_OP(create_fapl);
+
     /* Initialize testing framework */
-    if (TestInit(argv[0], usage, NULL, NULL, NULL, NULL, NULL, mpi_rank) < 0) {
+    if (TestInit(argv[0], usage, NULL, NULL, NULL, NULL, NULL, fapl_id, mpi_rank) < 0) {
         if (MAINPROCESS)
             fprintf(stderr, "Couldn't initialize testing framework\n");
         goto error;
@@ -431,16 +441,6 @@ main(int argc, char **argv)
         printf("  - Test seed: %u\n", seed);
         printf("\n");
     }
-
-    BEGIN_INDEPENDENT_OP(create_fapl)
-    {
-        if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, false)) < 0) {
-            if (MAINPROCESS)
-                fprintf(stderr, "Unable to create FAPL\n");
-            INDEPENDENT_OP_ERROR(create_fapl);
-        }
-    }
-    END_INDEPENDENT_OP(create_fapl);
 
     BEGIN_INDEPENDENT_OP(check_vol_register)
     {

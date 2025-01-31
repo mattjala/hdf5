@@ -175,7 +175,8 @@ main(int argc, char **argv)
 #endif
 
     /* Initialize testing framework */
-    if (TestInit(argv[0], usage, NULL, NULL, NULL, test_path_prefix, HDF5_API_TEST_CONTAINER_BASE_FILENAME, 0) < 0) {
+    if (TestInit(argv[0], usage, NULL, NULL, NULL, test_path_prefix,
+        HDF5_API_TEST_CONTAINER_BASE_FILENAME, H5P_DEFAULT, 0) < 0) {
         fprintf(stderr, "Unable to initialize testing framework\n");
         err_occurred = true;
         goto done;

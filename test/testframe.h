@@ -242,6 +242,8 @@ extern "C" {
  *                                 to their filenames.
  * \param[in]  TestContainerFilename Optional filename for a container file
  *                                   that may be shared between tests.
+ * \param[in]  TestContainerFaplId   Optional FAPL to be copied and used when 
+ *                                 performing test container operations.
  * \param[in]  TestProcessID       ID for the process calling TestInit(). Used
  *                                 to control printing of output in parallel
  *                                 test programs.
@@ -307,7 +309,8 @@ extern "C" {
 H5TEST_DLL herr_t TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
                            int (*TestPrivateParser)(int argc, char *argv[]), herr_t (*TestSetupFunc)(void),
                            herr_t (*TestCleanupFunc)(void), const char *TestFilenamePrefix,
-                           const char *TestContainerFilename, int TestProcessID);
+                           const char *TestContainerFilename, hid_t TestContainerFaplId,
+                           int TestProcessID);
 
 /**
  * --------------------------------------------------------------------------
