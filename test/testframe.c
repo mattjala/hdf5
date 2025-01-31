@@ -532,11 +532,13 @@ PerformTests(void)
 {
     int test_num_errs = 0;
 
-    /* If requested, set up the test container(s) */
-    if (TestInitContainers() < 0) {
-        if (TestFrameworkProcessID_g == 0)
-            fprintf(stderr, "%s: error initializing test containers\n", __func__);
-        return FAIL;
+    /* Create test containers if container filename is set */
+    if (TestContainerBaseFilename_g != NULL) {
+        if (TestInitContainers() < 0) {
+            if (TestFrameworkProcessID_g == 0)
+                fprintf(stderr, "%s: error initializing test containers\n", __func__);
+            return FAIL;
+        }
     }
 
     /* Execute tests */
@@ -938,7 +940,7 @@ TestSummary(FILE *stream)
 herr_t
 TestShutdown(void)
 {
-    if (GetTestCleanup()) {
+    if (GetTestCleanup() && TestContainerBaseFilename_g) {
         /* Tear down test container(s), if created */
         if (TestShutdownContainers() < 0) {
             if (TestFrameworkProcessID_g == 0)
@@ -946,7 +948,6 @@ TestShutdown(void)
             return FAIL;
         }
     }
-   
 
     /* Clean up test state first before tearing down testing framework */
     if (TestCleanupFunc_g && TestCleanupFunc_g() < 0) {
@@ -1207,12 +1208,14 @@ SetTestMaxNumThreads(int max_num_threads)
  */
 const char*
 GetTestContainerFilename(void) {
-    thread_info_t *tinfo = NULL;
     const char *ret_value = NULL;
 
 #ifndef H5_HAVE_MULTITHREAD
     ret_value = TestContainerSerialFilename_g;
+    goto done;
 #else
+    thread_info_t *tinfo = NULL;
+
     if (!TEST_EXECUTION_THREADED) {
         ret_value = TestContainerSerialFilename_g;
         goto done;
@@ -1314,6 +1317,7 @@ GetThreadIndex(int *thread_idx) {
     herr_t ret_value = SUCCEED;
 #ifndef H5_HAVE_MULTITHREAD
     *thread_idx = -1;
+    goto done;
 #else
     thread_info_t *tinfo = NULL;
 
@@ -1457,6 +1461,10 @@ done:
  */
 void
 SetThreadlocalTestDescription(const char *desc) {
+    /* No-op if threading is disabled */
+#ifndef H5_HAVE_MULTITHREAD
+    (void) desc;
+#else
     /* Store test desc for display after test completion */
     thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);
     assert(_tinfo);
@@ -1464,7 +1472,7 @@ SetThreadlocalTestDescription(const char *desc) {
 
     /* TBD - Only need to store this for 1 thread */
     _tinfo->test_descriptions[_tinfo->num_tests - 1] = desc;
-
+#endif
     return;
 }
 
@@ -1550,11 +1558,7 @@ char *StringConcatenate(const char *str1, const char *str2, const char *str3, si
 static herr_t TestInitContainers(void) {
     herr_t ret_value = SUCCEED;
 
-    /* Only create test containers if container filename is set */
-    if (TestContainerBaseFilename_g == NULL) {
-        ret_value = SUCCEED;
-        goto done;
-    }
+    assert(TestContainerBaseFilename_g);
 
     if (TEST_EXECUTION_THREADED) {
 #ifndef H5_HAVE_MULTITHREAD
@@ -1615,11 +1619,7 @@ done:
 static herr_t TestShutdownContainers(void) {
     herr_t ret_value = SUCCEED;
 
-    /* Only shutdown test containers if they were created */
-    if (TestContainerBaseFilename_g == NULL) {
-        ret_value = SUCCEED;
-        goto done;
-    }
+    assert(TestContainerBaseFilename_g);
 
     if (TEST_EXECUTION_THREADED) {
 #ifndef H5_HAVE_MULTITHREAD

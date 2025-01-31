@@ -141,7 +141,7 @@ extern pthread_key_t test_thread_info_key_g;
  */
 #ifdef H5_HAVE_MULTITHREAD
 
-#define INCR_RUN_COUNT                                                                                 \
+#define INCR_RUN_COUNT_MT                                                                                 \
     if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
         ((thread_info_t*)pthread_getspecific(test_thread_info_key_g))->num_tests++;                      \
         assert(((thread_info_t*)pthread_getspecific(test_thread_info_key_g))->num_tests <= H5_MAX_NUM_SUBTESTS); \
@@ -152,7 +152,7 @@ extern pthread_key_t test_thread_info_key_g;
 /* If running multi-threaded tests, store outcomes on threadlocal variable for later aggregation. */
 /* The global variables are atomic based on build configuration, not runtime thread count,
  * and so the ATOMIC_ADD macros must be used even in the single-thread runtime. */
-#define INCR_FAILED_COUNT                                                                                  \
+#define INCR_FAILED_COUNT_MT                                                                                  \
     if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
         thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);                \
         assert(_tinfo->num_tests > 0);                                                                   \
@@ -162,7 +162,7 @@ extern pthread_key_t test_thread_info_key_g;
         H5_ATOMIC_ADD(n_tests_failed_g, 1);                                                                                  \
     }
 
-#define INCR_PASSED_COUNT                                                                                 \
+#define INCR_PASSED_COUNT_MT                                                                                 \
     if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
         thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);                \
         assert(_tinfo->num_tests > 0);                                                                   \
@@ -172,7 +172,7 @@ extern pthread_key_t test_thread_info_key_g;
         H5_ATOMIC_ADD(n_tests_passed_g, 1);                                                                                  \
     }
 
-#define INCR_SKIPPED_COUNT                                                                               \
+#define INCR_SKIPPED_COUNT_MT                                                                               \
     if (TEST_EXECUTION_THREADED && pthread_getspecific(test_thread_info_key_g)) {                        \
         thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);                \
         assert(_tinfo->num_tests > 0);                                                                   \
@@ -181,13 +181,6 @@ extern pthread_key_t test_thread_info_key_g;
     } else {                                                                                                 \
         H5_ATOMIC_ADD(n_tests_skipped_g, 1);                                                                                 \
     }
-
-#else
-
-#define INCR_RUN_COUNT     H5_ATOMIC_ADD(n_tests_run_g, 1);
-#define INCR_FAILED_COUNT  H5_ATOMIC_ADD(n_tests_failed_g, 1);
-#define INCR_PASSED_COUNT  H5_ATOMIC_ADD(n_tests_passed_g, 1);
-#define INCR_SKIPPED_COUNT H5_ATOMIC_ADD(n_tests_skipped_g, 1);
 #endif
 
 /************/

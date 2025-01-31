@@ -34,6 +34,31 @@
 #include "testframe.h"
 #endif
 
+
+/* TODO: Hack to work around temporary conditional testframe inclusion */
+#ifdef H5_HAVE_MULTITHREAD
+#define INCR_RUN_COUNT INCR_RUN_COUNT_MT
+#define INCR_FAILED_COUNT INCR_FAILED_COUNT_MT
+#define INCR_PASSED_COUNT INCR_PASSED_COUNT_MT
+#define INCR_SKIPPED_COUNT INCR_SKIPPED_COUNT_MT
+
+#else
+#define IS_MAIN_TEST_THREAD true
+#define TEST_EXECUTION_THREADED false
+#define TEST_EXECUTION_CONCURRENT false
+
+#define INCR_RUN_COUNT_ST     H5_ATOMIC_ADD(n_tests_run_g, 1);
+#define INCR_FAILED_COUNT_ST  H5_ATOMIC_ADD(n_tests_failed_g, 1);
+#define INCR_PASSED_COUNT_ST  H5_ATOMIC_ADD(n_tests_passed_g, 1);
+#define INCR_SKIPPED_COUNT_ST H5_ATOMIC_ADD(n_tests_skipped_g, 1);
+
+#define INCR_RUN_COUNT INCR_RUN_COUNT_ST
+#define INCR_FAILED_COUNT INCR_FAILED_COUNT_ST
+#define INCR_PASSED_COUNT INCR_PASSED_COUNT_ST
+#define INCR_SKIPPED_COUNT INCR_SKIPPED_COUNT_ST
+#endif /* H5_HAVE_MULTITHREAD */
+
+
 /*
  * This contains the filename prefix specified as command line option for
  * the parallel test files.
