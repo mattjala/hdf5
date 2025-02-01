@@ -15986,9 +15986,9 @@ main(void)
      *      in the future for parallel build.
      */
     ExpressMode = h5_get_testexpress();
-    if (ExpressMode > 0)
+    if (ExpressMode > H5_TEST_EXPRESS_EXHAUSTIVE)
         printf("***Express test mode %d.  Some tests may be skipped\n", ExpressMode);
-    else if (ExpressMode == 0) {
+    else if (ExpressMode == H5_TEST_EXPRESS_EXHAUSTIVE) {
 #ifdef H5_HAVE_PARALLEL
         num_pb_fs = NUM_PB_FS - 2;
 #else
@@ -16204,7 +16204,7 @@ main(void)
                     /* If this test fails, uncomment the tests above, which build up to this
                      * level of complexity gradually. -QAK
                      */
-                    if (ExpressMode > 1)
+                    if (ExpressMode > H5_TEST_EXPRESS_FULL)
                         printf(
                             "***Express test mode on.  test_man_start_5th_recursive_indirect is skipped\n");
                     else
@@ -16252,7 +16252,7 @@ main(void)
                                 nerrors += test_man_remove_first_row(fapl, &small_cparam, &tparam);
                                 nerrors += test_man_remove_first_two_rows(fapl, &small_cparam, &tparam);
                                 nerrors += test_man_remove_first_four_rows(fapl, &small_cparam, &tparam);
-                                if (ExpressMode > 1)
+                                if (ExpressMode > H5_TEST_EXPRESS_FULL)
                                     printf("***Express test mode on.  Some tests skipped\n");
                                 else {
                                     nerrors += test_man_remove_all_root_direct(fapl, &small_cparam, &tparam);
@@ -16302,7 +16302,7 @@ main(void)
                                 nerrors +=
                                     test_man_fill_1st_row_3rd_direct_fill_2nd_direct_less_one_wrap_start_block_add_skipped(
                                         fapl, &small_cparam, &tparam);
-                                if (ExpressMode > 1)
+                                if (ExpressMode > H5_TEST_EXPRESS_FULL)
                                     printf("***Express test mode on.  Some tests skipped\n");
                                 else {
                                     nerrors +=
@@ -16432,7 +16432,7 @@ main(void)
             }     /* end block */
 
             /* Random object insertion & deletion */
-            if (ExpressMode > 1)
+            if (ExpressMode > H5_TEST_EXPRESS_FULL)
                 printf("***Express test mode on.  Some tests skipped\n");
             else {
                 /* Random tests using "small" heap creation parameters */
