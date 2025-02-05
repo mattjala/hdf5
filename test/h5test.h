@@ -386,7 +386,7 @@ extern pthread_key_t test_thread_info_key_g;
 
 /* Macros for the different TestExpress levels for expediting tests */
 #define H5_TEST_EXPRESS_EXHAUSTIVE 0 /** Exhaustive run; tests should take as long as necessary */
-#define H5_TEST_EXPRESS_FULL       1 /** Full run; tests should take no more than 30 minutes    */
+#define H5_TEST_EXPRESS_FULL       1 /** Full run; tests should take no more than 20 minutes    */
 #define H5_TEST_EXPRESS_QUICK      2 /** Quick run; tests should take no more than 10 minutes   */
 #define H5_TEST_EXPRESS_SMOKE_TEST 3 /** Smoke test; tests should take no more than 1 minute    */
 
