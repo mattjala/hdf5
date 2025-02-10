@@ -8574,6 +8574,9 @@ main(int argc, char **argv)
 {
 #ifdef H5_HAVE_MULTITHREAD
     mt_test_params_t test_params;
+    herr_t (*init_func)(void) = init_globals;
+#else
+    herr_t (*init_func)(void) = NULL;
 #endif
     H5E_auto2_t default_err_func;
     void       *default_err_data = NULL;
@@ -8585,7 +8588,7 @@ main(int argc, char **argv)
     H5Eget_auto2(H5E_DEFAULT, &default_err_func, &default_err_data);
 
     /* Initialize testing framework */
-    TestInit(argv[0], NULL, NULL, init_globals, NULL, 0);
+    TestInit(argv[0], NULL, NULL, init_func, NULL, 0);
 
     /* Reset error stack printing function */
     H5Eset_auto2(H5E_DEFAULT, default_err_func, default_err_data);
