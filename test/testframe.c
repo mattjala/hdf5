@@ -184,12 +184,6 @@ TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
     /* Initialize value for TestExpress functionality */
     h5_get_testexpress();
 
-    /* Enable alarm timer for test program once TestExpress setting
-     * has been determined
-     */
-    if (TestAlarmOn() < 0)
-        MESSAGE(5, ("Couldn't enable test alarm timer\n"));
-
     /* Record the program name and private routines if provided. */
     TestProgName = ProgName;
     if (NULL != TestPrivateUsage)
@@ -514,6 +508,10 @@ PerformTests(void)
 {
     int test_num_errs = 0;
 
+    /* Enable alarm timer for tests */
+    if (TestAlarmOn() < 0)
+        MESSAGE(5, ("Couldn't enable test alarm timer\n"));
+
     for (unsigned Loop = 0; Loop < TestCount; Loop++) {
         bool is_test_mt = (TestArray[Loop].TestFrameworkFlags & ALLOW_MULTITHREAD) && TEST_EXECUTION_THREADED;
         
@@ -553,6 +551,8 @@ PerformTests(void)
             MESSAGE(5, ("There were %d errors detected.\n\n", (int)H5_ATOMIC_LOAD(TestArray[Loop].TestNumErrors)));
         }
     }
+
+    TestAlarmOff();
 
     MESSAGE(2, ("\n\n"));
     if (TestNumErrs_g)
@@ -909,8 +909,6 @@ TestShutdown(void)
             free(TestArray[Loop].TestParameters);
 
     free(TestArray);
-
-    TestAlarmOff();
 
     return SUCCEED;
 }
