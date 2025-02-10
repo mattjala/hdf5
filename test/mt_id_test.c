@@ -8051,10 +8051,27 @@ static void
 mt_test_1(void *params)
 {
     int max_num_threads = GetTestMaxNumThreads();
+    int test_express    = GetTestExpress();
 
     /* Restrict maximum number of threads for now */
-    if (max_num_threads > DEFAULT_MAX_NUM_THREADS || max_num_threads < 1)
+    if (max_num_threads > DEFAULT_MAX_NUM_THREADS || max_num_threads < 0)
         max_num_threads = DEFAULT_MAX_NUM_THREADS;
+
+    /* Adjust maximum number of threads based on TestExpress setting */
+    switch (test_express) {
+        case H5_TEST_EXPRESS_SMOKE_TEST:
+            max_num_threads = MIN(6, MIN(max_num_threads, DEFAULT_MAX_NUM_THREADS));
+            break;
+
+        case H5_TEST_EXPRESS_QUICK:
+            max_num_threads = MIN(24, MIN(max_num_threads, DEFAULT_MAX_NUM_THREADS));
+            break;
+
+        case H5_TEST_EXPRESS_FULL:
+        case H5_TEST_EXPRESS_EXHAUSTIVE:
+        default:
+            break;
+    }
 
     /* Run this test for thread counts between and including 2 <-> max_num_threads */
     for (int num_threads = 2; num_threads <= max_num_threads; num_threads++) {
@@ -8256,10 +8273,30 @@ static void
 mt_test_2(void *params)
 {
     int max_num_threads = GetTestMaxNumThreads();
+    int test_express    = GetTestExpress();
 
     /* Restrict maximum number of threads for now */
-    if (max_num_threads > DEFAULT_MAX_NUM_THREADS || max_num_threads < 1)
+    if (max_num_threads > DEFAULT_MAX_NUM_THREADS || max_num_threads < 0)
         max_num_threads = DEFAULT_MAX_NUM_THREADS;
+
+    /* Adjust maximum number of threads based on TestExpress setting */
+    switch (test_express) {
+        case H5_TEST_EXPRESS_SMOKE_TEST:
+            max_num_threads = MIN(2, MIN(max_num_threads, DEFAULT_MAX_NUM_THREADS));
+            break;
+
+        case H5_TEST_EXPRESS_QUICK:
+            max_num_threads = MIN(4, MIN(max_num_threads, DEFAULT_MAX_NUM_THREADS));
+            break;
+
+        case H5_TEST_EXPRESS_FULL:
+            max_num_threads = MIN(8, MIN(max_num_threads, DEFAULT_MAX_NUM_THREADS));
+            break;
+
+        case H5_TEST_EXPRESS_EXHAUSTIVE:
+        default:
+            break;
+    }
 
     /* Run this test for thread counts between 1 ... max_num_threads */
     for (int num_threads = 1; num_threads <= max_num_threads; num_threads++) {
@@ -8621,6 +8658,9 @@ main(int argc, char **argv)
         fprintf(stderr, "Error occurred while parsing command-line arguments\n");
         goto exit;
     }
+
+    if (GetTestExpress() > H5_TEST_EXPRESS_EXHAUSTIVE)
+        printf("** TestExpress level is %d. Some tests may be expedited.\n", GetTestExpress());
 
     /* Perform tests */
     if (PerformTests() < 0) {
