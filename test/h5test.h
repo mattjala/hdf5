@@ -70,7 +70,6 @@ typedef struct thread_info_t {
 #ifdef H5_HAVE_MULTITHREAD
 extern pthread_key_t test_thread_info_key_g;
 
-#if 0
 /* Whether or not the tests are configured to execute using threaded infrastructure.
  * Note that if GetTestMaxNumThreads() == 1, then the tests are still only run in a single thread,
  * but that thread is a new thread spawned by the main thread. */
@@ -79,9 +78,6 @@ extern pthread_key_t test_thread_info_key_g;
 /* Whether the tests are configured to concurrently execute in more than one thread */
 #define TEST_EXECUTION_CONCURRENT (GetTestMaxNumThreads() > 1)
 
-#define IS_MAIN_TEST_THREAD (!TEST_EXECUTION_CONCURRENT ||\
-    ((pthread_getspecific(test_thread_info_key_g)) && (((thread_info_t*)pthread_getspecific(test_thread_info_key_g))->thread_idx == 0)))
-#else
 #define IS_MAIN_TEST_THREAD (                                                                                \
     /* if GetTestMaxNumThreads() == 0, no additional threads can be spawned */                               \
     (GetTestMaxNumThreads() == 0) ||                                                                         \
@@ -92,7 +88,6 @@ extern pthread_key_t test_thread_info_key_g;
      * assume that the thread with thread_idx 0 is the main thread */                                        \
     (((thread_info_t*)pthread_getspecific(test_thread_info_key_g))->thread_idx == 0)                         \
 )
-#endif
 
 #else
 #define IS_MAIN_TEST_THREAD true
@@ -176,13 +171,13 @@ extern pthread_key_t test_thread_info_key_g;
  */
 #define TESTING(WHAT)                                                                                        \
     do {                                                                                                     \
-        INCR_RUN_COUNT;                                                                                       \
+        INCR_RUN_COUNT;                                                                                      \
         if (IS_MAIN_TEST_THREAD) {                                                                           \
-            printf("Testing %-62s", WHAT);                                                                       \
-            fflush(stdout);                                                                                      \
-        }                                                                                                   \
+            printf("Testing %-62s", WHAT);                                                                   \
+            fflush(stdout);                                                                                  \
+        }                                                                                                    \
     } while (0)
-#define TESTING_2_DISPLAY(WHAT)                                                                             \
+#define TESTING_2_DISPLAY(WHAT)                                                                              \
     do {                                                                                                     \
         printf("  Testing %-60s", WHAT);                                                                     \
         fflush(stdout);                                                                                      \
@@ -191,25 +186,21 @@ extern pthread_key_t test_thread_info_key_g;
 #ifdef H5_HAVE_MULTITHREAD
 #define TESTING_2(WHAT)                                                                                      \
     do {                                                                                                     \
-        INCR_RUN_COUNT;                                                                                     \
-        if (!TEST_EXECUTION_THREADED) {                                                                           \
-            TESTING_2_DISPLAY(WHAT);                                                                             \
+        INCR_RUN_COUNT;                                                                                      \
+        if (!TEST_EXECUTION_THREADED) {                                                                      \
+            TESTING_2_DISPLAY(WHAT);                                                                         \
         } else {                                                                                             \
-            /* Store test desc for display after test completion */ \
-            thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);                \
-            assert(_tinfo);                                                                                 \
-            /* TBD - Only need to store this for 1 thread */\
-            _tinfo->test_descriptions[_tinfo->num_tests - 1] = WHAT; \
-        }                                                                                                   \
+            /* Store test desc for display after test completion */                                          \
+            thread_info_t *_tinfo = (thread_info_t*)pthread_getspecific(test_thread_info_key_g);             \
+            assert(_tinfo);                                                                                  \
+            /* TBD - Only need to store this for 1 thread */                                                 \
+            _tinfo->test_descriptions[_tinfo->num_tests - 1] = WHAT;                                         \
+        }                                                                                                    \
     } while (0)
 #else 
 #define TESTING_2(WHAT)                                                                                      \
     do {                                                                                                     \
-        INCR_RUN_COUNT;                                                                                     \
-        if (TEST_EXECUTION_THREADED) {                                                                          \
-            printf("  Test run with multiple threads, but library not built with multi-thread support!\n");\
-            goto error;                                                                                     \
-        }                                                                                                   \
+        INCR_RUN_COUNT;                                                                                      \
         TESTING_2_DISPLAY(WHAT);                                                                             \
     } while (0)
 #endif /* H5_HAVE_MULTITHREAD */
@@ -221,10 +212,9 @@ extern pthread_key_t test_thread_info_key_g;
     } while (0)
 #define PASSED()                                                                                             \
     do {                                                                                                     \
-        if (!TEST_EXECUTION_THREADED) {                                                                           \
-            PASSED_DISPLAY();                                                                                   \
-        }                                                                                                  \
-        INCR_PASSED_COUNT;                                                                                  \
+        if (IS_MAIN_TEST_THREAD)                                                                             \
+            PASSED_DISPLAY();                                                                                \
+        INCR_PASSED_COUNT;                                                                                   \
     } while (0)
 #define H5_FAILED_DISPLAY()                                                                                  \
     do {                                                                                                     \
@@ -233,9 +223,8 @@ extern pthread_key_t test_thread_info_key_g;
     } while (0)
 #define H5_FAILED()                                                                                          \
     do {                                                                                                     \
-        if (!TEST_EXECUTION_THREADED) {                                                                           \
-            H5_FAILED_DISPLAY();                                                                                 \
-        }                                                                                                  \
+        if (IS_MAIN_TEST_THREAD)                                                                             \
+            H5_FAILED_DISPLAY();                                                                             \
         INCR_FAILED_COUNT;                                                                                   \
     } while (0)
 #define H5_WARNING()                                                                                         \
@@ -252,14 +241,13 @@ extern pthread_key_t test_thread_info_key_g;
     } while (0)
 #define SKIPPED()                                                                                            \
     do {                                                                                                     \
-        if (!TEST_EXECUTION_THREADED) {                                                                           \
-            SKIPPED_DISPLAY();                                                                                   \
-        }                                                                                                 \
+        if (IS_MAIN_TEST_THREAD)                                                                             \
+            SKIPPED_DISPLAY();                                                                               \
         INCR_SKIPPED_COUNT;                                                                                  \
     } while (0)
-#define ERROR_DISPLAY()                                                                                     \
+#define ERROR_DISPLAY()                                                                                      \
     do {                                                                                                     \
-        HDputs(" *ERROR*");                                                                                 \
+        HDputs(" *ERROR*");                                                                                  \
         fflush(stdout);                                                                                      \
     } while (0)
 #define PUTS_ERROR(s)                                                                                        \
