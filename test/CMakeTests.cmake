@@ -336,6 +336,12 @@ set (H5TEST_SEPARATE_TESTS
     flush2
     vds_env
 )
+
+# Specify tests which are allowed to bypass the ctest timeout timer
+set (H5TEST_NOTIMEOUT_TESTS
+    mt_id_test
+)
+
 foreach (h5_test ${H5_TESTS})
   if (NOT h5_test IN_LIST H5TEST_SEPARATE_TESTS)
     if (HDF5_ENABLE_USING_MEMCHECKER)
@@ -368,6 +374,17 @@ foreach (h5_test ${H5_TESTS})
           FIXTURES_REQUIRED clear_H5TEST
           ENVIRONMENT "srcdir=${HDF5_TEST_BINARY_DIR}/H5TEST"
           WORKING_DIRECTORY ${HDF5_TEST_BINARY_DIR}/H5TEST
+      )
+    endif ()
+
+    # Disable ctest timeouts for specific tests, such as multi-threaded
+    # tests, so that they can be run for as long as desired when the
+    # TestExpress level is set to 0. These tests must still use some
+    # other method to control test execution time when the TestExpress
+    # level is set to a different value.
+    if (h5_test IN_LIST H5TEST_NOTIMEOUT_TESTS)
+      set_tests_properties (H5TEST-${h5_test} PROPERTIES
+          TIMEOUT 0
       )
     endif ()
   endif ()
