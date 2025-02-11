@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+# Use expedited testing for specific tests
+env:
+  HDF5TestExpress: 2
+
 jobs:
 
   build_and_test:

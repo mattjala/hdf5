@@ -8,7 +8,7 @@ on:
           - '**.md'
     
 env:
-  HDF5TestExpress: 1
+  HDF5TestExpress: 2
 
 jobs:
     build-and-test:
