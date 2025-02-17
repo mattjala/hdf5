@@ -938,7 +938,7 @@ H5Gclose(hid_t group_id)
 
     /* TBD: Retain lock to protect ID iteration */
     H5_API_LOCK
-    dec_ref_ret = H5I_dec_app_ref_always_close(group_id);
+    dec_ref_ret = H5I_dec_app_ref(group_id);
     H5_API_UNLOCK
     
     if (dec_ref_ret < 0)
@@ -995,7 +995,7 @@ H5Gclose_async(const char *app_file, const char *app_func, unsigned app_line, hi
 
     /* TBD: Retain lock to protect ID iteration */
     H5_API_LOCK
-    dec_ref_ret = H5I_dec_app_ref_always_close(group_id);
+    dec_ref_ret = H5I_dec_app_ref_async(group_id, token_ptr);
     H5_API_UNLOCK
 
     if (dec_ref_ret < 0)

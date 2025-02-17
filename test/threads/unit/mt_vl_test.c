@@ -18,7 +18,6 @@
 
 #define MT_TEST_VOL_REGISTRATION_FILENAME "mt_test_vol_registration.h5"
 #define MT_TEST_VOL_WRAP_CTX_FILE_NAME "mt_test_vol_wrap_ctx_file.h5"
-#define MT_DUMMY_GROUP_NAME "mt_dummy_group"
 #define NONEXISTENT_FILENAME "nonexistent.h5"
 #define SUBCLS_NAME_SIZE 100
 #define H5F_ACS_VOL_CONN_NAME "vol_connector_info" /* Name of the VOL connector info property */
