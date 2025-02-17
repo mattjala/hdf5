@@ -17097,6 +17097,8 @@ error:
     {
         H5Dclose(did);
         H5Dclose(did2);
+        H5Dclose(did3);
+        H5Dclose(did4);
         H5Sclose(sid);
         H5Gclose(gid);
         H5Gclose(gid2);
