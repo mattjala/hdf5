@@ -138,36 +138,36 @@ verify_val(Type1 x, Type2 value, float epsilon, const char *msg, int line, const
 #ifdef __cplusplus
 extern "C" {
 #endif
-void test_array(void *params);
-void test_attr(void *params);
-void test_compound(void *params);
-void test_dsproplist(void *params);
-void test_file(void *params);
-void test_filters(void *params);
-void test_links(void *params);
-void test_h5s(void *params);
-void test_iterate(void *params);
-void test_object(void *params);
-void test_reference(void *params);
-void test_types(void *params);
-void test_vlstrings(void *params);
-void test_dset(void *params);
+herr_t test_array(TestParams_t *params);
+herr_t test_attr(TestParams_t *params);
+herr_t test_compound(TestParams_t *params);
+herr_t test_dsproplist(TestParams_t *params);
+herr_t test_file(TestParams_t *params);
+herr_t test_filters(TestParams_t *params);
+herr_t test_links(TestParams_t *params);
+herr_t test_h5s(TestParams_t *params);
+herr_t test_iterate(TestParams_t *params);
+herr_t test_object(TestParams_t *params);
+herr_t test_reference(TestParams_t *params);
+herr_t test_types(TestParams_t *params);
+herr_t test_vlstrings(TestParams_t *params);
+herr_t test_dset(TestParams_t *params);
 
 /* Prototypes for the cleanup routines */
-void cleanup_array(void *params);
-void cleanup_attr(void *params);
-void cleanup_compound(void *params);
-void cleanup_dsproplist(void *params);
-void cleanup_dsets(void *params);
-void cleanup_file(void *params);
-void cleanup_filters(void *params);
-void cleanup_h5s(void *params);
-void cleanup_iterate(void *params);
-void cleanup_links(void *params);
-void cleanup_object(void *params);
-void cleanup_reference(void *params);
-void cleanup_types(void *params);
-void cleanup_vlstrings(void *params);
+herr_t cleanup_array(TestParams_t *params);
+herr_t cleanup_attr(TestParams_t *params);
+herr_t cleanup_compound(TestParams_t *params);
+herr_t cleanup_dsproplist(TestParams_t *params);
+herr_t cleanup_dsets(TestParams_t *params);
+herr_t cleanup_file(TestParams_t *params);
+herr_t cleanup_filters(TestParams_t *params);
+herr_t cleanup_h5s(TestParams_t *params);
+herr_t cleanup_iterate(TestParams_t *params);
+herr_t cleanup_links(TestParams_t *params);
+herr_t cleanup_object(TestParams_t *params);
+herr_t cleanup_reference(TestParams_t *params);
+herr_t cleanup_types(TestParams_t *params);
+herr_t cleanup_vlstrings(TestParams_t *params);
 
 #ifdef __cplusplus
 }

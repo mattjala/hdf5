@@ -12,10 +12,10 @@
 
 #include "H5_api_group_test_parallel.h"
 
-static void print_group_test_header(void *params);
+static herr_t print_group_test_header(TestParams_t *params);
 
-static void
-print_group_test_header(void H5_ATTR_UNUSED *params)
+static herr_t
+print_group_test_header(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (MAINPROCESS) {
         printf("\n");
@@ -25,6 +25,8 @@ print_group_test_header(void H5_ATTR_UNUSED *params)
         printf("*                                            *\n");
         printf("**********************************************\n\n");
     }
+
+    return SUCCEED;
 }
 
 void

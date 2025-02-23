@@ -53,8 +53,8 @@ thread_info thread_out[NUM_THREAD];
  * Thread safe test - multiple dataset creation
  **********************************************************************
  */
-void
-tts_dcreate(void H5_ATTR_UNUSED *params)
+herr_t
+tts_dcreate(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* thread definitions */
     H5TS_thread_t threads[NUM_THREAD];
@@ -98,7 +98,7 @@ tts_dcreate(void H5_ATTR_UNUSED *params)
         if ((dataset = H5Dopen2(file, dsetname[i], H5P_DEFAULT)) < 0) {
             TestErrPrintf("Dataset name not found - test failed\n");
             H5Fclose(file);
-            return;
+            return FAIL;
         }
         else {
             status = H5Dread(dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &datavalue);
@@ -111,7 +111,7 @@ tts_dcreate(void H5_ATTR_UNUSED *params)
                 CHECK(status, FAIL, "H5Dclose");
                 status = H5Fclose(file);
                 CHECK(status, FAIL, "H5Fclose");
-                return;
+                return FAIL;
             }
 
             status = H5Dclose(dataset);
@@ -125,6 +125,8 @@ tts_dcreate(void H5_ATTR_UNUSED *params)
 
     /* Destroy the thread attribute */
     H5TS_attr_destroy(&attribute);
+
+    return SUCCEED;
 } /* end tts_dcreate() */
 
 void *
@@ -161,11 +163,13 @@ tts_dcreate_creator(void *_thread_data)
     return NULL;
 } /* end tts_dcreate_creator() */
 
-void
-cleanup_dcreate(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_dcreate(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         HDunlink(FILENAME);
     }
+
+    return SUCCEED;
 }
 #endif /*H5_HAVE_THREADSAFE*/

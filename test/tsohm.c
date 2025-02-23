@@ -3707,8 +3707,8 @@ test_sohm_external_dtype(void)
 **  test_sohm(): Main Shared Object Header Message testing routine.
 **
 ****************************************************************/
-void
-test_sohm(void H5_ATTR_UNUSED *params)
+herr_t
+test_sohm(TestParams_t H5_ATTR_UNUSED *params)
 {
     const char *env_h5_drvr;
     bool        vol_is_native;
@@ -3720,7 +3720,7 @@ test_sohm(void H5_ATTR_UNUSED *params)
     CHECK(h5_using_native_vol(H5P_DEFAULT, H5I_INVALID_HID, &vol_is_native), FAIL, "h5_using_native_vol");
     if (!vol_is_native) {
         MESSAGE(5, (" -- SKIPPED --\n"));
-        return;
+        return SKIP;
     }
 
     /* Get the VFD to use */
@@ -3758,6 +3758,8 @@ test_sohm(void H5_ATTR_UNUSED *params)
 
     test_sohm_extend_dset();    /* Test extending shared datasets */
     test_sohm_external_dtype(); /* Test using datatype in another file */
+
+    return SUCCEED;
 } /* test_sohm */
 
 /*-------------------------------------------------------------------------
@@ -3769,12 +3771,14 @@ test_sohm(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_sohm(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_sohm(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILENAME);
         HDremove(FILENAME_SRC);
         HDremove(FILENAME_DST);
     }
+
+    return SUCCEED;
 } /* cleanup_sohm */

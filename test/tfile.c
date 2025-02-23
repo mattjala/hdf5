@@ -8333,8 +8333,8 @@ test_deprec(const char *env_h5_drvr)
 **  test_file(): Main low-level file I/O test routine.
 **
 ****************************************************************/
-void
-test_file(void H5_ATTR_UNUSED *params)
+herr_t
+test_file(TestParams_t H5_ATTR_UNUSED *params)
 {
     const char *env_h5_drvr;               /* File Driver value from environment */
     hid_t       fapl_id = H5I_INVALID_HID; /* VFD-dependent fapl ID */
@@ -8423,6 +8423,8 @@ test_file(void H5_ATTR_UNUSED *params)
     ret = H5Pclose(fapl_id);
     CHECK(ret, FAIL, "H5Pclose");
 
+    return SUCCEED;
+
 } /* test_file() */
 
 /*-------------------------------------------------------------------------
@@ -8434,8 +8436,8 @@ test_file(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_file(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_file(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -8453,4 +8455,6 @@ cleanup_file(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 }

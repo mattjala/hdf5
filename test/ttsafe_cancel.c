@@ -51,8 +51,8 @@ pthread_t       childthread;
 pthread_mutex_t mutex;
 pthread_cond_t  cond;
 
-void
-tts_cancel(void H5_ATTR_UNUSED *params)
+herr_t
+tts_cancel(TestParams_t H5_ATTR_UNUSED *params)
 {
     pthread_attr_t            attribute;
     hid_t                     dataset;
@@ -101,6 +101,8 @@ tts_cancel(void H5_ATTR_UNUSED *params)
     /* Destroy the thread attribute */
     ret = pthread_attr_destroy(&attribute);
     assert(ret == 0);
+
+    return SUCCEED;
 } /* end tts_cancel() */
 
 void *
@@ -240,12 +242,14 @@ tts_cancel_barrier(void)
     VERIFY(status, 0, "pthread_mutex_unlock");
 } /* end tts_cancel_barrier() */
 
-void
-cleanup_cancel(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_cancel(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         HDunlink(FILENAME);
     }
+
+    return SUCCEED;
 }
 
 #endif /*H5_HAVE_WIN_THREADS*/

@@ -58,13 +58,15 @@ void test_exit_definitions(void);
  *
  *-------------------------------------------------------------------------
  */
-void
-test_configure(void H5_ATTR_UNUSED *params)
+herr_t
+test_configure(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Output message about test being performed */
     MESSAGE(5, ("Testing configure definitions\n"));
     test_config_ctypes();
     test_exit_definitions();
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------
@@ -76,10 +78,11 @@ test_configure(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_configure(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_configure(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* no file to clean */
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------

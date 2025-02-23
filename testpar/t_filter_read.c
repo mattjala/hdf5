@@ -195,8 +195,8 @@ filter_read_internal(const char *filename, hid_t dcpl, hsize_t *dset_size)
  *-------------------------------------------------------------------------
  */
 
-void
-test_filter_read(void *params)
+herr_t
+test_filter_read(TestParams_t *params)
 {
     hid_t         dc;                                       /* HDF5 IDs */
     const hsize_t chunk_size[2] = {CHUNK_DIM1, CHUNK_DIM2}; /* Chunk dimensions */
@@ -224,7 +224,7 @@ test_filter_read(void *params)
     hsize_t combo_size; /* Size of dataset with multiple filters */
 #endif                  /* H5_HAVE_FILTER_DEFLATE || H5_HAVE_FILTER_SZIP */
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
 
     if (VERBOSE_MED)
         printf("Parallel reading of dataset written with filters %s\n", filename);
@@ -241,7 +241,7 @@ test_filter_read(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* Check if native VOL is being used */
@@ -492,4 +492,6 @@ test_filter_read(void *params)
     }
 
 #endif /* H5_HAVE_FILTER_SZIP */
+
+    return SUCCEED;
 }

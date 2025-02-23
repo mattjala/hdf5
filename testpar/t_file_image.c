@@ -57,8 +57,8 @@
  *
  *                                               JRM -- 11/28/11
  */
-void
-file_image_daisy_chain_test(void H5_ATTR_UNUSED *params)
+herr_t
+file_image_daisy_chain_test(TestParams_t H5_ATTR_UNUSED *params)
 {
     char       file_name[1024] = "\0";
     int        mpi_size, mpi_rank;
@@ -95,7 +95,7 @@ file_image_daisy_chain_test(void H5_ATTR_UNUSED *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* setup file name */
@@ -379,6 +379,6 @@ file_image_daisy_chain_test(void H5_ATTR_UNUSED *params)
         VRFY((err >= 0), "closed fapl(1).");
     }
 
-    return;
+    return SUCCEED;
 
 } /* file_image_daisy_chain_test() */

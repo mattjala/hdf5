@@ -1867,8 +1867,8 @@ test_h5o_getinfo_visit(void)
 **  test_h5o(): Main H5O (generic object) testing routine.
 **
 ****************************************************************/
-void
-test_h5o(void H5_ATTR_UNUSED *params)
+herr_t
+test_h5o(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Objects\n"));
@@ -1889,6 +1889,8 @@ test_h5o(void H5_ATTR_UNUSED *params)
     test_h5o_open_by_addr_deprec(); /* Test opening objects by address with H5Lget_info1 */
     test_h5o_getinfo_visit();       /* Test object info for H5Oget_info1/2 and H5Ovisit1 */
 #endif                              /* H5_NO_DEPRECATED_SYMBOLS */
+
+    return SUCCEED;
 } /* test_h5o() */
 
 /*-------------------------------------------------------------------------
@@ -1900,8 +1902,8 @@ test_h5o(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_h5o(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_h5o(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         char filename[1024];
@@ -1913,4 +1915,6 @@ cleanup_h5o(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 }

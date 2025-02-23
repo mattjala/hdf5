@@ -52,8 +52,8 @@ static int open_file(const char *filename, hid_t fapl, int metadata_write_strate
  * according to the communicator argument, the processes will freeze up
  * sooner or later due to barrier mixed up.
  */
-void
-test_split_comm_access(void *params)
+herr_t
+test_split_comm_access(TestParams_t *params)
 {
     MPI_Comm    comm;
     MPI_Info    info = MPI_INFO_NULL;
@@ -64,7 +64,7 @@ test_split_comm_access(void *params)
     herr_t      ret;     /* generic return value */
     const char *filename;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Split Communicator access test on file %s\n", filename);
 
@@ -80,7 +80,7 @@ test_split_comm_access(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     is_old = mpi_rank % 2;
@@ -127,10 +127,12 @@ test_split_comm_access(void *params)
     VRFY((mrc == MPI_SUCCESS), "MPI_Comm_free succeeded");
     mrc = MPI_Barrier(MPI_COMM_WORLD);
     VRFY((mrc == MPI_SUCCESS), "final MPI_Barrier succeeded");
+
+    return SUCCEED;
 }
 
-void
-test_page_buffer_access(void *params)
+herr_t
+test_page_buffer_access(TestParams_t *params)
 {
     hid_t       file_id = -1; /* File ID */
     hid_t       fcpl, fapl;
@@ -146,7 +148,7 @@ test_page_buffer_access(void *params)
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
 
     if (VERBOSE_MED)
         printf("Page Buffer Usage in Parallel %s\n", filename);
@@ -442,6 +444,8 @@ test_page_buffer_access(void *params)
     free(data);
     data = NULL;
     MPI_Barrier(MPI_COMM_WORLD);
+
+    return SUCCEED;
 }
 
 static int
@@ -766,8 +770,8 @@ open_file(const char *filename, hid_t fapl, int metadata_write_strategy, hsize_t
  *        incoming fapl that could conflict with the existing values in H5F_shared_t on
  *        multiple opens of the same file.
  */
-void
-test_file_properties(void *params)
+herr_t
+test_file_properties(TestParams_t *params)
 {
     hid_t       fid          = H5I_INVALID_HID; /* HDF5 file ID */
     hid_t       fapl_id      = H5I_INVALID_HID; /* File access plist */
@@ -797,10 +801,10 @@ test_file_properties(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
 
     mpi_ret = MPI_Info_create(&info);
     VRFY((mpi_ret >= 0), "MPI_Info_create succeeded");
@@ -969,10 +973,11 @@ test_file_properties(void *params)
     mpi_ret = MPI_Info_free(&info);
     VRFY((mpi_ret >= 0), "MPI_Info_free succeeded");
 
+    return SUCCEED;
 } /* end test_file_properties() */
 
-void
-test_delete(void *params)
+herr_t
+test_delete(TestParams_t *params)
 {
     hid_t       fid           = H5I_INVALID_HID; /* HDF5 file ID */
     hid_t       fapl_id       = H5I_INVALID_HID; /* File access plist */
@@ -982,7 +987,7 @@ test_delete(void *params)
     htri_t      is_accessible = FAIL; /* Whether a file is accessible */
     herr_t      ret;                  /* Generic return value */
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
 
     /* set up MPI parameters */
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
@@ -997,7 +1002,7 @@ test_delete(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* setup file access plist */
@@ -1044,4 +1049,5 @@ test_delete(void *params)
     ret = H5Pclose(fapl_id);
     VRFY((SUCCEED == ret), "H5Pclose");
 
+    return SUCCEED;
 } /* end test_delete() */

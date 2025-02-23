@@ -3476,8 +3476,8 @@ test_versionbounds(void)
 **  test_h5s(): Main H5S (dataspace) testing routine.
 **
 ****************************************************************/
-void
-test_h5s(void H5_ATTR_UNUSED *params)
+herr_t
+test_h5s(TestParams_t H5_ATTR_UNUSED *params)
 {
     H5F_libver_t low, high; /* Low and high bounds */
 
@@ -3523,6 +3523,8 @@ test_h5s(void H5_ATTR_UNUSED *params)
     test_h5s_bug1();         /* Test bug in offset initialization */
     test_h5s_bug2();         /* Test bug found in H5S__hyper_update_diminfo() */
     test_versionbounds();    /* Test version bounds with dataspace */
+
+    return SUCCEED;
 } /* test_h5s() */
 
 /*-------------------------------------------------------------------------
@@ -3534,8 +3536,8 @@ test_h5s(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_h5s(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_h5s(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -3548,4 +3550,6 @@ cleanup_h5s(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 }

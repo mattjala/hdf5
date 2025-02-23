@@ -52,8 +52,8 @@ static uint8_t encode_buffer[sizeof(compar_buffer)];
 **  test_metadata(): Main meta-data encode/decode testing routine.
 **
 ****************************************************************/
-void
-test_metadata(void H5_ATTR_UNUSED *params)
+herr_t
+test_metadata(TestParams_t H5_ATTR_UNUSED *params)
 {
     int16_t  ei16 = TEST_INT16_VALUE; /* variables to hold the values to encode */
     uint16_t eu16 = TEST_UINT16_VALUE;
@@ -109,6 +109,8 @@ test_metadata(void H5_ATTR_UNUSED *params)
         TestErrPrintf("Error decoding uint32 meta-data wanted: %lu, got: %lu "
                       "at %s:%d\n",
                       (unsigned long)TEST_UINT32_VALUE, (unsigned long)du32, __FILE__, __LINE__);
+
+    return SUCCEED;
 } /* test_metadata() */
 
 /*-------------------------------------------------------------------------
@@ -120,8 +122,9 @@ test_metadata(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_metadata(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_metadata(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* no file to clean */
+    return SUCCEED;
 }

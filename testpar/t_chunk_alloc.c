@@ -457,8 +457,8 @@ verify_data(const char *filename, int chunk_factor, write_type write_pattern, in
  * all parts of the dataset in a interleave pattern, close it, and reopen
  * it, read to verify all data are as written.
  */
-void
-test_chunk_alloc(void *params)
+herr_t
+test_chunk_alloc(TestParams_t *params)
 {
     const char *filename;
     hid_t       file_id, dataset;
@@ -479,10 +479,10 @@ test_chunk_alloc(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Extend Chunked allocation test on file %s\n", filename);
 
@@ -511,4 +511,6 @@ test_chunk_alloc(void *params)
     parallel_access_dataset(filename, CHUNK_FACTOR, write_all, &file_id, &dataset);
     /* reopen dataset in parallel, read and verify the data */
     verify_data(filename, CHUNK_FACTOR, all, CLOSE, &file_id, &dataset);
+
+    return SUCCEED;
 }

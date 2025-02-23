@@ -967,8 +967,8 @@ test_write_same_element(void)
 **  test_vlstrings(): Main VL string testing routine.
 **
 ****************************************************************/
-void
-test_vlstrings(void H5_ATTR_UNUSED *params)
+herr_t
+test_vlstrings(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Variable-Length Strings\n"));
@@ -988,6 +988,8 @@ test_vlstrings(void H5_ATTR_UNUSED *params)
     test_vl_rewrite();
     /* Test writing to the same element more than once using H5Sselect_elements */
     test_write_same_element();
+
+    return SUCCEED;
 } /* test_vlstrings() */
 
 /*-------------------------------------------------------------------------
@@ -999,8 +1001,8 @@ test_vlstrings(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_vlstrings(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_vlstrings(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -1011,4 +1013,6 @@ cleanup_vlstrings(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 }

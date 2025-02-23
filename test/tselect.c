@@ -16043,8 +16043,8 @@ test_h5s_set_extent_none(void)
 **  test_select(): Main H5S selection testing routine.
 **
 ****************************************************************/
-void
-test_select(void H5_ATTR_UNUSED *params)
+herr_t
+test_select(TestParams_t H5_ATTR_UNUSED *params)
 {
     hid_t       plist_id;                     /* Property list for reading random hyperslabs */
     hid_t       fapl;                         /* Property list accessing the file */
@@ -16246,6 +16246,7 @@ test_select(void H5_ATTR_UNUSED *params)
      */
     test_h5s_set_extent_none();
 
+    return SUCCEED;
 } /* test_select() */
 
 /*-------------------------------------------------------------------------
@@ -16257,8 +16258,8 @@ test_select(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_select(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_select(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -16267,4 +16268,6 @@ cleanup_select(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 }

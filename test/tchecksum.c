@@ -215,8 +215,8 @@ test_chksum_large(void)
 **  test_checksum(): Main checksum testing routine.
 **
 ****************************************************************/
-void
-test_checksum(void H5_ATTR_UNUSED *params)
+herr_t
+test_checksum(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Output message about test being performed */
     MESSAGE(5, ("Testing checksum algorithms\n"));
@@ -228,6 +228,7 @@ test_checksum(void H5_ATTR_UNUSED *params)
     test_chksum_size_four();  /* Test buffer w/only 4 bytes */
     test_chksum_large();      /* Test buffer w/larger # of bytes */
 
+    return SUCCEED;
 } /* test_checksum() */
 
 /*-------------------------------------------------------------------------
@@ -239,8 +240,9 @@ test_checksum(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_checksum(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_checksum(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* no file to clean */
+    return SUCCEED;
 }

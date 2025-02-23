@@ -1092,8 +1092,8 @@ test_operators()
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_types(void *params)
+extern "C" herr_t
+test_types(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing Generic Data Types\n"));
@@ -1109,6 +1109,7 @@ test_types(void *params)
     test_encode_decode();
     test_operators();
 
+    return SUCCEED;
 } // test_types()
 
 /*-------------------------------------------------------------------------
@@ -1119,11 +1120,13 @@ test_types(void *params)
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_types(void *params)
+extern "C" herr_t
+cleanup_types(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         for (int i = 0; i < 6; i++)
             HDremove(FILENAME[i]);
     }
+
+    return SUCCEED;
 } // cleanup_types

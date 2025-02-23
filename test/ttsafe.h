@@ -27,25 +27,25 @@
 extern char *gen_name(int);
 
 /* Prototypes for the test routines */
-void tts_is_threadsafe(void *);
+herr_t tts_is_threadsafe(TestParams_t *);
 
 #if defined H5_HAVE_THREADSAFE || defined H5_HAVE_MULTITHREAD
-void tts_errstk(void *);
+herr_t tts_errstk(TestParams_t *);
 #endif
 
 #ifdef H5_HAVE_THREADSAFE
-void tts_dcreate(void *);
-void tts_error(void *);
-void tts_cancel(void *);
-void tts_acreate(void *);
-void tts_attr_vlen(void *);
+herr_t tts_dcreate(TestParams_t *);
+herr_t tts_error(TestParams_t *);
+herr_t tts_cancel(TestParams_t *);
+herr_t tts_acreate(TestParams_t *);
+herr_t tts_attr_vlen(TestParams_t *);
 
 /* Prototypes for the cleanup routines */
-void cleanup_dcreate(void *);
-void cleanup_error(void *);
-void cleanup_cancel(void *);
-void cleanup_acreate(void *);
-void cleanup_attr_vlen(void *);
+herr_t cleanup_dcreate(TestParams_t *);
+herr_t cleanup_error(TestParams_t *);
+herr_t cleanup_cancel(TestParams_t *);
+herr_t cleanup_acreate(TestParams_t *);
+herr_t cleanup_attr_vlen(TestParams_t *);
 
 #endif /* H5_HAVE_THREADSAFE */
 #endif /* TTSAFE_H */

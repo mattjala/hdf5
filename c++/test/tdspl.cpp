@@ -113,14 +113,15 @@ test_transfplist()
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_dsproplist(void *params)
+extern "C" herr_t
+test_dsproplist(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing Generic Dataset Property Lists\n"));
 
     test_transfplist(); // test set/getDataTransform()
 
+    return SUCCEED;
 } // test_dsproplist()
 
 /*-------------------------------------------------------------------------
@@ -131,10 +132,12 @@ test_dsproplist(void *params)
  * Return       none
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_dsproplist(void *params)
+extern "C" herr_t
+cleanup_dsproplist(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILENAME.c_str());
     }
+
+    return SUCCEED;
 }

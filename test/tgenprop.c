@@ -2218,8 +2218,8 @@ test_genprop_deprec_list(void)
 **  test_genprop(): Main generic property testing routine.
 **
 ****************************************************************/
-void
-test_genprop(void H5_ATTR_UNUSED *params)
+herr_t
+test_genprop(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Generic Properties\n"));
@@ -2252,6 +2252,7 @@ test_genprop(void H5_ATTR_UNUSED *params)
     test_genprop_deprec_list();  /* Tests for deprecated routines */
 #endif                           /* H5_NO_DEPRECATED_SYMBOLS */
 
+    return SUCCEED;
 } /* test_genprop() */
 
 /*-------------------------------------------------------------------------
@@ -2263,8 +2264,8 @@ test_genprop(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_genprop(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_genprop(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -2273,4 +2274,6 @@ cleanup_genprop(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 }

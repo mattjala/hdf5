@@ -967,8 +967,8 @@ test_file_info()
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_file(void *params)
+extern "C" herr_t
+test_file(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing File I/O Operations\n"));
@@ -982,6 +982,8 @@ test_file(void *params)
     test_libver_bounds();  // Test format version
     test_commonfg();       // Test H5File as a root group
     test_file_info();      // Test various file info
+
+    return SUCCEED;
 } // test_file()
 
 /*-------------------------------------------------------------------------
@@ -995,8 +997,8 @@ test_file(void *params)
 #ifdef __cplusplus
 extern "C"
 #endif
-    void
-    cleanup_file(void *params)
+    herr_t
+    cleanup_file(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILE1.c_str());
@@ -1007,4 +1009,6 @@ extern "C"
         HDremove(FILE6.c_str());
         HDremove(FILE7.c_str());
     }
+
+    return SUCCEED;
 } // cleanup_file

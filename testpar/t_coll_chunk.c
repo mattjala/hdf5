@@ -63,10 +63,10 @@ static void coll_chunktest(const char *filename, int chunk_factor, int select_fa
  * ------------------------------------------------------------------------
  */
 
-void
-coll_chunk1(void *params)
+herr_t
+coll_chunk1(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -81,7 +81,7 @@ coll_chunk1(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     coll_chunktest(filename, 1, BYROW_CONT, API_NONE, HYPER, HYPER, OUT_OF_ORDER);
@@ -93,6 +93,8 @@ coll_chunk1(void *params)
     coll_chunktest(filename, 1, BYROW_CONT, API_NONE, POINT, ALL, IN_ORDER);
     coll_chunktest(filename, 1, BYROW_CONT, API_NONE, POINT, POINT, IN_ORDER);
     coll_chunktest(filename, 1, BYROW_CONT, API_NONE, POINT, HYPER, IN_ORDER);
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------
@@ -125,10 +127,10 @@ coll_chunk1(void *params)
  *
  * ------------------------------------------------------------------------
  */
-void
-coll_chunk2(void *params)
+herr_t
+coll_chunk2(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -143,7 +145,7 @@ coll_chunk2(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     coll_chunktest(filename, 1, BYROW_DISCONT, API_NONE, HYPER, HYPER, OUT_OF_ORDER);
@@ -155,6 +157,8 @@ coll_chunk2(void *params)
     coll_chunktest(filename, 1, BYROW_DISCONT, API_NONE, POINT, ALL, IN_ORDER);
     coll_chunktest(filename, 1, BYROW_DISCONT, API_NONE, POINT, POINT, IN_ORDER);
     coll_chunktest(filename, 1, BYROW_DISCONT, API_NONE, POINT, HYPER, IN_ORDER);
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------
@@ -188,10 +192,10 @@ coll_chunk2(void *params)
  * ------------------------------------------------------------------------
  */
 
-void
-coll_chunk3(void *params)
+herr_t
+coll_chunk3(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     int         mpi_size;
     int         mpi_rank;
 
@@ -208,7 +212,7 @@ coll_chunk3(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     coll_chunktest(filename, mpi_size, BYROW_CONT, API_NONE, HYPER, HYPER, OUT_OF_ORDER);
@@ -220,6 +224,8 @@ coll_chunk3(void *params)
     coll_chunktest(filename, mpi_size, BYROW_CONT, API_NONE, POINT, ALL, IN_ORDER);
     coll_chunktest(filename, mpi_size, BYROW_CONT, API_NONE, POINT, POINT, IN_ORDER);
     coll_chunktest(filename, mpi_size, BYROW_CONT, API_NONE, POINT, HYPER, IN_ORDER);
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------
@@ -253,10 +259,10 @@ coll_chunk3(void *params)
  * ------------------------------------------------------------------------
  */
 
-void
-coll_chunk4(void *params)
+herr_t
+coll_chunk4(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -271,7 +277,7 @@ coll_chunk4(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     coll_chunktest(filename, 1, BYROW_SELECTNONE, API_NONE, HYPER, HYPER, OUT_OF_ORDER);
@@ -283,6 +289,8 @@ coll_chunk4(void *params)
     coll_chunktest(filename, 1, BYROW_SELECTNONE, API_NONE, POINT, ALL, IN_ORDER);
     coll_chunktest(filename, 1, BYROW_SELECTNONE, API_NONE, POINT, POINT, IN_ORDER);
     coll_chunktest(filename, 1, BYROW_SELECTNONE, API_NONE, POINT, HYPER, IN_ORDER);
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------
@@ -316,10 +324,10 @@ coll_chunk4(void *params)
  * ------------------------------------------------------------------------
  */
 
-void
-coll_chunk5(void *params)
+herr_t
+coll_chunk5(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -334,7 +342,7 @@ coll_chunk5(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_HARD, HYPER, HYPER, OUT_OF_ORDER);
@@ -346,6 +354,8 @@ coll_chunk5(void *params)
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_HARD, POINT, ALL, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_HARD, POINT, POINT, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_HARD, POINT, HYPER, IN_ORDER);
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------
@@ -381,10 +391,10 @@ coll_chunk5(void *params)
  * ------------------------------------------------------------------------
  */
 
-void
-coll_chunk6(void *params)
+herr_t
+coll_chunk6(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -399,7 +409,7 @@ coll_chunk6(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_MULTI_HARD, HYPER, HYPER, OUT_OF_ORDER);
@@ -411,6 +421,8 @@ coll_chunk6(void *params)
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_MULTI_HARD, POINT, ALL, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_MULTI_HARD, POINT, POINT, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_MULTI_HARD, POINT, HYPER, IN_ORDER);
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------
@@ -444,10 +456,10 @@ coll_chunk6(void *params)
  * ------------------------------------------------------------------------
  */
 
-void
-coll_chunk7(void *params)
+herr_t
+coll_chunk7(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -462,7 +474,7 @@ coll_chunk7(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_TRUE, HYPER, HYPER, OUT_OF_ORDER);
@@ -474,6 +486,8 @@ coll_chunk7(void *params)
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_TRUE, POINT, ALL, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_TRUE, POINT, POINT, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_TRUE, POINT, HYPER, IN_ORDER);
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------
@@ -507,10 +521,10 @@ coll_chunk7(void *params)
  * ------------------------------------------------------------------------
  */
 
-void
-coll_chunk8(void *params)
+herr_t
+coll_chunk8(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -525,7 +539,7 @@ coll_chunk8(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_FALSE, HYPER, HYPER, OUT_OF_ORDER);
@@ -537,6 +551,8 @@ coll_chunk8(void *params)
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_FALSE, POINT, ALL, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_FALSE, POINT, POINT, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_LINK_FALSE, POINT, HYPER, IN_ORDER);
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------
@@ -570,10 +586,10 @@ coll_chunk8(void *params)
  * ------------------------------------------------------------------------
  */
 
-void
-coll_chunk9(void *params)
+herr_t
+coll_chunk9(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -588,7 +604,7 @@ coll_chunk9(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_MULTI_COLL, HYPER, HYPER, OUT_OF_ORDER);
@@ -600,6 +616,8 @@ coll_chunk9(void *params)
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_MULTI_COLL, POINT, ALL, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_MULTI_COLL, POINT, POINT, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTUNBALANCE, API_MULTI_COLL, POINT, HYPER, IN_ORDER);
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------
@@ -633,10 +651,10 @@ coll_chunk9(void *params)
  * ------------------------------------------------------------------------
  */
 
-void
-coll_chunk10(void *params)
+herr_t
+coll_chunk10(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -651,7 +669,7 @@ coll_chunk10(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     coll_chunktest(filename, 4, BYROW_SELECTINCHUNK, API_MULTI_IND, HYPER, HYPER, OUT_OF_ORDER);
@@ -663,6 +681,8 @@ coll_chunk10(void *params)
     coll_chunktest(filename, 4, BYROW_SELECTINCHUNK, API_MULTI_IND, POINT, ALL, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTINCHUNK, API_MULTI_IND, POINT, POINT, IN_ORDER);
     coll_chunktest(filename, 4, BYROW_SELECTINCHUNK, API_MULTI_IND, POINT, HYPER, IN_ORDER);
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------

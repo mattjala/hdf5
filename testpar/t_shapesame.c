@@ -4178,59 +4178,67 @@ parse_options(int argc, char **argv)
 }
 
 /* Shape Same test using contiguous hyperslab using independent IO on contiguous datasets */
-static void
-sscontig1(void *params)
+static herr_t
+sscontig1(TestParams_t *params)
 {
-    contig_hs_dr_pio_test(params, IND_CONTIG);
+    contig_hs_dr_pio_test(params->TestParams, IND_CONTIG);
+    return SUCCEED;
 }
 
 /* Shape Same test using contiguous hyperslab using collective IO on contiguous datasets */
-static void
-sscontig2(void *params)
+static herr_t
+sscontig2(TestParams_t *params)
 {
-    contig_hs_dr_pio_test(params, COL_CONTIG);
+    contig_hs_dr_pio_test(params->TestParams, COL_CONTIG);
+    return SUCCEED;
 }
 
 /* Shape Same test using contiguous hyperslab using independent IO on chunked datasets */
-static void
-sscontig3(void *params)
+static herr_t
+sscontig3(TestParams_t *params)
 {
-    contig_hs_dr_pio_test(params, IND_CHUNKED);
+    contig_hs_dr_pio_test(params->TestParams, IND_CHUNKED);
+    return SUCCEED;
 }
 
 /* Shape Same test using contiguous hyperslab using collective IO on chunked datasets */
-static void
-sscontig4(void *params)
+static herr_t
+sscontig4(TestParams_t *params)
 {
-    contig_hs_dr_pio_test(params, COL_CHUNKED);
+    contig_hs_dr_pio_test(params->TestParams, COL_CHUNKED);
+    return SUCCEED;
 }
 
 /* Shape Same test using checker hyperslab using independent IO on contiguous datasets */
-static void
-sschecker1(void *params)
+static herr_t
+sschecker1(TestParams_t *params)
 {
-    ckrbrd_hs_dr_pio_test(params, IND_CONTIG);
+    ckrbrd_hs_dr_pio_test(params->TestParams, IND_CONTIG);
+    return SUCCEED;
 }
 
 /* Shape Same test using checker hyperslab using collective IO on contiguous datasets */
-static void
-sschecker2(void *params)
+static herr_t
+sschecker2(TestParams_t *params)
 {
-    ckrbrd_hs_dr_pio_test(params, COL_CONTIG);
+    ckrbrd_hs_dr_pio_test(params->TestParams, COL_CONTIG);
+    return SUCCEED;
 }
 
 /* Shape Same test using checker hyperslab using independent IO on chunked datasets */
-static void
-sschecker3(void *params)
+static herr_t
+sschecker3(TestParams_t *params)
 {
-    ckrbrd_hs_dr_pio_test(params, IND_CHUNKED);
+    ckrbrd_hs_dr_pio_test(params->TestParams, IND_CHUNKED);
+    return SUCCEED;
 }
 
 /* Shape Same test using checker hyperslab using collective IO on chunked datasets */
-static void
-sschecker4(void *params)
+static herr_t
+sschecker4(TestParams_t *params)
 {
-    ckrbrd_hs_dr_pio_test(params, COL_CHUNKED);
+    ckrbrd_hs_dr_pio_test(params->TestParams, COL_CHUNKED);
+    return SUCCEED;
 }
 
 int
@@ -4335,7 +4343,7 @@ main(int argc, char **argv)
     }
 
     /* Initialize testing framework */
-    if (TestInit(argv[0], usage, parse_options, NULL, NULL, mpi_rank) < 0) {
+    if (TestInit(argv[0], usage, parse_options, NULL, NULL, 0, mpi_rank) < 0) {
         if (MAINPROCESS) {
             fprintf(stderr, "couldn't initialize testing framework\n");
             fflush(stderr);

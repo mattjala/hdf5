@@ -50,8 +50,8 @@ num_digits(int num)
 }
 
 /* Test the H5is_library_threadsafe() function */
-void
-tts_is_threadsafe(void H5_ATTR_UNUSED *params)
+herr_t
+tts_is_threadsafe(TestParams_t H5_ATTR_UNUSED *params)
 {
     hbool_t is_ts;
     hbool_t should_be;
@@ -69,6 +69,8 @@ tts_is_threadsafe(void H5_ATTR_UNUSED *params)
 
     if (is_ts != should_be)
         TestErrPrintf("Thread-safety value incorrect - test failed\n");
+
+    return SUCCEED;
 }
 
 /* Routine to generate attribute names for numeric values */
@@ -97,7 +99,7 @@ main(int argc, char *argv[])
 {
 
     /* Initialize testing framework */
-    if (TestInit(argv[0], NULL, NULL, NULL, NULL, 0) < 0) {
+    if (TestInit(argv[0], NULL, NULL, NULL, NULL, 0, 0) < 0) {
         fprintf(stderr, "couldn't initialize testing framework\n");
         return -1;
     }

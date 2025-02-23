@@ -439,8 +439,8 @@ test_HDFFV_9920()
  *              Failure: -1
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_iterate(void *params)
+extern "C" herr_t
+test_iterate(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing Iterate Feature\n"));
@@ -453,6 +453,7 @@ test_iterate(void *params)
     test_HDFFV_9920();     // Test the fix of HDFFV-9920
     // test_iter_attr(fapl);    // Test iterating attributes
 
+    return SUCCEED;
 } // test_iterate
 
 /*-------------------------------------------------------------------------
@@ -463,11 +464,13 @@ test_iterate(void *params)
  * Return       none
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_iterate(void *params)
+extern "C" herr_t
+cleanup_iterate(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILE_ITERATE.c_str());
         HDremove(FILE_NAME.c_str());
     }
+
+    return SUCCEED;
 } // cleanup_iterate

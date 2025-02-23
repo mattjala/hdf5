@@ -717,8 +717,8 @@ test_intermediate_groups()
  * March 4, 2014
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_object(void *params)
+extern "C" herr_t
+test_object(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing Object Functions\n"));
@@ -731,6 +731,7 @@ test_object(void *params)
     test_getobjectinfo_same_file(); // Test object info in same file
     test_intermediate_groups();     // Test intermediate group property
 
+    return SUCCEED;
 } // test_object
 
 /*-------------------------------------------------------------------------
@@ -741,8 +742,8 @@ test_object(void *params)
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_object(void *params)
+extern "C" herr_t
+cleanup_object(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILE_OBJECTS.c_str());
@@ -750,4 +751,6 @@ cleanup_object(void *params)
         HDremove(FILE_OBJINFO.c_str());
         HDremove(FILE_INTERGRPS.c_str());
     }
+
+    return SUCCEED;
 } // cleanup_objects

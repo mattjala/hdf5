@@ -87,8 +87,8 @@ test_encode_decode(hid_t orig_pl, int mpi_rank, int recv_proc)
     return 0;
 }
 
-void
-test_plist_ed(void H5_ATTR_UNUSED *params)
+herr_t
+test_plist_ed(TestParams_t H5_ATTR_UNUSED *params)
 {
     hid_t dcpl;   /* dataset create prop. list */
     hid_t dapl;   /* dataset access prop. list */
@@ -448,10 +448,12 @@ test_plist_ed(void H5_ATTR_UNUSED *params)
 
     ret = H5Pclose(acpl);
     VRFY((ret >= 0), "H5Pclose succeeded");
+
+    return SUCCEED;
 }
 
-void
-external_links(void H5_ATTR_UNUSED *params)
+herr_t
+external_links(TestParams_t H5_ATTR_UNUSED *params)
 {
     hid_t lcpl  = H5I_INVALID_HID; /* link create prop. list */
     hid_t lapl  = H5I_INVALID_HID; /* link access prop. list */
@@ -637,4 +639,6 @@ external_links(void H5_ATTR_UNUSED *params)
         MPI_File_delete(filename, MPI_INFO_NULL);
         MPI_File_delete(filename_ext, MPI_INFO_NULL);
     }
+
+    return SUCCEED;
 }

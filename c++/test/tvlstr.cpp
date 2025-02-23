@@ -933,8 +933,8 @@ test_vl_rewrite()
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_vlstrings(void *params)
+extern "C" herr_t
+test_vlstrings(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing Variable-Length Strings"));
@@ -956,6 +956,7 @@ test_vlstrings(void *params)
     // Test writing VL datasets in files with lots of unlinking
     test_vl_rewrite();
 
+    return SUCCEED;
 } // test_vlstrings()
 
 /*-------------------------------------------------------------------------
@@ -966,11 +967,13 @@ test_vlstrings(void *params)
  * Return       none
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_vlstrings(void *params)
+extern "C" herr_t
+cleanup_vlstrings(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILENAME.c_str());
         HDremove(FILENAME2.c_str());
     }
+
+    return SUCCEED;
 }

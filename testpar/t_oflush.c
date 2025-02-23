@@ -24,8 +24,8 @@
 #define NY          6
 #define RANK        2
 
-void
-test_oflush(void *params)
+herr_t
+test_oflush(TestParams_t *params)
 {
     int         mpi_size, mpi_rank;
     hid_t       file, dataset;
@@ -50,7 +50,7 @@ test_oflush(void *params)
         for (i = 0; i < NY; i++)
             data[j][i] = i + j;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
 
     file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
     VRFY((file >= 0), "file creation succeeded");
@@ -114,4 +114,6 @@ test_oflush(void *params)
     /* Close and release resources */
     H5Fclose(file);
     H5Pclose(fapl_id);
+
+    return SUCCEED;
 }

@@ -1947,8 +1947,8 @@ test_attr_corder_create_basic(FileCreatPropList &fcpl, FileAccPropList &fapl)
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_attr(void *params)
+extern "C" herr_t
+test_attr(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing Attributes\n"));
@@ -2021,7 +2021,10 @@ test_attr(void *params)
 
     catch (Exception &E) {
         issue_fail_msg("test_attr()", __LINE__, __FILE__, E.getCDetailMsg());
+        return FAIL;
     }
+
+    return SUCCEED;
 } // test_attr()
 
 /*-------------------------------------------------------------------------
@@ -2032,8 +2035,8 @@ test_attr(void *params)
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_attr(void *params)
+extern "C" herr_t
+cleanup_attr(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILE_BASIC.c_str());
@@ -2043,4 +2046,6 @@ cleanup_attr(void *params)
         HDremove(FILE_DTYPE.c_str());
         HDremove(FILE_CRTPROPS.c_str());
     }
+
+    return SUCCEED;
 }

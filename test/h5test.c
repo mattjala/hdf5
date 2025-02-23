@@ -110,19 +110,11 @@ const char *LIBVER_NAMES[] = {"earliest", /* H5F_LIBVER_EARLIEST = 0  */
 static H5E_auto2_t err_func = NULL;
 
 /* Global variables for testing */
-static int TestExpress_g            = -1; /* Whether to expedite testing. -1 means not set yet. */
-H5_ATOMIC(size_t) n_tests_run_g     = 0;
-H5_ATOMIC(size_t) n_tests_passed_g  = 0;
-H5_ATOMIC(size_t) n_tests_failed_g  = 0;
-H5_ATOMIC(size_t) n_tests_skipped_g = 0;
-uint64_t vol_cap_flags_g            = H5VL_CAP_FLAG_NONE;
+static int TestExpress_g = -1; /* Whether to expedite testing. -1 means not set yet. */
+uint64_t vol_cap_flags_g = H5VL_CAP_FLAG_NONE;
 
 /* Value of currently registered optional dynamic VOL operation */
 int reg_opt_curr_op_val = 0;
-
-#ifdef H5_HAVE_MULTITHREAD
-pthread_key_t test_thread_info_key_g;
-#endif
 
 /* Whether h5_cleanup should clean up temporary testing files */
 static bool do_test_file_cleanup_g = true;
@@ -2308,44 +2300,6 @@ h5_driver_uses_multiple_files(const char *drv_name, unsigned flags)
     return ret_val;
 }
 
-/* Allow up to 3-digit thread indexes (0-999)*/
-#define MAX_THREAD_IDX 999
-#define MAX_THREAD_IDX_LEN
-
-/* Generate a heap-allocated filename of the form <prefix><thread_idx><filename> */
-char *generate_threadlocal_filename(const char *prefix, int thread_idx, const char *filename) {
-    int chars_written = 0;
-    char *test_filename =  NULL;
-
-    if (thread_idx > MAX_THREAD_IDX) {
-        fprintf(stderr, "    thread index exceeded expected size\n");
-        goto error;
-    }
-
-    if (MAX_THREAD_IDX_LEN + strlen(filename) >= H5_TEST_FILENAME_MAX_LENGTH) {
-        fprintf(stderr, "    test file name exceeded expected size\n");
-        goto error;
-    }
-
-    if (NULL == (test_filename = (char *)calloc(1, H5_TEST_FILENAME_MAX_LENGTH))) {
-        fprintf(stderr, "    couldn't allocate memory for test file name\n");
-        goto error;
-    }
-
-    /* Write prefix, thread index, and filename into buffer */
-    if ((chars_written = snprintf(test_filename,
-                                  H5_TEST_FILENAME_MAX_LENGTH, "%s%d%s",
-                                  prefix, thread_idx, filename)) < 0) {
-        fprintf(stderr, "    couldn't create test file name\n");
-        goto error;
-    }
-
-    return test_filename;
-
-error:
-    free(test_filename);
-    return NULL;
-}
 /*-------------------------------------------------------------------------
  * Function:    reg_opt_op_optional_verify
  *

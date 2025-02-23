@@ -3592,8 +3592,8 @@ test_reference_perf(void)
 **  test_reference(): Main H5R reference testing routine.
 **
 ****************************************************************/
-void
-test_reference(void H5_ATTR_UNUSED *params)
+herr_t
+test_reference(TestParams_t H5_ATTR_UNUSED *params)
 {
     H5F_libver_t low, high;   /* Low and high bounds */
     const char  *env_h5_drvr; /* File Driver value from environment */
@@ -3637,6 +3637,7 @@ test_reference(void H5_ATTR_UNUSED *params)
 
     test_reference_perf();
 
+    return SUCCEED;
 } /* test_reference() */
 
 /*-------------------------------------------------------------------------
@@ -3648,8 +3649,8 @@ test_reference(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_reference(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_reference(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -3669,4 +3670,6 @@ cleanup_reference(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 }

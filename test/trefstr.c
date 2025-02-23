@@ -511,8 +511,8 @@ test_refstr_finalize(void)
 **  test_refstr(): Main H5RS testing routine.
 **
 ****************************************************************/
-void
-test_refstr(void H5_ATTR_UNUSED *params)
+herr_t
+test_refstr(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Reference Counted Strings\n"));
@@ -533,4 +533,6 @@ test_refstr(void H5_ATTR_UNUSED *params)
 
     /* Finalize ref-counted strings testing data */
     test_refstr_finalize();
+
+    return SUCCEED;
 } /* end test_refstr() */

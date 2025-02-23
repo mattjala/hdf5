@@ -1369,8 +1369,8 @@ error:
     return -1;
 } /* end test_future_ids() */
 
-void
-test_ids(void H5_ATTR_UNUSED *params)
+herr_t
+test_ids(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Set the random # seed */
     HDsrandom((unsigned)HDtime(NULL));
@@ -1389,4 +1389,6 @@ test_ids(void H5_ATTR_UNUSED *params)
         TestErrPrintf("ID remove during H5Iclear_type test failed\n");
     if (test_future_ids() < 0)
         TestErrPrintf("Future ID test failed\n");
+
+    return SUCCEED;
 }

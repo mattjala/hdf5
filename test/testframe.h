@@ -49,6 +49,18 @@
  */
 #define H5_ALARM_SEC 1200 /* default is 20 minutes */
 
+/**
+ * Test framework flag values for TestInit() function
+ */
+/* Instruct testing framework to initialize state for a multi-thread enabled test */
+#define H5_MULTITHREAD_TEST 0x0000000000000001
+
+/**
+ * Test flag values for AddTest() function
+ */
+/* Allow test to be run in spawned thread(s) based on runtime configuration */
+#define ALLOW_MULTITHREAD 0x0000000000000001
+
 /*
  * Test controls definitions.
  */
@@ -97,6 +109,11 @@
 #define VERBOSE_MED  (GetTestVerbosity() >= VERBO_MED)
 #define VERBOSE_HI   (GetTestVerbosity() >= VERBO_HI)
 
+/* herr_t value which a test should return when the test is skipped.
+ * Tests should return one of: SUCCEED/FAIL/SKIP
+ */
+#define SKIP (herr_t)1
+
 /* Used to document process through a test */
 #define MESSAGE(V, A)                                                                                        \
     do {                                                                                                     \
@@ -111,9 +128,206 @@
  */
 #define HDF5_TEST_MAX_NUM_THREADS "HDF5_TEST_MAX_NUM_THREADS"
 
+/*
+ * Copies of macros from the h5test testing framework that are
+ * specific to this testing framework. These macros are only
+ * intended to be temporarily used by tests that have been ported
+ * over from the h5test framework to this testing framework until
+ * those tests can be refactored. These macros are setup to handle
+ * output being printed from multiple processes/threads
+ * simultaneously when tests are running in multi-threaded mode by
+ * restricting the output to the "main" process/thread.
+ */
+#define TESTFRAME_TESTING_2(TestParamsPtr, WHAT)                                                             \
+    do {                                                                                                     \
+        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+            printf("  Testing %-60s", WHAT);                                                                 \
+            fflush(stdout);                                                                                  \
+        }                                                                                                    \
+    } while (0)
+#define TESTFRAME_PASSED(TestParamsPtr)                                                                      \
+    do {                                                                                                     \
+        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+            puts(" PASSED");                                                                                 \
+            fflush(stdout);                                                                                  \
+        }                                                                                                    \
+    } while (0)
+#define TESTFRAME_H5_FAILED(TestParamsPtr)                                                                   \
+    do {                                                                                                     \
+        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+            puts("*FAILED*");                                                                                \
+            fflush(stdout);                                                                                  \
+        }                                                                                                    \
+    } while (0)
+#define TESTFRAME_SKIPPED(TestParamsPtr)                                                                     \
+    do {                                                                                                     \
+        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+            puts(" -SKIP-");                                                                                 \
+            fflush(stdout);                                                                                  \
+        }                                                                                                    \
+    } while (0)
+#define TESTFRAME_PUTS_ERROR(TestParamsPtr, s)                                                               \
+    do {                                                                                                     \
+        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+            puts(s);                                                                                         \
+            AT();                                                                                            \
+        }                                                                                                    \
+        goto error;                                                                                          \
+    } while (0)
+#define TESTFRAME_TEST_ERROR(TestParamsPtr)                                                                  \
+    do {                                                                                                     \
+        TESTFRAME_H5_FAILED(TestParamsPtr);                                                                  \
+        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+            AT();                                                                                            \
+        }                                                                                                    \
+        goto error;                                                                                          \
+    } while (0)
+#define TESTFRAME_STACK_ERROR(TestParamsPtr)                                                                 \
+    do {                                                                                                     \
+        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+            H5Eprint2(H5E_DEFAULT, stdout);                                                                  \
+        }                                                                                                    \
+        goto error;                                                                                          \
+    } while (0)
+#define TESTFRAME_FAIL_STACK_ERROR(TestParamsPtr)                                                            \
+    do {                                                                                                     \
+        TESTFRAME_H5_FAILED(TestParamsPtr);                                                                  \
+        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+            AT();                                                                                            \
+            H5Eprint2(H5E_DEFAULT, stdout);                                                                  \
+        }                                                                                                    \
+        goto error;                                                                                          \
+    } while (0)
+#define TESTFRAME_FAIL_PUTS_ERROR(TestParamsPtr, s)                                                          \
+    do {                                                                                                     \
+        TESTFRAME_H5_FAILED(TestParamsPtr);                                                                  \
+        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+            AT();                                                                                            \
+            puts(s);                                                                                         \
+        }                                                                                                    \
+        goto error;                                                                                          \
+    } while (0)
+
+/*
+ * Begin and end an entire section of multi-part tests. By placing all the
+ * parts of a test between these macros, skipping to the 'error' cleanup
+ * section of a test is deferred until all parts have finished.
+ */
+#define BEGIN_MULTIPART                                                                                      \
+    {                                                                                                        \
+        int part_nerrors = 0;
+
+#define END_MULTIPART(TestParamsPtr)                                                                         \
+    if (part_nerrors > 0) {                                                                                  \
+        TESTFRAME_TESTING_2(TestParamsPtr, "test cleanup");                                                  \
+        TESTFRAME_SKIPPED(TestParamsPtr);                                                                    \
+        goto error;                                                                                          \
+    }                                                                                                        \
+    }
+
+#define END_MULTIPART_NO_CLEANUP                                                                             \
+    if (part_nerrors)                                                                                        \
+        goto error;                                                                                          \
+    }
+
+/*
+ * Begin, end and handle errors within a single part of a multi-part test.
+ * The PART_END macro creates a goto label based on the given "part name".
+ * When a failure occurs in the current part, the PART_ERROR macro uses
+ * this label to skip to the next part of the multi-part test. The PART_ERROR
+ * macro also increments the error count so that the END_MULTIPART macro
+ * knows to skip to the test's 'error' label once all test parts have finished.
+ */
+#define PART_BEGIN(part_name) {
+#define PART_END(part_name)                                                                                  \
+    }                                                                                                        \
+    part_##part_name##_end:
+#define PART_ERROR(part_name)                                                                                \
+    do {                                                                                                     \
+        part_nerrors++;                                                                                      \
+        goto part_##part_name##_end;                                                                         \
+    } while (0)
+#define PART_TEST_ERROR(TestParamsPtr, part_name)                                                            \
+    do {                                                                                                     \
+        TESTFRAME_H5_FAILED(TestParamsPtr);                                                                  \
+        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+            AT();                                                                                            \
+        }                                                                                                    \
+        part_nerrors++;                                                                                      \
+        goto part_##part_name##_end;                                                                         \
+    } while (0)
+/*
+ * Simply skips to the goto label for this test part and moves on to the
+ * next test part. Useful for when a test part needs to be skipped for
+ * some reason or is currently unimplemented and empty.
+ */
+#define PART_EMPTY(part_name)                                                                                \
+    do {                                                                                                     \
+        goto part_##part_name##_end;                                                                         \
+    } while (0)
+
 /************/
 /* Typedefs */
 /************/
+
+/*
+ * Test parameters structure which is passed to each test
+ * function added to the testing framework as it executes.
+ * Its fields are as follows:
+ *
+ * TestParams - The test parameters that were specified for
+ * the test, if any, by the call to AddTest().
+ *
+ * TestParamsSize - The size of the test parameters buffer
+ * specified for the test, if any, by the call to AddTest().
+ *
+ * IsMtTest - A boolean value indicating whether the test is
+ * being run in a multi-threaded manner. If IsMtTest is true,
+ * the fields in the MtTestParams structure are valid and
+ * can be read from. Otherwise, the test is being run in a
+ * serial manner and the fields in the MtTestParams structure
+ * are invalid and should not be read from.
+ *
+ * NOTE: If IsMtTest is true, each thread will have received
+ * its own thread-local copy of the original TestParams_t
+ * structure for the test. However, only fields inside the
+ * MtTestParams structure should be considered safe for
+ * modification by a thread. Other fields outside this structure,
+ * such as the TestParams field, will still be shared among
+ * threads.
+ *
+ * MtTestParams.ThreadID - An integer value which is unique
+ * per thread that is executing a multi-threaded test.
+ *
+ * MtTestParams.ThreadErrCnt - Used to track error counts
+ * for a particular thread for later aggregation by the
+ * testing framework.
+ *
+ * MtTestParams.ThreadAmbigCnt - Used to track the count of
+ * ambiguous situations for a particular thread for later
+ * aggregation by the testing framework. Ambiguous situations
+ * are those where concurrent operations result in a state
+ * without a known, expected result.
+ *
+ * MtTestParams.ThreadErrMsg - A buffer for a thread to store
+ * an error message in for later aggregation by the testing
+ * framework. The message string should not contain a terminating
+ * newline character, as the testing framework will print
+ * one out after each thread's error message, if any.
+ *
+ */
+typedef struct TestParams_t {
+    void  *TestParams;
+    size_t TestParamsSize;
+
+    bool IsMtTest;
+    struct {
+        int    ThreadID;
+        size_t ThreadErrCnt;
+        size_t ThreadAmbigCnt;
+        char   ThreadErrMsg[1024];
+    } MtTestParams;
+} TestParams_t;
 
 /*************/
 /* Variables */
@@ -133,22 +347,24 @@ extern "C" {
  *
  * \brief Initializes the testing framework
  *
- * \param[in]  ProgName          The chosen name for the test executable to
- *                               be used
- * \param[in]  TestPrivateUsage  Pointer to a function which prints out
- *                               additional usage help text that is specific
- *                               to the test program
- * \param[in]  TestPrivateParser Pointer to a function which parses
- *                               command-line arguments which are specific to
- *                               the test program
- * \param[in]  TestSetupFunc     Pointer to a function which will be called
- *                               as part of TestInit()
- * \param[in]  TestCleanupFunc   Pointer to a function which will be called
- *                               when the testing framework is being shut
- *                               down
- * \param[in]  TestProcessID     ID for the process calling TestInit(). Used
- *                               to control printing of output in parallel
- *                               test programs.
+ * \param[in]  ProgName           The chosen name for the test executable to
+ *                                be used
+ * \param[in]  TestPrivateUsage   Pointer to a function which prints out
+ *                                additional usage help text that is specific
+ *                                to the test program
+ * \param[in]  TestPrivateParser  Pointer to a function which parses
+ *                                command-line arguments which are specific
+ *                                to the test program
+ * \param[in]  TestSetupFunc      Pointer to a function which will be called
+ *                                as part of TestInit()
+ * \param[in]  TestCleanupFunc    Pointer to a function which will be called
+ *                                when the testing framework is being shut
+ *                                down
+ * \params[in] TestFrameworkFlags A bitfield of flags controlling behavior
+ *                                when running tests
+ * \param[in]  TestProcessID      ID for the process calling TestInit(). Used
+ *                                to control printing of output in parallel
+ *                                test programs.
  *
  * \return \herr_t
  *
@@ -188,6 +404,20 @@ extern "C" {
  *          before the testing framework starts being shut down.
  *          \p TestCleanupFunc may be NULL.
  *
+ *          \p TestFrameworkFlags is a bitfield of flags to control behavior
+ *          when initializing the testing framework. The supported flags are
+ *          as follows:
+ *
+ *            - #H5_MULTITHREAD_TEST - specifies that the test program has
+ *              one or more multi-thread enabled tests and the testing
+ *              framework should initialize any state it may need for running
+ *              those tests. If the library has not been configured with some
+ *              level of threading support (thread-safe or multi-thread),
+ *              this flag will have no effect.
+ *
+ *          If no flags are necessary for a test program, \p TestFrameworkFlags
+ *          should be specified as 0.
+ *
  *          \p TestProcessID is an integer value that is used to distinguish
  *          between processes when multiple are involved in running a test
  *          program. This is primarily useful for controlling testing
@@ -202,7 +432,8 @@ extern "C" {
  */
 H5TEST_DLL herr_t TestInit(const char *ProgName, void (*TestPrivateUsage)(FILE *stream),
                            int (*TestPrivateParser)(int argc, char *argv[]), herr_t (*TestSetupFunc)(void),
-                           herr_t (*TestCleanupFunc)(void), int TestProcessID);
+                           herr_t (*TestCleanupFunc)(void), uint64_t TestFrameworkFlags,
+                           int TestProcessID);
 
 /**
  * --------------------------------------------------------------------------
@@ -292,7 +523,7 @@ H5TEST_DLL void TestInfo(FILE *stream);
  *                                 and cleanup callbacks when the test runs
  * \param[in]  TestDataSize        Size of the additional test data pointed
  *                                 to by \p TestData
- * \param[in]  TestFrameworkFlags  A bitfield of flags controlling behavior
+ * \param[in]  TestFlags           A bitfield of flags controlling behavior
  *                                 when running the test
  * \param[in]  TestDescr           A short description of the test
  *
@@ -310,23 +541,29 @@ H5TEST_DLL void TestInfo(FILE *stream);
  *          skipped by default.
  *
  *          \p TestFunc is a pointer to the function that will be called for
- *          the test. The function must return no value and accept a single
- *          const void * as an argument, which will point to any parameters
- *          to be passed to the test that are specified in \p TestData.
+ *          the test. The function must return an \herr_t value and accept a
+ *          pointer to a TestParams_t structure as an argument, which will
+ *          contain various parameters for the test, including any parameters
+ *          to be passed to the test that are specified in \p TestData. The
+ *          function specified by \p TestFunc should return one of the macro
+ *          values #SUCCEED, #FAIL or #SKIP, depending on whether the test
+ *          function passed, failed or was skipped, respectively.
  *
  *          \p TestSetupFunc is an optional pointer to a function that will
  *          be called before the main test function is called. This allows
  *          tests to perform any pre-test setup necessary. The function must
- *          return no value and accept a single void * as an argument, which
- *          will point to any parameters to be passed to the test that are
- *          specified in \p TestData.
+ *          return an \herr_t value and accept a pointer to a TestParams_t
+ *          structure as an argument, which will contain various parameters
+ *          for the test, including any parameters to be passed to the test
+ *          that are specified in \p TestData.
  *
  *          \p TestCleanupFunc is an optional pointer to a function that
  *          will be called after a test's main test function has finished
  *          executing. This allows tests to perform any post-test cleanup
- *          necessary. The function must return no value and accept a single
- *          void * as an argument, which will point to any parameters to be
- *          passed to the test that are specified in \p TestData.
+ *          necessary. The function must return an \herr_t value and accept
+ *          a pointer to a TestParams_t structure as an argument, which will
+ *          contain various parameters for the test, including any parameters
+ *          to be passed to the test that are specified in \p TestData.
  *
  *          \p TestData is an optional pointer to test parameters that will
  *          be passed to the test's main test function when executed, as well
@@ -342,16 +579,22 @@ H5TEST_DLL void TestInfo(FILE *stream);
  *          \p TestDataSize must be a positive value. Otherwise, if
  *          \p TestData is NULL, \p TestDataSize must be 0.
  *
- *          \p TestFrameworkFlags is a bitfield of flags to control behavior
- *          when running a test. The supported flags are as follows:
+ *          \p TestFlags is a bitfield of flags to control behavior when
+ *          running a test. The supported flags are as follows:
  *
  *            - #ALLOW_MULTITHREAD - specifies that a test should be allowed
  *              to run in a multi-threaded manner, as long as the maximum
  *              number of threads that can be spawned has been specified as
- *              a positive value.
+ *              a positive value. When this flag is set for a test, the
+ *              test's main function (\p TestFunc), as well as its setup
+ *              (\p TestSetupFunc) and cleanup (\p TestCleanupFunc)
+ *              functions will be called from multiple threads
+ *              simultaneously. Therefore, multi-thread-enabled tests should
+ *              take care to coordinate logic and printed output between
+ *              threads.
  *
- *          If no flags are necessary for a test, \p TestFrameworkFlags
- *          should be specified as 0.
+ *          If no flags are necessary for a test, \p TestFlags should be
+ *          specified as 0.
  *
  *          \p TestDescr is an informational description given to a test
  *          which may be printed out by the testing framework in various
@@ -363,9 +606,11 @@ H5TEST_DLL void TestInfo(FILE *stream);
  * \see PerformTests()
  *
  */
-H5TEST_DLL herr_t AddTest(const char *TestName, void (*TestFunc)(void *), void (*TestSetupFunc)(void *),
-                          void (*TestCleanupFunc)(void *), const void *TestData, size_t TestDataSize,
-                          int64_t TestFrameworkFlags, const char *TestDescr);
+H5TEST_DLL herr_t AddTest(const char *TestName, herr_t (*TestFunc)(TestParams_t *),
+                          herr_t (*TestSetupFunc)(TestParams_t *),
+                          herr_t (*TestCleanupFunc)(TestParams_t *),
+                          const void *TestData, size_t TestDataSize,
+                          uint64_t TestFlags, const char *TestDescr);
 
 /**
  * --------------------------------------------------------------------------
@@ -781,10 +1026,109 @@ H5TEST_DLL int GetTestMaxNumThreads(void);
  *          The value 0 indicates that no additional threads should be
  *          spawned, which is primarily for testing purposes.
  *
- * \see SetTestMaxNumThreads()
+ * \see GetTestMaxNumThreads()
  *
  */
 H5TEST_DLL herr_t SetTestMaxNumThreads(int max_num_threads);
+
+/**
+ * --------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
+ * \brief Returns the number of tests that were executed for a test program.
+ *
+ * \return The number of tests that were executed
+ *
+ * \details GetTestsExecutedCount() returns the number of tests that were
+ *          executed while running a test program. Note that the value
+ *          returned from this function can only be considered accurate
+ *          after PerformTests() has finished executing. Also note that this
+ *          value may not be the same as the number of tests that were added
+ *          with the AddTest() function, as individual tests may have
+ *          sub-tests which are accounted for to give finer-grained details
+ *          about testing status.
+ *
+ */
+H5TEST_DLL size_t GetTestsExecutedCount(void);
+
+/**
+ * --------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
+ * \brief Returns the number of tests that passed during execution of a test
+ *        program.
+ *
+ * \return The number of tests that passed
+ *
+ * \details GetTestsPassedCount() returns the number of tests that passed
+ *          while running a test program. Note that the value returned from
+ *          this function can only be considered accurate after
+ *          PerformTests() has finished executing. Also note that this value
+ *          may not be the same as the number of tests that were added with
+ *          the AddTest() function, as individual tests may have sub-tests
+ *          which are accounted for to give finer-grained details about
+ *          testing status.
+ *
+ */
+H5TEST_DLL size_t GetTestsPassedCount(void);
+
+/**
+ * --------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
+ * \brief Returns the number of tests that failed during execution of a test
+ *        program.
+ *
+ * \return The number of tests that failed
+ *
+ * \details GetTestsFailedCount() returns the number of tests that failed
+ *          while running a test program. Note that the value returned from
+ *          this function can only be considered accurate after
+ *          PerformTests() has finished executing.
+ *
+ */
+H5TEST_DLL size_t GetTestsFailedCount(void);
+
+/**
+ * --------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
+ * \brief Returns the number of tests that were skipped during execution of a
+ *        test program.
+ *
+ * \return The number of tests that were skipped
+ *
+ * \details GetTestsSkippedCount() returns the number of tests that were
+ *          skipped while running a test program. Note that the value
+ *          returned from this function can only be considered accurate
+ *          after PerformTests() has finished executing.
+ *
+ */
+H5TEST_DLL size_t GetTestsSkippedCount(void);
+
+/**
+ * --------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
+ * \brief Returns whether or not the current process/thread should be allowed
+ *        to print output from the testing framework or from a test.
+ *
+ * \return true/false
+ *
+ * \details IsTestOutputPrinter() returns whether or not the current
+ *          process/thread should be allowed to print output from the testing
+ *          framework or from a test. This is primarily useful for
+ *          controlling output from the testing framework or a test when
+ *          tests are being run in parallel and/or multi-threading is
+ *          involved. By convention, output should be restricted to the
+ *          "main" thread (here, the thread with an assigned ID of 0) on
+ *          MPI rank 0, unless output really should come from multiple MPI
+ *          processes or threads simultaneously. \p TestParams is a pointer
+ *          to the parameters for a test and is primarily used to determine
+ *          the main thread for multi-threaded tests.
+ *
+ */
+H5TEST_DLL bool IsTestOutputPrinter(TestParams_t *TestParams);
 
 /**
  * --------------------------------------------------------------------------

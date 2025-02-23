@@ -223,8 +223,8 @@ test_szip_filter(H5File &file1)
  *-------------------------------------------------------------------------
  */
 const H5std_string FILE1("tfilters.h5");
-extern "C" void
-test_filters(void *params)
+extern "C" herr_t
+test_filters(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing Various Filters\n"));
@@ -244,7 +244,10 @@ test_filters(void *params)
     }
     catch (Exception &E) {
         issue_fail_msg("test_filters()", __LINE__, __FILE__, E.getCDetailMsg());
+        return FAIL;
     }
+
+    return SUCCEED;
 } // test_filters()
 
 /*-------------------------------------------------------------------------
@@ -255,10 +258,12 @@ test_filters(void *params)
  * Return       none
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_filters(void *params)
+extern "C" herr_t
+cleanup_filters(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILE1.c_str());
     }
+
+    return SUCCEED;
 }

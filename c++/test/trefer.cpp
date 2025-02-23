@@ -826,8 +826,8 @@ test_reference_region_1D()
  *
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_reference(void *params)
+extern "C" herr_t
+test_reference(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing References\n"));
@@ -837,6 +837,7 @@ test_reference(void *params)
     test_reference_group();     // Test group reference functionality
     test_reference_region_1D(); // Test 1-D reference functionality
 
+    return SUCCEED;
 } // test_reference()
 
 /*-------------------------------------------------------------------------
@@ -847,11 +848,13 @@ test_reference(void *params)
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_reference(void *params)
+extern "C" herr_t
+cleanup_reference(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILE1.c_str());
         HDremove(FILE2.c_str());
     }
+
+    return SUCCEED;
 }

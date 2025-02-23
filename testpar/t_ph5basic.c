@@ -27,8 +27,8 @@
  *              Failure:    Abort
  *-------------------------------------------------------------------------
  */
-void
-test_fapl_mpio_dup(void H5_ATTR_UNUSED *params)
+herr_t
+test_fapl_mpio_dup(TestParams_t H5_ATTR_UNUSED *params)
 {
     int      mpi_size, mpi_rank;
     MPI_Comm comm, comm_tmp;
@@ -176,4 +176,6 @@ test_fapl_mpio_dup(void H5_ATTR_UNUSED *params)
         mrc = MPI_Info_free(&info_tmp);
         VRFY((mrc == MPI_SUCCESS), "MPI_Info_free");
     }
+
+    return SUCCEED;
 } /* end test_fapl_mpio_dup() */

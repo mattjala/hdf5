@@ -1916,8 +1916,8 @@ test_reference_compat(void)
 **  test_reference_deprec(): Main H5R reference testing routine.
 **
 ****************************************************************/
-void
-test_reference_deprec(void H5_ATTR_UNUSED *params)
+herr_t
+test_reference_deprec(TestParams_t H5_ATTR_UNUSED *params)
 {
     H5F_libver_t low, high; /* Low and high bounds */
     bool         vol_is_native;
@@ -1929,7 +1929,7 @@ test_reference_deprec(void H5_ATTR_UNUSED *params)
     CHECK(h5_using_native_vol(H5P_DEFAULT, H5I_INVALID_HID, &vol_is_native), FAIL, "h5_using_native_vol");
     if (!vol_is_native) {
         MESSAGE(5, (" -- SKIPPED --\n"));
-        return;
+        return SKIP;
     }
 
     test_reference_params(); /* Test for correct parameter checking */
@@ -1955,6 +1955,7 @@ test_reference_deprec(void H5_ATTR_UNUSED *params)
     test_reference_compat(); /* Test operations with old API routines */
 #endif                       /* H5_NO_DEPRECATED_SYMBOLS */
 
+    return SUCCEED;
 } /* test_reference() */
 
 /*-------------------------------------------------------------------------
@@ -1966,12 +1967,14 @@ test_reference_deprec(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_reference_deprec(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_reference_deprec(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILE1);
         HDremove(FILE2);
         HDremove(FILE3);
     }
+
+    return SUCCEED;
 }

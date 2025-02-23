@@ -25,14 +25,9 @@
 #include "H5_api_async_test_parallel.h"
 #endif
 
-char H5_api_test_parallel_filename[H5_TEST_FILENAME_MAX_LENGTH];
+char H5_api_test_parallel_filename[H5_API_TEST_FILENAME_MAX_LENGTH];
 
 const char *test_path_prefix;
-
-H5_ATOMIC(size_t) n_tests_run_g     = 0;
-H5_ATOMIC(size_t) n_tests_passed_g  = 0;
-H5_ATOMIC(size_t) n_tests_failed_g  = 0;
-H5_ATOMIC(size_t) n_tests_skipped_g = 0;
 
 int mpi_size;
 int mpi_rank;
@@ -328,9 +323,9 @@ main(int argc, char **argv)
     H5Eget_auto2(H5E_DEFAULT, &default_err_func, &default_err_data);
 
     /* Initialize testing framework */
-    if (TestInit(argv[0], usage, NULL, NULL, NULL, mpi_rank) < 0) {
+    if (TestInit(argv[0], usage, NULL, NULL, NULL, 0, mpi_rank) < 0) {
         if (MAINPROCESS)
-            fprintf(stderr, "Couldn't initialize testing framework\n");
+            TestErrPrintf("Couldn't initialize testing framework\n");
         goto error;
     }
 
@@ -357,14 +352,9 @@ main(int argc, char **argv)
     /* Parse command line arguments */
     if (TestParseCmdLine(argc, argv) < 0) {
         if (MAINPROCESS)
-            fprintf(stderr, "Couldn't parse command-line arguments\n");
+            TestErrPrintf("Couldn't parse command-line arguments\n");
         goto error;
     }
-
-    n_tests_run_g     = 0;
-    n_tests_passed_g  = 0;
-    n_tests_failed_g  = 0;
-    n_tests_skipped_g = 0;
 
     if (MAINPROCESS) {
         seed = (unsigned)time(NULL);
@@ -373,7 +363,7 @@ main(int argc, char **argv)
     if (mpi_size > 1) {
         if (MPI_SUCCESS != MPI_Bcast(&seed, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD)) {
             if (MAINPROCESS)
-                fprintf(stderr, "Couldn't broadcast test seed\n");
+                TestErrPrintf("Couldn't broadcast test seed\n");
             goto error;
         }
     }
@@ -383,8 +373,8 @@ main(int argc, char **argv)
     if (NULL == (test_path_prefix = getenv(HDF5_API_TEST_PATH_PREFIX)))
         test_path_prefix = "";
 
-    snprintf(H5_api_test_parallel_filename, H5_TEST_FILENAME_MAX_LENGTH, "%s%s", test_path_prefix,
-               PARALLEL_TEST_FILE_NAME);
+    snprintf(H5_api_test_parallel_filename, H5_API_TEST_FILENAME_MAX_LENGTH, "%s%s",
+             test_path_prefix, PARALLEL_TEST_FILE_NAME);
 
     if (NULL == (vol_connector_string = getenv(HDF5_VOL_CONNECTOR))) {
         if (MAINPROCESS)
@@ -399,7 +389,7 @@ main(int argc, char **argv)
         {
             if (NULL == (vol_connector_string_copy = strdup(vol_connector_string))) {
                 if (MAINPROCESS)
-                    fprintf(stderr, "Unable to copy VOL connector string\n");
+                    TestErrPrintf("Unable to copy VOL connector string\n");
                 INDEPENDENT_OP_ERROR(copy_connector_string);
             }
         }
@@ -409,7 +399,7 @@ main(int argc, char **argv)
         {
             if (NULL == (token = strtok(vol_connector_string_copy, " "))) {
                 if (MAINPROCESS)
-                    fprintf(stderr, "Error while parsing VOL connector string\n");
+                    TestErrPrintf("Error while parsing VOL connector string\n");
                 INDEPENDENT_OP_ERROR(get_connector_name);
             }
         }
@@ -436,7 +426,7 @@ main(int argc, char **argv)
     {
         if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, false)) < 0) {
             if (MAINPROCESS)
-                fprintf(stderr, "Unable to create FAPL\n");
+                TestErrPrintf("Unable to create FAPL\n");
             INDEPENDENT_OP_ERROR(create_fapl);
         }
     }
@@ -456,13 +446,13 @@ main(int argc, char **argv)
 
             if ((is_registered = H5VLis_connector_registered_by_name(vol_connector_name)) < 0) {
                 if (MAINPROCESS)
-                    fprintf(stderr, "Unable to determine if VOL connector is registered\n");
+                    TestErrPrintf("Unable to determine if VOL connector is registered\n");
                 INDEPENDENT_OP_ERROR(check_vol_register);
             }
 
             if (!is_registered) {
                 if (MAINPROCESS)
-                    fprintf(stderr, "Specified VOL connector '%s' wasn't correctly registered!\n",
+                    TestErrPrintf("Specified VOL connector '%s' wasn't correctly registered!\n",
                             vol_connector_name);
                 INDEPENDENT_OP_ERROR(check_vol_register);
             }
@@ -474,20 +464,19 @@ main(int argc, char **argv)
                  */
                 if (H5Pget_vol_id(fapl_id, &default_con_id) < 0) {
                     if (MAINPROCESS)
-                        fprintf(stderr, "Couldn't retrieve ID of VOL connector set on default FAPL\n");
+                        TestErrPrintf("Couldn't retrieve ID of VOL connector set on default FAPL\n");
                     INDEPENDENT_OP_ERROR(check_vol_register);
                 }
 
                 if ((registered_con_id = H5VLget_connector_id_by_name(vol_connector_name)) < 0) {
                     if (MAINPROCESS)
-                        fprintf(stderr, "Couldn't retrieve ID of registered VOL connector\n");
+                        TestErrPrintf("Couldn't retrieve ID of registered VOL connector\n");
                     INDEPENDENT_OP_ERROR(check_vol_register);
                 }
 
                 if (default_con_id != registered_con_id) {
                     if (MAINPROCESS)
-                        fprintf(stderr,
-                                "VOL connector set on default FAPL didn't match specified VOL connector\n");
+                        TestErrPrintf("VOL connector set on default FAPL didn't match specified VOL connector\n");
                     INDEPENDENT_OP_ERROR(check_vol_register);
                 }
             }
@@ -503,7 +492,7 @@ main(int argc, char **argv)
         vol_cap_flags_g = H5VL_CAP_FLAG_NONE;
         if (H5Pget_vol_cap_flags(fapl_id, &vol_cap_flags_g) < 0) {
             if (MAINPROCESS)
-                fprintf(stderr, "Unable to retrieve VOL connector capability flags\n");
+                TestErrPrintf("Unable to retrieve VOL connector capability flags\n");
             INDEPENDENT_OP_ERROR(get_capability_flags);
         }
     }
@@ -517,7 +506,7 @@ main(int argc, char **argv)
     {
         if (MAINPROCESS) {
             if (create_test_container(H5_api_test_parallel_filename, vol_cap_flags_g) < 0) {
-                fprintf(stderr, "    failed to create testing container file '%s'\n",
+                TestErrPrintf("    failed to create testing container file '%s'\n",
                         H5_api_test_parallel_filename);
                 INDEPENDENT_OP_ERROR(create_test_container);
             }
@@ -544,12 +533,17 @@ main(int argc, char **argv)
     if (GetTestCleanup())
         H5Fdelete(H5_api_test_parallel_filename, fapl_id);
 
-    if (n_tests_run_g > 0) {
+    if (GetTestsExecutedCount() > 0) {
+        size_t n_tests_run     = GetTestsExecutedCount();
+        size_t n_tests_passed  = GetTestsPassedCount();
+        size_t n_tests_failed  = GetTestsFailedCount();
+        size_t n_tests_skipped = GetTestsSkippedCount();
+
         if (MAINPROCESS)
             printf("The below statistics are minimum values due to the possibility of some ranks failing a "
                    "test while others pass:\n");
 
-        if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &n_tests_passed_g, 1, H5_SIZE_T_AS_MPI_TYPE, MPI_MIN,
+        if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &n_tests_passed, 1, H5_SIZE_T_AS_MPI_TYPE, MPI_MIN,
                                          MPI_COMM_WORLD)) {
             if (MAINPROCESS)
                 printf("    failed to collect consensus about the minimum number of tests that passed -- "
@@ -558,10 +552,10 @@ main(int argc, char **argv)
 
         if (MAINPROCESS)
             printf("%s%zu/%zu (%.2f%%) API tests passed across all ranks with VOL connector '%s'\n",
-                   n_tests_passed_g > 0 ? "At least " : "", n_tests_passed_g, n_tests_run_g,
-                   ((double)n_tests_passed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
+                   n_tests_passed > 0 ? "At least " : "", n_tests_passed, n_tests_run,
+                   ((double)n_tests_passed / (double)n_tests_run * 100.0), vol_connector_name);
 
-        if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &n_tests_failed_g, 1, H5_SIZE_T_AS_MPI_TYPE, MPI_MIN,
+        if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &n_tests_failed, 1, H5_SIZE_T_AS_MPI_TYPE, MPI_MIN,
                                          MPI_COMM_WORLD)) {
             if (MAINPROCESS)
                 printf("    failed to collect consensus about the minimum number of tests that failed -- "
@@ -570,45 +564,45 @@ main(int argc, char **argv)
 
         if (MAINPROCESS) {
             printf("%s%zu/%zu (%.2f%%) API tests did not pass across all ranks with VOL connector '%s'\n",
-                   n_tests_failed_g > 0 ? "At least " : "", n_tests_failed_g, n_tests_run_g,
-                   ((double)n_tests_failed_g / (double)n_tests_run_g * 100.0), vol_connector_name);
+                   n_tests_failed > 0 ? "At least " : "", n_tests_failed, n_tests_run,
+                   ((double)n_tests_failed / (double)n_tests_run * 100.0), vol_connector_name);
 
-            printf("%zu/%zu (%.2f%%) API tests were skipped with VOL connector '%s'\n", n_tests_skipped_g,
-                   n_tests_run_g, ((double)n_tests_skipped_g / (double)n_tests_run_g * 100.0),
+            printf("%zu/%zu (%.2f%%) API tests were skipped with VOL connector '%s'\n", n_tests_skipped,
+                   n_tests_run, ((double)n_tests_skipped / (double)n_tests_run * 100.0),
                    vol_connector_name);
         }
     }
 
     if (default_con_id >= 0 && H5VLclose(default_con_id) < 0) {
         if (MAINPROCESS)
-            fprintf(stderr, "    failed to close VOL connector ID\n");
+            TestErrPrintf("    failed to close VOL connector ID\n");
     }
 
     if (registered_con_id >= 0 && H5VLclose(registered_con_id) < 0) {
         if (MAINPROCESS)
-            fprintf(stderr, "    failed to close VOL connector ID\n");
+            TestErrPrintf("    failed to close VOL connector ID\n");
     }
 
     if (fapl_id >= 0 && H5Pclose(fapl_id) < 0) {
         if (MAINPROCESS)
-            fprintf(stderr, "    failed to close MPI FAPL\n");
+            TestErrPrintf("    failed to close MPI FAPL\n");
     }
 
     free(vol_connector_string_copy);
     vol_connector_string_copy = NULL;
 
-    if (GetTestNumErrs() > 0)
-        n_tests_failed_g += (size_t)GetTestNumErrs();
-
     /* Release test infrastructure */
-    TestShutdown();
+    if (TestShutdown() < 0) {
+        if (MAINPROCESS)
+            TestErrPrintf("Unable to shut down testing framework\n");
+    }
 
     H5close();
 
     MPI_Finalize();
 
     /* Exit failure if errors encountered; else exit success. */
-    if (n_tests_failed_g > 0)
+    if (GetTestNumErrs() > 0 || GetTestsFailedCount() > 0)
         exit(EXIT_FAILURE);
     else
         exit(EXIT_SUCCESS);

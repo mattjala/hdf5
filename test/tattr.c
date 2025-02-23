@@ -11932,8 +11932,8 @@ test_attr_delete_last_dense(hid_t fcpl, hid_t fapl)
 **  test_attr(): Main H5A (attribute) testing routine.
 **
 ****************************************************************/
-void
-test_attr(void H5_ATTR_UNUSED *params)
+herr_t
+test_attr(TestParams_t H5_ATTR_UNUSED *params)
 {
     hid_t    fapl = (-1), fapl2 = (-1); /* File access property lists */
     hid_t    fcpl = (-1), fcpl2 = (-1); /* File creation property lists */
@@ -12150,6 +12150,8 @@ test_attr(void H5_ATTR_UNUSED *params)
     CHECK(ret, FAIL, "H5Pclose");
     ret = H5Pclose(fapl2);
     CHECK(ret, FAIL, "H5Pclose");
+
+    return SUCCEED;
 } /* test_attr() */
 
 /*-------------------------------------------------------------------------
@@ -12161,8 +12163,8 @@ test_attr(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_attr(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_attr(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -12171,4 +12173,6 @@ cleanup_attr(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 }

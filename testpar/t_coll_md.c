@@ -57,8 +57,8 @@
  * can simply be removed and the address used for the read/write can be set to an
  * arbitrary number (0 was chosen).
  */
-void
-test_partial_no_selection_coll_md_read(void *params)
+herr_t
+test_partial_no_selection_coll_md_read(TestParams_t *params)
 {
     const char *filename;
     hsize_t    *dataset_dims = NULL;
@@ -94,10 +94,10 @@ test_partial_no_selection_coll_md_read(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
 
     fapl_id = create_faccess_plist(MPI_COMM_WORLD, MPI_INFO_NULL, facc_type);
     VRFY((fapl_id >= 0), "create_faccess_plist succeeded");
@@ -232,6 +232,8 @@ test_partial_no_selection_coll_md_read(void *params)
     VRFY((H5Dclose(dset_id) >= 0), "H5Dclose succeeded");
     VRFY((H5Pclose(fapl_id) >= 0), "H5Pclose succeeded");
     VRFY((H5Fclose(file_id) >= 0), "H5Fclose succeeded");
+
+    return SUCCEED;
 }
 
 /*
@@ -256,8 +258,8 @@ test_partial_no_selection_coll_md_read(void *params)
  *size is 18 major: Internal error (too specific to document in detail) minor: MPI Error String
  *
  */
-void
-test_multi_chunk_io_addrmap_issue(void *params)
+herr_t
+test_multi_chunk_io_addrmap_issue(TestParams_t *params)
 {
     const char *filename;
     hsize_t     start[MULTI_CHUNK_IO_ADDRMAP_ISSUE_DIMS];
@@ -289,10 +291,10 @@ test_multi_chunk_io_addrmap_issue(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
 
     fapl_id = create_faccess_plist(MPI_COMM_WORLD, MPI_INFO_NULL, facc_type);
     VRFY((fapl_id >= 0), "create_faccess_plist succeeded");
@@ -361,6 +363,8 @@ test_multi_chunk_io_addrmap_issue(void *params)
     VRFY((H5Dclose(dset_id) >= 0), "H5Dclose succeeded");
     VRFY((H5Pclose(fapl_id) >= 0), "H5Pclose succeeded");
     VRFY((H5Fclose(file_id) >= 0), "H5Fclose succeeded");
+
+    return SUCCEED;
 }
 
 /*
@@ -384,8 +388,8 @@ test_multi_chunk_io_addrmap_issue(void *params)
  *MPIR_Bcast_binomial(250): message sizes do not match across processes in the collective routine: Received
  *2096 but expected 320000 major: Internal error (too specific to document in detail) minor: MPI Error String
  */
-void
-test_link_chunk_io_sort_chunk_issue(void *params)
+herr_t
+test_link_chunk_io_sort_chunk_issue(TestParams_t *params)
 {
     const char *filename;
     hsize_t     dataset_dims[LINK_CHUNK_IO_SORT_CHUNK_ISSUE_DIMS];
@@ -419,10 +423,10 @@ test_link_chunk_io_sort_chunk_issue(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
 
     fapl_id = create_faccess_plist(MPI_COMM_WORLD, MPI_INFO_NULL, facc_type);
     VRFY((fapl_id >= 0), "create_faccess_plist succeeded");
@@ -537,6 +541,8 @@ test_link_chunk_io_sort_chunk_issue(void *params)
     VRFY((H5Dclose(dset_id) >= 0), "H5Dclose succeeded");
     VRFY((H5Pclose(fapl_id) >= 0), "H5Pclose succeeded");
     VRFY((H5Fclose(file_id) >= 0), "H5Fclose succeeded");
+
+    return SUCCEED;
 }
 
 /*
@@ -548,8 +554,8 @@ test_link_chunk_io_sort_chunk_issue(void *params)
  * An assertion exists in the library that should be triggered if global
  * heap data is not correctly mapped as raw data.
  */
-void
-test_collective_global_heap_write(void *params)
+herr_t
+test_collective_global_heap_write(TestParams_t *params)
 {
     const char *filename;
     hsize_t     attr_dims[COLL_GHEAP_WRITE_ATTR_DIMS];
@@ -575,10 +581,10 @@ test_collective_global_heap_write(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
 
     fapl_id = create_faccess_plist(MPI_COMM_WORLD, MPI_INFO_NULL, facc_type);
     VRFY((fapl_id >= 0), "create_faccess_plist succeeded");
@@ -620,4 +626,6 @@ test_collective_global_heap_write(void *params)
     VRFY((H5Aclose(attr_id) >= 0), "H5Aclose succeeded");
     VRFY((H5Pclose(fapl_id) >= 0), "H5Pclose succeeded");
     VRFY((H5Fclose(file_id) >= 0), "H5Fclose succeeded");
+
+    return SUCCEED;
 }

@@ -6283,8 +6283,8 @@ test_misc37(void)
 **  test_misc(): Main misc. test routine.
 **
 ****************************************************************/
-void
-test_misc(void H5_ATTR_UNUSED *params)
+herr_t
+test_misc(TestParams_t H5_ATTR_UNUSED *params)
 {
     hbool_t default_driver = h5_using_default_driver(NULL);
 
@@ -6347,6 +6347,7 @@ test_misc(void H5_ATTR_UNUSED *params)
     test_misc36(); /* Exercise H5atclose and H5is_library_terminating */
     test_misc37(); /* Test for seg fault failure at file close */
 
+    return SUCCEED;
 } /* test_misc() */
 
 /*-------------------------------------------------------------------------
@@ -6358,8 +6359,8 @@ test_misc(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_misc(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_misc(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -6405,4 +6406,6 @@ cleanup_misc(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 } /* end cleanup_misc() */

@@ -801,8 +801,8 @@ dump_string(const char *string)
  * Create a string of random Unicode characters, then run each test with
  * that string.
  */
-void
-test_unicode(void H5_ATTR_UNUSED *params)
+herr_t
+test_unicode(TestParams_t H5_ATTR_UNUSED *params)
 {
     char         test_string[MAX_STRING_LENGTH];
     unsigned int cur_pos = 0;   /* Current position in test_string */
@@ -858,13 +858,15 @@ test_unicode(void H5_ATTR_UNUSED *params)
 #ifdef DEBUG
     dump_string(test_string);
 #endif /* DEBUG */
+
+    return SUCCEED;
 }
 
 /* cleanup_unicode(void)
  * Delete the file this test created.
  */
-void
-cleanup_unicode(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_unicode(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -873,4 +875,6 @@ cleanup_unicode(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 }

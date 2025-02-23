@@ -5,8 +5,8 @@
 #ifdef H5_HAVE_MULTITHREAD
 
 /* Test attempted concurrent library initialization/termination */
-void mt_test_library_init(void *args) {
-    const mt_test_params *params = (const mt_test_params *)args;
+herr_t mt_test_library_init(TestParams_t *args) {
+    const mt_test_params *params = (const mt_test_params *)args->TestParams;
     size_t num_repetitions = (size_t)params->num_repetitions;
 
     for (size_t i = 0; i < num_repetitions; i++) {
@@ -14,7 +14,7 @@ void mt_test_library_init(void *args) {
         H5close();
     }
 
-    return;
+    return SUCCEED;
 }
 
 #endif /* H5_HAVE_MULTITHREAD */

@@ -476,8 +476,8 @@ test_array_info()
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_array(void *params)
+extern "C" herr_t
+test_array(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing Array Datatypes\n"));
@@ -491,6 +491,7 @@ test_array(void *params)
     // Test const functions (HDFFV-9725)
     test_array_info();
 
+    return SUCCEED;
 } // test_array()
 
 /*-------------------------------------------------------------------------
@@ -501,10 +502,12 @@ test_array(void *params)
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_array(void *params)
+extern "C" herr_t
+cleanup_array(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILENAME.c_str());
     }
+
+    return SUCCEED;
 } // cleanup_array

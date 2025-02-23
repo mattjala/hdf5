@@ -708,8 +708,8 @@ test_visit(hid_t fapl_id, hbool_t new_format)
  * October 16, 2009
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_links(void *params)
+extern "C" herr_t
+test_links(TestParams_t *params)
 {
     hid_t    fapl_id, fapl2_id; /* File access property lists */
     unsigned new_format;        /* Whether to use the new format or not */
@@ -756,7 +756,10 @@ test_links(void *params)
     }
     catch (Exception &E) {
         issue_fail_msg("test_links()", __LINE__, __FILE__, E.getCDetailMsg());
+        return FAIL;
     }
+
+    return SUCCEED;
 }
 
 /*-------------------------------------------------------------------------
@@ -767,11 +770,13 @@ test_links(void *params)
  * Return       none
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_links(void *params)
+extern "C" herr_t
+cleanup_links(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(FILENAME[0]);
         HDremove(FILENAME[1]);
     }
+
+    return SUCCEED;
 }

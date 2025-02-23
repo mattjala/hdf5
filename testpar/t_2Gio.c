@@ -618,8 +618,8 @@ MpioTest2G(MPI_Comm comm)
  * dataset.
  */
 
-static void
-dataset_writeInd(void *params)
+static herr_t
+dataset_writeInd(TestParams_t *params)
 {
     hid_t   fid;                /* HDF5 file ID */
     hid_t   acc_tpl;            /* File access templates */
@@ -645,7 +645,7 @@ dataset_writeInd(void *params)
     MPI_Comm comm = test_comm;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const test_params_t *)params)->filename;
+    filename = ((const test_params_t *)params->TestParams)->filename;
     if (VERBOSE_MED)
         printf("Independent write test on file %s\n", filename);
 
@@ -760,11 +760,13 @@ dataset_writeInd(void *params)
     /* release data buffers */
     if (data_array1)
         free(data_array1);
+
+    return SUCCEED;
 }
 
 /* Example of using the parallel HDF5 library to read a dataset */
-static void
-dataset_readInd(void *params)
+static herr_t
+dataset_readInd(TestParams_t *params)
 {
     hid_t       fid;                 /* HDF5 file ID */
     hid_t       acc_tpl;             /* File access templates */
@@ -785,7 +787,7 @@ dataset_readInd(void *params)
     MPI_Comm comm = test_comm;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const test_params_t *)params)->filename;
+    filename = ((const test_params_t *)params->TestParams)->filename;
     if (VERBOSE_MED)
         printf("Independent read test on file %s\n", filename);
 
@@ -870,6 +872,8 @@ dataset_readInd(void *params)
         free(data_array1);
     if (data_origin1)
         free(data_origin1);
+
+    return SUCCEED;
 }
 
 /*
@@ -885,8 +889,8 @@ dataset_readInd(void *params)
  * each process controls a hyperslab within.]
  */
 
-static void
-dataset_writeAll(void *params)
+static herr_t
+dataset_writeAll(TestParams_t *params)
 {
     hid_t   fid;                                    /* HDF5 file ID */
     hid_t   acc_tpl;                                /* File access templates */
@@ -918,7 +922,7 @@ dataset_writeAll(void *params)
     MPI_Comm comm = test_comm;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const test_params_t *)params)->filename;
+    filename = ((const test_params_t *)params->TestParams)->filename;
     if (VERBOSE_MED)
         printf("Collective write test on file %s\n", filename);
 
@@ -1460,6 +1464,8 @@ dataset_writeAll(void *params)
         free(coords);
     if (data_array1)
         free(data_array1);
+
+    return SUCCEED;
 }
 
 /*
@@ -1471,8 +1477,8 @@ dataset_writeAll(void *params)
  * each process controls a hyperslab within.]
  */
 
-static void
-dataset_readAll(void *params)
+static herr_t
+dataset_readAll(TestParams_t *params)
 {
     hid_t       fid;                                              /* HDF5 file ID */
     hid_t       acc_tpl;                                          /* File access templates */
@@ -1498,7 +1504,7 @@ dataset_readAll(void *params)
     MPI_Comm comm = test_comm;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const test_params_t *)params)->filename;
+    filename = ((const test_params_t *)params->TestParams)->filename;
     if (VERBOSE_MED)
         printf("Collective read test on file %s\n", filename);
 
@@ -1919,6 +1925,8 @@ dataset_readAll(void *params)
         free(data_array1);
     if (data_origin1)
         free(data_origin1);
+
+    return SUCCEED;
 }
 
 /*
@@ -1927,8 +1935,8 @@ dataset_readAll(void *params)
  * bypassed for parallel I/O.
  */
 
-static void
-extend_writeInd2(void *params)
+static herr_t
+extend_writeInd2(TestParams_t *params)
 {
     const char *filename;
     hid_t       fid;             /* HDF5 file ID */
@@ -1948,7 +1956,7 @@ extend_writeInd2(void *params)
     int    i;                               /* Local index variable */
     herr_t ret;                             /* Generic return value */
 
-    filename = ((const test_params_t *)params)->filename;
+    filename = ((const test_params_t *)params->TestParams)->filename;
     if (VERBOSE_MED)
         printf("Extend independent write test #2 on file %s\n", filename);
 
@@ -2083,6 +2091,8 @@ extend_writeInd2(void *params)
     /* Close the file collectively */
     ret = H5Fclose(fid);
     VRFY((ret >= 0), "H5Fclose succeeded");
+
+    return SUCCEED;
 }
 
 /*
@@ -2090,8 +2100,8 @@ extend_writeInd2(void *params)
  * dataset in an HDF5 file with collective parallel access support.
  */
 #ifdef H5_HAVE_FILTER_DEFLATE
-static void
-compress_readAll(void *params)
+static herr_t
+compress_readAll(TestParams_t *params)
 {
     hid_t       fid;                           /* HDF5 file ID */
     hid_t       acc_tpl;                       /* File access templates */
@@ -2112,7 +2122,7 @@ compress_readAll(void *params)
     int         mpi_size, mpi_rank;
     herr_t      ret; /* Generic return value */
 
-    filename = ((const test_params_t *)params)->filename;
+    filename = ((const test_params_t *)params->TestParams)->filename;
     if (VERBOSE_MED)
         printf("Collective chunked dataset read test on file %s\n", filename);
 
@@ -2260,6 +2270,8 @@ compress_readAll(void *params)
         free(data_read);
     if (data_orig)
         free(data_orig);
+
+    return SUCCEED;
 }
 #endif /* H5_HAVE_FILTER_DEFLATE */
 
@@ -2275,8 +2287,8 @@ compress_readAll(void *params)
  * dataset with the exception that one processor selects no element.
  */
 
-static void
-none_selection_chunk(void *params)
+static herr_t
+none_selection_chunk(TestParams_t *params)
 {
     hid_t       fid;                /* HDF5 file ID */
     hid_t       acc_tpl;            /* File access templates */
@@ -2304,7 +2316,7 @@ none_selection_chunk(void *params)
     MPI_Comm comm = test_comm;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const test_params_t *)params)->filename;
+    filename = ((const test_params_t *)params->TestParams)->filename;
     if (VERBOSE_MED)
         printf("Extend independent write test on file %s\n", filename);
 
@@ -2472,6 +2484,8 @@ none_selection_chunk(void *params)
         free(data_origin);
     if (data_array)
         free(data_array);
+
+    return SUCCEED;
 }
 
 int
@@ -2535,7 +2549,7 @@ main(int argc, char **argv)
 
     /* Initialize testing framework */
     if (mpi_rank < 2) {
-        if (TestInit(argv[0], usage, parse_options, NULL, NULL, mpi_rank) < 0) {
+        if (TestInit(argv[0], usage, parse_options, NULL, NULL, 0, mpi_rank) < 0) {
             fprintf(stderr, "couldn't initialize testing framework\n");
             MPI_Abort(MPI_COMM_WORLD, -1);
         }

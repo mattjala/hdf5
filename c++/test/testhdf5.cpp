@@ -55,7 +55,7 @@ main(int argc, char *argv[])
         // caused deliberately and expected.
         Exception::dontPrint();
         /* Initialize testing framework */
-        TestInit(argv[0], NULL, NULL, NULL, NULL, 0);
+        TestInit(argv[0], NULL, NULL, NULL, NULL, 0, 0);
 
         // testing file creation and opening in tfile.cpp
         AddTest("tfile", test_file, NULL, cleanup_file, NULL, 0, 0, "File I/O Operations");

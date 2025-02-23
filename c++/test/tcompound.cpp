@@ -728,8 +728,8 @@ test_compound_set_size()
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_compound(void *params)
+extern "C" herr_t
+test_compound(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing Compound Data Type operations\n"));
@@ -742,6 +742,8 @@ test_compound(void *params)
     test_compound_6();        // compound element growing
     test_compound_7();        // compound element insertion
     test_compound_set_size(); // set size on compound data types
+
+    return SUCCEED;
 } // test_compound()
 
 /*-------------------------------------------------------------------------
@@ -752,10 +754,12 @@ test_compound(void *params)
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_compound(void *params)
+extern "C" herr_t
+cleanup_compound(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(COMPFILE.c_str());
     }
+
+    return SUCCEED;
 } // cleanup_file

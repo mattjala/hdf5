@@ -1556,8 +1556,8 @@ test_skiplist_term(void)
 **  test_skiplist(): Main H5SL testing routine.
 **
 ****************************************************************/
-void
-test_skiplist(void H5_ATTR_UNUSED *params)
+herr_t
+test_skiplist(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Skip Lists\n"));
@@ -1593,4 +1593,5 @@ test_skiplist(void H5_ATTR_UNUSED *params)
     /* Release skip list testing data */
     test_skiplist_term();
 
+    return SUCCEED;
 } /* end test_skiplist() */

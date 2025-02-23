@@ -550,8 +550,8 @@ test_h5_strndup(void)
 #endif /* H5_HAVE_WIN32_API */
 }
 
-void
-test_h5_system(void H5_ATTR_UNUSED *params)
+herr_t
+test_h5_system(TestParams_t H5_ATTR_UNUSED *params)
 {
     MESSAGE(5, ("Testing H5system routines\n"));
 
@@ -560,10 +560,13 @@ test_h5_system(void H5_ATTR_UNUSED *params)
     test_h5_strcasestr();
     test_HDstrcasestr();
     test_h5_strndup();
+
+    return SUCCEED;
 }
 
-void
-cleanup_h5_system(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_h5_system(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Nothing to cleanup yet */
+    return SUCCEED;
 }

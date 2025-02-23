@@ -77,8 +77,8 @@ generate_user_error(void H5_ATTR_UNUSED *arg)
 * in secondary threads are properly cleaned up at library shutdown time.
 **********************************************************************
 */
-void
-tts_errstk(void H5_ATTR_UNUSED *params)
+herr_t
+tts_errstk(TestParams_t H5_ATTR_UNUSED *params)
 {
     H5TS_thread_t threads[2];
     herr_t        status     = FAIL;
@@ -99,7 +99,7 @@ tts_errstk(void H5_ATTR_UNUSED *params)
 
     if (err_cls_id <= 0) {
         TestErrPrintf("Failed to set up user error\n");
-        return;
+        return FAIL;
     }
 
     status = H5Eunregister_class(err_cls_id);
@@ -107,6 +107,8 @@ tts_errstk(void H5_ATTR_UNUSED *params)
 
     /* Close library */
     H5close();
+
+    return SUCCEED;
 }
 
 #endif

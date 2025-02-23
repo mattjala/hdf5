@@ -1242,8 +1242,8 @@ test_links_deprec(hid_t fapl)
 **  test_iterate(): Main iteration testing routine.
 **
 ****************************************************************/
-void
-test_iterate(void H5_ATTR_UNUSED *params)
+herr_t
+test_iterate(TestParams_t H5_ATTR_UNUSED *params)
 {
     hid_t    fapl, fapl2; /* File access property lists */
     unsigned new_format;  /* Whether to use the new format or not */
@@ -1284,6 +1284,8 @@ test_iterate(void H5_ATTR_UNUSED *params)
     CHECK(ret, FAIL, "H5Pclose");
     ret = H5Pclose(fapl2);
     CHECK(ret, FAIL, "H5Pclose");
+
+    return SUCCEED;
 } /* test_iterate() */
 
 /*-------------------------------------------------------------------------
@@ -1295,8 +1297,8 @@ test_iterate(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_iterate(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_iterate(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -1305,4 +1307,6 @@ cleanup_iterate(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 }

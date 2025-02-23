@@ -335,7 +335,7 @@ main(int argc, char **argv)
     VRFY((H5Pget_vol_cap_flags(fapl, &vol_cap_flags_g) >= 0), "H5Pget_vol_cap_flags succeeded");
 
     /* Initialize testing framework */
-    if (TestInit(argv[0], usage, parse_options, NULL, NULL, mpi_rank) < 0) {
+    if (TestInit(argv[0], usage, parse_options, NULL, NULL, 0, mpi_rank) < 0) {
         if (MAINPROCESS)
             fprintf(stderr, "couldn't initialize testing framework\n");
         MPI_Finalize();

@@ -510,7 +510,7 @@ static id_instance_t *id_instance_array;
 
 
 static herr_t init_globals(void);
-static void   reset_globals(void *params);
+static herr_t reset_globals(TestParams_t *params);
 
 
 static herr_t free_func(void * obj, void ** request);
@@ -576,19 +576,19 @@ static int verify_objects(int types_start, int types_count, int types_stride,
                           int ids_start, int ids_count, int ids_stride,
                           hbool_t cs, hbool_t ds, hbool_t rpt_failures, int tid);
 
-static void serial_test_1(void *params);
-static void serial_test_2(void *params);
-static void serial_test_3(void *params);
-static void serial_test_4(void *params);
+static herr_t serial_test_1(TestParams_t *params);
+static herr_t serial_test_2(TestParams_t *params);
+static herr_t serial_test_3(TestParams_t *params);
+static herr_t serial_test_4(TestParams_t *params);
 
 static void * mt_test_fcn_1(void *params);
 static void * mt_test_fcn_2(void *params);
 
-static void mt_test_fcn_1_serial_test(void *params);
-static void mt_test_1(void *params);
+static herr_t mt_test_fcn_1_serial_test(TestParams_t *params);
+static herr_t mt_test_1(TestParams_t *params);
 static void mt_test_1_helper(int num_threads);
 
-static void mt_test_2(void *params);
+static herr_t mt_test_2(TestParams_t *params);
 static void mt_test_2_helper(int num_threads);
 
 static herr_t
@@ -668,8 +668,8 @@ init_globals(void)
 
 } /* init_globals() */
 
-static void
-reset_globals(void H5_ATTR_UNUSED *params)
+static herr_t
+reset_globals(TestParams_t H5_ATTR_UNUSED *params)
 {
     int i;
     struct id_type_kernel_t     type_k  = ID_TYPE_T_K__INITIALIZER;
@@ -731,7 +731,7 @@ reset_globals(void H5_ATTR_UNUSED *params)
         atomic_store(&(id_instance_array[i].failed_remove_verifies), 0ULL);
     }
 
-    return;
+    return SUCCEED;
 
 } /* reset_globals() */
 
@@ -5962,8 +5962,8 @@ verify_objects(int types_start, int types_count, int types_stride,
  *
  *******************************************************************************************/
 
-static void
-serial_test_1(void H5_ATTR_UNUSED *params)
+static herr_t
+serial_test_1(TestParams_t H5_ATTR_UNUSED *params)
 {
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
@@ -6370,14 +6370,14 @@ serial_test_1(void H5_ATTR_UNUSED *params)
     if ( 0 == err_cnt ) {
 
         PASSED();
+        return SUCCEED;
 
     } else {
 
         IncTestNumErrs();
         H5_FAILED();
+        return FAIL;
     }
-
-    return;
 
 } /* serial_test_1() */
 
@@ -6410,10 +6410,10 @@ serial_test_1(void H5_ATTR_UNUSED *params)
  *
  *******************************************************************************************/
 
-static void
-serial_test_2(void *params)
+static herr_t
+serial_test_2(TestParams_t *params)
 {
-    const mt_test_params_t *test_params = (const mt_test_params_t *)params;
+    const mt_test_params_t *test_params;
     hbool_t cs = FALSE;
     hbool_t ds = FALSE;
     hbool_t rpt_failures = TRUE;
@@ -6432,6 +6432,8 @@ serial_test_2(void *params)
 
     TESTING("MT ID serial test #2");
     fflush(stdout);
+
+    test_params = (const mt_test_params_t *)params->TestParams;
 
     types_start = test_params->types_start;
     types_count = test_params->types_count;
@@ -6601,14 +6603,14 @@ serial_test_2(void *params)
     if ( 0 == err_cnt ) {
 
         PASSED();
+        return SUCCEED;
 
     } else {
 
         IncTestNumErrs();
         H5_FAILED();
+        return FAIL;
     }
-
-    return;
 
 } /* serial_test_2() */
 
@@ -6647,8 +6649,8 @@ serial_test_2(void *params)
  *
  *******************************************************************************************/
 
-static void
-serial_test_3(void H5_ATTR_UNUSED *params)
+static herr_t
+serial_test_3(TestParams_t H5_ATTR_UNUSED *params)
 {
     hbool_t display_op_stats = FALSE;
     hbool_t cs = FALSE;
@@ -6797,14 +6799,14 @@ serial_test_3(void H5_ATTR_UNUSED *params)
     if ( 0 == err_cnt ) {
 
         PASSED();
+        return SUCCEED;
 
     } else {
 
         IncTestNumErrs();
         H5_FAILED();
+        return FAIL;
     }
-
-    return;
 
 } /* serial_test_3() */
 
@@ -6884,8 +6886,8 @@ serial_test_3(void H5_ATTR_UNUSED *params)
  *
  *******************************************************************************************/
 
-static void
-serial_test_4(void H5_ATTR_UNUSED *params)
+static herr_t
+serial_test_4(TestParams_t H5_ATTR_UNUSED *params)
 {
     hbool_t display_op_stats = FALSE;
     hbool_t cs = FALSE;
@@ -7389,14 +7391,14 @@ serial_test_4(void H5_ATTR_UNUSED *params)
     if ( 0 == err_cnt ) {
 
         PASSED();
+        return SUCCEED;
 
     } else {
 
         IncTestNumErrs();
         H5_FAILED();
+        return FAIL;
     }
-
-    return;
 
 } /* serial_test_4() */
 
@@ -7933,11 +7935,11 @@ mt_test_fcn_2(void * _params)
  *      
  *******************************************************************************************/
 
-static void
-mt_test_fcn_1_serial_test(void *_params)
+static herr_t
+mt_test_fcn_1_serial_test(TestParams_t *_params)
 {
     int err_cnt = 0;
-    mt_test_params_t *params = (mt_test_params_t *)_params;
+    mt_test_params_t *params = (mt_test_params_t *)_params->TestParams;
 
     TESTING("mt_test_fcn_1 serial test");
     fflush(stdout);
@@ -8014,14 +8016,14 @@ mt_test_fcn_1_serial_test(void *_params)
     if ( 0 == err_cnt ) {
 
         PASSED();
+        return SUCCEED;
 
     } else {
 
         IncTestNumErrs();
         H5_FAILED();
+        return FAIL;
     }
-
-    return;
 
 } /* mt_test_fcn_1_serial_test() */
 
@@ -8047,8 +8049,8 @@ mt_test_fcn_1_serial_test(void *_params)
  *      
  *******************************************************************************************/
 
-static void
-mt_test_1(void *params)
+static herr_t
+mt_test_1(TestParams_t *params)
 {
     int max_num_threads = GetTestMaxNumThreads();
     int test_express    = GetTestExpress();
@@ -8078,6 +8080,8 @@ mt_test_1(void *params)
         mt_test_1_helper(num_threads);
         reset_globals(params);
     }
+
+    return SUCCEED;
 }
 
 static void
@@ -8269,8 +8273,8 @@ mt_test_1_helper(int num_threads)
  *      
  *******************************************************************************************/
 
-static void
-mt_test_2(void *params)
+static herr_t
+mt_test_2(TestParams_t *params)
 {
     int max_num_threads = GetTestMaxNumThreads();
     int test_express    = GetTestExpress();
@@ -8303,6 +8307,8 @@ mt_test_2(void *params)
         mt_test_2_helper(num_threads);
         reset_globals(params);
     }
+
+    return SUCCEED;
 }
 
 static void
@@ -8578,23 +8584,17 @@ main(int argc, char **argv)
 #else
     herr_t (*init_func)(void) = NULL;
 #endif
-    H5E_auto2_t default_err_func;
-    void       *default_err_data = NULL;
-    int         num_errs         = 0;
+    int num_errs = 0;
 
     H5open();
 
-    /* Store current error stack printing function since TestInit unsets it */
-    H5Eget_auto2(H5E_DEFAULT, &default_err_func, &default_err_data);
-
     /* Initialize testing framework */
-    TestInit(argv[0], NULL, NULL, init_func, NULL, 0);
+    TestInit(argv[0], NULL, NULL, init_func, NULL, 0, 0);
 
-    /* Reset error stack printing function */
-    H5Eset_auto2(H5E_DEFAULT, default_err_func, default_err_data);
-
-    /* Hide all output from testing framework and replace with our own */
-    SetTestVerbosity(VERBO_NONE);
+    /* Hide most output from testing framework (except for some errors)
+     * and replace with our own
+     */
+    SetTestVerbosity(VERBO_DEF - 1);
 
     /* Display testing information */
     TestInfo(stdout);
@@ -8661,9 +8661,6 @@ main(int argc, char **argv)
         fprintf(stderr, "Error occurred while parsing command-line arguments\n");
         goto exit;
     }
-
-    if (GetTestExpress() > H5_TEST_EXPRESS_EXHAUSTIVE)
-        printf("** TestExpress level is %d. Some tests may be expedited.\n", GetTestExpress());
 
     /* Perform tests */
     if (PerformTests() < 0) {

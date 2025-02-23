@@ -2216,8 +2216,8 @@ test_compat(void)
  *
  *-------------------------------------------------------------------------
  */
-void
-test_array(void H5_ATTR_UNUSED *params)
+herr_t
+test_array(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Array Datatypes\n"));
@@ -2237,6 +2237,7 @@ test_array(void H5_ATTR_UNUSED *params)
     /* This test uses a custom file */
     test_compat(); /* Test compatibility changes for compound datatype fields              */
 
+    return SUCCEED;
 } /* end test_array() */
 
 /*-------------------------------------------------------------------------
@@ -2248,8 +2249,8 @@ test_array(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_array(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_array(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -2258,4 +2259,6 @@ cleanup_array(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 } /* end cleanup_array() */

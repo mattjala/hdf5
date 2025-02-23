@@ -470,8 +470,8 @@ test_h5s_compound_scalar_read()
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-test_h5s(void *params)
+extern "C" herr_t
+test_h5s(TestParams_t *params)
 {
     // Output message about test being performed
     MESSAGE(5, ("Testing Dataspaces\n"));
@@ -482,6 +482,8 @@ test_h5s(void *params)
     test_h5s_null();                  // Test null H5S code
     test_h5s_compound_scalar_write(); // Test compound datatype scalar H5S writing code
     test_h5s_compound_scalar_read();  // Test compound datatype scalar H5S reading code
+
+    return SUCCEED;
 } // test_h5s()
 
 /*-------------------------------------------------------------------------
@@ -492,10 +494,12 @@ test_h5s(void *params)
  * Return       None
  *-------------------------------------------------------------------------
  */
-extern "C" void
-cleanup_h5s(void *params)
+extern "C" herr_t
+cleanup_h5s(TestParams_t *params)
 {
     if (GetTestCleanup()) {
         HDremove(DATAFILE.c_str());
     }
+
+    return SUCCEED;
 } // cleanup_h5s

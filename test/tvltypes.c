@@ -3220,8 +3220,8 @@ test_vltypes_fill_value(void)
 **  test_vltypes(): Main VL datatype testing routine.
 **
 ****************************************************************/
-void
-test_vltypes(void H5_ATTR_UNUSED *params)
+herr_t
+test_vltypes(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Output message about test being performed */
     MESSAGE(5, ("Testing Variable-Length Datatypes\n"));
@@ -3242,6 +3242,8 @@ test_vltypes(void H5_ATTR_UNUSED *params)
     test_vltypes_compound_vlen_vlen();          /* Test compound datatypes with VL atomic components */
     test_vltypes_compound_vlstr();              /* Test data rewritten of nested VL data */
     test_vltypes_fill_value();                  /* Test fill value for VL data */
+
+    return SUCCEED;
 } /* test_vltypes() */
 
 /*-------------------------------------------------------------------------
@@ -3253,8 +3255,8 @@ test_vltypes(void H5_ATTR_UNUSED *params)
  *
  *-------------------------------------------------------------------------
  */
-void
-cleanup_vltypes(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_vltypes(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         H5E_BEGIN_TRY
@@ -3263,4 +3265,6 @@ cleanup_vltypes(void H5_ATTR_UNUSED *params)
         }
         H5E_END_TRY
     }
+
+    return SUCCEED;
 }

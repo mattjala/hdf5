@@ -44,14 +44,14 @@ int main(int argc, char *argv[])
     int testExpress;
     int num_errs_occurred = 0;
     mt_test_params params;
-    int64_t threaded_test_flag = ALLOW_MULTITHREAD;
-    int64_t no_threaded_test_flag = 0;
+    uint64_t threaded_test_flag = ALLOW_MULTITHREAD;
+    uint64_t no_threaded_test_flag = 0;
 
     /* Silence compiler warnings */
     (void) params;
 
     /* Initialize testing framework */
-    TestInit(argv[0], NULL, NULL, NULL, NULL, 0);
+    TestInit(argv[0], NULL, NULL, NULL, NULL, H5_MULTITHREAD_TEST, 0);
 
     testExpress = GetTestExpress();
 

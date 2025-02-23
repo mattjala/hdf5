@@ -50,8 +50,8 @@
 
 void *tts_attr_vlen_thread(void *);
 
-void
-tts_attr_vlen(void H5_ATTR_UNUSED *params)
+herr_t
+tts_attr_vlen(TestParams_t H5_ATTR_UNUSED *params)
 {
     H5TS_thread_t threads[NUM_THREADS] = {0};             /* Thread declaration */
     hid_t         fid                  = H5I_INVALID_HID; /* File ID */
@@ -113,6 +113,7 @@ tts_attr_vlen(void H5_ATTR_UNUSED *params)
     for (i = 0; i < NUM_THREADS; i++)
         H5TS_wait_for_thread(threads[i]);
 
+    return SUCCEED;
 } /* end tts_attr_vlen() */
 
 /* Start execution for each thread */
@@ -166,12 +167,14 @@ tts_attr_vlen_thread(void H5_ATTR_UNUSED *client_data)
     return NULL;
 } /* end tts_attr_vlen_thread() */
 
-void
-cleanup_attr_vlen(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_attr_vlen(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         HDunlink(FILENAME);
     }
+
+    return SUCCEED;
 }
 
 #endif /*H5_HAVE_THREADSAFE*/

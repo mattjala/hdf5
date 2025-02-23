@@ -363,13 +363,11 @@ generate_random_datatype_string(H5T_class_t H5_ATTR_UNUSED parent_class, bool H5
     else {
 
             if ((datatype = H5Tcreate(H5T_STRING, H5T_VARIABLE)) < 0) {
-                H5_FAILED();
                 printf("    couldn't create variable-length string datatype\n");
                 goto done;
             }
 
             if (H5Tset_strpad(datatype, H5T_STR_NULLTERM) < 0) {
-                H5_FAILED();
                 printf("    couldn't set H5T_STR_NULLTERM for variable-length string type\n");
                 goto done;
             }
@@ -478,7 +476,6 @@ generate_random_datatype_reference(H5T_class_t H5_ATTR_UNUSED parent_class, bool
     }
     else {
         if ((datatype = H5Tcopy(H5T_STD_REF_DSETREG)) < 0) {
-            H5_FAILED();
             printf("    couldn't copy region reference datatype\n");
             goto done;
         }
@@ -614,11 +611,11 @@ generate_random_dataspace(int rank, const hsize_t *max_dims, hsize_t *dims_out, 
     hid_t   dataspace_id = H5I_INVALID_HID;
 
     if (rank < 0)
-        TEST_ERROR;
+        goto error;
     if (is_compact && (rank > COMPACT_SPACE_MAX_DIMS)) {
         printf("    current rank of compact dataspace (%lld) exceeds maximum dimensionality (%lld)\n",
                (long long)rank, (long long)COMPACT_SPACE_MAX_DIMS);
-        TEST_ERROR;
+        goto error;
     }
 
     /*
@@ -636,7 +633,7 @@ generate_random_dataspace(int rank, const hsize_t *max_dims, hsize_t *dims_out, 
     }
 
     if ((dataspace_id = H5Screate_simple(rank, dataspace_dims, max_dims)) < 0)
-        TEST_ERROR;
+        goto error;
 
     return dataspace_id;
 
@@ -645,76 +642,71 @@ error:
 }
 
 /*
- * Add a prefix to the given filename. The caller
- * is responsible for freeing the returned filename
- * pointer with free().
- * 
- * If the API tests are being run in separate thread(s)
- * then the framework-assigned thread index will be inserted as well.
+ * Add a prefix to the given test filename. If the
+ * API tests are being run in separate thread(s)
+ * then the framework-assigned thread index will
+ * be inserted as well. The caller is responsible
+ * for freeing the returned filename pointer with
+ * free().
+ *
+ * This function is only intended to be used from
+ * within a test function, as it uses the test
+ * function parameters to determine if tests are
+ * being run in a multi-threaded manner.
  */
 herr_t
-prefix_filename(const char *prefix, const char *filename, char **filename_out)
+prefix_test_filename(TestParams_t *test_params, const char *prefix, const char *filename,
+                     char **filename_out)
 {
     char  *out_buf       = NULL;
-    herr_t ret_value     = SUCCEED;
     int    chars_written = 0;
-#ifdef H5_HAVE_MULTITHREAD
-    thread_info_t *tinfo = NULL;
-#endif
+    herr_t ret_value     = SUCCEED;
 
+    if (!test_params) {
+        TestErrPrintf("invalid test parameters pointer\n");
+        ret_value = FAIL;
+        goto done;
+    }
     if (!prefix) {
-        printf("    invalid file prefix\n");
+        TestErrPrintf("invalid file prefix\n");
         ret_value = FAIL;
         goto done;
     }
     if (!filename || (*filename == '\0')) {
-        printf("    invalid filename\n");
+        TestErrPrintf("invalid filename\n");
         ret_value = FAIL;
         goto done;
     }
     if (!filename_out) {
-        printf("    invalid filename_out buffer\n");
+        TestErrPrintf("invalid filename_out buffer\n");
         ret_value = FAIL;
         goto done;
     }
 
-    if (TEST_EXECUTION_THREADED) {
-#ifdef H5_HAVE_MULTITHREAD
-
-        if ((tinfo = (thread_info_t *)pthread_getspecific(test_thread_info_key_g)) == NULL) {
-            printf("    failed to retrieve thread-specific info\n");
-            ret_value = FAIL;
-            goto done;
-        }
-
-        if ((out_buf = generate_threadlocal_filename(prefix, tinfo->thread_idx, filename)) == NULL) {
-            printf("    failed to generate thread-specific filename\n");
-            ret_value = FAIL;
-            goto done;
-        }
-
-#else
-        printf("    thread-specific filename requested, but multithread support not enabled\n");
+    if (NULL == (out_buf = malloc(H5_API_TEST_FILENAME_MAX_LENGTH))) {
+        TestErrPrintf("couldn't allocate filename buffer\n");
         ret_value = FAIL;
         goto done;
-#endif
-    } else {
-        if (NULL == (out_buf = malloc(H5_TEST_FILENAME_MAX_LENGTH))) {
-            printf("    couldn't allocated filename buffer\n");
-            ret_value = FAIL;
-            goto done;
-        }
-
-        if ((chars_written = HDsnprintf(out_buf, H5_TEST_FILENAME_MAX_LENGTH, "%s%s", prefix, filename)) <
-            0) {
-            printf("    couldn't prefix filename\n");
-            ret_value = FAIL;
-            goto done;
-        }
     }
 
-    if ((size_t)chars_written >= H5_TEST_FILENAME_MAX_LENGTH) {
-        printf("    filename buffer too small\n");
+    if (test_params->IsMtTest) {
+        /* Generate thread-local filename */
+        chars_written = HDsnprintf(out_buf, H5_API_TEST_FILENAME_MAX_LENGTH,
+                                   "%s%d%s", prefix, test_params->MtTestParams.ThreadID,
+                                   filename);
+    }
+    else {
+        chars_written = HDsnprintf(out_buf, H5_API_TEST_FILENAME_MAX_LENGTH,
+                                   "%s%s", prefix, filename);
+    }
+
+    if (chars_written < 0) {
+        TestErrPrintf("snprintf failure\n");
+        ret_value = FAIL;
+        goto done;
+    }
+    else if (chars_written >= H5_API_TEST_FILENAME_MAX_LENGTH) {
+        TestErrPrintf("prefixed filename was too large for buffer\n");
         ret_value = FAIL;
         goto done;
     }
@@ -729,37 +721,22 @@ done:
 }
 
 /*
- * Calls H5Fdelete on the given filename. If a prefix string
- * is given, adds that prefix string to the filename before
- * calling H5Fdelete
+ * Calls H5Fdelete on the given filename as long as cleanup
+ * of testing files has not been disabled.
  */
 herr_t
-remove_test_file(const char *prefix, const char *filename)
+remove_test_file(const char *filename)
 {
-    const char *test_file;
-    char       *prefixed_filename = NULL;
-    herr_t      ret_value         = SUCCEED;
+    herr_t ret_value = SUCCEED;
 
     if (!GetTestCleanup())
         goto done;
 
-    if (prefix) {
-        if (prefix_filename(prefix, filename, &prefixed_filename) < 0) {
-            printf("    couldn't prefix filename\n");
-            ret_value = FAIL;
-            goto done;
-        }
-
-        test_file = prefixed_filename;
-    }
-    else
-        test_file = filename;
-
     H5E_BEGIN_TRY
     {
-        if (H5Fis_accessible(test_file, H5P_DEFAULT) > 0) {
-            if (H5Fdelete(test_file, H5P_DEFAULT) < 0) {
-                printf("    couldn't remove file '%s'\n", test_file);
+        if (H5Fis_accessible(filename, H5P_DEFAULT) > 0) {
+            if (H5Fdelete(filename, H5P_DEFAULT) < 0) {
+                TestErrPrintf("couldn't remove file '%s'\n", filename);
                 ret_value = FAIL;
                 goto done;
             }
@@ -768,7 +745,5 @@ remove_test_file(const char *prefix, const char *filename)
     H5E_END_TRY
 
 done:
-    free(prefixed_filename);
-
     return ret_value;
 }

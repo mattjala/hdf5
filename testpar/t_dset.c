@@ -223,8 +223,8 @@ dataset_vrfy(hsize_t start[], hsize_t count[], hsize_t stride[], hsize_t block[]
  * dataset.
  */
 
-void
-dataset_writeInd(void *params)
+herr_t
+dataset_writeInd(TestParams_t *params)
 {
     hid_t       fid;                /* HDF5 file ID */
     hid_t       acc_tpl;            /* File access templates */
@@ -246,7 +246,7 @@ dataset_writeInd(void *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Independent write test on file %s\n", filename);
 
@@ -264,7 +264,7 @@ dataset_writeInd(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* allocate memory for data buffer */
@@ -372,11 +372,13 @@ dataset_writeInd(void *params)
     /* release data buffers */
     if (data_array1)
         free(data_array1);
+
+    return SUCCEED;
 }
 
 /* Example of using the parallel HDF5 library to read a dataset */
-void
-dataset_readInd(void *params)
+herr_t
+dataset_readInd(TestParams_t *params)
 {
     hid_t       fid;                 /* HDF5 file ID */
     hid_t       acc_tpl;             /* File access templates */
@@ -397,7 +399,7 @@ dataset_readInd(void *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Independent read test on file %s\n", filename);
 
@@ -415,7 +417,7 @@ dataset_readInd(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* allocate memory for data buffer */
@@ -495,6 +497,8 @@ dataset_readInd(void *params)
         free(data_array1);
     if (data_origin1)
         free(data_origin1);
+
+    return SUCCEED;
 }
 
 /*
@@ -510,8 +514,8 @@ dataset_readInd(void *params)
  * each process controls a hyperslab within.]
  */
 
-void
-dataset_writeAll(void *params)
+herr_t
+dataset_writeAll(TestParams_t *params)
 {
     hid_t       fid;                                    /* HDF5 file ID */
     hid_t       acc_tpl;                                /* File access templates */
@@ -540,7 +544,7 @@ dataset_writeAll(void *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Collective write test on file %s\n", filename);
 
@@ -558,7 +562,7 @@ dataset_writeAll(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* set up the coords array selection */
@@ -1095,6 +1099,8 @@ dataset_writeAll(void *params)
         free(coords);
     if (data_array1)
         free(data_array1);
+
+    return SUCCEED;
 }
 
 /*
@@ -1106,8 +1112,8 @@ dataset_writeAll(void *params)
  * each process controls a hyperslab within.]
  */
 
-void
-dataset_readAll(void *params)
+herr_t
+dataset_readAll(TestParams_t *params)
 {
     hid_t       fid;                                              /* HDF5 file ID */
     hid_t       acc_tpl;                                          /* File access templates */
@@ -1133,7 +1139,7 @@ dataset_readAll(void *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Collective read test on file %s\n", filename);
 
@@ -1151,7 +1157,7 @@ dataset_readAll(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* set up the coords array selection */
@@ -1567,6 +1573,8 @@ dataset_readAll(void *params)
         free(data_array1);
     if (data_origin1)
         free(data_origin1);
+
+    return SUCCEED;
 }
 
 /*
@@ -1581,8 +1589,8 @@ dataset_readAll(void *params)
  * dataset.
  */
 
-void
-extend_writeInd(void *params)
+herr_t
+extend_writeInd(TestParams_t *params)
 {
     hid_t       fid;                /* HDF5 file ID */
     hid_t       acc_tpl;            /* File access templates */
@@ -1608,7 +1616,7 @@ extend_writeInd(void *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent write test on file %s\n", filename);
 
@@ -1626,7 +1634,7 @@ extend_writeInd(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* setup chunk-size. Make sure sizes are > 0 */
@@ -1807,6 +1815,8 @@ extend_writeInd(void *params)
     /* release data buffers */
     if (data_array1)
         free(data_array1);
+
+    return SUCCEED;
 }
 
 /*
@@ -1815,8 +1825,8 @@ extend_writeInd(void *params)
  * bypassed for parallel I/O.
  */
 
-void
-extend_writeInd2(void *params)
+herr_t
+extend_writeInd2(TestParams_t *params)
 {
     const char *filename;
     hid_t       fid;             /* HDF5 file ID */
@@ -1836,7 +1846,7 @@ extend_writeInd2(void *params)
     int    i;                               /* Local index variable */
     herr_t ret;                             /* Generic return value */
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent write test #2 on file %s\n", filename);
 
@@ -1854,7 +1864,7 @@ extend_writeInd2(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* -------------------
@@ -1985,11 +1995,13 @@ extend_writeInd2(void *params)
     /* Close the file collectively */
     ret = H5Fclose(fid);
     VRFY((ret >= 0), "H5Fclose succeeded");
+
+    return SUCCEED;
 }
 
 /* Example of using the parallel HDF5 library to read an extendible dataset */
-void
-extend_readInd(void *params)
+herr_t
+extend_readInd(TestParams_t *params)
 {
     hid_t       fid;                 /* HDF5 file ID */
     hid_t       acc_tpl;             /* File access templates */
@@ -2012,7 +2024,7 @@ extend_readInd(void *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent read test on file %s\n", filename);
 
@@ -2030,7 +2042,7 @@ extend_readInd(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* allocate memory for data buffer */
@@ -2164,6 +2176,8 @@ extend_readInd(void *params)
         free(data_array2);
     if (data_origin1)
         free(data_origin1);
+
+    return SUCCEED;
 }
 
 /*
@@ -2178,8 +2192,8 @@ extend_readInd(void *params)
  * dataset.
  */
 
-void
-extend_writeAll(void *params)
+herr_t
+extend_writeAll(TestParams_t *params)
 {
     hid_t       fid;                /* HDF5 file ID */
     hid_t       acc_tpl;            /* File access templates */
@@ -2206,7 +2220,7 @@ extend_writeAll(void *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent write test on file %s\n", filename);
 
@@ -2224,7 +2238,7 @@ extend_writeAll(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* setup chunk-size. Make sure sizes are > 0 */
@@ -2428,11 +2442,13 @@ extend_writeAll(void *params)
     /* release data buffers */
     if (data_array1)
         free(data_array1);
+
+    return SUCCEED;
 }
 
 /* Example of using the parallel HDF5 library to read an extendible dataset */
-void
-extend_readAll(void *params)
+herr_t
+extend_readAll(TestParams_t *params)
 {
     hid_t       fid;                /* HDF5 file ID */
     hid_t       acc_tpl;            /* File access templates */
@@ -2456,7 +2472,7 @@ extend_readAll(void *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent read test on file %s\n", filename);
 
@@ -2474,7 +2490,7 @@ extend_readAll(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* allocate memory for data buffer */
@@ -2630,6 +2646,8 @@ extend_readAll(void *params)
         free(data_array2);
     if (data_origin1)
         free(data_origin1);
+
+    return SUCCEED;
 }
 
 /*
@@ -2637,8 +2655,8 @@ extend_readAll(void *params)
  * dataset in an HDF5 file with collective parallel access support.
  */
 #ifdef H5_HAVE_FILTER_DEFLATE
-void
-compress_readAll(void *params)
+herr_t
+compress_readAll(TestParams_t *params)
 {
     hid_t       fid;                           /* HDF5 file ID */
     hid_t       acc_tpl;                       /* File access templates */
@@ -2659,7 +2677,7 @@ compress_readAll(void *params)
     int         mpi_size, mpi_rank;
     herr_t      ret; /* Generic return value */
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Collective chunked dataset read test on file %s\n", filename);
 
@@ -2675,7 +2693,7 @@ compress_readAll(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* Allocate data buffer */
@@ -2818,6 +2836,8 @@ compress_readAll(void *params)
         free(data_read);
     if (data_orig)
         free(data_orig);
+
+    return SUCCEED;
 }
 #endif /* H5_HAVE_FILTER_DEFLATE */
 
@@ -2833,8 +2853,8 @@ compress_readAll(void *params)
  * dataset with the exception that one processor selects no element.
  */
 
-void
-none_selection_chunk(void *params)
+herr_t
+none_selection_chunk(TestParams_t *params)
 {
     hid_t       fid;                /* HDF5 file ID */
     hid_t       acc_tpl;            /* File access templates */
@@ -2862,7 +2882,7 @@ none_selection_chunk(void *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent write test on file %s\n", filename);
 
@@ -2878,7 +2898,7 @@ none_selection_chunk(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* setup chunk-size. Make sure sizes are > 0 */
@@ -3041,6 +3061,8 @@ none_selection_chunk(void *params)
         free(data_origin);
     if (data_array)
         free(data_array);
+
+    return SUCCEED;
 }
 
 /* Function: test_actual_io_mode
@@ -3096,7 +3118,7 @@ none_selection_chunk(void *params)
  *          path way to multi-chunk-io by H5FD_MPIO_CHUNK_MULTI_IO instead of num-threshold.
  */
 static void
-test_actual_io_mode(const void *params, int selection_mode)
+test_actual_io_mode(const TestParams_t *params, int selection_mode)
 {
     H5D_mpio_actual_chunk_opt_mode_t actual_chunk_opt_mode_write    = H5D_MPIO_NO_CHUNK_OPTIMIZATION;
     H5D_mpio_actual_chunk_opt_mode_t actual_chunk_opt_mode_read     = H5D_MPIO_NO_CHUNK_OPTIMIZATION;
@@ -3176,7 +3198,7 @@ test_actual_io_mode(const void *params, int selection_mode)
     mpi_comm = MPI_COMM_WORLD;
     mpi_info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     assert(filename != NULL);
 
     /* Setup the file access template */
@@ -3548,8 +3570,8 @@ test_actual_io_mode(const void *params, int selection_mode)
  * Purpose: Tests all possible cases of the actual_io_mode property.
  *
  */
-void
-actual_io_mode_tests(void *params)
+herr_t
+actual_io_mode_tests(TestParams_t *params)
 {
     H5D_selection_io_mode_t selection_io_mode;
     hid_t                   dxpl_id = H5I_INVALID_HID;
@@ -3600,7 +3622,7 @@ actual_io_mode_tests(void *params)
         test_actual_io_mode(params, TEST_ACTUAL_IO_RESET);
     }
 
-    return;
+    return SUCCEED;
 }
 
 /*
@@ -3644,7 +3666,7 @@ actual_io_mode_tests(void *params)
  */
 #define FILE_EXTERNAL "nocolcause_extern.data"
 static void
-test_no_collective_cause_mode(const void *params, int selection_mode)
+test_no_collective_cause_mode(const TestParams_t *params, int selection_mode)
 {
     uint32_t no_collective_cause_local_write     = 0;
     uint32_t no_collective_cause_local_read      = 0;
@@ -3745,7 +3767,7 @@ test_no_collective_cause_mode(const void *params, int selection_mode)
         VRFY((sid >= 0), "H5Screate_simple succeeded");
     }
 
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     assert(filename != NULL);
 
     /* Setup the file access template */
@@ -3996,8 +4018,8 @@ test_no_collective_cause_mode(const void *params, int selection_mode)
  * Purpose: Tests cases for broken collective IO.
  *
  */
-void
-no_collective_cause_tests(void *params)
+herr_t
+no_collective_cause_tests(TestParams_t *params)
 {
     /*
      * Test individual cause
@@ -4019,7 +4041,7 @@ no_collective_cause_tests(void *params)
     test_no_collective_cause_mode(params, TEST_NOT_CONTIGUOUS_OR_CHUNKED_DATASET_EXTERNAL |
                                               TEST_DATATYPE_CONVERSION | TEST_DATA_TRANSFORMS);
 
-    return;
+    return SUCCEED;
 }
 
 /*
@@ -4033,8 +4055,8 @@ no_collective_cause_tests(void *params)
  * read the old values in the dataset or the new ones.
  */
 
-void
-dataset_atomicity(void *params)
+herr_t
+dataset_atomicity(TestParams_t *params)
 {
     hid_t       fid;              /* HDF5 file ID */
     hid_t       acc_tpl;          /* File access templates */
@@ -4061,10 +4083,10 @@ dataset_atomicity(void *params)
 
     dim0     = 64;
     dim1     = 32;
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     if (facc_type != FACC_MPIO) {
         printf("Atomicity tests will not work without the MPIO VFD\n");
-        return;
+        return SKIP;
     }
     if (VERBOSE_MED)
         printf("atomic writes to file %s\n", filename);
@@ -4083,7 +4105,7 @@ dataset_atomicity(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     buf_size = dim0 * dim1;
@@ -4374,6 +4396,8 @@ dataset_atomicity(void *params)
 
     ret = H5Fclose(fid);
     VRFY((ret >= 0), "H5Fclose succeeded");
+
+    return SUCCEED;
 }
 
 /* Function: dense_attr_test
@@ -4381,8 +4405,8 @@ dataset_atomicity(void *params)
  * Purpose: Test cases for writing dense attributes in parallel
  *
  */
-void
-test_dense_attr(void *params)
+herr_t
+test_dense_attr(TestParams_t *params)
 {
     int         mpi_size, mpi_rank;
     hid_t       fpid, fid;
@@ -4406,11 +4430,11 @@ test_dense_attr(void *params)
             fflush(stdout);
         }
 
-        return;
+        return SKIP;
     }
 
     /* get filename */
-    filename = ((const H5Ptest_param_t *)params)->name;
+    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
     assert(filename != NULL);
 
     fpid = H5Pcreate(H5P_FILE_ACCESS);
@@ -4448,5 +4472,5 @@ test_dense_attr(void *params)
     status = H5Fclose(fid);
     VRFY((status >= 0), "H5Fclose succeeded");
 
-    return;
+    return SUCCEED;
 }

@@ -55,8 +55,8 @@ static herr_t error_callback(hid_t, void *);
 static herr_t walk_error_callback(unsigned, const H5E_error2_t *, void *);
 static void  *tts_error_thread(void *);
 
-void
-tts_error(void H5_ATTR_UNUSED *params)
+herr_t
+tts_error(TestParams_t H5_ATTR_UNUSED *params)
 {
     hid_t         def_fapl = H5I_INVALID_HID;
     hid_t         vol_id   = H5I_INVALID_HID;
@@ -161,6 +161,8 @@ tts_error(void H5_ATTR_UNUSED *params)
     CHECK(status, FAIL, "H5Idec_ref");
 
     H5TS_attr_destroy(&attribute);
+
+    return SUCCEED;
 } /* end tts_error() */
 
 static void *
@@ -256,12 +258,14 @@ walk_error_callback(unsigned n, const H5E_error2_t *err_desc, void H5_ATTR_UNUSE
     return SUCCEED;
 }
 
-void
-cleanup_error(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_error(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         HDunlink(FILENAME);
     }
+
+    return SUCCEED;
 }
 
 #endif /*H5_HAVE_THREADSAFE*/

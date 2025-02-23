@@ -44,8 +44,8 @@ typedef struct acreate_data_struct {
     int   current_index;
 } ttsafe_name_data_t;
 
-void
-tts_acreate(void H5_ATTR_UNUSED *params)
+herr_t
+tts_acreate(TestParams_t H5_ATTR_UNUSED *params)
 {
     /* Thread declarations */
     H5TS_thread_t threads[NUM_THREADS];
@@ -134,6 +134,8 @@ tts_acreate(void H5_ATTR_UNUSED *params)
     CHECK(status, FAIL, "H5Dclose");
     status = H5Fclose(file);
     CHECK(status, FAIL, "H5Fclose");
+
+    return SUCCEED;
 } /* end tts_acreate() */
 
 void *
@@ -164,12 +166,14 @@ tts_acreate_thread(void *client_data)
     return NULL;
 } /* end tts_acreate_thread() */
 
-void
-cleanup_acreate(void H5_ATTR_UNUSED *params)
+herr_t
+cleanup_acreate(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (GetTestCleanup()) {
         HDunlink(FILENAME);
     }
+
+    return SUCCEED;
 }
 
 #endif /*H5_HAVE_THREADSAFE*/
