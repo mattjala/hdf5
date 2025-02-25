@@ -16,7 +16,8 @@
  * XXX: H5Dread_chunk/H5Dwrite_chunk, H5Dfill/scatter/gather
  */
 
-static herr_t print_dataset_test_header(TestParams_t *params);
+static void print_dataset_test_header(TestParams_t *params);
+
 static herr_t test_create_dataset_under_root(TestParams_t *params);
 static herr_t test_create_dataset_under_existing_group(TestParams_t *params);
 static herr_t test_create_dataset_invalid_params(TestParams_t *params);
@@ -99,7 +100,7 @@ static size_t filter(unsigned int flags, size_t H5_ATTR_UNUSED cd_nelmts,
                      const unsigned int H5_ATTR_UNUSED cd_values[], size_t nbytes,
                      size_t H5_ATTR_UNUSED *buf_size, void H5_ATTR_UNUSED **buf);
 
-static herr_t
+static void
 print_dataset_test_header(TestParams_t H5_ATTR_UNUSED *params)
 {
     printf("\n");
@@ -108,8 +109,6 @@ print_dataset_test_header(TestParams_t H5_ATTR_UNUSED *params)
     printf("*             API Dataset Tests              *\n");
     printf("*                                            *\n");
     printf("**********************************************\n\n");
-
-    return SUCCEED;
 }
 
 /*
@@ -12711,12 +12710,12 @@ H5_api_dataset_test_add(void)
 {
     uint64_t testframe_flags = ALLOW_MULTITHREAD;
 
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_dataset_test_header", print_dataset_test_header, NULL, NULL, NULL, 0,
-            0, "Prints header for dataset tests");
-
     AddTest("test_create_dataset_under_root", test_create_dataset_under_root, NULL, NULL, NULL, 0,
             testframe_flags, "dataset creation under root group");
+
+    /* Add a header to the first dataset test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_create_dataset_under_root", print_dataset_test_header);
+
     AddTest("test_create_dataset_under_existing_group", test_create_dataset_under_existing_group, NULL, NULL,
             NULL, 0, testframe_flags, "dataset creation under an existing group");
     AddTest("test_create_dataset_invalid_params", test_create_dataset_invalid_params, NULL, NULL, NULL, 0,

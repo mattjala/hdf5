@@ -39,6 +39,7 @@ typedef struct TestStruct {
     herr_t       (*TestFunc)(TestParams_t *);
     herr_t       (*TestSetupFunc)(TestParams_t *);
     herr_t       (*TestCleanupFunc)(TestParams_t *);
+    void         (*HeaderFunc)(TestParams_t *);
     TestParams_t   TestParameters;
     H5_ATOMIC(int) TestNumErrors;
     int            TestSkipFlag;
@@ -181,12 +182,49 @@ AddTest(const char *TestName, herr_t (*TestFunc)(TestParams_t *), herr_t (*TestS
     TestArray[TestCount].TestFunc        = TestFunc;
     TestArray[TestCount].TestSetupFunc   = TestSetupFunc;
     TestArray[TestCount].TestCleanupFunc = TestCleanupFunc;
+    TestArray[TestCount].HeaderFunc      = NULL;
 
     TestArray[TestCount].TestFlags = TestFlags;
 
     H5_ATOMIC_STORE(TestArray[TestCount].TestNumErrors, 0);
 
     TestCount++;
+
+    return SUCCEED;
+}
+
+/*
+ * Add a header function to a test that will run before the test
+ */
+herr_t
+AddTestHeaderFunc(const char *TestName, void (*HeaderFunc)(TestParams_t *))
+{
+    bool test_found = false;
+
+    if (*TestName == '\0') {
+        if (TestFrameworkProcessID_g == 0)
+            fprintf(stderr, "%s: empty string given for test name\n", __func__);
+        return FAIL;
+    }
+    if (!HeaderFunc) {
+        if (TestFrameworkProcessID_g == 0)
+            fprintf(stderr, "%s: no function specified\n", __func__);
+        return FAIL;
+    }
+
+    for (unsigned Loop = 0; Loop < TestCount; Loop++) {
+        if (0 == strcmp(TestName, TestArray[Loop].Name)) {
+            test_found = true;
+            TestArray[Loop].HeaderFunc = HeaderFunc;
+            break;
+        }
+    }
+
+    if (!test_found) {
+        if (TestFrameworkProcessID_g == 0)
+            fprintf(stderr, "%s: no test found by name '%s'\n", __func__, TestName);
+        return FAIL;
+    }
 
     return SUCCEED;
 }
@@ -567,6 +605,10 @@ PerformTests(void)
                             (TestArray[Loop].TestFlags & ALLOW_MULTITHREAD) &&
                             TEST_EXECUTION_THREADED;
         herr_t test_ret   = SUCCEED;
+
+        /* If test has a header function to call, do so now */
+        if (TestArray[Loop].HeaderFunc)
+            TestArray[Loop].HeaderFunc(&TestArray[Loop].TestParameters);
 
         if (TestArray[Loop].TestSkipFlag) {
             MESSAGE(2, ("Skipping -- %s (%s) \n", TestArray[Loop].Description, TestArray[Loop].Name));

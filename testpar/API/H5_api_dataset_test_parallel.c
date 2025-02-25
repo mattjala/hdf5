@@ -16,7 +16,8 @@
  */
 #include "H5_api_dataset_test_parallel.h"
 
-static herr_t print_dataset_test_header(TestParams_t *params);
+static void print_dataset_test_header(TestParams_t *params);
+
 static herr_t test_write_dataset_data_verification(TestParams_t *params);
 static herr_t test_write_dataset_independent(TestParams_t *params);
 static herr_t test_write_dataset_one_proc_0_selection(TestParams_t *params);
@@ -46,7 +47,7 @@ static herr_t test_write_multi_chunk_dataset_diff_shape_read(TestParams_t *param
 static herr_t test_overwrite_multi_chunk_dataset_same_shape_read(TestParams_t *params);
 static herr_t test_overwrite_multi_chunk_dataset_diff_shape_read(TestParams_t *params);
 
-static herr_t
+static void
 print_dataset_test_header(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (MAINPROCESS) {
@@ -57,8 +58,6 @@ print_dataset_test_header(TestParams_t H5_ATTR_UNUSED *params)
         printf("*                                            *\n");
         printf("**********************************************\n\n");
     }
-
-    return SUCCEED;
 }
 
 /*
@@ -7396,12 +7395,12 @@ error:
 void
 H5_api_dataset_test_parallel_add(void)
 {
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_dataset_test_header", print_dataset_test_header, NULL, NULL, NULL, 0,
-            0, "Prints header for dataset tests");
-
     AddTest("test_write_dataset_data_verification", test_write_dataset_data_verification, NULL, NULL, NULL, 0,
             0, "verification of dataset data using H5Dwrite then H5Dread");
+
+    /* Add a header to the first dataset test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_write_dataset_data_verification", print_dataset_test_header);
+
     AddTest("test_write_dataset_independent", test_write_dataset_independent, NULL, NULL, NULL, 0,
             0, "independent writing to different datasets by different ranks");
     AddTest("test_write_dataset_one_proc_0_selection", test_write_dataset_one_proc_0_selection, NULL, NULL,

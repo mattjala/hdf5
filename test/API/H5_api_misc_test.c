@@ -12,7 +12,8 @@
 
 #include "H5_api_misc_test.h"
 
-static herr_t print_misc_test_header(TestParams_t *params);
+static void print_misc_test_header(TestParams_t *params);
+
 static herr_t test_open_link_without_leading_slash(TestParams_t *params);
 static herr_t test_object_creation_by_absolute_path(TestParams_t *params);
 static herr_t test_absolute_vs_relative_path(TestParams_t *params);
@@ -20,7 +21,7 @@ static herr_t test_dot_for_object_name(TestParams_t *params);
 static herr_t test_symbols_in_compound_field_name(TestParams_t *params);
 static herr_t test_double_init_term(TestParams_t *params);
 
-static herr_t
+static void
 print_misc_test_header(TestParams_t H5_ATTR_UNUSED *params)
 {
     printf("\n");
@@ -29,8 +30,6 @@ print_misc_test_header(TestParams_t H5_ATTR_UNUSED *params)
     printf("*          API Miscellaneous Tests           *\n");
     printf("*                                            *\n");
     printf("**********************************************\n\n");
-
-    return SUCCEED;
 }
 
 static herr_t
@@ -875,12 +874,12 @@ H5_api_misc_test_add(void)
 {
     uint64_t testframe_flags = ALLOW_MULTITHREAD;
 
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_misc_test_header", print_misc_test_header, NULL, NULL, NULL, 0, 0,
-            "Prints header for miscellaneous tests");
-
     AddTest("test_open_link_without_leading_slash", test_open_link_without_leading_slash, NULL, NULL, NULL, 0,
             testframe_flags, "opening a link without a leading slash");
+
+    /* Add a header to the first misc. test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_open_link_without_leading_slash", print_misc_test_header);
+
     AddTest("test_object_creation_by_absolute_path", test_object_creation_by_absolute_path, NULL, NULL, NULL,
             0, testframe_flags, "object creation by absolute path");
     AddTest("test_absolute_vs_relative_path", test_absolute_vs_relative_path, NULL, NULL, NULL, 0,

@@ -16,7 +16,8 @@
  * TODO: add link tests for short-circuit success in operator callback
  */
 
-static herr_t print_link_test_header(TestParams_t *params);
+static void print_link_test_header(TestParams_t *params);
+
 static herr_t test_create_hard_link(TestParams_t *params);
 static herr_t test_create_hard_link_long_name(TestParams_t *params);
 static herr_t test_create_hard_link_many(TestParams_t *params);
@@ -107,7 +108,7 @@ static herr_t link_visit_invalid_params_cb(hid_t group_id, const char *name, con
                                            void *op_data);
 static herr_t link_visit_0_links_cb(hid_t group_id, const char *name, const H5L_info2_t *info, void *op_data);
 
-static herr_t
+static void
 print_link_test_header(TestParams_t H5_ATTR_UNUSED *params)
 {
     printf("\n");
@@ -116,8 +117,6 @@ print_link_test_header(TestParams_t H5_ATTR_UNUSED *params)
     printf("*              API Link Tests                *\n");
     printf("*                                            *\n");
     printf("**********************************************\n\n");
-
-    return SUCCEED;
 }
 
 /*
@@ -22653,12 +22652,12 @@ H5_api_link_test_add(void)
 {
     uint64_t testframe_flags = ALLOW_MULTITHREAD;
 
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_link_test_header", print_link_test_header, NULL, NULL, NULL, 0, 0,
-            "Prints header for link tests");
-
     AddTest("test_create_hard_link", test_create_hard_link, NULL, NULL, NULL, 0,
             testframe_flags, "hard link creation");
+
+    /* Add a header to the first link test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_create_hard_link", print_link_test_header);
+
     AddTest("test_create_hard_link_long_name", test_create_hard_link_long_name, NULL, NULL, NULL, 0,
             testframe_flags, "hard link creation with a long name");
     AddTest("test_create_hard_link_many", test_create_hard_link_many, NULL, NULL, NULL, 0,

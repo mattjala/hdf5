@@ -12,7 +12,8 @@
 
 #include "H5_api_group_test.h"
 
-static herr_t print_group_test_header(TestParams_t *params);
+static void print_group_test_header(TestParams_t *params);
+
 static herr_t test_create_group_under_root(TestParams_t *params);
 static herr_t test_create_group_under_existing_group(TestParams_t *params);
 static herr_t test_create_many_groups(TestParams_t *params);
@@ -33,7 +34,7 @@ static herr_t test_refresh_group(TestParams_t *params);
 static herr_t test_refresh_group_invalid_params(TestParams_t *params);
 static int  create_group_recursive(TestParams_t *params, hid_t parent_gid, unsigned counter);
 
-static herr_t
+static void
 print_group_test_header(TestParams_t H5_ATTR_UNUSED *params)
 {
     printf("\n");
@@ -42,8 +43,6 @@ print_group_test_header(TestParams_t H5_ATTR_UNUSED *params)
     printf("*              API Group Tests               *\n");
     printf("*                                            *\n");
     printf("**********************************************\n\n");
-
-    return SUCCEED;
 }
 
 /*
@@ -1988,12 +1987,12 @@ H5_api_group_test_add(void)
 {
     uint64_t testframe_flags = ALLOW_MULTITHREAD;
 
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_group_test_header", print_group_test_header, NULL, NULL, NULL, 0, 0,
-            "Prints header for group tests");
-
     AddTest("test_create_group_under_root", test_create_group_under_root, NULL, NULL, NULL, 0,
             testframe_flags, "creation of group under the root group");
+
+    /* Add a header to the first group test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_create_group_under_root", print_group_test_header);
+
     AddTest("test_create_group_under_existing_group", test_create_group_under_existing_group, NULL, NULL,
             NULL, 0, testframe_flags, "creation of group under existing group using a relative path");
     AddTest("test_create_many_groups", test_create_many_groups, NULL, NULL, NULL, 0,

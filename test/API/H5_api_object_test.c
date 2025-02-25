@@ -12,7 +12,8 @@
 
 #include "H5_api_object_test.h"
 
-static herr_t print_object_test_header(TestParams_t *params);
+static void print_object_test_header(TestParams_t *params);
+
 static herr_t test_open_object(TestParams_t *params);
 static herr_t test_open_object_invalid_params(TestParams_t *params);
 static herr_t test_object_exists(TestParams_t *params);
@@ -63,7 +64,7 @@ static herr_t object_visit_soft_link_callback(hid_t o_id, const char *name, cons
 static herr_t object_visit_noop_callback(hid_t o_id, const char *name, const H5O_info2_t *object_info,
                                          void *op_data);
 
-static herr_t
+static void
 print_object_test_header(TestParams_t H5_ATTR_UNUSED *params)
 {
     printf("\n");
@@ -72,8 +73,6 @@ print_object_test_header(TestParams_t H5_ATTR_UNUSED *params)
     printf("*              API Object Tests              *\n");
     printf("*                                            *\n");
     printf("**********************************************\n\n");
-
-    return SUCCEED;
 }
 
 /*
@@ -6140,12 +6139,12 @@ H5_api_object_test_add(void)
 {
     uint64_t testframe_flags = ALLOW_MULTITHREAD;
 
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_object_test_header", print_object_test_header, NULL, NULL, NULL, 0,
-            0, "Prints header for object tests");
-
     AddTest("test_open_object", test_open_object, NULL, NULL, NULL, 0,
             testframe_flags, "object opening");
+
+    /* Add a header to the first object test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_open_object", print_object_test_header);
+
     AddTest("test_open_object_invalid_params", test_open_object_invalid_params, NULL, NULL, NULL, 0,
             testframe_flags, "object opening with invalid parameters");
     AddTest("test_object_exists", test_object_exists, NULL, NULL, NULL, 0,

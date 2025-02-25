@@ -20,7 +20,8 @@
  *         order value gets reset when all attributes are removed.
  */
 
-static herr_t print_attribute_test_header(TestParams_t *params);
+static void print_attribute_test_header(TestParams_t *params);
+
 static herr_t test_create_attribute_on_root(TestParams_t *params);
 static herr_t test_create_attribute_on_dataset(TestParams_t *params);
 static herr_t test_create_attribute_on_datatype(TestParams_t *params);
@@ -68,7 +69,7 @@ static herr_t attr_iter_callback1(hid_t location_id, const char *attr_name, cons
 static herr_t attr_iter_callback2(hid_t location_id, const char *attr_name, const H5A_info_t *ainfo,
                                   void *op_data);
 
-static herr_t
+static void
 print_attribute_test_header(TestParams_t H5_ATTR_UNUSED *params)
 {
     printf("\n");
@@ -77,8 +78,6 @@ print_attribute_test_header(TestParams_t H5_ATTR_UNUSED *params)
     printf("*            API Attribute Tests             *\n");
     printf("*                                            *\n");
     printf("**********************************************\n\n");
-
-    return SUCCEED;
 }
 
 /*
@@ -9588,12 +9587,12 @@ H5_api_attribute_test_add(void)
 {
     uint64_t testframe_flags = ALLOW_MULTITHREAD;
 
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_attribute_test_header", print_attribute_test_header, NULL, NULL, NULL, 0,
-            0, "Prints header for attribute tests");
-
     AddTest("test_create_attribute_on_root", test_create_attribute_on_root, NULL, NULL, NULL, 0,
             testframe_flags, "attribute creation on the root group");
+
+    /* Add a header to the first attribute test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_create_attribute_on_root", print_attribute_test_header);
+
     AddTest("test_create_attribute_on_dataset", test_create_attribute_on_dataset, NULL, NULL, NULL, 0,
             testframe_flags, "attribute creation on a dataset");
     AddTest("test_create_attribute_on_datatype", test_create_attribute_on_datatype, NULL, NULL, NULL, 0,

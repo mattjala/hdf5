@@ -12,12 +12,13 @@
 
 #include "H5_api_file_test_parallel.h"
 
-static herr_t print_file_test_header(TestParams_t *params);
+static void print_file_test_header(TestParams_t *params);
+
 static herr_t test_create_file(TestParams_t *params);
 static herr_t test_open_file(TestParams_t *params);
 static herr_t test_split_comm_file_access(TestParams_t *params);
 
-static herr_t
+static void
 print_file_test_header(TestParams_t H5_ATTR_UNUSED *params)
 {
     if (MAINPROCESS) {
@@ -28,8 +29,6 @@ print_file_test_header(TestParams_t H5_ATTR_UNUSED *params)
         printf("*                                            *\n");
         printf("**********************************************\n\n");
     }
-
-    return SUCCEED;
 }
 
 /*
@@ -279,11 +278,11 @@ error:
 void
 H5_api_file_test_parallel_add(void)
 {
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_file_test_header", print_file_test_header, NULL, NULL, NULL, 0,
-            0, "Prints header for file tests");
-
     AddTest("test_create_file", test_create_file, NULL, NULL, NULL, 0, 0, "H5Fcreate");
+
+    /* Add a header to the first file test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_create_file", print_file_test_header);
+
     AddTest("test_open_file", test_open_file, NULL, NULL, NULL, 0, 0, "H5Fopen");
     AddTest("test_split_comm_file_access", test_split_comm_file_access, NULL, NULL, NULL, 0,
             0, "file access with a split communicator");

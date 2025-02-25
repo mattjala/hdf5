@@ -633,6 +633,31 @@ H5TEST_DLL herr_t AddTest(const char *TestName, herr_t (*TestFunc)(TestParams_t 
  * --------------------------------------------------------------------------
  * \ingroup H5TEST
  *
+ * \brief Adds a function to a test which will run before executing the
+ *        specified test
+ *
+ * \param[in]  TestName      The name of the test to add the given header
+ *                           function to
+ * \param[in]  HeaderFunc    The function that will be executed before
+ *                           running the test
+ *
+ * \return \herr_t
+ *
+ * \details AddTestHeaderFunc() adds a specified callback function,
+ *          \p HeaderFunc, to a test which will run before executing the test.
+ *          This is primarily useful for printing out a header banner before
+ *          a group of tests run.
+ *
+ * \see AddTest()
+ *
+ */
+H5TEST_DLL herr_t AddTestHeaderFunc(const char *TestName,
+                                    void (*HeaderFunc)(TestParams_t *));
+
+/**
+ * --------------------------------------------------------------------------
+ * \ingroup H5TEST
+ *
  * \brief Parses command-line arguments given to the test program
  *
  * \param[in]  argc Command-line argument count; received from main()

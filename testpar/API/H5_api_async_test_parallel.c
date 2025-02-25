@@ -12,45 +12,9 @@
 
 #include "H5_api_async_test_parallel.h"
 
-static herr_t print_async_test_header(TestParams_t *params);
-
-static herr_t
-print_async_test_header(TestParams_t *params)
-{
-    bool coll_md_read = true;
-
-    if (params->TestParams)
-        coll_md_read = *(const bool *)params->TestParams;
-
-    if (coll_md_read) {
-        if (MAINPROCESS) {
-            printf("\n");
-            printf("**********************************************\n");
-            printf("*                                            *\n");
-            printf("*          API Parallel Async Tests          *\n");
-            printf("*                                            *\n");
-            printf("**********************************************\n\n");
-
-#ifndef H5_API_TEST_HAVE_ASYNC
-            printf("SKIPPED due to no async support\n");
-#endif
-        }
-    }
 #ifdef H5_API_TEST_HAVE_ASYNC
-    else if (MAINPROCESS) {
-        printf("\n");
-        printf("****************************************************\n");
-        printf("*                                                  *\n");
-        printf("* Re-running tests with independent metadata reads *\n");
-        printf("*                                                  *\n");
-        printf("****************************************************\n\n");
-    }
-#endif
 
-    return SUCCEED;
-}
-
-#ifdef H5_API_TEST_HAVE_ASYNC
+static void print_async_test_header(TestParams_t *params);
 
 static herr_t test_async_one_dataset_io(TestParams_t *params);
 static herr_t test_async_multi_dataset_io(TestParams_t *params);
@@ -68,6 +32,36 @@ static herr_t test_async_file_reopen(TestParams_t *params);
 
 /* Highest "printf" file created (starting at 0) */
 int max_printf_file = -1;
+
+static void
+print_async_test_header(TestParams_t *params)
+{
+    bool coll_md_read = true;
+
+    if (params->TestParams)
+        coll_md_read = *(const bool *)params->TestParams;
+
+    if (coll_md_read) {
+        if (MAINPROCESS) {
+            printf("\n");
+            printf("**********************************************\n");
+            printf("*                                            *\n");
+            printf("*          API Parallel Async Tests          *\n");
+            printf("*                                            *\n");
+            printf("**********************************************\n\n");
+        }
+    }
+#ifdef H5_API_TEST_HAVE_ASYNC
+    else if (MAINPROCESS) {
+        printf("\n");
+        printf("****************************************************\n");
+        printf("*                                                  *\n");
+        printf("* Re-running tests with independent metadata reads *\n");
+        printf("*                                                  *\n");
+        printf("****************************************************\n\n");
+    }
+#endif
+}
 
 /*
  * Create file and dataset. Each rank writes to a portion
@@ -3413,13 +3407,13 @@ H5_api_async_test_parallel_add(void)
 {
     bool coll_metadata_read = true;
 
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_async_test_header (coll)", print_async_test_header, NULL, NULL, &coll_metadata_read,
-            sizeof(coll_metadata_read), 0, "Prints header for async tests");
-
     /* Add tests using collective metadata reads */
     AddTest("test_async_one_dataset_io (coll)", test_async_one_dataset_io, NULL, NULL, &coll_metadata_read,
             sizeof(coll_metadata_read), 0, "async single dataset I/O (collective metadata reads)");
+
+    /* Add a header to the first async test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_async_one_dataset_io (coll)", print_async_test_header);
+
     AddTest("test_async_multi_dataset_io (coll)", test_async_multi_dataset_io, NULL, NULL,
             &coll_metadata_read, sizeof(coll_metadata_read),
             0, "async multi dataset I/O (collective metadata reads)");
@@ -3457,13 +3451,13 @@ H5_api_async_test_parallel_add(void)
     /* Re-run tests with independent metadata reads */
     coll_metadata_read = false;
 
-    /* Add a fake test to print out that tests are being re-run with independent metadata reads */
-    AddTest("print_async_test_header (ind)", print_async_test_header, NULL, NULL, &coll_metadata_read,
-            sizeof(coll_metadata_read), 0, "Prints header for async tests");
-
     /* Add tests using independent metadata reads */
     AddTest("test_async_one_dataset_io (ind)", test_async_one_dataset_io, NULL, NULL, &coll_metadata_read,
             sizeof(coll_metadata_read), 0, "async single dataset I/O (independent metadata reads)");
+
+    /* Add a header to the first async test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_async_one_dataset_io (ind)", print_async_test_header);
+
     AddTest("test_async_multi_dataset_io (ind)", test_async_multi_dataset_io, NULL, NULL, &coll_metadata_read,
             sizeof(coll_metadata_read), 0, "async multi dataset I/O (independent metadata reads)");
     AddTest("test_async_multi_file_dataset_io (ind)", test_async_multi_file_dataset_io, NULL, NULL,
@@ -3503,9 +3497,7 @@ H5_api_async_test_parallel_add(void)
 void
 H5_api_async_test_parallel_add(void)
 {
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_async_test_header", print_async_test_header, NULL, NULL, NULL, 0, 0,
-            "Prints header for async tests");
+    return;
 }
 
 #endif

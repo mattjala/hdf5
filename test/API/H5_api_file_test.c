@@ -12,7 +12,8 @@
 
 #include "H5_api_file_test.h"
 
-static herr_t print_file_test_header(TestParams_t *params);
+static void print_file_test_header(TestParams_t *params);
+
 static herr_t test_create_file(TestParams_t *params);
 static herr_t test_create_file_invalid_params(TestParams_t *params);
 static herr_t test_create_file_excl(TestParams_t *params);
@@ -32,7 +33,7 @@ static herr_t test_file_mounts(TestParams_t *params);
 static herr_t test_get_file_name(TestParams_t *params);
 static herr_t check_open_obj_count(ssize_t obj_count, int expected);
 
-static herr_t
+static void
 print_file_test_header(TestParams_t H5_ATTR_UNUSED *params)
 {
     printf("\n");
@@ -41,8 +42,6 @@ print_file_test_header(TestParams_t H5_ATTR_UNUSED *params)
     printf("*               API File Tests               *\n");
     printf("*                                            *\n");
     printf("**********************************************\n\n");
-
-    return SUCCEED;
 }
 
 /*
@@ -2140,12 +2139,12 @@ H5_api_file_test_add(void)
 {
     uint64_t testframe_flags = ALLOW_MULTITHREAD;
 
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_file_test_header", print_file_test_header, NULL, NULL, NULL, 0, 0,
-            "Prints header for file tests");
-
     AddTest("test_create_file", test_create_file, NULL, NULL, NULL, 0,
             testframe_flags, "H5Fcreate");
+
+    /* Add a header to the first file test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_create_file", print_file_test_header);
+
     AddTest("test_create_file_invalid_params", test_create_file_invalid_params, NULL, NULL, NULL, 0,
             testframe_flags, "H5Fcreate with invalid parameters");
     AddTest("test_create_file_excl", test_create_file_excl, NULL, NULL, NULL, 0,

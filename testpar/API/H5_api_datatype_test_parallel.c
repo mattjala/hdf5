@@ -12,6 +12,7 @@
 
 #include "H5_api_datatype_test_parallel.h"
 
+#ifdef NOT_YET
 static herr_t print_datatype_test_header(TestParams_t *params);
 
 static herr_t
@@ -28,13 +29,11 @@ print_datatype_test_header(TestParams_t H5_ATTR_UNUSED *params)
 
     return SUCCEED;
 }
+#endif
 
 void
 H5_api_datatype_test_parallel_add(void)
 {
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_datatype_test_header", print_datatype_test_header, NULL, NULL, NULL, 0,
-            0, "Prints header for datatype tests");
-
     /* No tests yet */
+    return;
 }

@@ -17,7 +17,8 @@
  */
 #define PROBLEMATIC_TESTS
 
-static herr_t print_datatype_test_header(TestParams_t *params);
+static void print_datatype_test_header(TestParams_t *params);
+
 static herr_t test_create_committed_datatype(TestParams_t *params);
 static herr_t test_create_committed_datatype_invalid_params(TestParams_t *params);
 static herr_t test_create_anonymous_committed_datatype(TestParams_t *params);
@@ -44,7 +45,7 @@ static herr_t test_cant_commit_predefined(TestParams_t *params);
 #endif
 static herr_t test_cant_modify_committed_type(TestParams_t *params);
 
-static herr_t
+static void
 print_datatype_test_header(TestParams_t H5_ATTR_UNUSED *params)
 {
     printf("\n");
@@ -53,8 +54,6 @@ print_datatype_test_header(TestParams_t H5_ATTR_UNUSED *params)
     printf("*             API Datatype Tests             *\n");
     printf("*                                            *\n");
     printf("**********************************************\n\n");
-
-    return SUCCEED;
 }
 
 /*
@@ -2224,12 +2223,12 @@ H5_api_datatype_test_add(void)
 {
     uint64_t testframe_flags = ALLOW_MULTITHREAD;
 
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_datatype_test_header", print_datatype_test_header, NULL, NULL, NULL, 0, 0,
-            "Prints header for datatype tests");
-
     AddTest("test_create_committed_datatype", test_create_committed_datatype, NULL, NULL, NULL, 0,
             testframe_flags, "creation of a committed datatype");
+
+    /* Add a header to the first datatype test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_create_committed_datatype", print_datatype_test_header);
+
     AddTest("test_create_committed_datatype_invalid_params", test_create_committed_datatype_invalid_params,
             NULL, NULL, NULL, 0, testframe_flags, "H5Tcommit2 with invalid parameters");
     AddTest("test_create_anonymous_committed_datatype", test_create_anonymous_committed_datatype, NULL, NULL,

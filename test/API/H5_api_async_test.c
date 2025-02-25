@@ -12,26 +12,9 @@
 
 #include "H5_api_async_test.h"
 
-static herr_t print_async_test_header(TestParams_t *params);
-
-static herr_t
-print_async_test_header(TestParams_t H5_ATTR_UNUSED *params)
-{
-    printf("\n");
-    printf("**********************************************\n");
-    printf("*                                            *\n");
-    printf("*             API Async Tests                *\n");
-    printf("*                                            *\n");
-    printf("**********************************************\n\n");
-
-#ifndef H5_API_TEST_HAVE_ASYNC
-    printf("SKIPPED due to no async support\n");
-#endif
-
-    return SUCCEED;
-}
-
 #ifdef H5_API_TEST_HAVE_ASYNC
+
+static void print_async_test_header(TestParams_t *params);
 
 static herr_t test_one_dataset_io(TestParams_t *params);
 static herr_t test_multi_dataset_io(TestParams_t *params);
@@ -50,6 +33,17 @@ static herr_t test_file_cleanup(TestParams_t *params);
 
 /* Highest "printf" file created (starting at 0) */
 int max_printf_file = -1;
+
+static void
+print_async_test_header(TestParams_t H5_ATTR_UNUSED *params)
+{
+    printf("\n");
+    printf("**********************************************\n");
+    printf("*                                            *\n");
+    printf("*             API Async Tests                *\n");
+    printf("*                                            *\n");
+    printf("**********************************************\n\n");
+}
 
 /*
  * Create file and dataset, write to dataset
@@ -2545,12 +2539,12 @@ H5_api_async_test_add(void)
 {
     uint64_t testframe_flags = ALLOW_MULTITHREAD;
 
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_async_test_header", print_async_test_header, NULL, NULL, NULL, 0, 0,
-            "Prints header for async tests");
-
     AddTest("test_one_dataset_io", test_one_dataset_io, NULL, NULL, NULL, 0,
             testframe_flags, "single dataset I/O");
+
+    /* Add a header to the first async test to distinguish different test interfaces */
+    AddTestHeaderFunc("test_one_dataset_io", print_async_test_header);
+
     AddTest("test_multi_dataset_io", test_multi_dataset_io, NULL, NULL, NULL, 0,
             testframe_flags, "multi dataset I/O");
     AddTest("test_multi_file_dataset_io", test_multi_file_dataset_io, NULL, NULL, NULL, 0,
@@ -2584,9 +2578,7 @@ H5_api_async_test_add(void)
 void
 H5_api_async_test_add(void)
 {
-    /* Add a fake test to print out a header to distinguish different test interfaces */
-    AddTest("print_async_test_header", print_async_test_header, NULL, NULL, NULL, 0,
-            0, "Prints header for async tests");
+    return;
 }
 
 #endif /* H5_API_TEST_HAVE_ASYNC */
