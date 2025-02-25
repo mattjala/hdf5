@@ -282,7 +282,6 @@ error:
 int
 main(int argc, char **argv)
 {
-    H5E_auto2_t default_err_func;
     const char *vol_connector_string;
     const char *vol_connector_name;
     unsigned    seed;
@@ -291,7 +290,6 @@ main(int argc, char **argv)
     hid_t       registered_con_id         = H5I_INVALID_HID;
     char       *vol_connector_string_copy = NULL;
     char       *vol_connector_info        = NULL;
-    void       *default_err_data          = NULL;
     int         required                  = MPI_THREAD_MULTIPLE;
     int         provided;
 
@@ -319,21 +317,12 @@ main(int argc, char **argv)
      */
     H5open();
 
-    /* Store current error stack printing function since TestInit unsets it */
-    H5Eget_auto2(H5E_DEFAULT, &default_err_func, &default_err_data);
-
     /* Initialize testing framework */
     if (TestInit(argv[0], usage, NULL, NULL, NULL, 0, mpi_rank) < 0) {
         if (MAINPROCESS)
             TestErrPrintf("Couldn't initialize testing framework\n");
         goto error;
     }
-
-    /* Reset error stack printing function */
-    H5Eset_auto2(H5E_DEFAULT, default_err_func, default_err_data);
-
-    /* Hide all output from testing framework and replace with our own */
-    SetTestVerbosity(VERBO_NONE);
 
     /* Parse command line separately from the test framework since
      * tests need to be added before TestParseCmdLine in order for

@@ -738,11 +738,9 @@ PerformTests(void)
                     break;
                 case FAIL:
                     MESSAGE(2, ("%*s\n\n", str_width, "FAILED"));
-                    TestsFailed_g++;
                     break;
                 case SKIP:
                     MESSAGE(2, ("%*s\n\n", str_width, "-SKIP-"));
-                    TestsSkipped_g++;
                     break;
                 default:
                     MESSAGE(2, ("%*s\n\n", str_width, "*ERROR*"));

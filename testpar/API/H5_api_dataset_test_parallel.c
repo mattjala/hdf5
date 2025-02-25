@@ -5930,6 +5930,8 @@ test_write_multi_chunk_dataset_same_shape_read(TestParams_t *params)
             }
         }
     }
+    if (MAINPROCESS)
+        printf("\n");
 
     if (chunk_dims) {
         free(chunk_dims);
@@ -6362,6 +6364,8 @@ test_write_multi_chunk_dataset_diff_shape_read(TestParams_t *params)
             }
         }
     }
+    if (MAINPROCESS)
+        printf("\n");
 
     if (chunk_dims) {
         free(chunk_dims);
@@ -6848,6 +6852,8 @@ test_overwrite_multi_chunk_dataset_same_shape_read(TestParams_t *params)
             goto error;
         }
     }
+    if (MAINPROCESS)
+        printf("\n");
 
     if (chunk_dims) {
         free(chunk_dims);
@@ -7340,6 +7346,8 @@ test_overwrite_multi_chunk_dataset_diff_shape_read(TestParams_t *params)
             goto error;
         }
     }
+    if (MAINPROCESS)
+        printf("\n");
 
     if (chunk_dims) {
         free(chunk_dims);
