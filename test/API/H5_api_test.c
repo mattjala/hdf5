@@ -461,8 +461,6 @@ H5_api_test_create_containers(char **filenames, size_t num_filenames, uint64_t v
             goto error;
         }
 
-        printf("Created container file '%s'\n", filenames[i]);
-
         /* Create container groups for each of the test interfaces
          * (group, attribute, dataset, etc.).
          */
@@ -543,6 +541,11 @@ H5_api_test_create_containers(char **filenames, size_t num_filenames, uint64_t v
             goto error;
         }
     }
+
+    if (num_filenames == 1)
+        printf("Created container file '%s'\n\n", filenames[0]);
+    else if (num_filenames > 1)
+        printf("Created container files '%s' through '%s'\n\n", filenames[0], filenames[num_filenames - 1]);
 
     return 0;
 

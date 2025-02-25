@@ -568,7 +568,6 @@ PerformTests(void)
                             TEST_EXECUTION_THREADED;
         herr_t test_ret   = SUCCEED;
 
-
         if (TestArray[Loop].TestSkipFlag) {
             MESSAGE(2, ("Skipping -- %s (%s) \n", TestArray[Loop].Description, TestArray[Loop].Name));
             TestsSkipped_g++;
@@ -589,7 +588,7 @@ PerformTests(void)
         /* Print header with test description for default verbosity level. Add
          * in test name for higher verbosity level.
          */
-        MESSAGE(2, ("Testing %s -- %s ", (is_test_mt ? "(Multi-threaded)" : ""),
+        MESSAGE(2, ("Testing %s-- %s ", (is_test_mt ? "(Multi-threaded) " : ""),
                 TestArray[Loop].Description));
         MESSAGE(4, ("(%s) ", TestArray[Loop].Name));
         MESSAGE(2, ("\n"));
@@ -644,11 +643,18 @@ PerformTests(void)
                 break;
             case FAIL:
                 TestsFailed_g++;
+                /* If test didn't increment error count, store 1 error for it */
+                if (H5_ATOMIC_LOAD(TestArray[Loop].TestNumErrors) == 0)
+                    H5_ATOMIC_STORE(TestArray[Loop].TestNumErrors, 1);
                 break;
             case SKIP:
                 TestsSkipped_g++;
                 break;
             default:
+                TestsFailed_g++;
+                /* If test didn't increment error count, store 1 error for it */
+                if (H5_ATOMIC_LOAD(TestArray[Loop].TestNumErrors) == 0)
+                    H5_ATOMIC_STORE(TestArray[Loop].TestNumErrors, 1);
                 MESSAGE(2, ("Invalid return value (%d) from test %s (%s) \n",
                     test_ret, TestArray[Loop].Name, TestArray[Loop].Description));
                 break;
@@ -734,10 +740,13 @@ static herr_t
 PerformThreadedTest(TestStruct *threaded_test, int num_threads, pthread_t *threads,
                     herr_t *test_ret)
 {
-    TestThreadArgs_t *thread_args = NULL;
-    bool              all_skip    = true;
-    int               ret         = 0;
-    herr_t            ret_value   = SUCCEED;
+    struct ThreadPrivData_t *thread_priv  = NULL;
+    TestThreadArgs_t        *thread_args  = NULL;
+    size_t                   min_subtests = 0;
+    bool                     thread_fail  = false;
+    bool                     all_skip     = true;
+    int                      ret          = 0;
+    herr_t                   ret_value    = SUCCEED;
 
     if (NULL == (thread_args = calloc((size_t)num_threads, sizeof(*thread_args)))) {
         TestErrPrintf("** error allocating memory for thread arguments array **\n");
@@ -759,6 +768,15 @@ PerformThreadedTest(TestStruct *threaded_test, int num_threads, pthread_t *threa
             goto done;
         }
         *args_ptr->ThreadLocalParams = threaded_test->TestParameters;
+
+        /* Allocate private thread data for later use by testing framework */
+        if (NULL == (thread_priv = calloc(1, sizeof(struct ThreadPrivData_t)))) {
+            TestErrPrintf("** error allocating memory for thread-local private data **\n");
+            ret_value = FAIL;
+            goto done;
+        }
+        args_ptr->ThreadLocalParams->MtTestParams.ThreadPrivData = thread_priv;
+        thread_priv = NULL;
 
         args_ptr->ThreadLocalParams->IsMtTest              = true;
         args_ptr->ThreadLocalParams->MtTestParams.ThreadID = thread_idx;
@@ -784,22 +802,49 @@ PerformThreadedTest(TestStruct *threaded_test, int num_threads, pthread_t *threa
 
     /* Aggregate test results from threads */
     for (int thread_idx = 0; thread_idx < num_threads; thread_idx++) {
-        size_t thread_err_cnt = thread_args[thread_idx].ThreadLocalParams->MtTestParams.ThreadErrCnt;
+        struct ThreadPrivData_t *priv_data;
+        size_t                   thread_err_cnt;
 
-        if (thread_args[thread_idx].TestRet < 0 || thread_err_cnt > 0) {
-            TestErrPrintf("** errors occurred in one or more threads **\n");
-            ret_value = FAIL;
-            goto done;
-        }
+        priv_data      = thread_args[thread_idx].ThreadLocalParams->MtTestParams.ThreadPrivData;
+        thread_err_cnt = thread_args[thread_idx].ThreadLocalParams->MtTestParams.ThreadErrCnt;
+
+        if (thread_args[thread_idx].TestRet < 0 || thread_err_cnt > 0)
+            thread_fail = true;
 
         if (thread_args[thread_idx].TestRet != SKIP)
             all_skip = false;
 
         if (thread_args[thread_idx].TestRet != SUCCEED &&
-                thread_args[thread_idx].TestRet != SKIP)
+            thread_args[thread_idx].TestRet != FAIL &&
+            thread_args[thread_idx].TestRet != SKIP)
             MESSAGE(2, ("** invalid return value (%d) from thread %d for test %s (%s) \n",
                 thread_args[thread_idx].TestRet, thread_idx, threaded_test->Name,
                 threaded_test->Description));
+
+        if (thread_idx == 0)
+            min_subtests = priv_data->subtest_count;
+        else
+            min_subtests = MIN(min_subtests, priv_data->subtest_count);
+    }
+
+    /* Ensure value is within range */
+    min_subtests = MIN(min_subtests, TESTFRAME_MAX_NUM_SUBTESTS);
+
+    /* Print delayed sub-test headers, if any, up to the minimum number ran among all threads */
+    if (!all_skip && min_subtests > 0) {
+        for (size_t subtest_idx = 0; subtest_idx < min_subtests; subtest_idx++) {
+            struct ThreadPrivData_t *priv_data;
+
+            priv_data = thread_args[0].ThreadLocalParams->MtTestParams.ThreadPrivData;
+            if (priv_data->subtest_descriptions[subtest_idx])
+                SUBTEST_BANNER(priv_data->subtest_descriptions[subtest_idx]);
+        }
+    }
+
+    if (thread_fail) {
+        TestErrPrintf("** errors occurred in one or more threads **\n");
+        ret_value = FAIL;
+        goto done;
     }
 
     if (all_skip)
@@ -830,10 +875,14 @@ done:
                         thread_args[thread_idx].ThreadLocalParams->MtTestParams.ThreadErrCnt != 0)
                     MESSAGE(2, ("Error message from thread %d: %s\n", thread_idx,
                             thread_args[thread_idx].ThreadLocalParams->MtTestParams.ThreadErrMsg));
+
+                free(thread_args[thread_idx].ThreadLocalParams->MtTestParams.ThreadPrivData);
             }
             free(thread_args[thread_idx].ThreadLocalParams);
         }
     }
+
+    free(thread_priv);
     free(thread_args);
 
     return ret_value;

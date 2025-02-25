@@ -50,6 +50,13 @@
 #define H5_ALARM_SEC 1200 /* default is 20 minutes */
 
 /**
+ * \def TESTFRAME_MAX_NUM_SUBTESTS
+ * Maximum number of subtests allowed for a test program, to simply
+ * logic
+ */
+#define TESTFRAME_MAX_NUM_SUBTESTS 64
+
+/**
  * Test framework flag values for TestInit() function
  */
 /* Instruct testing framework to initialize state for a multi-thread enabled test */
@@ -129,33 +136,22 @@
 #define HDF5_TEST_MAX_NUM_THREADS "HDF5_TEST_MAX_NUM_THREADS"
 
 /*
- * Copies of macros from the h5test testing framework that are
- * specific to this testing framework. These macros are only
+ * Copies of some macros from the h5test testing framework that
+ * are specific to this testing framework. These macros are only
  * intended to be temporarily used by tests that have been ported
  * over from the h5test framework to this testing framework until
  * those tests can be refactored. These macros are setup to handle
- * output being printed from multiple processes/threads
- * simultaneously when tests are running in multi-threaded mode by
- * restricting the output to the "main" process/thread.
+ * output being printed simultaneously from multiple processes
+ * or threads when tests are running in parallel or multi-threaded
+ * mode by restricting the output to the "main" process or thread.
+ * Note that specific macros such as PASSED/H5_FAILED/SKIPPED are
+ * not currently here, as the testing framework does their job
+ * based on a test function's return value.
  */
 #define TESTFRAME_TESTING_2(TestParamsPtr, WHAT)                                                             \
     do {                                                                                                     \
         if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
             printf("  Testing %-60s", WHAT);                                                                 \
-            fflush(stdout);                                                                                  \
-        }                                                                                                    \
-    } while (0)
-#define TESTFRAME_PASSED(TestParamsPtr)                                                                      \
-    do {                                                                                                     \
-        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
-            puts(" PASSED");                                                                                 \
-            fflush(stdout);                                                                                  \
-        }                                                                                                    \
-    } while (0)
-#define TESTFRAME_H5_FAILED(TestParamsPtr)                                                                   \
-    do {                                                                                                     \
-        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
-            puts("*FAILED*");                                                                                \
             fflush(stdout);                                                                                  \
         }                                                                                                    \
     } while (0)
@@ -168,7 +164,12 @@
     } while (0)
 #define TESTFRAME_PUTS_ERROR(TestParamsPtr, s)                                                               \
     do {                                                                                                     \
-        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+        if ((TestParamsPtr)->IsMtTest) {                                                                     \
+            snprintf((TestParamsPtr)->MtTestParams.ThreadErrMsg,                                             \
+                     sizeof((TestParamsPtr)->MtTestParams.ThreadErrMsg),                                     \
+                     "%s at %s:%d in %s()...", s, __FILE__, __LINE__, __func__);                             \
+        }                                                                                                    \
+        else if (IsTestOutputPrinter((TestParamsPtr))) {                                                     \
             puts(s);                                                                                         \
             AT();                                                                                            \
         }                                                                                                    \
@@ -176,8 +177,12 @@
     } while (0)
 #define TESTFRAME_TEST_ERROR(TestParamsPtr)                                                                  \
     do {                                                                                                     \
-        TESTFRAME_H5_FAILED(TestParamsPtr);                                                                  \
-        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+        if ((TestParamsPtr)->IsMtTest) {                                                                     \
+            snprintf((TestParamsPtr)->MtTestParams.ThreadErrMsg,                                             \
+                     sizeof((TestParamsPtr)->MtTestParams.ThreadErrMsg),                                     \
+                     "failed at %s:%d in %s()...", __FILE__, __LINE__, __func__);                            \
+        }                                                                                                    \
+        else if (IsTestOutputPrinter((TestParamsPtr))) {                                                     \
             AT();                                                                                            \
         }                                                                                                    \
         goto error;                                                                                          \
@@ -191,80 +196,65 @@
     } while (0)
 #define TESTFRAME_FAIL_STACK_ERROR(TestParamsPtr)                                                            \
     do {                                                                                                     \
-        TESTFRAME_H5_FAILED(TestParamsPtr);                                                                  \
-        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
+        if ((TestParamsPtr)->IsMtTest) {                                                                     \
+            snprintf((TestParamsPtr)->MtTestParams.ThreadErrMsg,                                             \
+                     sizeof((TestParamsPtr)->MtTestParams.ThreadErrMsg),                                     \
+                     "failed at %s:%d in %s()...", __FILE__, __LINE__, __func__);                            \
+            H5Eprint2(H5E_DEFAULT, stdout);                                                                  \
+        }                                                                                                    \
+        else if (IsTestOutputPrinter((TestParamsPtr))) {                                                     \
             AT();                                                                                            \
             H5Eprint2(H5E_DEFAULT, stdout);                                                                  \
         }                                                                                                    \
         goto error;                                                                                          \
     } while (0)
 #define TESTFRAME_FAIL_PUTS_ERROR(TestParamsPtr, s)                                                          \
-    do {                                                                                                     \
-        TESTFRAME_H5_FAILED(TestParamsPtr);                                                                  \
-        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
-            AT();                                                                                            \
-            puts(s);                                                                                         \
-        }                                                                                                    \
-        goto error;                                                                                          \
-    } while (0)
+    TESTFRAME_PUTS_ERROR(TestParamsPtr, s);
+
 
 /*
- * Begin and end an entire section of multi-part tests. By placing all the
- * parts of a test between these macros, skipping to the 'error' cleanup
- * section of a test is deferred until all parts have finished.
+ * Semi-private macro for the below macros. Not intended
+ * to be used directly by code outside the testing
+ * framework internals.
  */
-#define BEGIN_MULTIPART                                                                                      \
-    {                                                                                                        \
-        int part_nerrors = 0;
+#define SUBTEST_BANNER(Descr)                                                                                \
+    printf("  Testing %s\n", Descr)
 
-#define END_MULTIPART(TestParamsPtr)                                                                         \
-    if (part_nerrors > 0) {                                                                                  \
-        TESTFRAME_TESTING_2(TestParamsPtr, "test cleanup");                                                  \
-        TESTFRAME_SKIPPED(TestParamsPtr);                                                                    \
-        goto error;                                                                                          \
+/*
+ * Macros for denoting a sub-test within a test function.
+ * TestParamsPtr is a pointer to the TestParams_t structure
+ * for the test. Descr is a description string for the
+ * sub-test and must currently be a string literal.
+ * Surrounding a test with these macros will cause a header
+ * for the sub-test to be printed out indented by two spaces
+ * when running tests serially. When running tests in
+ * multi-threaded mode, the header string will be stored and
+ * printing it out will be delayed until final test results
+ * are received from all threads. At that point, some sub-test
+ * headers may not be printed, depending on if any threads
+ * failed.
+ */
+#define SUBTEST_BEGIN(TestParamsPtr, Descr)                                                                  \
+    if ((TestParamsPtr)->IsMtTest) {                                                                         \
+        struct ThreadPrivData_t *priv_data;                                                                  \
+                                                                                                             \
+        /* Delay printing sub-test header until later on */                                                  \
+        priv_data = (struct ThreadPrivData_t *)((TestParamsPtr)->MtTestParams.ThreadPrivData);               \
+        if (priv_data->subtest_count >= TESTFRAME_MAX_NUM_SUBTESTS) {                                        \
+            fprintf(stderr, "** too many sub-tests in test function! **\n");                                 \
+            fflush(stderr);                                                                                  \
+            exit(EXIT_FAILURE);                                                                              \
+        }                                                                                                    \
+                                                                                                             \
+        priv_data->subtest_descriptions[priv_data->subtest_count++] = Descr;                                 \
     }                                                                                                        \
+    else if (IsTestOutputPrinter((TestParamsPtr))) {                                                         \
+        SUBTEST_BANNER(Descr);                                                                               \
+        fflush(stdout);                                                                                      \
     }
 
-#define END_MULTIPART_NO_CLEANUP                                                                             \
-    if (part_nerrors)                                                                                        \
-        goto error;                                                                                          \
-    }
-
-/*
- * Begin, end and handle errors within a single part of a multi-part test.
- * The PART_END macro creates a goto label based on the given "part name".
- * When a failure occurs in the current part, the PART_ERROR macro uses
- * this label to skip to the next part of the multi-part test. The PART_ERROR
- * macro also increments the error count so that the END_MULTIPART macro
- * knows to skip to the test's 'error' label once all test parts have finished.
- */
-#define PART_BEGIN(part_name) {
-#define PART_END(part_name)                                                                                  \
-    }                                                                                                        \
-    part_##part_name##_end:
-#define PART_ERROR(part_name)                                                                                \
-    do {                                                                                                     \
-        part_nerrors++;                                                                                      \
-        goto part_##part_name##_end;                                                                         \
-    } while (0)
-#define PART_TEST_ERROR(TestParamsPtr, part_name)                                                            \
-    do {                                                                                                     \
-        TESTFRAME_H5_FAILED(TestParamsPtr);                                                                  \
-        if (IsTestOutputPrinter((TestParamsPtr))) {                                                          \
-            AT();                                                                                            \
-        }                                                                                                    \
-        part_nerrors++;                                                                                      \
-        goto part_##part_name##_end;                                                                         \
-    } while (0)
-/*
- * Simply skips to the goto label for this test part and moves on to the
- * next test part. Useful for when a test part needs to be skipped for
- * some reason or is currently unimplemented and empty.
- */
-#define PART_EMPTY(part_name)                                                                                \
-    do {                                                                                                     \
-        goto part_##part_name##_end;                                                                         \
-    } while (0)
+/* Reserved for future error handling potential */
+#define SUBTEST_END(TestParamsPtr)
 
 /************/
 /* Typedefs */
@@ -315,6 +305,9 @@
  * newline character, as the testing framework will print
  * one out after each thread's error message, if any.
  *
+ * MtTestParams.ThreadPrivData - A pointer to private data
+ * maintained by the testing framework. Should never be
+ * interacted with directly.
  */
 typedef struct TestParams_t {
     void  *TestParams;
@@ -326,8 +319,32 @@ typedef struct TestParams_t {
         size_t ThreadErrCnt;
         size_t ThreadAmbigCnt;
         char   ThreadErrMsg[1024];
+
+        void  *ThreadPrivData;
     } MtTestParams;
 } TestParams_t;
+
+/*
+ * Private data maintained by the testing framework for a thread.
+ * While made accessible here so that the structure can be access
+ * by testframe macros, instances of this structure should not be
+ * interacted with directly.
+ *
+ * subtest_descriptions - An array of pointers to sub-test header
+ * string literals that are stored by the testing framework so
+ * that output can be coordinated among threads. Once the results
+ * for a multi-thread test have been received from all threads,
+ * sub-test headers will be printed out up to and including the
+ * header for the first sub-test that failed for a thread.
+ *
+ * subtest_count - The number of sub-tests that were executed for
+ * a particular thread. Used to get a minimum number of sub-tests
+ * that were executed by all threads.
+ */
+struct ThreadPrivData_t {
+    const char *subtest_descriptions[TESTFRAME_MAX_NUM_SUBTESTS];
+    size_t      subtest_count;
+};
 
 /*************/
 /* Variables */

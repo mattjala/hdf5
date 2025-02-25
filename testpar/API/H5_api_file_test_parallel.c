@@ -52,7 +52,6 @@ test_create_file(TestParams_t *params)
         TESTFRAME_TEST_ERROR(params);
 
     if ((file_id = H5Fcreate(FILE_CREATE_TEST_FILENAME, H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id)) < 0) {
-        TESTFRAME_H5_FAILED(params);
         printf("    couldn't create file '%s'\n", FILE_CREATE_TEST_FILENAME);
         goto error;
     }
@@ -97,59 +96,45 @@ test_open_file(TestParams_t *params)
     if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, true)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
-    BEGIN_MULTIPART
+    SUBTEST_BEGIN(params, "H5Fopen in read-only mode")
     {
-        PART_BEGIN(H5Fopen_rdonly)
-        {
-            TESTFRAME_TESTING_2(params, "H5Fopen in read-only mode");
-
-            if ((file_id = H5Fopen(H5_api_test_parallel_filename, H5F_ACC_RDONLY, fapl_id)) < 0) {
-                TESTFRAME_H5_FAILED(params);
-                printf("    unable to open file '%s' in read-only mode\n", H5_api_test_parallel_filename);
-                PART_ERROR(H5Fopen_rdonly);
-            }
-
-            TESTFRAME_PASSED(params);
+        if ((file_id = H5Fopen(H5_api_test_parallel_filename, H5F_ACC_RDONLY, fapl_id)) < 0) {
+            printf("    unable to open file '%s' in read-only mode\n", H5_api_test_parallel_filename);
+            TESTFRAME_TEST_ERROR(params);
         }
-        PART_END(H5Fopen_rdonly);
-
-        if (file_id >= 0) {
-            H5E_BEGIN_TRY
-            {
-                H5Fclose(file_id);
-            }
-            H5E_END_TRY
-            file_id = H5I_INVALID_HID;
-        }
-
-        PART_BEGIN(H5Fopen_rdwrite)
-        {
-            TESTFRAME_TESTING_2(params, "H5Fopen in read-write mode");
-
-            if ((file_id = H5Fopen(H5_api_test_parallel_filename, H5F_ACC_RDWR, fapl_id)) < 0) {
-                TESTFRAME_H5_FAILED(params);
-                printf("    unable to open file '%s' in read-write mode\n", H5_api_test_parallel_filename);
-                PART_ERROR(H5Fopen_rdwrite);
-            }
-
-            TESTFRAME_PASSED(params);
-        }
-        PART_END(H5Fopen_rdwrite);
-
-        if (file_id >= 0) {
-            H5E_BEGIN_TRY
-            {
-                H5Fclose(file_id);
-            }
-            H5E_END_TRY
-            file_id = H5I_INVALID_HID;
-        }
-
-        /*
-         * XXX: SWMR open flags
-         */
     }
-    END_MULTIPART(params);
+    SUBTEST_END(params);
+
+    if (file_id >= 0) {
+        H5E_BEGIN_TRY
+        {
+            H5Fclose(file_id);
+        }
+        H5E_END_TRY
+        file_id = H5I_INVALID_HID;
+    }
+
+    SUBTEST_BEGIN(params, "H5Fopen in read-write mode")
+    {
+        if ((file_id = H5Fopen(H5_api_test_parallel_filename, H5F_ACC_RDWR, fapl_id)) < 0) {
+            printf("    unable to open file '%s' in read-write mode\n", H5_api_test_parallel_filename);
+            TESTFRAME_TEST_ERROR(params);
+        }
+    }
+    SUBTEST_END(params);
+
+    if (file_id >= 0) {
+        H5E_BEGIN_TRY
+        {
+            H5Fclose(file_id);
+        }
+        H5E_END_TRY
+        file_id = H5I_INVALID_HID;
+    }
+
+    /*
+     * XXX: SWMR open flags
+     */
 
     if (H5Pclose(fapl_id) < 0)
         TESTFRAME_TEST_ERROR(params);
@@ -181,7 +166,7 @@ error:
  */
 #define SPLIT_FILE_COMM_TEST_FILE_NAME "split_comm_file.h5"
 static herr_t
-test_split_comm_file_access(TestParams_t *params)
+test_split_comm_file_access(TestParams_t H5_ATTR_UNUSED *params)
 {
     MPI_Comm comm;
     MPI_Info info    = MPI_INFO_NULL;
@@ -201,7 +186,6 @@ test_split_comm_file_access(TestParams_t *params)
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     is_old = mpi_rank % 2;
     if (MPI_SUCCESS != MPI_Comm_split(MPI_COMM_WORLD, is_old, mpi_rank, &comm)) {
-        TESTFRAME_H5_FAILED(params);
         printf("    failed to split communicator!\n");
         goto error;
     }
@@ -228,7 +212,6 @@ test_split_comm_file_access(TestParams_t *params)
 
         /* create the file collectively */
         if ((file_id = H5Fcreate(SPLIT_FILE_COMM_TEST_FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id)) < 0) {
-            TESTFRAME_H5_FAILED(params);
             printf("    couldn't create file '%s'\n", SPLIT_FILE_COMM_TEST_FILE_NAME);
             err_occurred = 1;
             goto access_end;
@@ -236,7 +219,6 @@ test_split_comm_file_access(TestParams_t *params)
 
         /* close the file */
         if (H5Fclose(file_id) < 0) {
-            TESTFRAME_H5_FAILED(params);
             printf("    failed to close file '%s'\n", SPLIT_FILE_COMM_TEST_FILE_NAME);
             err_occurred = 1;
             goto access_end;
@@ -244,7 +226,6 @@ test_split_comm_file_access(TestParams_t *params)
 
         /* delete the test file */
         if (GetTestCleanup() && H5Fdelete(SPLIT_FILE_COMM_TEST_FILE_NAME, fapl_id) < 0) {
-            TESTFRAME_H5_FAILED(params);
             printf("    failed to delete file '%s'\n", SPLIT_FILE_COMM_TEST_FILE_NAME);
             err_occurred = 1;
             goto access_end;
@@ -260,26 +241,22 @@ access_end:
 
     /* Get the collective results about whether an error occurred */
     if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &err_occurred, 1, MPI_INT, MPI_LOR, MPI_COMM_WORLD)) {
-        TESTFRAME_H5_FAILED(params);
         printf("    MPI_Allreduce failed\n");
         goto error;
     }
 
     if (err_occurred) {
-        TESTFRAME_H5_FAILED(params);
         printf("    an error occurred on only some ranks during split-communicator file access! - "
                "collectively failing\n");
         goto error;
     }
 
     if (MPI_SUCCESS != MPI_Comm_free(&comm)) {
-        TESTFRAME_H5_FAILED(params);
         printf("    MPI_Comm_free failed\n");
         goto error;
     }
 
     if (MPI_SUCCESS != MPI_Barrier(MPI_COMM_WORLD)) {
-        TESTFRAME_H5_FAILED(params);
         printf("    MPI_Barrier on MPI_COMM_WORLD failed\n");
         goto error;
     }
