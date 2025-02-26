@@ -595,6 +595,7 @@ PerformTests(void)
             goto done;
         }
         for (int thread_idx = 0; thread_idx < num_threads; thread_idx++)
+            /* Initialize each thread with pthread_self() as a sentinel value */
             TestThreads[thread_idx] = pthread_self();
     }
 #endif
@@ -830,6 +831,10 @@ PerformThreadedTest(TestStruct *threaded_test, int num_threads, pthread_t *threa
     }
 
     for (int thread_idx = 0; thread_idx < num_threads; thread_idx++) {
+        /* Reset each thread back to pthread_self() after joining
+         * so that we can determine which threads still need to be
+         * joined if an error occurs in this function.
+         */
         ret = pthread_join(threads[thread_idx], NULL);
         threads[thread_idx] = pthread_self();
 
@@ -901,6 +906,10 @@ done:
         if (pthread_equal(threads[thread_idx], pthread_self()))
             continue;
 
+        /* Reset each thread back to pthread_self() after joining
+         * so that the threads are in a known state for the next
+         * call to this function.
+         */
         ret = pthread_join(threads[thread_idx], NULL);
         threads[thread_idx] = pthread_self();
 
