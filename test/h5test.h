@@ -421,14 +421,14 @@ extern const char *test_path_prefix;
  *
  * \brief Performs test framework initialization
  *
- * \return nothing
+ * \return Zero on success, negative value on failure
  *
  * \details h5_test_init() performs test initialization actions, such as
  *          setting the TestExpress level setting, and should be called
  *          toward the beginning of the main() function in a test program.
  *
  */
-H5TEST_DLL void h5_test_init(void);
+H5TEST_DLL herr_t h5_test_init(void);
 
 /**
  * --------------------------------------------------------------------------
