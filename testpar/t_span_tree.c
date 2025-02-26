@@ -313,7 +313,7 @@ coll_write_test(const TestParams_t *params, int chunk_factor)
     MPI_Comm_rank(comm, &mpi_rank);
 
     /* Obtain file name */
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
 
     /*
      * Buffers' initialization.
@@ -763,7 +763,7 @@ coll_read_test(const TestParams_t *params)
     MPI_Comm_rank(comm, &mpi_rank);
 
     /* Obtain file name */
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
 
     /* Initialize the buffer */
 
@@ -1648,7 +1648,7 @@ lower_dim_size_comp_test__run_test(const TestParams_t *params, const int chunk_e
 
     /* get the file name */
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     assert(filename != NULL);
 
     /* ----------------------------------------
@@ -2471,7 +2471,7 @@ link_chunk_collective_io_test(TestParams_t *params)
     assert(mpi_size > 0);
 
     /* get the file name */
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     assert(filename != NULL);
 
     /* setup file access template */

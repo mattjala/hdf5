@@ -6433,7 +6433,7 @@ serial_test_2(TestParams_t *params)
     TESTING("MT ID serial test #2");
     fflush(stdout);
 
-    test_params = (const mt_test_params_t *)params->TestParams;
+    test_params = (const mt_test_params_t *)params->UserParams;
 
     types_start = test_params->types_start;
     types_count = test_params->types_count;
@@ -7939,7 +7939,7 @@ static herr_t
 mt_test_fcn_1_serial_test(TestParams_t *_params)
 {
     int err_cnt = 0;
-    mt_test_params_t *params = (mt_test_params_t *)_params->TestParams;
+    mt_test_params_t *params = (mt_test_params_t *)_params->UserParams;
 
     TESTING("mt_test_fcn_1 serial test");
     fflush(stdout);

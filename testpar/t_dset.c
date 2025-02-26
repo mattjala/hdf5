@@ -246,7 +246,7 @@ dataset_writeInd(TestParams_t *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Independent write test on file %s\n", filename);
 
@@ -399,7 +399,7 @@ dataset_readInd(TestParams_t *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Independent read test on file %s\n", filename);
 
@@ -544,7 +544,7 @@ dataset_writeAll(TestParams_t *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Collective write test on file %s\n", filename);
 
@@ -1139,7 +1139,7 @@ dataset_readAll(TestParams_t *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Collective read test on file %s\n", filename);
 
@@ -1616,7 +1616,7 @@ extend_writeInd(TestParams_t *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent write test on file %s\n", filename);
 
@@ -1846,7 +1846,7 @@ extend_writeInd2(TestParams_t *params)
     int    i;                               /* Local index variable */
     herr_t ret;                             /* Generic return value */
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent write test #2 on file %s\n", filename);
 
@@ -2024,7 +2024,7 @@ extend_readInd(TestParams_t *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent read test on file %s\n", filename);
 
@@ -2220,7 +2220,7 @@ extend_writeAll(TestParams_t *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent write test on file %s\n", filename);
 
@@ -2472,7 +2472,7 @@ extend_readAll(TestParams_t *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent read test on file %s\n", filename);
 
@@ -2677,7 +2677,7 @@ compress_readAll(TestParams_t *params)
     int         mpi_size, mpi_rank;
     herr_t      ret; /* Generic return value */
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Collective chunked dataset read test on file %s\n", filename);
 
@@ -2882,7 +2882,7 @@ none_selection_chunk(TestParams_t *params)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Extend independent write test on file %s\n", filename);
 
@@ -3198,7 +3198,7 @@ test_actual_io_mode(const TestParams_t *params, int selection_mode)
     mpi_comm = MPI_COMM_WORLD;
     mpi_info = MPI_INFO_NULL;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     assert(filename != NULL);
 
     /* Setup the file access template */
@@ -3767,7 +3767,7 @@ test_no_collective_cause_mode(const TestParams_t *params, int selection_mode)
         VRFY((sid >= 0), "H5Screate_simple succeeded");
     }
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     assert(filename != NULL);
 
     /* Setup the file access template */
@@ -4083,7 +4083,7 @@ dataset_atomicity(TestParams_t *params)
 
     dim0     = 64;
     dim1     = 32;
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (facc_type != FACC_MPIO) {
         printf("Atomicity tests will not work without the MPIO VFD\n");
         return SKIP;
@@ -4434,7 +4434,7 @@ test_dense_attr(TestParams_t *params)
     }
 
     /* get filename */
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     assert(filename != NULL);
 
     fpid = H5Pcreate(H5P_FILE_ACCESS);

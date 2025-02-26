@@ -176,8 +176,8 @@ AddTest(const char *TestName, herr_t (*TestFunc)(TestParams_t *), herr_t (*TestS
 
         memcpy(new_test_data, TestData, TestDataSize);
     }
-    TestArray[TestCount].TestParameters.TestParams     = new_test_data;
-    TestArray[TestCount].TestParameters.TestParamsSize = TestDataSize;
+    TestArray[TestCount].TestParameters.UserParams     = new_test_data;
+    TestArray[TestCount].TestParameters.UserParamsSize = TestDataSize;
 
     TestArray[TestCount].TestFunc        = TestFunc;
     TestArray[TestCount].TestSetupFunc   = TestSetupFunc;
@@ -1089,8 +1089,8 @@ TestShutdown(void)
 
     if (TestArray)
         for (unsigned Loop = 0; Loop < TestCount; Loop++) {
-            free(TestArray[Loop].TestParameters.TestParams);
-            TestArray[Loop].TestParameters.TestParams = NULL;
+            free(TestArray[Loop].TestParameters.UserParams);
+            TestArray[Loop].TestParameters.UserParams = NULL;
         }
 
     free(TestArray);

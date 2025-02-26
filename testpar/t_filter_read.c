@@ -224,7 +224,7 @@ test_filter_read(TestParams_t *params)
     hsize_t combo_size; /* Size of dataset with multiple filters */
 #endif                  /* H5_HAVE_FILTER_DEFLATE || H5_HAVE_FILTER_SZIP */
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
 
     if (VERBOSE_MED)
         printf("Parallel reading of dataset written with filters %s\n", filename);

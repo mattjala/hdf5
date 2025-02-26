@@ -50,7 +50,7 @@ test_oflush(TestParams_t *params)
         for (i = 0; i < NY; i++)
             data[j][i] = i + j;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
 
     file = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
     VRFY((file >= 0), "file creation succeeded");

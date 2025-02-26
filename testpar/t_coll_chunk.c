@@ -66,7 +66,7 @@ static void coll_chunktest(const char *filename, int chunk_factor, int select_fa
 herr_t
 coll_chunk1(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -130,7 +130,7 @@ coll_chunk1(TestParams_t *params)
 herr_t
 coll_chunk2(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -195,7 +195,7 @@ coll_chunk2(TestParams_t *params)
 herr_t
 coll_chunk3(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     int         mpi_size;
     int         mpi_rank;
 
@@ -262,7 +262,7 @@ coll_chunk3(TestParams_t *params)
 herr_t
 coll_chunk4(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -327,7 +327,7 @@ coll_chunk4(TestParams_t *params)
 herr_t
 coll_chunk5(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -394,7 +394,7 @@ coll_chunk5(TestParams_t *params)
 herr_t
 coll_chunk6(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -459,7 +459,7 @@ coll_chunk6(TestParams_t *params)
 herr_t
 coll_chunk7(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -524,7 +524,7 @@ coll_chunk7(TestParams_t *params)
 herr_t
 coll_chunk8(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -589,7 +589,7 @@ coll_chunk8(TestParams_t *params)
 herr_t
 coll_chunk9(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -654,7 +654,7 @@ coll_chunk9(TestParams_t *params)
 herr_t
 coll_chunk10(TestParams_t *params)
 {
-    const char *filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    const char *filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     int         mpi_rank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);

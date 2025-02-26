@@ -4181,7 +4181,7 @@ parse_options(int argc, char **argv)
 static herr_t
 sscontig1(TestParams_t *params)
 {
-    contig_hs_dr_pio_test(params->TestParams, IND_CONTIG);
+    contig_hs_dr_pio_test(params->UserParams, IND_CONTIG);
     return SUCCEED;
 }
 
@@ -4189,7 +4189,7 @@ sscontig1(TestParams_t *params)
 static herr_t
 sscontig2(TestParams_t *params)
 {
-    contig_hs_dr_pio_test(params->TestParams, COL_CONTIG);
+    contig_hs_dr_pio_test(params->UserParams, COL_CONTIG);
     return SUCCEED;
 }
 
@@ -4197,7 +4197,7 @@ sscontig2(TestParams_t *params)
 static herr_t
 sscontig3(TestParams_t *params)
 {
-    contig_hs_dr_pio_test(params->TestParams, IND_CHUNKED);
+    contig_hs_dr_pio_test(params->UserParams, IND_CHUNKED);
     return SUCCEED;
 }
 
@@ -4205,7 +4205,7 @@ sscontig3(TestParams_t *params)
 static herr_t
 sscontig4(TestParams_t *params)
 {
-    contig_hs_dr_pio_test(params->TestParams, COL_CHUNKED);
+    contig_hs_dr_pio_test(params->UserParams, COL_CHUNKED);
     return SUCCEED;
 }
 
@@ -4213,7 +4213,7 @@ sscontig4(TestParams_t *params)
 static herr_t
 sschecker1(TestParams_t *params)
 {
-    ckrbrd_hs_dr_pio_test(params->TestParams, IND_CONTIG);
+    ckrbrd_hs_dr_pio_test(params->UserParams, IND_CONTIG);
     return SUCCEED;
 }
 
@@ -4221,7 +4221,7 @@ sschecker1(TestParams_t *params)
 static herr_t
 sschecker2(TestParams_t *params)
 {
-    ckrbrd_hs_dr_pio_test(params->TestParams, COL_CONTIG);
+    ckrbrd_hs_dr_pio_test(params->UserParams, COL_CONTIG);
     return SUCCEED;
 }
 
@@ -4229,7 +4229,7 @@ sschecker2(TestParams_t *params)
 static herr_t
 sschecker3(TestParams_t *params)
 {
-    ckrbrd_hs_dr_pio_test(params->TestParams, IND_CHUNKED);
+    ckrbrd_hs_dr_pio_test(params->UserParams, IND_CHUNKED);
     return SUCCEED;
 }
 
@@ -4237,7 +4237,7 @@ sschecker3(TestParams_t *params)
 static herr_t
 sschecker4(TestParams_t *params)
 {
-    ckrbrd_hs_dr_pio_test(params->TestParams, COL_CHUNKED);
+    ckrbrd_hs_dr_pio_test(params->UserParams, COL_CHUNKED);
     return SUCCEED;
 }
 

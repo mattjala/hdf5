@@ -48,7 +48,7 @@ void *mt_test_search_search_by_value_helper(void *args);
 herr_t mt_test_registration(TestParams_t *args) {
   hid_t *vol_ids;
   herr_t ret = SUCCEED;
-  const mt_test_params *params = (const mt_test_params *) args->TestParams;
+  const mt_test_params *params = (const mt_test_params *) args->UserParams;
   const H5VL_class_t *vol_class = NULL;
 
   assert(params != NULL);
@@ -81,7 +81,7 @@ herr_t mt_test_registration_by_name(TestParams_t *args) {
 #else
   hid_t *vol_ids;
   herr_t ret = SUCCEED;
-  const mt_test_params *params = (const mt_test_params *) args->TestParams;
+  const mt_test_params *params = (const mt_test_params *) args->UserParams;
 
   assert(params != NULL);
 
@@ -119,7 +119,7 @@ herr_t mt_test_registration_by_value(TestParams_t *args) {
 #else
   hid_t *vol_ids;
   herr_t ret = SUCCEED;
-  const mt_test_params *params = (const mt_test_params *) args->TestParams;
+  const mt_test_params *params = (const mt_test_params *) args->UserParams;
 
   assert(params != NULL);
 
@@ -239,7 +239,7 @@ herr_t mt_test_registration_operation(TestParams_t *args) {
   
   assert(args != NULL);
 
-  mt_test_params params = *(const mt_test_params*)args->TestParams;
+  mt_test_params params = *(const mt_test_params*)args->UserParams;
   alarm(params.subtest_timeout);
 
   /* Create test file  */
@@ -380,7 +380,7 @@ herr_t mt_test_vol_property_copy(TestParams_t *args) {
   hid_t fapl_id = H5I_INVALID_HID;
   herr_t ret = SUCCEED;
 
-  const mt_test_params *params = (const mt_test_params *) args->TestParams;
+  const mt_test_params *params = (const mt_test_params *) args->UserParams;
   assert(params != NULL);
   alarm(params->subtest_timeout);
 
@@ -457,7 +457,7 @@ herr_t mt_test_register_and_search(TestParams_t *args) {
 
   int num_threads = GetTestMaxNumThreads();
 
-  const mt_test_params *params = (const mt_test_params *) args->TestParams;
+  const mt_test_params *params = (const mt_test_params *) args->UserParams;
   assert(params != NULL);
   alarm(params->subtest_timeout);
 
@@ -633,7 +633,7 @@ herr_t mt_test_vol_wrap_ctx(TestParams_t *args) {
   H5VL_pass_through_info_t passthru_info = {H5VL_NATIVE, NULL};
   hid_t passthru_id = H5I_INVALID_HID;
 
-  const mt_test_params *params = (const mt_test_params *) args->TestParams;
+  const mt_test_params *params = (const mt_test_params *) args->UserParams;
   assert(params != NULL);
   alarm(params->subtest_timeout);
 

@@ -64,7 +64,7 @@ test_split_comm_access(TestParams_t *params)
     herr_t      ret;     /* generic return value */
     const char *filename;
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Split Communicator access test on file %s\n", filename);
 
@@ -148,7 +148,7 @@ test_page_buffer_access(TestParams_t *params)
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
 
     if (VERBOSE_MED)
         printf("Page Buffer Usage in Parallel %s\n", filename);
@@ -804,7 +804,7 @@ test_file_properties(TestParams_t *params)
         return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
 
     mpi_ret = MPI_Info_create(&info);
     VRFY((mpi_ret >= 0), "MPI_Info_create succeeded");
@@ -987,7 +987,7 @@ test_delete(TestParams_t *params)
     htri_t      is_accessible = FAIL; /* Whether a file is accessible */
     herr_t      ret;                  /* Generic return value */
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
 
     /* set up MPI parameters */
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);

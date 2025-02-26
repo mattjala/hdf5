@@ -482,7 +482,7 @@ test_chunk_alloc(TestParams_t *params)
         return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
     if (VERBOSE_MED)
         printf("Extend Chunked allocation test on file %s\n", filename);
 

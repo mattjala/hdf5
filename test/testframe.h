@@ -265,10 +265,10 @@
  * function added to the testing framework as it executes.
  * Its fields are as follows:
  *
- * TestParams - The test parameters that were specified for
+ * UserParams - The test parameters that were specified for
  * the test, if any, by the call to AddTest().
  *
- * TestParamsSize - The size of the test parameters buffer
+ * UserParamsSize - The size of the test parameters buffer
  * specified for the test, if any, by the call to AddTest().
  *
  * IsMtTest - A boolean value indicating whether the test is
@@ -283,7 +283,7 @@
  * structure for the test. However, only fields inside the
  * MtTestParams structure should be considered safe for
  * modification by a thread. Other fields outside this structure,
- * such as the TestParams field, will still be shared among
+ * such as the UserParams field, will still be shared among
  * threads.
  *
  * MtTestParams.ThreadID - An integer value which is unique
@@ -310,8 +310,8 @@
  * interacted with directly.
  */
 typedef struct TestParams_t {
-    void  *TestParams;
-    size_t TestParamsSize;
+    void  *UserParams;
+    size_t UserParamsSize;
 
     bool IsMtTest;
     struct {

@@ -97,7 +97,7 @@ test_partial_no_selection_coll_md_read(TestParams_t *params)
         return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
 
     fapl_id = create_faccess_plist(MPI_COMM_WORLD, MPI_INFO_NULL, facc_type);
     VRFY((fapl_id >= 0), "create_faccess_plist succeeded");
@@ -294,7 +294,7 @@ test_multi_chunk_io_addrmap_issue(TestParams_t *params)
         return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
 
     fapl_id = create_faccess_plist(MPI_COMM_WORLD, MPI_INFO_NULL, facc_type);
     VRFY((fapl_id >= 0), "create_faccess_plist succeeded");
@@ -426,7 +426,7 @@ test_link_chunk_io_sort_chunk_issue(TestParams_t *params)
         return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
 
     fapl_id = create_faccess_plist(MPI_COMM_WORLD, MPI_INFO_NULL, facc_type);
     VRFY((fapl_id >= 0), "create_faccess_plist succeeded");
@@ -584,7 +584,7 @@ test_collective_global_heap_write(TestParams_t *params)
         return SKIP;
     }
 
-    filename = ((const H5Ptest_param_t *)params->TestParams)->name;
+    filename = ((const H5Ptest_param_t *)params->UserParams)->name;
 
     fapl_id = create_faccess_plist(MPI_COMM_WORLD, MPI_INFO_NULL, facc_type);
     VRFY((fapl_id >= 0), "create_faccess_plist succeeded");

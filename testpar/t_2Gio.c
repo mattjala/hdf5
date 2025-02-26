@@ -645,7 +645,7 @@ dataset_writeInd(TestParams_t *params)
     MPI_Comm comm = test_comm;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const test_params_t *)params->TestParams)->filename;
+    filename = ((const test_params_t *)params->UserParams)->filename;
     if (VERBOSE_MED)
         printf("Independent write test on file %s\n", filename);
 
@@ -787,7 +787,7 @@ dataset_readInd(TestParams_t *params)
     MPI_Comm comm = test_comm;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const test_params_t *)params->TestParams)->filename;
+    filename = ((const test_params_t *)params->UserParams)->filename;
     if (VERBOSE_MED)
         printf("Independent read test on file %s\n", filename);
 
@@ -922,7 +922,7 @@ dataset_writeAll(TestParams_t *params)
     MPI_Comm comm = test_comm;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const test_params_t *)params->TestParams)->filename;
+    filename = ((const test_params_t *)params->UserParams)->filename;
     if (VERBOSE_MED)
         printf("Collective write test on file %s\n", filename);
 
@@ -1504,7 +1504,7 @@ dataset_readAll(TestParams_t *params)
     MPI_Comm comm = test_comm;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const test_params_t *)params->TestParams)->filename;
+    filename = ((const test_params_t *)params->UserParams)->filename;
     if (VERBOSE_MED)
         printf("Collective read test on file %s\n", filename);
 
@@ -1956,7 +1956,7 @@ extend_writeInd2(TestParams_t *params)
     int    i;                               /* Local index variable */
     herr_t ret;                             /* Generic return value */
 
-    filename = ((const test_params_t *)params->TestParams)->filename;
+    filename = ((const test_params_t *)params->UserParams)->filename;
     if (VERBOSE_MED)
         printf("Extend independent write test #2 on file %s\n", filename);
 
@@ -2122,7 +2122,7 @@ compress_readAll(TestParams_t *params)
     int         mpi_size, mpi_rank;
     herr_t      ret; /* Generic return value */
 
-    filename = ((const test_params_t *)params->TestParams)->filename;
+    filename = ((const test_params_t *)params->UserParams)->filename;
     if (VERBOSE_MED)
         printf("Collective chunked dataset read test on file %s\n", filename);
 
@@ -2316,7 +2316,7 @@ none_selection_chunk(TestParams_t *params)
     MPI_Comm comm = test_comm;
     MPI_Info info = MPI_INFO_NULL;
 
-    filename = ((const test_params_t *)params->TestParams)->filename;
+    filename = ((const test_params_t *)params->UserParams)->filename;
     if (VERBOSE_MED)
         printf("Extend independent write test on file %s\n", filename);
 

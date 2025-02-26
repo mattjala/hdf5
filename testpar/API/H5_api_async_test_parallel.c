@@ -38,8 +38,8 @@ print_async_test_header(TestParams_t *params)
 {
     bool coll_md_read = true;
 
-    if (params->TestParams)
-        coll_md_read = *(const bool *)params->TestParams;
+    if (params->UserParams)
+        coll_md_read = *(const bool *)params->UserParams;
 
     if (coll_md_read) {
         if (MAINPROCESS) {
@@ -100,7 +100,7 @@ test_async_one_dataset_io(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create dataspace */
@@ -427,7 +427,7 @@ test_async_multi_dataset_io(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create dataspace */
@@ -725,7 +725,7 @@ test_async_multi_file_dataset_io(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create dataspace */
@@ -1114,7 +1114,7 @@ test_async_multi_file_grp_dset_io(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create dataspace */
@@ -1507,7 +1507,7 @@ test_async_set_extent(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create dataspace */
@@ -1828,7 +1828,7 @@ test_async_attribute_exists(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create dataspace */
@@ -1977,7 +1977,7 @@ test_async_attribute_io(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create dataspace */
@@ -2175,7 +2175,7 @@ test_async_attribute_io_tconv(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create dataspace */
@@ -2370,7 +2370,7 @@ test_async_attribute_io_compound(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create dataspace */
@@ -2751,7 +2751,7 @@ test_async_group(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create GCPL */
@@ -2928,7 +2928,7 @@ test_async_link(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create GCPL */
@@ -3176,7 +3176,7 @@ test_async_ocopy_orefresh(TestParams_t *params)
         return SKIP;
     }
 
-    coll_metadata_read = *(const bool *)params->TestParams;
+    coll_metadata_read = *(const bool *)params->UserParams;
 
     if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, coll_metadata_read)) < 0)
         TESTFRAME_TEST_ERROR(params);
@@ -3327,7 +3327,7 @@ test_async_file_reopen(TestParams_t *params)
         return SKIP;
     }
 
-    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->TestParams)) < 0)
+    if ((fapl_id = create_mpi_fapl(MPI_COMM_WORLD, MPI_INFO_NULL, *(const bool *)params->UserParams)) < 0)
         TESTFRAME_TEST_ERROR(params);
 
     /* Create event stack */
