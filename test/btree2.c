@@ -9923,7 +9923,11 @@ main(void)
         envval = "nomatch";
 
     /* Reset library */
-    h5_test_init();
+    if (h5_test_init() < 0) {
+        fprintf(stderr, "failed to initialized h5test\n");
+        exit(EXIT_FAILURE);
+    }
+
     fapl        = h5_fileaccess();
     ExpressMode = h5_get_testexpress();
 

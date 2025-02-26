@@ -2301,7 +2301,11 @@ main(void)
     hbool_t             api_ctx_pushed = FALSE; /* Whether API context pushed */
 
     /* Reset library */
-    h5_test_init();
+    if (h5_test_init() < 0) {
+        fprintf(stderr, "failed to initialized h5test\n");
+        exit(EXIT_FAILURE);
+    }
+
     fapl = h5_fileaccess();
 
     /* Set the filename to use for this test (dependent on fapl) */

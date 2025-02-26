@@ -378,20 +378,30 @@ h5_reset(void)
 /*
  * Performs test framework initialization
  */
-void
+herr_t
 h5_test_init(void)
 {
+    int ret = SUCCEED;
     fflush(stdout);
     fflush(stderr);
     H5close();
 
     /* Save current error stack reporting routine and redirect to our local one */
     assert(err_func == NULL);
-    H5Eget_auto2(H5E_DEFAULT, &err_func, NULL);
-    H5Eset_auto2(H5E_DEFAULT, h5_errors, NULL);
+    if (H5Eget_auto2(H5E_DEFAULT, &err_func, NULL) < 0) {
+        ret = FAIL;
+        goto done;
+    }
+
+    if (H5Eset_auto2(H5E_DEFAULT, h5_errors, NULL) < 0) {
+        ret = FAIL;
+        goto done;
+    }
 
     /* Retrieve the TestExpress mode */
     TestExpress_g = h5_get_testexpress();
+done:
+    return ret;
 } /* end h5_test_init() */
 
 /*
