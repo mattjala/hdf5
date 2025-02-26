@@ -704,49 +704,63 @@ PerformTests(void)
         }
 
         /* Print out PASSED/FAILED/-SKIP- in a similar fashion to h5test tests,
-         * but with a column width of TEST_RESULTS_COLUMN_WIDTH characters
+         * but at a fixed column width of TEST_RESULTS_COLUMN_WIDTH characters
+         * to make visual scanning for tests results easier.
          */
         if (VERBOSE_DEF) {
-            int n_err_digits = 1;
-            int n_err        = H5_ATOMIC_LOAD(TestArray[Loop].TestNumErrors);
-            int str_width;
+            char msg_buf[TEST_RESULTS_COLUMN_WIDTH + 1];
+            int  n_err         = H5_ATOMIC_LOAD(TestArray[Loop].TestNumErrors);
+            int  chars_written = 0;
+            int  msg_space     = sizeof(msg_buf) - 6; /* Leave 6 characters of space for
+                                                         PASSED / FAILED / -SKIP- */
 
-            /* No need to involve math library */
-            if (n_err > 9)
-                n_err_digits++;
-            if (n_err > 99)
-                n_err_digits++;
-            if (n_err > 999)
-                n_err_digits++;
-            if (n_err > 9999)
-                /* Something is majorly wrong at this point,
-                 * so don't worry about the formatting too much.
-                 */
-                n_err_digits++;
-
-            /* remaining string width (with blank space) =
-             * TEST_RESULTS_COLUMN_WIDTH character width -
-             * strlen(leading message) -
-             * #digits in error count
+            /* Fill buffer with leading message and blank space up to the
+             * last few characters for the test results message
              */
-            str_width = TEST_RESULTS_COLUMN_WIDTH - 28 - n_err_digits;
+            if ((chars_written = snprintf(msg_buf, (size_t)msg_space,
+                                          "There %s %d error%s detected.",
+                                          n_err == 1 ? "was" : "were",
+                                          n_err, n_err == 1 ? "" : "s")) < 0) {
+                MESSAGE(5, ("snprintf error\n"));
+                ret_value = FAIL;
+                goto done;
+            }
+            else if (chars_written >= msg_space) {
+                MESSAGE(5, ("Test results message was truncated\n"));
+                ret_value = FAIL;
+                goto done;
+            }
+            else {
+                /* NOT including NUL terminator */
+                int space_left = msg_space - chars_written - 1;
 
-            MESSAGE(2, ("There were %d errors detected.", H5_ATOMIC_LOAD(TestArray[Loop].TestNumErrors)));
+                if (space_left > 0) {
+                    char *next_char = &msg_buf[strlen(msg_buf)];
+
+                    /* Fill remaining space with blank spaces */
+                    for (int i = 0; i < space_left; i++)
+                        *next_char++ = ' ';
+
+                    *next_char = '\0';
+                }
+            }
 
             switch (test_ret) {
                 case SUCCEED:
-                    MESSAGE(2, ("%*s\n\n", str_width, "PASSED"));
+                    strncat(msg_buf, "PASSED", sizeof(msg_buf) - strlen(msg_buf) - 1);
                     break;
                 case FAIL:
-                    MESSAGE(2, ("%*s\n\n", str_width, "FAILED"));
+                    strncat(msg_buf, "FAILED", sizeof(msg_buf) - strlen(msg_buf) - 1);
                     break;
                 case SKIP:
-                    MESSAGE(2, ("%*s\n\n", str_width, "-SKIP-"));
+                    strncat(msg_buf, "-SKIP-", sizeof(msg_buf) - strlen(msg_buf) - 1);
                     break;
                 default:
-                    MESSAGE(2, ("%*s\n\n", str_width, "*ERROR*"));
+                    strncat(msg_buf, "*ERROR", sizeof(msg_buf) - strlen(msg_buf) - 1);
                     break;
             }
+
+            MESSAGE(2, ("%s\n\n", msg_buf));
         }
     }
 
