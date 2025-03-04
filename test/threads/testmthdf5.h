@@ -43,13 +43,13 @@ herr_t mt_test_vol_wrap_ctx(TestParams_t *args);
 herr_t mt_test_vol_wrap_ctx_cleanup(TestParams_t *args);
 
 /* H5CX Tests */
-void mt_test_api_ctx_vol_conn_prop(void *args);
+herr_t mt_test_api_ctx_vol_conn_prop(TestParams_t *args);
 
-void mt_test_api_ctx_vol_wrap_ctx(void *args);
-void mt_test_api_ctx_vol_wrap_ctx_cleanup(void);
+herr_t mt_test_api_ctx_vol_wrap_ctx(TestParams_t *args);
+herr_t mt_test_api_ctx_vol_wrap_ctx_cleanup(TestParams_t *args);
 
 /* Misc Tests */
-void mt_test_library_init(const void *args);
+herr_t mt_test_library_init(TestParams_t *args);
 
 #endif /* H5_HAVE_MULTITHREAD */
 #endif /* MTSAFE_H */

@@ -46,10 +46,10 @@ void *mt_test_api_ctx_vol_wrap_ctx_helper(void *arg);
  * Specifically, verify that the API Context State routines properly deep
  * copy the VOL Connector property and leave the original value unmodified.
 */
-void mt_test_api_ctx_vol_conn_prop(void H5_ATTR_UNUSED *args) {
+herr_t mt_test_api_ctx_vol_conn_prop(TestParams_t H5_ATTR_UNUSED *args) {
 #ifndef H5_MT_TEST_VOL_DIR
     printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
-    return;
+    return SUCCEED;
 #else
     H5VL_pass_through_info_t mt_passthru_info_expected = {H5VL_NATIVE, NULL};
     H5VL_connector_prop_t vol_connector_prop = {0, &mt_passthru_info_expected};
@@ -59,7 +59,7 @@ void mt_test_api_ctx_vol_conn_prop(void H5_ATTR_UNUSED *args) {
 
     if (GetTestMaxNumThreads() <= 0) {
         printf("    No threadcount specified with -maxthreads; skipping test\n");
-        return;
+        return SUCCEED;
     }
 
     /* Use the MT Native VOL Wrapper in order to 
@@ -88,7 +88,7 @@ void mt_test_api_ctx_vol_conn_prop(void H5_ATTR_UNUSED *args) {
     CHECK(ret, FAIL, "H5VLunregister_connector");
 #endif
 
-    return;
+    return SUCCEED;
 }
 
 void *mt_test_api_ctx_vol_conn_prop_helper(void *args) {
@@ -133,10 +133,10 @@ void *mt_test_api_ctx_vol_conn_prop_helper(void *args) {
  * Specifically, verify that the API Context State routines properly deep
  * copy the VOL wrap context and leave the original value unmodified.
  */
-void mt_test_api_ctx_vol_wrap_ctx(void H5_ATTR_UNUSED *args) {
+herr_t mt_test_api_ctx_vol_wrap_ctx(TestParams_t H5_ATTR_UNUSED *args) {
 #ifndef H5_MT_TEST_VOL_DIR
     printf("Skipping test because H5_MT_TEST_VOL_DIR is not defined\n");
-    return;
+    return SUCCEED;
 #else
     H5VL_wrap_ctx_t *wrap_ctx = NULL; /* Generic H5VL-controlled wrap context object */
     H5VL_pass_through_wrap_ctx_t passthru_wrap_ctx_expected = {H5VL_NATIVE, NULL}; /* MT Passthru-controlled VOL wrap context */
@@ -154,7 +154,7 @@ void mt_test_api_ctx_vol_wrap_ctx(void H5_ATTR_UNUSED *args) {
 
     if (GetTestMaxNumThreads() <= 0) {
         printf("    No threadcount specified with -maxthreads; skipping test\n");
-        return;
+        return SUCCEED;
     }
 
     /* Allow MT Passthru VOL to be discovered by name */
@@ -207,7 +207,7 @@ void mt_test_api_ctx_vol_wrap_ctx(void H5_ATTR_UNUSED *args) {
     ret = H5Fclose(file_id);
     CHECK(ret, FAIL, "H5Fclose");
 
-    return;
+    return SUCCEED;
 #endif    
 }
 
@@ -250,7 +250,7 @@ void *mt_test_api_ctx_vol_wrap_ctx_helper(void *arg) {
     return NULL;
 }
 
-void mt_test_api_ctx_vol_wrap_ctx_cleanup(void) {
+herr_t mt_test_api_ctx_vol_wrap_ctx_cleanup(TestParams_t  H5_ATTR_UNUSED *args) {
 #ifdef H5_MT_TEST_VOL_DIR
     herr_t ret = SUCCEED;
 
@@ -259,7 +259,7 @@ void mt_test_api_ctx_vol_wrap_ctx_cleanup(void) {
         CHECK(ret, FAIL, "H5Fdelete");
     }
 #endif
-    return;
+    return SUCCEED;
 }
 
 #endif /* H5_HAVE_MULTITHREAD */
