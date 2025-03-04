@@ -648,7 +648,7 @@ if (NOT BUILD_SHARED_LIBS)
     target_link_libraries (mt_id_test
       PRIVATE
         "$<$<OR:$<BOOL:${HDF5_ENABLE_THREADSAFE}>,$<BOOL:${HDF5_ENABLE_MULTITHREAD}>>:Threads::Threads>"
-        "$<$<BOOL:${HDF5_ENABLE_MULTITHREAD}>:atomic>"
+        "$<$<AND:$<BOOL:${HDF5_ENABLE_MULTITHREAD}>,$<NOT:$<PLATFORM_ID:Darwin>>>:atomic>"
     )
   endif ()
 else ()
@@ -657,7 +657,7 @@ else ()
     PRIVATE
       ${HDF5_TEST_LIBSH_TARGET}
       "$<$<OR:$<BOOL:${HDF5_ENABLE_THREADSAFE}>,$<BOOL:${HDF5_ENABLE_MULTITHREAD}>>:Threads::Threads>"
-      "$<$<BOOL:${HDF5_ENABLE_MULTITHREAD}>:atomic>"
+      "$<$<AND:$<BOOL:${HDF5_ENABLE_MULTITHREAD}>,$<NOT:$<PLATFORM_ID:Darwin>>>:atomic>"
   )
 endif ()
 set_target_properties (mt_id_test PROPERTIES FOLDER test)

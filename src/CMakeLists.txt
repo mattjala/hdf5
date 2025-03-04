@@ -1232,7 +1232,7 @@ if (BUILD_STATIC_LIBS)
     target_link_libraries (${HDF5_LIB_TARGET}
       PRIVATE
           "$<$<OR:$<BOOL:${HDF5_ENABLE_THREADSAFE}>,$<BOOL:${HDF5_ENABLE_SUBFILING_VFD}>,$<BOOL:${HDF5_ENABLE_MULTITHREAD}>>:Threads::Threads>"
-          "$<$<BOOL:${HDF5_ENABLE_MULTITHREAD}>:atomic>"
+          "$<$<AND:$<BOOL:${HDF5_ENABLE_MULTITHREAD}>,$<NOT:$<PLATFORM_ID:Darwin>>>:atomic>"
     )
   endif ()
   set_global_variable (HDF5_LIBRARIES_TO_EXPORT ${HDF5_LIB_TARGET})
@@ -1272,7 +1272,7 @@ if (BUILD_SHARED_LIBS)
   target_link_libraries (${HDF5_LIBSH_TARGET}
       PRIVATE ${LINK_LIBS} ${LINK_COMP_LIBS}
               "$<$<OR:$<BOOL:${HDF5_ENABLE_THREADSAFE}>,$<BOOL:${HDF5_ENABLE_SUBFILING_VFD}>,$<BOOL:${HDF5_ENABLE_MULTITHREAD}>>:Threads::Threads>"
-              "$<$<BOOL:${HDF5_ENABLE_MULTITHREAD}>:atomic>"
+              "$<$<AND:$<BOOL:${HDF5_ENABLE_MULTITHREAD}>,$<NOT:$<PLATFORM_ID:Darwin>>>:atomic>"
       PUBLIC "$<$<NOT:$<PLATFORM_ID:Windows>>:${CMAKE_DL_LIBS}>" "$<$<BOOL:${HDF5_ENABLE_PARALLEL}>:MPI::MPI_C>"
   )
   set_global_variable (HDF5_LIBRARIES_TO_EXPORT "${HDF5_LIBRARIES_TO_EXPORT};${HDF5_LIBSH_TARGET}")
