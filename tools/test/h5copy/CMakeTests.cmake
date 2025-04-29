@@ -9,7 +9,6 @@
 # If you do not have access to either file, you may request a copy from
 # help@hdfgroup.org.
 #
-include (${HDF_RESOURCES_DIR}/HDF5Macros.cmake)
 
 # System-independent path separator
 if (WIN32)
@@ -47,6 +46,8 @@ endif ()
 
   file (MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/testfiles")
   foreach (external_vol_tgt ${HDF5_EXTERNAL_VOL_TARGETS})
+    # Remove HDF5_VOL_ prefix
+    string(REPLACE "HDF5_VOL_" "" external_vol_tgt ${external_vol_tgt})
     file (MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/testfiles/${external_vol_tgt}")
   endforeach()
 
@@ -674,8 +675,10 @@ endif ()
     set (USE_FILTER_SZIP "true")
   endif ()
 
+  list(LENGTH HDF5_EXTERNAL_VOL_TARGETS num_ext_vols)
+
   # Add a test for the native connector and each external VOL connector
-  foreach (vol_idx RANGE 0 ${HDF5_MAX_EXTERNAL_VOLS})
+  foreach (vol_idx RANGE 0 ${num_ext_vols})
     # First, populate VOL info to be passed to tests
     if (${vol_idx} EQUAL 0)
       set(hdf5_vol_name_lower "native")
@@ -684,16 +687,17 @@ endif ()
       # An external VOL connector
       set(vol_env "")
 
-      # The 'name' of the connector used to set up the test names is drawn from the path to its source
-      LOAD_VOL_NAME(${vol_idx})
+      math(EXPR vol_idx_fixed "${vol_idx} - 1")
+      list(GET HDF5_EXTERNAL_VOL_TARGETS ${vol_idx_fixed} hdf5_vol_name_lower)
+      # Remove prefix
+      string(REPLACE "HDF5_VOL_" "" hdf5_vol_name_lower ${hdf5_vol_name_lower})
 
-      if ("${hdf5_vol_name}" STREQUAL "")
+      if ("${hdf5_vol_name_lower}" STREQUAL "")
         continue()
       endif()
 
       # Retrieve VOL connector name/info
-      math(EXPR ext_idx "${vol_idx} - 1")
-      list(GET HDF5_EXTERNAL_VOL_TARGETS ${ext_idx} ext_vol_tgt)
+      list(GET HDF5_EXTERNAL_VOL_TARGETS ${vol_idx_fixed} ext_vol_tgt)
       get_target_property(vol_conn_string ${ext_vol_tgt} HDF5_VOL_NAME)
       list(APPEND vol_env "HDF5_VOL_CONNECTOR=${vol_conn_string}")
 
