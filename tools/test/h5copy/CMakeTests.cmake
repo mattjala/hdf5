@@ -10,6 +10,7 @@
 # help@hdfgroup.org.
 #
 
+include(${HDF_RESOURCES_DIR}/HDF5Macros.cmake)
 # System-independent path separator
 if (WIN32)
   set (CMAKE_SEP "\;")
@@ -44,14 +45,61 @@ endif ()
       h5copy_help2.ddl
   )
 
+  # Testfile directory setup
   file (MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/testfiles")
+
   foreach (external_vol_tgt ${HDF5_EXTERNAL_VOL_TARGETS})
     # Remove HDF5_VOL_ prefix
     string(REPLACE "HDF5_VOL_" "" external_vol_tgt ${external_vol_tgt})
-    file (MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/testfiles/${external_vol_tgt}")
+    file (MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${external_vol_tgt}/testfiles" RESULT)
+    if (NOT ${RESULT} EQUAL 0)
+      message(FATAL_ERROR "Could not create directory ${PROJECT_BINARY_DIR}/${external_vol_tgt}/testfiles")
+    endif()
   endforeach()
 
-  # Setup testfiles
+  # Generate testfiles through script, if enabled
+  if (HDF5_BUILD_GENERATORS)
+    foreach (external_vol_tgt ${HDF5_EXTERNAL_VOL_TARGETS})
+      set(vol_env "")
+      get_target_property (ext_vol_name "${external_vol_tgt}" HDF5_VOL_NAME)
+      list(APPEND vol_env "HDF5_VOL_CONNECTOR=${ext_vol_name}")
+
+      # Get the plugin path
+      set (vol_plugin_paths "${CMAKE_BINARY_DIR}/${HDF5_INSTALL_BIN_DIR}")
+      get_target_property(vol_lib_targets "${external_vol_tgt}" HDF5_VOL_TARGETS)
+
+      # Retrieve plugin path for connector if not default
+      foreach (lib_target ${vol_lib_targets})
+        get_target_property (lib_target_output_dir "${lib_target}" LIBRARY_OUTPUT_DIRECTORY)
+        if (NOT "${lib_target_output_dir}" STREQUAL "lib_target_output_dir-NOTFOUND"
+            AND NOT "${lib_target_output_dir}" STREQUAL ""
+            AND NOT "${lib_target_output_dir}" STREQUAL "${CMAKE_BINARY_DIR}/${HDF5_INSTALL_BIN_DIR}")
+          set (vol_plugin_paths "${vol_plugin_paths}${CMAKE_SEP}${lib_target_output_dir}")
+        endif ()
+      endforeach ()
+
+      list(APPEND vol_env "HDF5_PLUGIN_PATH=${vol_plugin_paths}")
+
+      add_test(NAME ${external_vol_tgt}-h5copygentest COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:h5gentest> -h5copy)
+      
+      string(REPLACE "HDF5_VOL_" "" ext_vol_dir_name "${external_vol_tgt}")
+      set_tests_properties(${external_vol_tgt}-h5copygentest PROPERTIES
+        ENVIRONMENT "${vol_env}"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${ext_vol_dir_name}/testfiles"
+        FIXTURES_SETUP ${external_vol_tgt}-files
+      )
+
+      # These aren't HDF5 files, just copy them to the VOL's subdirectory
+      foreach (listothers ${LIST_OTHER_TEST_FILES})
+        HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/expected/${listothers}"
+        "${PROJECT_BINARY_DIR}/${ext_vol_dir_name}/testfiles/${listothers}"
+        "h5copy_vol_files"
+        )
+      endforeach ()
+    endforeach ()
+  endif()
+  
+  # Copy pre-existing files for Native tests
   foreach (listfiles ${LIST_HDF5_TEST_FILES})
     HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/testfiles/${listfiles}" "${PROJECT_BINARY_DIR}/testfiles/${listfiles}" "h5copy_files")
   endforeach ()
@@ -59,42 +107,6 @@ endif ()
   foreach (listothers ${LIST_OTHER_TEST_FILES})
     HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/expected/${listothers}" "${PROJECT_BINARY_DIR}/testfiles/${listothers}" "h5copy_files")
   endforeach ()
-
-  # Setup testfiles for any external VOL connectors
-  foreach (external_vol_tgt ${HDF5_EXTERNAL_VOL_TARGETS})
-    set (vol_env "")
-    set (vol_plugin_paths "${CMAKE_BINARY_DIR}/${HDF5_INSTALL_BIN_DIR}")
-
-    get_target_property (ext_vol_name "${external_vol_tgt}" HDF5_VOL_NAME)
-
-    # If this VOL has an info string, separate it from the VOL name before calling repack
-    string(FIND ${ext_vol_name} " " idx)
-    if (idx GREATER -1)
-      math(EXPR next "${idx} + 1")
-      string(SUBSTRING ${ext_vol_name} ${next} -1 ext_vol_info )
-      string(SUBSTRING ${ext_vol_name} 0 ${idx} ext_vol_name)
-    else()
-      set(ext_vol_info "NONE")
-    endif()
-
-    foreach (listfiles ${LIST_HDF5_TEST_FILES})
-      HDFTEST_REPACK_FILE("${PROJECT_SOURCE_DIR}/testfiles/${listfiles}"
-        "${PROJECT_BINARY_DIR}/testfiles/${external_vol_tgt}/${listfiles}"
-        "h5copy_files"
-        ${ext_vol_name}
-        ${ext_vol_info}
-      )
-    endforeach ()
-
-    foreach (listothers ${LIST_OTHER_TEST_FILES})
-      HDFTEST_REPACK_FILE("${PROJECT_SOURCE_DIR}/expected/${listothers}"
-      "${PROJECT_BINARY_DIR}/testfiles/${external_vol_tgt}/${listothers}"
-      "h5copy_files"
-      ${ext_vol_name}
-      ${ext_vol_info}
-      )
-    endforeach ()
-  endforeach()
 
   add_custom_target(h5copy_files ALL COMMENT "Copying files needed by h5copy tests" DEPENDS ${h5copy_files_list})
 
@@ -118,6 +130,8 @@ endif ()
       ENVIRONMENT "${env}"
       # h5delete will return an error code if targeted file does not exist - accept any result
       PASS_REGULAR_EXPRESSION "^$|"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     add_test (
         NAME HDF5_VOL_${vol}-H5COPY_F-${testname}
@@ -126,6 +140,8 @@ endif ()
     set_tests_properties (HDF5_VOL_${vol}-H5COPY_F-${testname} PROPERTIES
       DEPENDS HDF5_VOL_${vol}-H5COPY_F-${testname}-clear-objects
       ENVIRONMENT "${env}"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     if ("HDF5_VOL_${vol}-H5COPY_F-${testname}" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
       set_tests_properties (HDF5_VOL_${vol}-H5COPY_F-${testname} PROPERTIES DISABLED true)
@@ -140,6 +156,8 @@ endif ()
       set_tests_properties (HDF5_VOL_${vol}-H5COPY_F-${testname}-DIFF PROPERTIES
         DEPENDS HDF5_VOL_${vol}-H5COPY_F-${testname}
         ENVIRONMENT "${env}"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
       if ("${resultcode}" STREQUAL "1")
         set_tests_properties (HDF5_VOL_${vol}-H5COPY_F-${testname}-DIFF PROPERTIES WILL_FAIL "true")
@@ -156,6 +174,8 @@ endif ()
       ENVIRONMENT "${env}"
       # h5delete will return an error code if targeted file does not exist - accept any result
       PASS_REGULAR_EXPRESSION "^$|"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     if (NOT "${resultcode}" STREQUAL "2")
       set_tests_properties (HDF5_VOL_${vol}-H5COPY_F-${testname}-clean-objects PROPERTIES DEPENDS HDF5_VOL_${vol}-H5COPY_F-${testname}-DIFF)
@@ -175,6 +195,8 @@ endif ()
       ENVIRONMENT "${env}"
       # h5delete will return an error code if targeted file does not exist - accept any result
       PASS_REGULAR_EXPRESSION "^$|"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     add_test (
         NAME HDF5_VOL_${vol}-H5COPY-${testname}
@@ -183,6 +205,8 @@ endif ()
     set_tests_properties (HDF5_VOL_${vol}-H5COPY-${testname} PROPERTIES
       DEPENDS HDF5_VOL_${vol}-H5COPY-${testname}-clear-objects
       ENVIRONMENT "${env}"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     if ("HDF5_VOL_${vol}-H5COPY-${testname}" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
       set_tests_properties (HDF5_VOL_${vol}-H5COPY-${testname} PROPERTIES DISABLED true)
@@ -197,6 +221,8 @@ endif ()
       set_tests_properties (HDF5_VOL_${vol}-H5COPY-${testname}-DIFF PROPERTIES
         DEPENDS HDF5_VOL_${vol}-H5COPY-${testname}
         ENVIRONMENT "${env}"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
       if ("${resultcode}" STREQUAL "1")
         set_tests_properties (HDF5_VOL_${vol}-H5COPY-${testname}-DIFF PROPERTIES WILL_FAIL "true")
@@ -213,6 +239,8 @@ endif ()
       ENVIRONMENT "${env}"
       # h5delete will return an error code if targeted file does not exist - accept any result
       PASS_REGULAR_EXPRESSION "^$|"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
 
     if (NOT "${resultcode}" STREQUAL "2")
@@ -243,6 +271,8 @@ endif ()
       ENVIRONMENT "${env}"
       # h5delete will return an error code if targeted file does not exist - accept any result
       PASS_REGULAR_EXPRESSION "^$|"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
 
     add_test (
@@ -252,6 +282,8 @@ endif ()
     set_tests_properties (HDF5_VOL_${vol}-H5COPY-${testname}-prefill PROPERTIES
       DEPENDS HDF5_VOL_${vol}-H5COPY-${testname}-clear-objects
       ENVIRONMENT "${ENV}"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     if ("HDF5_VOL_${vol}-H5COPY-${testname}-prefill" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
       set_tests_properties (HDF5_VOL_${vol}-H5COPY-${testname}-prefill PROPERTIES DISABLED true)
@@ -264,6 +296,8 @@ endif ()
     set_tests_properties (HDF5_VOL_${vol}-H5COPY-${testname} PROPERTIES
       DEPENDS HDF5_VOL_${vol}-H5COPY-${testname}-prefill
       ENVIRONMENT "${ENV}"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     if ("HDF5_VOL_${vol}-H5COPY-${testname}" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
       set_tests_properties (HDF5_VOL_${vol}-H5COPY-${testname} PROPERTIES DISABLED true)
@@ -277,6 +311,8 @@ endif ()
       set_tests_properties (HDF5_VOL_${vol}-H5COPY-${testname}-DIFF PROPERTIES
         DEPENDS HDF5_VOL_${vol}-H5COPY-${testname}
         ENVIRONMENT "${ENV}"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
       if ("${resultcode}" STREQUAL "1")
         set_tests_properties (HDF5_VOL_${vol}-H5COPY-${testname}-DIFF PROPERTIES WILL_FAIL "true")
@@ -293,6 +329,8 @@ endif ()
       ENVIRONMENT "${ENV}"
       # h5delete will return an error code if targeted file does not exist - accept any result
       PASS_REGULAR_EXPRESSION "^$|"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     if (NOT "${resultcode}" STREQUAL "2")
       set_tests_properties (HDF5_VOL_${vol}-H5COPY-${testname}-clean-objects PROPERTIES DEPENDS HDF5_VOL_${vol}-H5COPY-${testname}-DIFF)
@@ -311,6 +349,8 @@ endif ()
       ENVIRONMENT "${ENV}"
       # h5delete will return an error code if targeted file does not exist - accept any result
       PASS_REGULAR_EXPRESSION "^$|"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     add_test (
         NAME HDF5_VOL_${vol}-H5COPY_SAME-${testname}-prefill
@@ -319,6 +359,8 @@ endif ()
     set_tests_properties (HDF5_VOL_${vol}-H5COPY_SAME-${testname}-prefill PROPERTIES
       DEPENDS HDF5_VOL_${vol}-H5COPY_SAME-${testname}-clear-objects
       ENVIRONMENT "${ENV}"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     if ("HDF5_VOL_${vol}-H5COPY_SAME-${testname}-prefill" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
       set_tests_properties (HDF5_VOL_${vol}-H5COPY_SAME-${testname}-prefill PROPERTIES DISABLED true)
@@ -331,6 +373,8 @@ endif ()
     set_tests_properties (HDF5_VOL_${vol}-H5COPY_SAME-${testname} PROPERTIES
       DEPENDS HDF5_VOL_${vol}-H5COPY_SAME-${testname}-prefill
       ENVIRONMENT "${ENV}"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     if ("HDF5_VOL_${vol}-H5COPY_SAME-${testname}" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
       set_tests_properties (HDF5_VOL_${vol}-H5COPY_SAME-${testname} PROPERTIES DISABLED true)
@@ -344,6 +388,8 @@ endif ()
       set_tests_properties (HDF5_VOL_${vol}-H5COPY_SAME-${testname}-DIFF PROPERTIES
         DEPENDS HDF5_VOL_${vol}-H5COPY_SAME-${testname}
         ENVIRONMENT "${ENV}"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
       if ("${resultcode}" STREQUAL "1")
         set_tests_properties (HDF5_VOL_${vol}-H5COPY_SAME-${testname}-DIFF PROPERTIES WILL_FAIL "true")
@@ -360,6 +406,8 @@ endif ()
       ENVIRONMENT "${ENV}"
       # h5delete will return an error code if targeted file does not exist - accept any result
       PASS_REGULAR_EXPRESSION "^$|"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     if (NOT "${resultcode}" STREQUAL "2")
       set_tests_properties (HDF5_VOL_${vol}-H5COPY_SAME-${testname}-clean-objects PROPERTIES DEPENDS HDF5_VOL_${vol}-H5COPY_SAME-${testname}-DIFF)
@@ -382,6 +430,7 @@ endif ()
       ENVIRONMENT "${env}"
       # h5delete will return an error code if targeted file does not exist - accept any result
       PASS_REGULAR_EXPRESSION "^$|"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
     )
     # If using memchecker add tests without using scripts
     if (HDF5_ENABLE_USING_MEMCHECKER)
@@ -409,6 +458,8 @@ endif ()
     set_tests_properties (HDF5_VOL_${vol}-H5COPY-CMP-${testname} PROPERTIES
       DEPENDS HDF5_VOL_${vol}-H5COPY-CMP-${testname}-clear-objects
       ENVIRONMENT "${env}"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     if ("HDF5_VOL_${vol}-H5COPY-CMP-${testname}" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
       set_tests_properties (HDF5_VOL_${vol}-H5COPY-CMP-${testname} PROPERTIES DISABLED true)
@@ -422,6 +473,8 @@ endif ()
       ENVIRONMENT "${env}"
       # h5delete will return an error code if targeted file does not exist - accept any result
       PASS_REGULAR_EXPRESSION "^$|"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+      FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
   endmacro ()
 
@@ -445,6 +498,8 @@ endif ()
         ENVIRONMENT "${env}"
         # h5delete will return an error code if targeted file does not exist - accept any result
         PASS_REGULAR_EXPRESSION "^$|"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
       if ("${resultcode}" STREQUAL "2")
         add_test (
@@ -482,6 +537,8 @@ endif ()
       set_tests_properties (HDF5_VOL_${vol}-H5COPY_UD-${testname} PROPERTIES DEPENDS
         HDF5_VOL_${vol}-H5COPY_UD-${testname}-clear-objects
         ENVIRONMENT "${env}"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
       if ("HDF5_VOL_${vol}-H5COPY_UD-${testname}" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
         set_tests_properties (HDF5_VOL_${vol}-H5COPY_UD-${testname} PROPERTIES DISABLED true)
@@ -504,6 +561,8 @@ endif ()
       set_tests_properties (HDF5_VOL_${vol}-H5COPY_UD-${testname}-DIFF PROPERTIES
         DEPENDS HDF5_VOL_${vol}-H5COPY_UD-${testname}
         ENVIRONMENT "${env}"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
       if ("HDF5_VOL_${vol}-H5COPY_UD-${testname}-DIFF" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
         set_tests_properties (HDF5_VOL_${vol}-H5COPY_UD-${testname}-DIFF PROPERTIES DISABLED true)
@@ -517,6 +576,8 @@ endif ()
         ENVIRONMENT "${env}"
         # h5delete will return an error code if targeted file does not exist - accept any result
         PASS_REGULAR_EXPRESSION "^$|"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
     endif ()
   endmacro ()
@@ -541,6 +602,8 @@ endif ()
         ENVIRONMENT "${env}"
         # h5delete will return an error code if targeted file does not exist - accept any result
         PASS_REGULAR_EXPRESSION "^$|"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
       if ("${resultcode}" STREQUAL "2")
         add_test (
@@ -580,6 +643,8 @@ endif ()
       set_tests_properties (HDF5_VOL_${vol}-H5COPY_UD_ERR-${testname} PROPERTIES
         DEPENDS HDF5_VOL_${vol}-H5COPY_UD_ERR-${testname}-clear-objects
         ENVIRONMENT "${env}"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
       if ("HDF5_VOL_${vol}-H5COPY_UD_ERR-${testname}" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
         set_tests_properties (HDF5_VOL_${vol}-H5COPY_UD_ERR-${testname} PROPERTIES DISABLED true)
@@ -602,6 +667,8 @@ endif ()
       set_tests_properties (HDF5_VOL_${vol}-H5COPY_UD_ERR-${testname}-DIFF PROPERTIES
         DEPENDS HDF5_VOL_${vol}-H5COPY_UD_ERR-${testname}
         ENVIRONMENT "${env}"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
       if ("HDF5_VOL_${vol}-H5COPY_UD_ERR-${testname}-DIFF" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
         set_tests_properties (HDF5_VOL_${vol}-H5COPY_UD_ERR-${testname}-DIFF PROPERTIES DISABLED true)
@@ -615,6 +682,8 @@ endif ()
         ENVIRONMENT "${env}"
         # h5delete will return an error code if targeted file does not exist - accept any result
         PASS_REGULAR_EXPRESSION "^$|"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
       )
     endif ()
   endmacro ()
@@ -643,6 +712,8 @@ endif ()
     set_tests_properties (HDF5_VOL_${vol}-H5COPY-${resultfile} PROPERTIES
         WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
         ENVIRONMENT "${env}"
+        WORKING_DIRECTORY "${PROJECT_BINARY_DIR}$<IF:$<STREQUAL:${vol},native>,,/${vol}>"
+        FIXTURES_REQUIRED HDF5_VOL_${vol}-files
     )
     if ("HDF5_VOL_${vol}-H5COPY-${resultfile}" MATCHES "${HDF5_DISABLE_TESTS_REGEX}")
       set_tests_properties (HDF5_VOL_${vol}-H5COPY-${resultfile} PROPERTIES DISABLED true)
