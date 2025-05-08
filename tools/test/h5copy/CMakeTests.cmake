@@ -10,7 +10,7 @@
 # help@hdfgroup.org.
 #
 
-include(${HDF_RESOURCES_DIR}/HDF5Macros.cmake)
+include(${HDF_CONFIG_DIR}/HDF5Macros.cmake)
 
 # System-independent path separator
 if (WIN32)
@@ -733,7 +733,7 @@ endif ()
     # First, populate VOL info to be passed to tests
     if (${vol_idx} EQUAL 0)
       set(hdf5_vol_name "native")
-      set(vol_env "")
+      set(vol_env "NONE")
     else ()
       # An external VOL connector
       set(vol_env "")
@@ -745,8 +745,6 @@ endif ()
       if ("${hdf5_vol_name}" STREQUAL "")
         continue()
       endif()
-
-      list(GET vol_env 1 vol_plugin_path)
     endif ()
 
     # Test for help flag
