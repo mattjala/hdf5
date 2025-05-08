@@ -143,7 +143,13 @@ gen_h5diff_files(void)
     nerrors += (test_onion_create_delete_objects(H5DIFF_FILE24) < 0 ? 1 : 0);
     nerrors += (test_onion_dset_extension(H5DIFF_FILE25) < 0 ? 1 : 0);
 
+<<<<<<< HEAD
     return nerrors;
+=======
+    gent_udfilter(H5DIFF_UDFILTER_FILE);
+    gent_udfilter(H5DIFF_UDFILTER_FILE2);
+    return;
+>>>>>>> 72a315c0fa7 (VOL testing with h5diff)
 }
 
 static int
