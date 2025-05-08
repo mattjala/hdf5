@@ -120,24 +120,24 @@ macro (H5_CREATE_VFD_DIR)
 endmacro ()
 
 macro(HDF5_GET_VOL_TGT_INFO vol_tgt vol_name_out vol_env_out)
-set(${vol_env_out} "")
-# HDF5_VOL_CONNECTOR
-get_target_property (ext_vol_name "${vol_tgt}" HDF5_VOL_NAME)
-list(APPEND ${vol_env_out} "HDF5_VOL_CONNECTOR=${ext_vol_name}")
+  set(${vol_env_out} "")
+  # HDF5_VOL_CONNECTOR
+  get_target_property (ext_vol_name "${vol_tgt}" HDF5_VOL_NAME)
+  list(APPEND ${vol_env_out} "HDF5_VOL_CONNECTOR=${ext_vol_name}")
 
-# HDF5_PLUGIN_PATH
-get_target_property(vol_lib_targets "${vol_tgt}" HDF5_VOL_TARGETS)
-set(vol_plugin_paths "${CMAKE_BINARY_DIR}/${HDF5_INSTALL_BIN_DIR}")
-foreach (lib_target ${vol_lib_targets})
-  get_target_property (lib_target_output_dir "${lib_target}" LIBRARY_OUTPUT_DIRECTORY)
-  if (NOT "${lib_target_output_dir}" STREQUAL "lib_target_output_dir-NOTFOUND"
-      AND NOT "${lib_target_output_dir}" STREQUAL ""
-      AND NOT "${lib_target_output_dir}" STREQUAL "${CMAKE_BINARY_DIR}/${HDF5_INSTALL_BIN_DIR}")
-    set (vol_plugin_paths "${vol_plugin_paths}${CMAKE_SEP}${lib_target_output_dir}")
-  endif ()
-endforeach ()
-list(APPEND ${vol_env_out} "HDF5_PLUGIN_PATH=${vol_plugin_paths}")
+  # HDF5_PLUGIN_PATH
+  get_target_property(vol_lib_targets "${vol_tgt}" HDF5_VOL_TARGETS)
+  set(vol_plugin_paths "${CMAKE_BINARY_DIR}/${HDF5_INSTALL_BIN_DIR}")
+  foreach (lib_target ${vol_lib_targets})
+    get_target_property (lib_target_output_dir "${lib_target}" LIBRARY_OUTPUT_DIRECTORY)
+    if (NOT "${lib_target_output_dir}" STREQUAL "lib_target_output_dir-NOTFOUND"
+        AND NOT "${lib_target_output_dir}" STREQUAL ""
+        AND NOT "${lib_target_output_dir}" STREQUAL "${CMAKE_BINARY_DIR}/${HDF5_INSTALL_BIN_DIR}")
+      set (vol_plugin_paths "${vol_plugin_paths}${CMAKE_SEP}${lib_target_output_dir}")
+    endif ()
+  endforeach ()
+  list(APPEND ${vol_env_out} "HDF5_PLUGIN_PATH=${vol_plugin_paths}")
 
-# VOL name
-string(REPLACE "HDF5_VOL_" "" ${vol_name_out} "${vol_tgt}")
+  # VOL name
+  string(REPLACE "HDF5_VOL_" "" ${vol_name_out} "${vol_tgt}")
 endmacro()
