@@ -51,6 +51,7 @@ endif ()
 
   # Generate testfiles for VOL connector(s) through script, if enabled
   if (HDF5_BUILD_GENERATORS)
+    set(h5copy_vol_files_list "")
     foreach (external_vol_tgt ${HDF5_EXTERNAL_VOL_TARGETS})
       HDF5_GET_VOL_TGT_INFO(${external_vol_tgt} ext_vol_dir_name vol_env)
 
@@ -76,6 +77,7 @@ endif ()
         )
       endforeach ()
     endforeach ()
+    add_custom_target(h5copy_vol_files ALL COMMENT "Copying files needed by h5copy tests" DEPENDS ${h5copy_vol_files_list})
   endif()
   
   # Copy pre-existing files for Native tests
