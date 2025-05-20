@@ -376,6 +376,7 @@ endif ()
 
   # copy test files for each external VOL connector
   if (HDF5_BUILD_GENERATORS)
+    set(h5diff_vol_files_list "")
     foreach(external_vol_tgt ${HDF5_EXTERNAL_VOL_TARGETS})
       HDF5_GET_VOL_TGT_INFO(${external_vol_tgt} ext_vol_dir_name vol_env)
 
@@ -406,28 +407,29 @@ endif ()
       foreach (listothers ${LIST_OTHER_TEST_FILES})
         HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/expected/${listothers}"
         "${PROJECT_BINARY_DIR}/${ext_vol_dir_name}/testfiles/${listothers}"
-        "h5diff_files"
+        "h5diff_vol_files"
         )
       endforeach ()
 
       if (COPY_WINDOWS_FILES)
         foreach(h5_tstfiles ${LIST_WIN_TEST_FILES})
-          HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/expected/${h5_tstfiles}w.txt" "${PROJECT_BINARY_DIR}/${ext_vol_dir_name}/testfiles/${h5_tstfiles}.txt" "h5diff_files")
+          HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/expected/${h5_tstfiles}w.txt" "${PROJECT_BINARY_DIR}/${ext_vol_dir_name}/testfiles/${h5_tstfiles}.txt" "h5diff_vol_files")
           
           if (H5_HAVE_PARALLEL)
-            HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/expected/${h5_tstfiles}w.txt" "${PROJECT_BINARY_DIR}/PAR/${ext_vol_dir_name}/testfiles/${h5_tstfiles}.txt" "h5diff_files")
+            HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/expected/${h5_tstfiles}w.txt" "${PROJECT_BINARY_DIR}/PAR/${ext_vol_dir_name}/testfiles/${h5_tstfiles}.txt" "h5diff_vol_files")
           endif ()
         endforeach()
       else ()
         foreach(h5_tstfiles ${LIST_WIN_TEST_FILES})
-          HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/expected/${h5_tstfiles}.txt" "${PROJECT_BINARY_DIR}/${ext_vol_dir_name}/testfiles/${h5_tstfiles}.txt" "h5diff_files")
+          HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/expected/${h5_tstfiles}.txt" "${PROJECT_BINARY_DIR}/${ext_vol_dir_name}/testfiles/${h5_tstfiles}.txt" "h5diff_vol_files")
 
           if (H5_HAVE_PARALLEL)
-            HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/expected/${h5_tstfiles}.txt" "${PROJECT_BINARY_DIR}/PAR/${ext_vol_dir_name}/testfiles/${h5_tstfiles}.txt" "h5diff_files")
+            HDFTEST_COPY_FILE("${PROJECT_SOURCE_DIR}/expected/${h5_tstfiles}.txt" "${PROJECT_BINARY_DIR}/PAR/${ext_vol_dir_name}/testfiles/${h5_tstfiles}.txt" "h5diff_vol_files")
           endif ()
         endforeach()
       endif ()
     endforeach ()
+    add_custom_target(h5diff_vol_files ALL COMMENT "Copying files needed by h5diff VOL tests" DEPENDS ${h5diff_vol_files_list})
   endif ()
 
   #
