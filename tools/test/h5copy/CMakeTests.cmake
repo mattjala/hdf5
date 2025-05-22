@@ -61,7 +61,7 @@ endif ()
         message(FATAL_ERROR "Could not create directory ${PROJECT_BINARY_DIR}/${external_vol_tgt}/testfiles")
       endif()
 
-      add_test(NAME ${external_vol_tgt}-h5copygentest COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:h5gentest> -h5copy)
+      add_test(NAME ${external_vol_tgt}-h5copygentest COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:h5gentest> --h5copy)
       
       set_tests_properties(${external_vol_tgt}-h5copygentest PROPERTIES
         ENVIRONMENT "${vol_env}"
