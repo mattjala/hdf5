@@ -387,7 +387,7 @@ endif ()
       endif ()
 
       # Generate test files
-      add_test(NAME ${external_vol_tgt}-h5diffgentest COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:h5gentest> -h5diff)
+      add_test(NAME ${external_vol_tgt}-h5diffgentest COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:h5gentest> --h5diff)
       set_tests_properties(${external_vol_tgt}-h5diffgentest PROPERTIES
         ENVIRONMENT "${vol_env}"
         WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${ext_vol_dir_name}/testfiles"
@@ -395,7 +395,7 @@ endif ()
       )
 
       if (H5_HAVE_PARALLEL)
-        add_test(NAME ${external_vol_tgt}-h5diffgentest-PAR COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:h5gentest> -h5diff)
+        add_test(NAME ${external_vol_tgt}-h5diffgentest-PAR COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:h5gentest> --h5diff)
         set_tests_properties(${external_vol_tgt}-h5diffgentest-PAR PROPERTIES
           ENVIRONMENT "${vol_env}"
           WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/PAR/${ext_vol_dir_name}/testfiles"
