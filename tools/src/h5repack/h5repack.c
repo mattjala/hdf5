@@ -41,9 +41,6 @@ static int         have_request(pack_opt_t *options);
 int
 h5repack(const char *infile, const char *outfile, pack_opt_t *options)
 {
-    fprintf(stderr, "=== H5 REPACK ===\n");
-    fprintf(stderr, "Input file: %s\n", infile);
-    fprintf(stderr, "Output file: %s\n", outfile);
     /* check input */
     if (check_options(options) < 0)
         return -1;
