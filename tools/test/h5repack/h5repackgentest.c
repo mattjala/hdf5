@@ -17,9 +17,9 @@
 #include "h5tools_utils.h"
 #include "h5test.h"
 
-#define PAGE_SIZE_SMALL 512
+#define PAGE_SIZE_SMALL   512
 #define PAGE_SIZE_DEFAULT 4096
-#define PAGE_SIZE_LARGE 8192
+#define PAGE_SIZE_LARGE   8192
 
 #define MAX_NAME_SIZE  256
 #define FILE_INT32LE_1 "h5repack_int32le_1d"
@@ -444,7 +444,9 @@ generate_f32le(bool external)
 } /* end generate_f32le() */
 
 /* Make a test file with all types of HDF5 objects, datatypes, and filters */
-int generate_all_objects(void) {
+int
+generate_all_objects(void)
+{
     hid_t    fid  = H5I_INVALID_HID;
     hid_t    fcpl = H5I_INVALID_HID; /* File creation property list */
     hid_t    fapl = H5I_INVALID_HID; /* File access property list */
@@ -744,7 +746,7 @@ int generate_all_objects(void) {
         /* Create file creation property list */
         if ((fcpl = H5Pcreate(H5P_FILE_CREATE)) < 0)
             return -1;
-        if (H5Pset_file_space_page_size(fcpl, (hsize_t) PAGE_SIZE_SMALL) < 0)
+        if (H5Pset_file_space_page_size(fcpl, (hsize_t)PAGE_SIZE_SMALL) < 0)
             return -1;
         if (H5Pset_file_space_strategy(fcpl, H5F_FSPACE_STRATEGY_PAGE, true, (hsize_t)1) < 0)
             return -1;
@@ -5845,12 +5847,13 @@ out:
 }
 
 int
-generate_layout(void) {
-    hid_t file_id = H5I_INVALID_HID;
-    hid_t dset_id = H5I_INVALID_HID;
-    hid_t type_id = H5I_INVALID_HID;
-    hid_t space_id = H5I_INVALID_HID;
-    hsize_t dims[2] = {8589934592, 268435457};
+generate_layout(void)
+{
+    hid_t   file_id  = H5I_INVALID_HID;
+    hid_t   dset_id  = H5I_INVALID_HID;
+    hid_t   type_id  = H5I_INVALID_HID;
+    hid_t   space_id = H5I_INVALID_HID;
+    hsize_t dims[2]  = {8589934592, 268435457};
 
     int ret_value = SUCCEED;
 
@@ -5869,7 +5872,8 @@ generate_layout(void) {
         goto done;
     }
 
-    if ((dset_id = H5Dcreate2(file_id, "Dataset", type_id, space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+    if ((dset_id = H5Dcreate2(file_id, "Dataset", type_id, space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) <
+        0) {
         ret_value = FAIL;
         goto done;
     }
