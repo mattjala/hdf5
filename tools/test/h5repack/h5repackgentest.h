@@ -20,5 +20,7 @@ int generate_int32le_2d(bool external);
 int generate_int32le_3d(bool external);
 int generate_uint8be(bool external);
 int generate_f32le(bool external);
+int generate_all_objects(void);
+int generate_layout(void);
 
 #endif /* H5REPACK_GENTEST_H */

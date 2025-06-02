@@ -46,12 +46,18 @@ if (HDF5_BUILD_GENERATORS)
       target_include_directories (${tool}gentest PRIVATE "${HDF5_SRC_INCLUDE_DIRS};${HDF5_TEST_SRC_DIR};${HDF5_TOOLS_TST_DIR};${HDF5_TOOLS_ROOT_DIR}/lib;${HDF5_SRC_BINARY_DIR};$<$<BOOL:${HDF5_ENABLE_PARALLEL}>:${MPI_C_INCLUDE_DIRS}>")    
     endif()
 
+    # h5repack test files generation requires extra headers
+    #if (${tool} STREQUAL "h5repack")
+    #    target_include_directories (${tool}gentest PRIVATE "${HDF5_TOOLS_SRC_H5REPACK_SOURCE_DIR}")
+    #endif()
+
     if (HDF5_BUILD_STATIC_TOOLS)
         TARGET_C_PROPERTIES(${tool}gentest STATIC)
         target_link_libraries (${tool}gentest PRIVATE
           ${HDF5_LIB_TARGET}
           ${HDF5_TOOLS_LIB_TARGET}
           ${HDF5_REQUIRED_LIBRARIES} # For math lib
+          ${HDF5_TEST_LIB_TARGET}
         )
     else ()
         TARGET_C_PROPERTIES(${tool}gentest SHARED)
@@ -59,6 +65,7 @@ if (HDF5_BUILD_GENERATORS)
           ${HDF5_LIBSH_TARGET}
           ${HDF5_TOOLS_LIBSH_TARGET}
           ${HDF5_REQUIRED_LIBRARIES}
+          ${HDF5_TEST_LIBSH_TARGET}
         )
     endif ()
 

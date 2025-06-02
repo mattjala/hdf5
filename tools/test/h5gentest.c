@@ -328,6 +328,11 @@ gen_h5repack_files(void)
         nerrors += (generate_f32le(external) < 0 ? 1 : 0);
     } /* end for external data storage or not */
 
+    nerrors += (generate_all_objects() < 0 ? 1 : 0);
+    nerrors += (generate_layout() < 0 ? 1 : 0);
+    nerrors += (test_attributes(H5DIFF_FILE5, 0) < 0 ? 1 : 0);
+    gent_family();
+
     return nerrors;
 }
 
