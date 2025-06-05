@@ -14,11 +14,14 @@
 cmake_policy(SET CMP0007 NEW)
 cmake_policy(SET CMP0053 NEW)
 
-set(TEST_OUTPUT_FILTERED "${TEST_OUTPUT}_filtered")
-set(TEST_REFERENCE_FILTERED "${TEST_REFERENCE}_filtered")
+# Avoid conflicts in generated files via a random test_id
+string(RANDOM LENGTH 16 ALPHABET "0123456789abcdef" test_id)
 
-set(TEST_ERR_FILTERED "${TEST_OUTPUT}.err_filtered")
-set(TEST_ERRREF_FILTERED "${TEST_ERRREF}_filtered")
+set(TEST_OUTPUT_FILTERED "${TEST_OUTPUT}_filtered_${test_id}")
+set(TEST_REFERENCE_FILTERED "${TEST_REFERENCE}_filtered_${test_id}")
+
+set(TEST_ERR_FILTERED "${TEST_OUTPUT}.err_filtered_${test_id}")
+set(TEST_ERRREF_FILTERED "${TEST_ERRREF}_filtered_${test_id}")
 
 # arguments checking
 if (NOT TEST_PROGRAM)
