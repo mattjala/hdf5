@@ -119,6 +119,10 @@ macro (H5_CREATE_VFD_DIR)
   endforeach ()
 endmacro ()
 
+# Given the name of a CMake target for an external VOL connector,
+# populate variables with the names vol_name_out and vol_env_out with 
+# the connector's name and the environment string needed to load the connector,
+# respectively.
 macro(HDF5_GET_VOL_TGT_INFO vol_tgt vol_name_out vol_env_out)
   set(${vol_env_out} "")
   # HDF5_VOL_CONNECTOR
