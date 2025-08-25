@@ -628,6 +628,7 @@ herr_t
 H5D__virtual_copy_layout(H5O_layout_t *layout)
 {
     H5O_storage_virtual_ent_t *orig_list = NULL;
+    fake_tree_t *new_tree = NULL;
     H5O_storage_virtual_t     *virt      = &layout->storage.u.virt;
     hid_t                      orig_source_fapl;
     hid_t                      orig_source_dapl;
@@ -766,6 +767,26 @@ H5D__virtual_copy_layout(H5O_layout_t *layout)
         virt->list_nalloc = 0;
     } /* end else */
 
+    /* Rebuild the spatial tree from the new list, if it existed */
+    virt->tree = NULL; /* Initialize to NULL first */
+    if (orig_list && virt->list_nused > 0) {
+        /* Create new tree */
+        if ((new_tree = fake_tree_create()) == NULL) {
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to create spatial tree");
+        }
+
+        /* Populate tree from new list entries */
+        for (i = 0; i < virt->list_nused; i++) {
+            if (fake_tree_insert(new_tree, &virt->list[i], i) < 0) {
+                fake_tree_destroy(new_tree);
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to insert entry into spatial tree");
+            }
+        }
+
+        virt->tree = new_tree;
+        new_tree   = NULL;
+    }
+
     /* Copy property lists */
     if (orig_source_fapl >= 0) {
         if (NULL == (plist = (H5P_genplist_t *)H5I_object_verify(orig_source_fapl, H5I_GENPROP_LST)))
@@ -859,6 +880,14 @@ H5D__virtual_reset_layout(H5O_layout_t *layout)
     virt->list_nalloc = (size_t)0;
     virt->list_nused  = (size_t)0;
     (void)memset(virt->min_dims, 0, sizeof(virt->min_dims));
+
+    /* Destroy the spatial tree, if it exists */
+    if (virt->tree) {
+        if (fake_tree_destroy(virt->tree) < 0) {
+            HDONE_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "unable to destroy spatial tree");
+        }
+        virt->tree = NULL;
+    }
 
     /* Close access property lists */
     if (virt->source_fapl >= 0) {
@@ -2496,16 +2525,37 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
     /* Initialize tot_nelmts */
     *tot_nelmts = 0;
 
-    /* Iterate over mappings */
-    for (i = 0; i < storage->list_nused; i++) {
+    /* Perform a spatial tree search to get a list of mappings
+     * whose virtual selection intersects the IO operation */
+    fake_tree_search_result_t results;
+
+    results.capacity = INITIAL_TREE_CAPACITY;
+    results.count    = 0;
+    if (NULL == (results.indexes = (size_t *)H5MM_malloc(results.capacity * sizeof(size_t))))
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "unable to allocate search results array");
+
+    if (fake_tree_search(storage->tree, file_space, &results) < 0) {
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "unable to search virtual mapping tree");
+    }
+
+    // TODO - Untested, may skip important initialization ops
+    if (results.count == 0) {
+        HGOTO_DONE(SUCCEED);
+    }
+
+    /* Iterate over those mappings only */
+    for (i = 0; i < results.count; i++) {
+        size_t mapping_index = results.indexes[i];
+        H5O_storage_virtual_ent_t *mapping_entry = &storage->list[mapping_index];
+
         /* Sanity check that the virtual space has been patched by now */
-        assert(storage->list[i].virtual_space_status == H5O_VIRTUAL_STATUS_CORRECT);
+        assert(mapping_entry->virtual_space_status == H5O_VIRTUAL_STATUS_CORRECT);
 
         /* Check for "printf" source dataset resolution */
-        if (storage->list[i].psfn_nsubs || storage->list[i].psdn_nsubs) {
+        if (mapping_entry->psfn_nsubs || mapping_entry->psdn_nsubs) {
             bool partial_block;
 
-            assert(storage->list[i].unlim_dim_virtual >= 0);
+            assert(mapping_entry->unlim_dim_virtual >= 0);
 
             /* Get selection bounds if necessary */
             if (!bounds_init) {
@@ -2527,33 +2577,33 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
             } /* end if */
 
             /* Get index of first block in virtual selection */
-            storage->list[i].sub_dset_io_start =
-                (size_t)H5S_hyper_get_first_inc_block(storage->list[i].source_dset.virtual_select,
-                                                      bounds_start[storage->list[i].unlim_dim_virtual], NULL);
+            mapping_entry->sub_dset_io_start =
+                (size_t)H5S_hyper_get_first_inc_block(mapping_entry->source_dset.virtual_select,
+                                                      bounds_start[mapping_entry->unlim_dim_virtual], NULL);
 
             /* Get index of first block outside of virtual selection */
-            storage->list[i].sub_dset_io_end = (size_t)H5S_hyper_get_first_inc_block(
-                storage->list[i].source_dset.virtual_select, bounds_end[storage->list[i].unlim_dim_virtual],
+            mapping_entry->sub_dset_io_end = (size_t)H5S_hyper_get_first_inc_block(
+                mapping_entry->source_dset.virtual_select, bounds_end[mapping_entry->unlim_dim_virtual],
                 &partial_block);
             if (partial_block)
-                storage->list[i].sub_dset_io_end++;
-            if (storage->list[i].sub_dset_io_end > storage->list[i].sub_dset_nused)
-                storage->list[i].sub_dset_io_end = storage->list[i].sub_dset_nused;
+                mapping_entry->sub_dset_io_end++;
+            if (mapping_entry->sub_dset_io_end > mapping_entry->sub_dset_nused)
+                mapping_entry->sub_dset_io_end = mapping_entry->sub_dset_nused;
 
             /* Iterate over sub-source dsets */
-            for (j = storage->list[i].sub_dset_io_start; j < storage->list[i].sub_dset_io_end; j++) {
+            for (j = mapping_entry->sub_dset_io_start; j < mapping_entry->sub_dset_io_end; j++) {
                 /* Check for clipped virtual selection */
-                if (!storage->list[i].sub_dset[j].clipped_virtual_select) {
+                if (!mapping_entry->sub_dset[j].clipped_virtual_select) {
                     hsize_t start[H5S_MAX_RANK];
                     /* This should only be NULL if this is a partial block */
-                    assert((j == (storage->list[i].sub_dset_io_end - 1)) && partial_block);
+                    assert((j == (mapping_entry->sub_dset_io_end - 1)) && partial_block);
 
                     /* If the source space status is not correct, we must try to
                      * open the source dataset to patch it */
-                    if (storage->list[i].source_space_status != H5O_VIRTUAL_STATUS_CORRECT) {
-                        assert(!storage->list[i].sub_dset[j].dset);
+                    if (mapping_entry->source_space_status != H5O_VIRTUAL_STATUS_CORRECT) {
+                        assert(!mapping_entry->sub_dset[j].dset);
                         if (H5D__virtual_open_source_dset(dset, &storage->list[i],
-                                                          &storage->list[i].sub_dset[j]) < 0)
+                                                          &mapping_entry->sub_dset[j]) < 0)
                             HGOTO_ERROR(H5E_DATASET, H5E_CANTOPENOBJ, FAIL, "unable to open source dataset");
                     } /* end if */
 
@@ -2562,12 +2612,12 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
                      * cannot do this and we will leave them NULL.  This doesn't
                      * hurt anything because we can't do I/O because the dataset
                      * must not have been found. */
-                    if (storage->list[i].source_space_status == H5O_VIRTUAL_STATUS_CORRECT) {
+                    if (mapping_entry->source_space_status == H5O_VIRTUAL_STATUS_CORRECT) {
                         hsize_t tmp_dims[H5S_MAX_RANK];
                         hsize_t vbounds_end[H5S_MAX_RANK];
 
                         /* Get bounds of virtual selection */
-                        if (H5S_SELECT_BOUNDS(storage->list[i].sub_dset[j].virtual_select, tmp_dims,
+                        if (H5S_SELECT_BOUNDS(mapping_entry->sub_dset[j].virtual_select, tmp_dims,
                                               vbounds_end) < 0)
                             HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "unable to get selection bounds");
 
@@ -2578,7 +2628,7 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
                             vbounds_end[k]++;
 
                         /* Temporarily set extent of virtual selection to bounds */
-                        if (H5S_set_extent(storage->list[i].sub_dset[j].virtual_select, vbounds_end) < 0)
+                        if (H5S_set_extent(mapping_entry->sub_dset[j].virtual_select, vbounds_end) < 0)
                             HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL,
                                         "unable to modify size of dataspace");
 
@@ -2587,13 +2637,13 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
                             HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "can't get VDS dimensions");
 
                         /* Copy virtual selection */
-                        if (NULL == (storage->list[i].sub_dset[j].clipped_virtual_select =
-                                         H5S_copy(storage->list[i].sub_dset[j].virtual_select, false, true)))
+                        if (NULL == (mapping_entry->sub_dset[j].clipped_virtual_select =
+                                         H5S_copy(mapping_entry->sub_dset[j].virtual_select, false, true)))
                             HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to copy virtual selection");
 
                         /* Clip virtual selection to real virtual extent */
                         (void)memset(start, 0, sizeof(start));
-                        if (H5S_select_hyperslab(storage->list[i].sub_dset[j].clipped_virtual_select,
+                        if (H5S_select_hyperslab(mapping_entry->sub_dset[j].clipped_virtual_select,
                                                  H5S_SELECT_AND, start, NULL, tmp_dims, NULL) < 0)
                             HGOTO_ERROR(H5E_DATASET, H5E_CANTSELECT, FAIL, "unable to clip hyperslab");
 
@@ -2601,18 +2651,18 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
                          * virtual space onto source space (create
                          * clipped_source_select) */
                         if (H5S_select_project_intersection(
-                                storage->list[i].sub_dset[j].virtual_select, storage->list[i].source_select,
-                                storage->list[i].sub_dset[j].clipped_virtual_select,
-                                &storage->list[i].sub_dset[j].clipped_source_select, true) < 0)
+                                mapping_entry->sub_dset[j].virtual_select, mapping_entry->source_select,
+                                mapping_entry->sub_dset[j].clipped_virtual_select,
+                                &mapping_entry->sub_dset[j].clipped_source_select, true) < 0)
                             HGOTO_ERROR(H5E_DATASET, H5E_CANTCLIP, FAIL,
                                         "can't project virtual intersection onto memory space");
 
                         /* Set extents of virtual_select and
                          * clipped_virtual_select to virtual extent */
-                        if (H5S_set_extent(storage->list[i].sub_dset[j].virtual_select, tmp_dims) < 0)
+                        if (H5S_set_extent(mapping_entry->sub_dset[j].virtual_select, tmp_dims) < 0)
                             HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL,
                                         "unable to modify size of dataspace");
-                        if (H5S_set_extent(storage->list[i].sub_dset[j].clipped_virtual_select, tmp_dims) < 0)
+                        if (H5S_set_extent(mapping_entry->sub_dset[j].clipped_virtual_select, tmp_dims) < 0)
                             HGOTO_ERROR(H5E_DATASET, H5E_CANTINIT, FAIL,
                                         "unable to modify size of dataspace");
                     } /* end if */
@@ -2620,44 +2670,44 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
 
                 /* Only continue if we managed to obtain a
                  * clipped_virtual_select */
-                if (storage->list[i].sub_dset[j].clipped_virtual_select) {
+                if (mapping_entry->sub_dset[j].clipped_virtual_select) {
                     /* Project intersection of file space and mapping virtual space
                      * onto memory space */
                     if (H5S_select_project_intersection(
-                            file_space, mem_space, storage->list[i].sub_dset[j].clipped_virtual_select,
-                            &storage->list[i].sub_dset[j].projected_mem_space, true) < 0)
+                            file_space, mem_space, mapping_entry->sub_dset[j].clipped_virtual_select,
+                            &mapping_entry->sub_dset[j].projected_mem_space, true) < 0)
                         HGOTO_ERROR(H5E_DATASET, H5E_CANTCLIP, FAIL,
                                     "can't project virtual intersection onto memory space");
 
                     /* Check number of elements selected */
                     if ((select_nelmts = (hssize_t)H5S_GET_SELECT_NPOINTS(
-                             storage->list[i].sub_dset[j].projected_mem_space)) < 0)
+                             mapping_entry->sub_dset[j].projected_mem_space)) < 0)
                         HGOTO_ERROR(H5E_DATASET, H5E_CANTCOUNT, FAIL,
                                     "unable to get number of elements in selection");
 
                     /* Check if anything is selected */
                     if (select_nelmts > (hssize_t)0) {
                         /* Open source dataset */
-                        if (!storage->list[i].sub_dset[j].dset)
+                        if (!mapping_entry->sub_dset[j].dset)
                             /* Try to open dataset */
                             if (H5D__virtual_open_source_dset(dset, &storage->list[i],
-                                                              &storage->list[i].sub_dset[j]) < 0)
+                                                              &mapping_entry->sub_dset[j]) < 0)
                                 HGOTO_ERROR(H5E_DATASET, H5E_CANTOPENOBJ, FAIL,
                                             "unable to open source dataset");
 
                         /* If the source dataset is not open, mark the selected
                          * elements as zero so projected_mem_space is freed */
-                        if (!storage->list[i].sub_dset[j].dset)
+                        if (!mapping_entry->sub_dset[j].dset)
                             select_nelmts = (hssize_t)0;
                     } /* end if */
 
                     /* If there are not elements selected in this mapping, free
                      * projected_mem_space, otherwise update tot_nelmts */
                     if (select_nelmts == (hssize_t)0) {
-                        if (H5S_close(storage->list[i].sub_dset[j].projected_mem_space) < 0)
+                        if (H5S_close(mapping_entry->sub_dset[j].projected_mem_space) < 0)
                             HGOTO_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL,
                                         "can't close projected memory space");
-                        storage->list[i].sub_dset[j].projected_mem_space = NULL;
+                        mapping_entry->sub_dset[j].projected_mem_space = NULL;
                     } /* end if */
                     else
                         *tot_nelmts += (hsize_t)select_nelmts;
@@ -2665,42 +2715,42 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
             }     /* end for */
         }         /* end if */
         else {
-            if (storage->list[i].source_dset.clipped_virtual_select) {
+            if (mapping_entry->source_dset.clipped_virtual_select) {
                 /* Project intersection of file space and mapping virtual space onto
                  * memory space */
                 if (H5S_select_project_intersection(
-                        file_space, mem_space, storage->list[i].source_dset.clipped_virtual_select,
-                        &storage->list[i].source_dset.projected_mem_space, true) < 0)
+                        file_space, mem_space, mapping_entry->source_dset.clipped_virtual_select,
+                        &mapping_entry->source_dset.projected_mem_space, true) < 0)
                     HGOTO_ERROR(H5E_DATASET, H5E_CANTCLIP, FAIL,
                                 "can't project virtual intersection onto memory space");
 
                 /* Check number of elements selected, add to tot_nelmts */
                 if ((select_nelmts = (hssize_t)H5S_GET_SELECT_NPOINTS(
-                         storage->list[i].source_dset.projected_mem_space)) < 0)
+                         mapping_entry->source_dset.projected_mem_space)) < 0)
                     HGOTO_ERROR(H5E_DATASET, H5E_CANTCOUNT, FAIL,
                                 "unable to get number of elements in selection");
 
                 /* Check if anything is selected */
                 if (select_nelmts > (hssize_t)0) {
                     /* Open source dataset */
-                    if (!storage->list[i].source_dset.dset)
+                    if (!mapping_entry->source_dset.dset)
                         /* Try to open dataset */
                         if (H5D__virtual_open_source_dset(dset, &storage->list[i],
-                                                          &storage->list[i].source_dset) < 0)
+                                                          &mapping_entry->source_dset) < 0)
                             HGOTO_ERROR(H5E_DATASET, H5E_CANTOPENOBJ, FAIL, "unable to open source dataset");
 
                     /* If the source dataset is not open, mark the selected elements
                      * as zero so projected_mem_space is freed */
-                    if (!storage->list[i].source_dset.dset)
+                    if (!mapping_entry->source_dset.dset)
                         select_nelmts = (hssize_t)0;
                 } /* end if */
 
                 /* If there are not elements selected in this mapping, free
                  * projected_mem_space, otherwise update tot_nelmts */
                 if (select_nelmts == (hssize_t)0) {
-                    if (H5S_close(storage->list[i].source_dset.projected_mem_space) < 0)
+                    if (H5S_close(mapping_entry->source_dset.projected_mem_space) < 0)
                         HGOTO_ERROR(H5E_DATASET, H5E_CLOSEERROR, FAIL, "can't close projected memory space");
-                    storage->list[i].source_dset.projected_mem_space = NULL;
+                    mapping_entry->source_dset.projected_mem_space = NULL;
                 } /* end if */
                 else
                     *tot_nelmts += (hsize_t)select_nelmts;
@@ -2711,13 +2761,15 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
                  * H5Dget_space().  Do not attempt to open it as this might
                  * affect the extent and we are not going to recalculate it
                  * here. */
-                assert(storage->list[i].unlim_dim_virtual >= 0);
-                assert(!storage->list[i].source_dset.dset);
+                assert(mapping_entry->unlim_dim_virtual >= 0);
+                assert(!mapping_entry->source_dset.dset);
             } /* end else */
         }     /* end else */
     }         /* end for */
 
 done:
+    fake_tree_search_result_destroy(&results);
+
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D__virtual_pre_io() */
 
@@ -3351,3 +3403,338 @@ H5D__virtual_release_source_dset_files(H5D_virtual_held_file_t *head)
 done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D__virtual_release_source_dset_files() */
+
+int
+fake_tree_delete_node(fake_tree_node_t *node)
+{
+    /* Free mapping entry */
+    if (node->bbox != NULL) {
+        H5S_close(node->bbox);
+        node->bbox = NULL;
+    }
+
+    return 0;
+}
+
+/*
+ * Create a new tree
+ */
+fake_tree_t *
+fake_tree_create(void)
+{
+    fake_tree_t *tree = (fake_tree_t *)malloc(sizeof(fake_tree_t));
+    if (!tree) {
+        return NULL;
+    }
+
+    if ((tree->arr = calloc(INITIAL_TREE_CAPACITY, sizeof(fake_tree_node_t))) == NULL) {
+        free(tree);
+        return NULL;
+    }
+    tree->count    = 0;
+    tree->capacity = INITIAL_TREE_CAPACITY;
+
+    return tree;
+}
+
+/*
+ * Destroy a tree and free all memory
+ */
+herr_t
+fake_tree_destroy(fake_tree_t *tree)
+{
+    herr_t ret_value = SUCCEED;
+
+    if (!tree) {
+        return SUCCEED; /* NULL tree is not an error */
+    }
+
+    for (size_t i = 0; i < tree->count; i++) {
+        fake_tree_node_t *node = &tree->arr[i];
+
+        fake_tree_delete_node(node);
+    }
+
+    free(tree->arr);
+    tree->arr = NULL;
+
+    free(tree);
+
+    return ret_value;
+}
+
+/*
+ * Insert a mapping entry into the tree
+ *
+ * @param tree: The tree to insert into
+ * @param mapping_entry: Pointer to the mapping entry (H5O_storage_virtual_ent_t*)
+ * @param virtual_select: The virtual selection dataspace for spatial indexing
+ * @return: 0 on success, -1 on failure
+ */
+int
+fake_tree_insert(fake_tree_t *tree, void *mapping_entry, size_t index)
+{
+    if (!tree || !mapping_entry) {
+        return -1;
+    }
+
+    /* Sanity checks */
+    assert(tree->count < 1000000);
+    assert(tree->capacity < 1000000);
+
+    /* Create new node */
+    fake_tree_node_t new_node;
+
+    if (mapping_entry_to_bbox(mapping_entry, &new_node.bbox) < 0)
+        return -1;
+
+    new_node.index = index;
+
+    /* Increase size if needed */
+    if (tree->count + 1 >= tree->capacity) {
+        void *new_arr = realloc(tree->arr, 2 * tree->capacity * sizeof(fake_tree_node_t));
+
+        if (new_arr == NULL) {
+            return -1;
+        }
+
+        tree->arr      = new_arr;
+        tree->capacity = 2 * tree->capacity;
+    }
+    /* Insert at end of array */
+    tree->arr[tree->count] = new_node;
+    tree->count++;
+
+
+    return 0;
+}
+
+/*
+ * Delete a mapping entry from the tree
+ *
+ * @param tree: The tree to delete from
+ * @param mapping_entry: Pointer to the mapping entry to remove
+ * @return: 0 on success, -1 if not found or error
+ */
+int
+fake_tree_delete(fake_tree_t *tree, size_t index)
+{
+    if (!tree) {
+        return -1;
+    }
+
+    /* Linear search for the entry */
+    for (size_t i = 0; i < tree->count; i++) {
+        fake_tree_node_t *curr = &tree->arr[i];
+
+        if (curr->index == index) {
+
+            fake_tree_delete_node(curr);
+            /* Move up all later entries - performance not a concern for this demo */
+            for (size_t ii = i; ii < tree->count - 1; ii++) {
+                tree->arr[ii] = tree->arr[ii + 1];
+            }
+
+            tree->count--;
+            return 0;
+        }
+    }
+
+    return -1; /* Not found */
+}
+
+/*
+ * Create a search result structure
+ */
+fake_tree_search_result_t *
+fake_tree_search_result_create(void)
+{
+    fake_tree_search_result_t *result =
+        (fake_tree_search_result_t *)malloc(sizeof(fake_tree_search_result_t));
+    if (!result) {
+        return NULL;
+    }
+
+    result->indexes = NULL;
+    result->count    = 0;
+    result->capacity = INITIAL_TREE_CAPACITY;
+
+    return result;
+}
+
+/*
+ * Destroy a search result structure
+ */
+void
+fake_tree_search_result_destroy(fake_tree_search_result_t *result)
+{
+    if (!result) {
+        return;
+    }
+
+    if (result->indexes) {
+        free(result->indexes);
+    }
+}
+
+/*
+ * Add a mapping to search results (internal helper)
+ */
+int
+fake_tree_search_result_add(fake_tree_search_result_t *result, size_t index)
+{
+    size_t new_capacity = 0;
+    size_t *new_indexes = NULL;
+
+    /* Grow array if needed */
+    if (result->count >= result->capacity) {
+        new_capacity = result->capacity ? result->capacity * 2 : INITIAL_TREE_CAPACITY;
+        new_indexes = (size_t *)realloc(result->indexes, new_capacity * sizeof(size_t));
+        if (!new_indexes) {
+            return -1;
+        }
+        result->indexes = new_indexes;
+        result->capacity = new_capacity;
+    }
+
+    result->indexes[result->count++] = index;
+    return 0;
+}
+
+/*
+ * Search for mapping entries that intersect with the given selection
+ *
+ * This is the key function that will replace the linear traversal in H5D__virtual_pre_io().
+ * For now, it just does a linear search through all entries.
+ *
+ * @param tree: The tree to search
+ * @param file_space_select: The file space selection to find intersections with
+ * @param result: Structure to store the search results
+ * @return: 0 on success, -1 on error
+ */
+int
+fake_tree_search(fake_tree_t *tree, H5S_t *file_space_select, fake_tree_search_result_t *result)
+{
+    if (!tree || !file_space_select || !result) {
+        return -1;
+    }
+
+    /* Reset result */
+    result->count = 0;
+
+    for (size_t i = 0; i < tree->count; i++) {
+        fake_tree_node_t *curr = &tree->arr[i];
+
+        /* If the spacial region of this entry intersects with the given Space, add it to the list */
+
+        /* Placeholder: assume all entries intersect for testing purposes */
+        /* In real implementation:
+         * if (H5S_select_intersect_block(current->virtual_select, file_space_select)) {
+         */
+        if (1) { /* Temporary - always "intersect" */
+            if (fake_tree_search_result_add(result, curr->index) < 0) {
+                return -1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+int
+mapping_entry_to_bbox(void *mapping_entry, H5S_t **bbox_out)
+{
+    // Get bounding box from existing selection
+    H5O_storage_virtual_ent_t *entry = (H5O_storage_virtual_ent_t *)mapping_entry;
+
+    H5S_t *original_space = entry->source_dset.virtual_select;
+
+    hsize_t start[H5S_MAX_RANK], end[H5S_MAX_RANK];
+    if (H5S_get_select_bounds(original_space, start, end) < 0) {
+        return -1;
+    }
+
+    // Calculate dimensions: end - start + 1
+    hsize_t bbox_dims[H5S_MAX_RANK];
+    int     rank = H5S_get_simple_extent_ndims(original_space);
+
+    if (rank < 0) {
+        return -1; /* Error getting rank */
+    }
+    for (int i = 0; i < rank; i++) {
+        bbox_dims[i] = end[i] - start[i] + 1;
+    }
+
+    // Create new simple dataspace with bounding box dimensions
+    H5S_t *bbox_space = H5S_create_simple((unsigned) rank, bbox_dims, NULL);
+
+    if (bbox_space == NULL) {
+        return -1;
+    }
+
+    *bbox_out = bbox_space;
+
+    return 0;
+}
+
+// *new tree should be a null ptr
+herr_t fake_tree_copy(fake_tree_t **new_tree, fake_tree_t *orig_tree) {
+    assert(new_tree);
+    assert(orig_tree);
+    fake_tree_node_t new_node;
+    herr_t ret_value = SUCCEED;
+    fake_tree_t *new_tree_local = NULL;
+
+    if ((new_tree_local = fake_tree_create()) == NULL) {
+        return -1; /* Error creating new tree */
+    }
+
+    for (size_t i = 0; i < orig_tree->count; i++) {
+        fake_tree_node_t *orig_node = &orig_tree->arr[i];       
+
+        // copy h5S_t
+        if (H5S_copy(orig_node->bbox, false, &new_node.bbox) == NULL) {
+            fake_tree_destroy(new_tree_local); /* Clean up partial tree */
+            return -1; /* Error copying bbox */
+        }
+
+        new_node.index = orig_node->index;
+
+        // insert
+        if (fake_tree_insert_node(new_tree_local, &new_node) < 0) {
+            H5S_close(new_node.bbox); /* Close the bbox space */
+            fake_tree_destroy(new_tree_local); /* Clean up partial tree */
+            return -1; /* Error inserting into new tree */
+        }
+
+    }
+
+    *new_tree = new_tree_local; /* Set the output tree pointer */
+    return ret_value;
+}
+
+// TODO
+// bypass need for a mapping entry
+herr_t fake_tree_insert_node(fake_tree_t *tree, fake_tree_node_t *node) {
+    if (!tree || !node) {
+        return -1; /* Invalid parameters */
+    }
+
+    /* Increase size if needed */
+    if (tree->count + 1 >= tree->capacity) {
+        void *new_arr = realloc(tree->arr, 2 * tree->capacity * sizeof(fake_tree_node_t));
+
+        if (new_arr == NULL) {
+            return -1; /* Memory allocation failed */
+        }
+
+        tree->arr      = new_arr;
+        tree->capacity = 2 * tree->capacity;
+    }
+
+    /* Insert at end of array */
+    tree->arr[tree->count] = *node;
+    tree->count++;
+
+    return 0; /* Success */
+}

@@ -576,6 +576,51 @@ typedef struct H5O_storage_virtual_ent_t {
     UT_hash_handle hh_source_dset; /* Hash handle for this entry in the source dataset name hash table */
 } H5O_storage_virtual_ent_t;
 
+
+#define INITIAL_TREE_CAPACITY 8
+
+/*
+ * Tree node structure - for now just wraps a mapping entry
+ */
+typedef struct fake_tree_node_t {
+    size_t index; /* Index of the mapping entry of this node in the virtual list */
+    H5S_t *bbox; /* Contiguous bounding box which contains the elements in virtual select of mapping_entry */
+} fake_tree_node_t;
+
+/*
+ * Main tree structure
+ */
+typedef struct fake_tree_t {
+    fake_tree_node_t  *arr;      /* Array of nodes */
+    size_t             count;    /* Number of entries */
+    size_t             capacity; /* Physical size of allocated memory */
+} fake_tree_t;
+
+/*
+ * Search result structure to return multiple matching entries
+ */
+typedef struct fake_tree_search_result_t {
+    size_t *indexes; /* Array of indexes */
+    size_t count;    /* Number of matches found */
+    size_t capacity; /* Physical size of allocated memory */
+} fake_tree_search_result_t;
+
+/* Forward declarations */
+fake_tree_t               *fake_tree_create(void);
+herr_t                      fake_tree_destroy(fake_tree_t *tree);
+int                        fake_tree_insert(fake_tree_t *tree, void *mapping_entry, size_t index);
+int                        fake_tree_delete(fake_tree_t *tree, size_t index);
+int                        fake_tree_delete_node(fake_tree_node_t *node);
+fake_tree_search_result_t *fake_tree_search_result_create(void);
+void                       fake_tree_search_result_destroy(fake_tree_search_result_t *result);
+int                 fake_tree_search_result_add(fake_tree_search_result_t *result, size_t index);
+int  fake_tree_search(fake_tree_t *tree, H5S_t *file_space_select, fake_tree_search_result_t *result);
+int  mapping_entry_to_bbox(void *mapping_entry, H5S_t **bbox_out);
+herr_t fake_tree_copy(fake_tree_t **new_tree, fake_tree_t *orig_tree);
+// TODO
+// bypass need for a mapping entry
+herr_t fake_tree_insert_node(fake_tree_t *tree, fake_tree_node_t *node);
+
 typedef struct H5O_storage_virtual_t {
     /* Stored in message */
     H5HG_t serial_list_hobjid; /* Global heap ID for the list of virtual mapping entries stored on disk */
@@ -583,6 +628,7 @@ typedef struct H5O_storage_virtual_t {
     /* Stored in heap */
     size_t                     list_nused; /* Number of array elements used in list    */
     H5O_storage_virtual_ent_t *list;       /* Array of virtual dataset mapping entries */
+    fake_tree_t *tree;
 
     /* Not stored */
     size_t list_nalloc; /* Number of slots allocated          */

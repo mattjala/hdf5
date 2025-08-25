@@ -605,6 +605,12 @@ H5O__layout_decode(H5F_t *f, H5O_t H5_ATTR_UNUSED *open_oh, unsigned H5_ATTR_UNU
                     mesg->storage.u.virt.list_nalloc = (size_t)tmp_hsize;
                     mesg->storage.u.virt.list_nused  = (size_t)tmp_hsize;
 
+                    /* Create the spatial tree */
+                    if ((mesg->storage.u.virt.tree = fake_tree_create()) == NULL) {
+                        HGOTO_ERROR(H5E_OHDR, H5E_CANTCREATE, NULL,
+                                    "unable to create VDS mapping spatial tree");
+                    }
+
                     /* Decode each entry */
                     for (size_t i = 0; i < mesg->storage.u.virt.list_nused; i++) {
                         H5O_storage_virtual_ent_t
@@ -891,6 +897,11 @@ H5O__layout_decode(H5F_t *f, H5O_t H5_ATTR_UNUSED *open_oh, unsigned H5_ATTR_UNU
                         if (H5D_virtual_update_min_dims(mesg, i) < 0)
                             HGOTO_ERROR(H5E_OHDR, H5E_CANTINIT, NULL,
                                         "unable to update virtual dataset minimum dimensions");
+
+                        /* Insert index of entry into spatial tree */
+                        if (fake_tree_insert(mesg->storage.u.virt.tree, &mesg->storage.u.virt.list[i], (size_t) i) < 0)
+                            HGOTO_ERROR(H5E_OHDR, H5E_CANTINSERT, NULL,
+                                        "unable to insert entry into VDS mapping spatial tree");
                     }
 
                     /* Read stored checksum */
