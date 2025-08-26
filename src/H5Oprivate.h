@@ -616,10 +616,10 @@ void                       fake_tree_search_result_destroy(fake_tree_search_resu
 int                 fake_tree_search_result_add(fake_tree_search_result_t *result, size_t index);
 int  fake_tree_search(fake_tree_t *tree, H5S_t *file_space_select, fake_tree_search_result_t *result);
 int  mapping_entry_to_bbox(void *mapping_entry, H5S_t **bbox_out);
-herr_t fake_tree_copy(fake_tree_t **new_tree, fake_tree_t *orig_tree);
 // TODO
 // bypass need for a mapping entry
 herr_t fake_tree_insert_node(fake_tree_t *tree, fake_tree_node_t *node);
+herr_t fake_tree_should_insert(void *mapping_entry, bool *should_insert);
 
 typedef struct H5O_storage_virtual_t {
     /* Stored in message */
@@ -629,6 +629,8 @@ typedef struct H5O_storage_virtual_t {
     size_t                     list_nused; /* Number of array elements used in list    */
     H5O_storage_virtual_ent_t *list;       /* Array of virtual dataset mapping entries */
     fake_tree_t *tree;
+    bool *is_in_tree; /* List of the indices in 'list' that are stored in tree for quick access 
+                       * Some mappings cannot be stored in the tree and must be searched manually */
 
     /* Not stored */
     size_t list_nalloc; /* Number of slots allocated          */

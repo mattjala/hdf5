@@ -611,6 +611,13 @@ H5O__layout_decode(H5F_t *f, H5O_t H5_ATTR_UNUSED *open_oh, unsigned H5_ATTR_UNU
                                     "unable to create VDS mapping spatial tree");
                     }
 
+                    /* Allocate the table to track which indices are in-tree */
+                    if (NULL ==
+                        (mesg->storage.u.virt.is_in_tree =
+                             (bool *)H5MM_calloc(mesg->storage.u.virt.list_nalloc * sizeof(bool))))
+                        HGOTO_ERROR(H5E_OHDR, H5E_CANTALLOC, NULL,
+                                    "memory allocation failed for VDS mapping in-tree flags");
+
                     /* Decode each entry */
                     for (size_t i = 0; i < mesg->storage.u.virt.list_nused; i++) {
                         H5O_storage_virtual_ent_t
@@ -899,9 +906,17 @@ H5O__layout_decode(H5F_t *f, H5O_t H5_ATTR_UNUSED *open_oh, unsigned H5_ATTR_UNU
                                         "unable to update virtual dataset minimum dimensions");
 
                         /* Insert index of entry into spatial tree */
-                        if (fake_tree_insert(mesg->storage.u.virt.tree, &mesg->storage.u.virt.list[i], (size_t) i) < 0)
+                        bool should_insert = false;
+                        if (fake_tree_should_insert(&mesg->storage.u.virt.list[i], &should_insert) < 0)
                             HGOTO_ERROR(H5E_OHDR, H5E_CANTINSERT, NULL,
+                                        "unable to determine if entry should be inserted into VDS mapping "
+                                        "spatial tree");
+                        if (should_insert) {
+                            if (fake_tree_insert(mesg->storage.u.virt.tree, &mesg->storage.u.virt.list[i], (size_t) i) < 0)
+                                HGOTO_ERROR(H5E_OHDR, H5E_CANTINSERT, NULL,
                                         "unable to insert entry into VDS mapping spatial tree");
+                            mesg->storage.u.virt.is_in_tree[i] = true;
+                        }
                     }
 
                     /* Read stored checksum */

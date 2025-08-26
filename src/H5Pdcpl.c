@@ -87,7 +87,7 @@
     }
 #define H5D_DEF_STORAGE_VIRTUAL_INIT                                                                         \
     {                                                                                                        \
-        {HADDR_UNDEF, 0}, 0, NULL, NULL, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                 \
+        {HADDR_UNDEF, 0}, 0, NULL, NULL, NULL, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                 \
                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},                      \
             H5D_VDS_ERROR, HSIZE_UNDEF, -1, -1, false, NULL, NULL                                            \
     }
@@ -2120,6 +2120,7 @@ H5Pset_virtual(hid_t dcpl_id, hid_t vspace_id, const char *src_file_name, const 
     /* Expand list if necessary */
     if (virtual_layout.storage.u.virt.list_nused == virtual_layout.storage.u.virt.list_nalloc) {
         H5O_storage_virtual_ent_t *x; /* Pointer to the new list */
+        bool *y; /* Pointer to the new is_in_tree list */
         size_t    new_alloc = MAX(H5D_VIRTUAL_DEF_LIST_SIZE, virtual_layout.storage.u.virt.list_nalloc * 2);
         ptrdiff_t buf_diff;
 
@@ -2131,6 +2132,11 @@ H5Pset_virtual(hid_t dcpl_id, hid_t vspace_id, const char *src_file_name, const 
         virtual_layout.storage.u.virt.list        = x;
         virtual_layout.storage.u.virt.list_nalloc = new_alloc;
 
+        /* Expand size of is_in_tree list */
+        if (NULL == (y = (bool *)H5MM_realloc(virtual_layout.storage.u.virt.is_in_tree, new_alloc * sizeof(bool))))
+            HGOTO_ERROR(H5E_PLIST, H5E_RESOURCE, FAIL, "can't reallocate virtual dataset mapping is_in_tree list");
+        virtual_layout.storage.u.virt.is_in_tree = y;
+        
         /* Adjust pointers in the hash tables in case realloc moved the buffers, and hence all the elements
          * and hash handles in the hash tables */
         HASH_ADJUST_PTRS(hh_source_file, virtual_layout.storage.u.virt.source_file_hash_table, buf_diff);
@@ -2256,10 +2262,23 @@ H5Pset_virtual(hid_t dcpl_id, hid_t vspace_id, const char *src_file_name, const 
         if ((virtual_layout.storage.u.virt.tree = fake_tree_create()) == NULL) {
             HGOTO_ERROR(H5E_PLIST, H5E_CANTCREATE, FAIL, "can't create VDS spatial tree");
         }
+
+        /* Create list tracking in-tree indices */
+        if (NULL == (virtual_layout.storage.u.virt.is_in_tree = (bool*)H5MM_calloc(
+                         virtual_layout.storage.u.virt.list_nalloc * sizeof(bool))))
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTALLOC, FAIL, "can't allocate VDS in-tree index list");
     }
+
     /* Add index of entry to spatial tree */
-    if (fake_tree_insert(virtual_layout.storage.u.virt.tree, ent, virtual_layout.storage.u.virt.list_nused - 1) < 0) {
-        HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert into VDS spatial tree");
+    bool should_insert = false;
+    if (fake_tree_should_insert(ent, &should_insert) < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't determine if should insert into VDS spatial tree");
+    if (should_insert) {
+        if (fake_tree_insert(virtual_layout.storage.u.virt.tree, ent, virtual_layout.storage.u.virt.list_nused - 1) < 0) {
+            HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert into VDS spatial tree");
+        }
+
+        virtual_layout.storage.u.virt.is_in_tree[virtual_layout.storage.u.virt.list_nused - 1] = true;
     }
 
 done:
