@@ -3797,3 +3797,94 @@ herr_t fake_tree_insert_node(fake_tree_t *tree, fake_tree_node_t *node) {
 
     return 0; /* Success */
 }
+
+int get_dataspace_bbox(hid_t space_id, double *min_coords, double *max_coords, int max_dims) {
+    // Get the number of dimensions in the dataspace
+    int ndims = H5Sget_simple_extent_ndims(space_id);
+    if (ndims < 0) {
+        printf("Error: Failed to get dataspace dimensions\n");
+        return -1;
+    }
+    
+    // Check if caller provided enough space
+    if (ndims > max_dims) {
+        printf("Error: Dataspace has %d dimensions, but only %d provided\n", ndims, max_dims);
+        return -1;
+    }
+    
+    // Allocate temporary arrays for HDF5 bounds
+    hsize_t *start = malloc(ndims * sizeof(hsize_t));
+    hsize_t *end = malloc(ndims * sizeof(hsize_t));
+    
+    if (!start || !end) {
+        printf("Error: Memory allocation failed\n");
+        free(start);
+        free(end);
+        return -1;
+    }
+    
+    // Get the bounding box of the current selection
+    herr_t status = H5Sget_select_bounds(space_id, start, end);
+    if (status < 0) {
+        printf("Error: Failed to get selection bounds\n");
+        free(start);
+        free(end);
+        return -1;
+    }
+    
+    // Convert hsize_t coordinates to caller's double arrays
+    for (int i = 0; i < ndims; i++) {
+        min_coords[i] = (double)start[i];
+        max_coords[i] = (double)end[i];
+    }
+    
+    // Clean up temporary arrays
+    free(start);
+    free(end);
+    
+    return ndims;  // Return number of dimensions on success
+}
+
+herr_t real_tree_create(hid_t *spaces, int num_spaces, IndexH *tree_out) {
+    /* Create the tree */
+    IndexPropertyH props = IndexProperty_Create();
+    if (!props) {
+        printf("Error: Failed to create index properties\n");
+        return -1;
+    }
+    IndexProperty_SetIndexType(props, RT_RTree);           // R-tree index
+    IndexProperty_SetDimension(props, 3);                  // 2D spatial data
+    IndexProperty_SetIndexStorage(props, RT_Memory);       // In-memory storage
+
+    // Create the index
+    IndexH index = Index_Create(props);
+    if (!index) {
+        printf("Error: Failed to create index\n");
+        return -1;
+    }
+    IndexProperty_Destroy(props);
+    // convert each to bbox
+    for (int i = 0; i < num_spaces; i++) {
+        // Get the bounding box of the dataspace
+        double min_coords[3], max_coords[3];
+        int dims = get_dataspace_bbox(spaces[i], min_coords, max_coords, 3);
+        if (dims < 0) {
+            printf("Error: Failed to get bounding box for dataspace %d\n", i);
+            return -1;
+        }
+        
+        // Insert into the R-tree
+        // associated data = id of dataspace
+    
+        RTError error = Index_InsertData(index, spaces[i], min_coords, max_coords, 
+                                         3, NULL, 0);
+        if (error != RT_None) {
+            printf("Error: Failed to insert dataspace %d into index (error code: %d)\n", i, error);
+            return -1;
+        }
+    }
+    // return tree
+    *tree_out = index;
+
+    return 0; // Success
+}

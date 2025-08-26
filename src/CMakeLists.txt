@@ -1246,8 +1246,9 @@ if (BUILD_STATIC_LIBS)
           "$<$<CONFIG:Developer>:${HDF5_DEVELOPER_DEFS}>"
   )
   TARGET_C_PROPERTIES (${HDF5_LIB_TARGET} STATIC)
+  # TODO - Temporary build hack
   target_link_libraries (${HDF5_LIB_TARGET}
-      PRIVATE ${LINK_LIBS} ${LINK_COMP_LIBS}
+      PRIVATE ${LINK_LIBS} ${LINK_COMP_LIBS} spatialindex spatialindex_c
       PUBLIC ${LINK_PUB_LIBS}
   )
   set_global_variable (HDF5_LIBRARIES_TO_EXPORT ${HDF5_LIB_TARGET})
@@ -1275,8 +1276,9 @@ if (BUILD_SHARED_LIBS)
           "$<$<CONFIG:Developer>:${HDF5_DEVELOPER_DEFS}>"
   )
   TARGET_C_PROPERTIES (${HDF5_LIBSH_TARGET} SHARED)
+  # TODO - Temporary build hack
   target_link_libraries (${HDF5_LIBSH_TARGET}
-      PRIVATE ${LINK_LIBS} ${LINK_COMP_LIBS}
+      PRIVATE ${LINK_LIBS} ${LINK_COMP_LIBS} spatialindex spatialindex_c
       PUBLIC ${LINK_PUB_LIBS}
   )
   set_global_variable (HDF5_LIBRARIES_TO_EXPORT "${HDF5_LIBRARIES_TO_EXPORT};${HDF5_LIBSH_TARGET}")

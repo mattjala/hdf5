@@ -43,6 +43,8 @@ typedef struct H5O_fill_t H5O_fill_t;
 #include "H5VLprivate.h" /* Virtual Object Layer                */
 #include "H5Zprivate.h"  /* I/O pipeline filters		*/
 
+#include <spatialindex/capi/sidx_api.h>
+
 /* Forward references of package typedefs */
 typedef struct H5O_msg_class_t H5O_msg_class_t;
 typedef struct H5O_mesg_t      H5O_mesg_t;
@@ -620,6 +622,9 @@ int  mapping_entry_to_bbox(void *mapping_entry, H5S_t **bbox_out);
 // bypass need for a mapping entry
 herr_t fake_tree_insert_node(fake_tree_t *tree, fake_tree_node_t *node);
 herr_t fake_tree_should_insert(void *mapping_entry, bool *should_insert);
+
+herr_t real_tree_create(hid_t *spaces, int num_spaces, IndexH *tree_out);
+int get_dataspace_bbox(hid_t space_id, double *min_coords, double *max_coords, int max_dims);
 
 typedef struct H5O_storage_virtual_t {
     /* Stored in message */
