@@ -3798,93 +3798,232 @@ herr_t fake_tree_insert_node(fake_tree_t *tree, fake_tree_node_t *node) {
     return 0; /* Success */
 }
 
-int get_dataspace_bbox(hid_t space_id, double *min_coords, double *max_coords, int max_dims) {
-    // Get the number of dimensions in the dataspace
-    int ndims = H5Sget_simple_extent_ndims(space_id);
-    if (ndims < 0) {
-        printf("Error: Failed to get dataspace dimensions\n");
-        return -1;
-    }
-    
-    // Check if caller provided enough space
-    if (ndims > max_dims) {
-        printf("Error: Dataspace has %d dimensions, but only %d provided\n", ndims, max_dims);
-        return -1;
-    }
-    
+herr_t
+get_dataspace_bbox(H5S_t *space, double *min_coords, double *max_coords, size_t rank) {
+    herr_t ret_value = SUCCEED;
     // Allocate temporary arrays for HDF5 bounds
-    hsize_t *start = malloc(ndims * sizeof(hsize_t));
-    hsize_t *end = malloc(ndims * sizeof(hsize_t));
+    hsize_t *start = NULL;
+    hsize_t *end = NULL;
     
-    if (!start || !end) {
-        printf("Error: Memory allocation failed\n");
-        free(start);
-        free(end);
-        return -1;
+    if ((start = (hsize_t *) H5MM_calloc(rank * sizeof(hsize_t))) == NULL) {
+        printf("Error: Memory allocation failed for start array\n");
+        ret_value = -1;
+        goto done;
     }
-    
+
+    if ((end = (hsize_t *) H5MM_calloc(rank * sizeof(hsize_t))) == NULL) {
+        printf("Error: Memory allocation failed for end array\n");
+        ret_value = -1;
+        goto done;
+    }
+
     // Get the bounding box of the current selection
-    herr_t status = H5Sget_select_bounds(space_id, start, end);
+    herr_t status = H5S_SELECT_BOUNDS(space, start, end);
     if (status < 0) {
         printf("Error: Failed to get selection bounds\n");
-        free(start);
-        free(end);
-        return -1;
+        ret_value = -1;
+        goto done;
     }
     
     // Convert hsize_t coordinates to caller's double arrays
-    for (int i = 0; i < ndims; i++) {
+    for (size_t i = 0; i < rank; i++) {
         min_coords[i] = (double)start[i];
         max_coords[i] = (double)end[i];
     }
-    
+
+done:
     // Clean up temporary arrays
-    free(start);
-    free(end);
+    H5MM_free(start);
+    H5MM_free(end);
     
-    return ndims;  // Return number of dimensions on success
+    return ret_value;  // Return number of dimensions on success
 }
 
-herr_t real_tree_create(hid_t *spaces, int num_spaces, IndexH *tree_out) {
-    /* Create the tree */
+herr_t rtree_create(IndexH *tree_out, size_t ndims) {
+    /* Create an empty R-tree index */
+    assert(ndims > 0 && ndims < UINT32_MAX);
+
+    // Create index properties
     IndexPropertyH props = IndexProperty_Create();
     if (!props) {
         printf("Error: Failed to create index properties\n");
         return -1;
     }
     IndexProperty_SetIndexType(props, RT_RTree);           // R-tree index
-    IndexProperty_SetDimension(props, 3);                  // 2D spatial data
+    IndexProperty_SetDimension(props, (uint32_t) ndims);                  // spatial data
     IndexProperty_SetIndexStorage(props, RT_Memory);       // In-memory storage
-
-    // Create the index
+    
+    // Create empty index
     IndexH index = Index_Create(props);
+    
+    IndexProperty_Destroy(props);
+    
     if (!index) {
-        printf("Error: Failed to create index\n");
+        printf("Error: Failed to create empty R-tree index\n");
         return -1;
     }
-    IndexProperty_Destroy(props);
-    // convert each to bbox
-    for (int i = 0; i < num_spaces; i++) {
-        // Get the bounding box of the dataspace
-        double min_coords[3], max_coords[3];
-        int dims = get_dataspace_bbox(spaces[i], min_coords, max_coords, 3);
-        if (dims < 0) {
-            printf("Error: Failed to get bounding box for dataspace %d\n", i);
+    
+    // Return the tree
+    *tree_out = index;
+    return 0; // Success
+}
+
+herr_t rtree_create_bulk(H5S_t **spaces, int64_t *obj_ids, size_t num_spaces, IndexH *tree_out) {
+    /* Create the tree using bulk loading for better performance */
+    
+    // Allocate arrays for bulk loading
+    double *mins = NULL;
+    double *maxs = NULL;
+    double *min_coords = NULL;
+    double *max_coords = NULL;
+    int ndims = 0;
+
+    assert(obj_ids);
+    assert(spaces);
+
+    /* Get ndims from first provided dataspace */
+    if ((ndims = H5S_GET_EXTENT_NDIMS(spaces[0])) < 0) {
+        return -1;
+    }
+
+    // TODO - use EOF error cleanup
+    if ((mins = H5MM_calloc(num_spaces * (size_t) ndims * sizeof(double))) == NULL) {
+        printf("Error: Failed to allocate memory for mins array\n");
+        return -1;
+    }
+
+    if ((maxs = H5MM_calloc (num_spaces * (size_t) ndims * sizeof(double))) == NULL) {
+        printf("Error: Failed to allocate memory for maxs array\n");
+        H5MM_free(mins);
+        return -1;
+    }
+
+    // Extract all bounding boxes into arrays
+    if ((min_coords = H5MM_calloc((size_t) ndims * sizeof(double))) == NULL) {
+        printf("Error: Failed to allocate memory for min_coords array\n");
+        H5MM_free(mins);
+        H5MM_free(maxs);
+        return -1;
+    }
+
+    if ((max_coords = H5MM_calloc((size_t) ndims * sizeof(double))) == NULL) {
+        printf("Error: Failed to allocate memory for max_coords array\n");
+        H5MM_free(mins);
+        H5MM_free(maxs);
+        H5MM_free(min_coords);
+        return -1;
+    }
+
+    for (size_t i = 0; i < num_spaces; i++) {
+        int ret = get_dataspace_bbox(spaces[i], min_coords, max_coords, (size_t) ndims);
+        if (ret < 0) {
+            printf("Error: Failed to get bounding box for dataspace %zu\n", i);
+            H5MM_free(mins);
+            H5MM_free(maxs);
             return -1;
         }
         
-        // Insert into the R-tree
-        // associated data = id of dataspace
-    
-        RTError error = Index_InsertData(index, spaces[i], min_coords, max_coords, 
-                                         3, NULL, 0);
-        if (error != RT_None) {
-            printf("Error: Failed to insert dataspace %d into index (error code: %d)\n", i, error);
-            return -1;
+        // Store min/max coordinates in the flattened arrays
+        for (size_t j = 0; j < (size_t) ndims; j++) {
+            mins[i * (size_t) ndims + j] = min_coords[j];
+            maxs[i * (size_t) ndims + j] = max_coords[j];
         }
     }
-    // return tree
-    *tree_out = index;
+    
+    // Create index properties
+    IndexPropertyH props = IndexProperty_Create();
+    if (!props) {
+        printf("Error: Failed to create index properties\n");
+        H5MM_free(mins);
+        H5MM_free(maxs);
+        return -1;
+    }
+    IndexProperty_SetIndexType(props, RT_RTree);           // R-tree index
+    IndexProperty_SetDimension(props, (uint32_t) ndims);
+    IndexProperty_SetIndexStorage(props, RT_Memory);       // In-memory storage
+    
+    // Create the index using bulk loading
+    // Parameters: properties, n, dimension, i_stri, d_i_stri, d_j_stri, ids, mins, maxs
+    // i_stri = 1 (IDs are contiguous), d_i_stri = ndims (ndims coords per point), d_j_stri = 1 (coords are contiguous)
+    IndexH index = Index_CreateWithArray(props, num_spaces, (uint32_t) ndims, 1, (uint64_t) ndims, 1, obj_ids, mins, maxs);
+    
+    IndexProperty_Destroy(props);
+    
+    if (!index) {
+        printf("Error: Failed to create bulk-loaded index\n");
+        // continue to cleanup
+    }
+    
+    // Clean up temporary arrays
+    H5MM_free(mins);
+    H5MM_free(maxs);
+    
+    H5MM_free(min_coords);
+    H5MM_free(max_coords);
 
+    // Return the tree
+    *tree_out = index;
     return 0; // Success
+}
+
+herr_t
+rtree_destroy(IndexH rtree) {
+    herr_t ret_value = SUCCEED;
+
+    if (!rtree) {
+        ret_value = FAIL;
+        goto done;
+    }
+
+    Index_Destroy(rtree);
+
+done:
+    return ret_value;
+}
+
+herr_t
+retree_insert(IndexH tree, H5S_t *space, int64_t obj_id) {
+    herr_t ret_value = SUCCEED;
+
+    int rank = 0;
+    double *min = NULL;
+    double *max = NULL;
+    RTError err = RT_None;
+
+    if ((rank = H5S_GET_EXTENT_NDIMS(space)) < 0) {
+        printf("Error: Failed to get dataspace rank\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if ((min = H5MM_calloc((size_t) rank * sizeof(double))) == NULL) {
+        printf("Error: Memory allocation failed for min array\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if ((max = H5MM_calloc((size_t) rank * sizeof(double))) == NULL) {
+        printf("Error: Memory allocation failed for max array\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if (get_dataspace_bbox(space, min, max, (size_t) rank) < 0) {
+        printf("Error: Failed to get dataspace bounding box\n");
+        ret_value = FAIL;
+        goto done;
+    }
+
+    err = Index_InsertData(tree, obj_id, min, max, (uint32_t) rank, NULL, 0);
+
+    if (err != RT_None) {
+        printf("Error: Failed to insert data into R-tree index, error code %d\n", err);
+        ret_value = FAIL;
+        goto done;
+    }
+
+done:
+    H5MM_free(min);
+    H5MM_free(max);
+    return ret_value;
 }

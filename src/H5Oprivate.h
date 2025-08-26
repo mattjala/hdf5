@@ -623,8 +623,12 @@ int  mapping_entry_to_bbox(void *mapping_entry, H5S_t **bbox_out);
 herr_t fake_tree_insert_node(fake_tree_t *tree, fake_tree_node_t *node);
 herr_t fake_tree_should_insert(void *mapping_entry, bool *should_insert);
 
-herr_t real_tree_create(hid_t *spaces, int num_spaces, IndexH *tree_out);
-int get_dataspace_bbox(hid_t space_id, double *min_coords, double *max_coords, int max_dims);
+herr_t rtree_create(IndexH *tree_out, size_t ndims);
+herr_t rtree_create_bulk(H5S_t **spaces, int64_t *obj_ids, size_t num_spaces, IndexH *tree_out);
+herr_t retree_insert(IndexH tree, H5S_t *space, int64_t obj_id);
+
+herr_t rtree_destroy(IndexH tree);
+herr_t get_dataspace_bbox(H5S_t *space, double *min_coords, double *max_coords, size_t rank);
 
 typedef struct H5O_storage_virtual_t {
     /* Stored in message */
