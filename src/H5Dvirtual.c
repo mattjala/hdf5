@@ -628,7 +628,6 @@ herr_t
 H5D__virtual_copy_layout(H5O_layout_t *layout)
 {
     H5O_storage_virtual_ent_t *orig_list = NULL;
-    IndexH new_tree = NULL;
     H5O_storage_virtual_t     *virt      = &layout->storage.u.virt;
     hid_t                      orig_source_fapl;
     hid_t                      orig_source_dapl;
@@ -636,6 +635,9 @@ H5D__virtual_copy_layout(H5O_layout_t *layout)
     size_t                     i;
     herr_t                     ret_value = SUCCEED;
     bool *new_in_tree = NULL;
+    H5S_t **spaces = NULL;
+    int64_t *ids  = NULL;
+    size_t num_spaces = 0;
 
     FUNC_ENTER_PACKAGE
 
@@ -771,43 +773,35 @@ H5D__virtual_copy_layout(H5O_layout_t *layout)
     /* Rebuild the spatial tree from the new list, if it existed */
     virt->tree = NULL; /* Initialize to NULL first */
     if (orig_list && virt->list_nused > 0) {
-        /* Get number of dimensions from the first mapping's virtual selection */
-        size_t ndims = 0;
         if (virt->list[0].source_dset.virtual_select) {
             int rank = H5S_GET_EXTENT_NDIMS(virt->list[0].source_dset.virtual_select);
             if (rank < 0) {
                 HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to get dataspace rank");
             }
-            ndims = (size_t)rank;
         } else {
             HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to determine spatial tree dimensions");
         }
 
-        /* Create new tree */
-        if (rtree_create(&new_tree, ndims) < 0) {
-            HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to create spatial tree");
-        }
+        
+        /* Allocate buffers for bulk-loading tree creation */
+        if (NULL == (spaces = (H5S_t **)H5MM_calloc(virt->list_nused * sizeof(H5S_t *))))
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "unable to allocate array for dataspace pointers");
+        if (NULL == (ids = (int64_t *)H5MM_calloc(virt->list_nused * sizeof(int64_t))))
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "unable to allocate array for dataspace IDs");
 
         /* Populate tree from new list entries */
-        // TBD - Use a dedicated rtree copy routine for this
-        bool should_insert = false;
         for (i = 0; i < virt->list_nused; i++) {
-            if (rtree_should_insert(&virt->list[i], &should_insert) < 0) {
-                rtree_destroy(new_tree);
-                HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to determine if entry should be added to spatial tree");
-            }
-            if (should_insert) {
-                if (rtree_insert(new_tree, virt->list[i].source_dset.virtual_select, (int64_t)i) < 0) {
-                    rtree_destroy(new_tree);
-                    HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to insert entry into spatial tree");
-                }
-
-                should_insert = false;
+            /* No need to use should_insert() - information about whether each should go in tree is already available from original tree */
+            if (virt->is_in_tree && virt->is_in_tree[i]) {
+                spaces[num_spaces] = virt->list[i].source_dset.virtual_select;
+                ids[num_spaces]    = (int64_t)i;
             }
         }
 
-        virt->tree = new_tree;
-        new_tree   = NULL;
+        /* Bulk-create the tree */
+        if (rtree_create_bulk(spaces, ids, virt->list_nused, &virt->tree) < 0) {
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to create spatial tree");
+        }
     }
 
     /* Deep copy the list of in-tree indices.
