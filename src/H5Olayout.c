@@ -914,7 +914,7 @@ H5O__layout_decode(H5F_t *f, H5O_t H5_ATTR_UNUSED *open_oh, unsigned H5_ATTR_UNU
 
                         /* Insert index of entry into spatial tree */
                         bool should_insert = false;
-                        if (rtree_should_insert(&mesg->storage.u.virt.list[i], &should_insert) < 0)
+                        if (H5D_rtree_should_insert(&mesg->storage.u.virt.list[i], &should_insert) < 0)
                             HGOTO_ERROR(H5E_OHDR, H5E_CANTINSERT, NULL,
                                         "unable to determine if entry should be inserted into VDS mapping "
                                         "spatial tree");
@@ -926,10 +926,18 @@ H5O__layout_decode(H5F_t *f, H5O_t H5_ATTR_UNUSED *open_oh, unsigned H5_ATTR_UNU
                             num_spaces++;
                         }
                     }
-                    /* Create the spatial tree with bulk-loading */
-                    if (rtree_create_bulk(spaces_for_tree, obj_ids, num_spaces, &mesg->storage.u.virt.tree) < 0) {
-                        HGOTO_ERROR(H5E_OHDR, H5E_CANTCREATE, NULL,
-                                    "unable to bulk-create VDS mapping spatial tree");
+                    int rank = H5S_GET_EXTENT_NDIMS(mesg->storage.u.virt.list[0].source_dset.virtual_select);
+
+                    if (rank < 0)
+                        HGOTO_ERROR(H5E_OHDR, H5E_CANTGET, NULL,
+                                    "unable to get rank of virtual dataspace for VDS mapping");
+                    
+                    if (num_spaces > 0 && rank > 1) {
+                        /* Create the spatial tree with bulk-loading */
+                        if (H5D_rtree_create_bulk(spaces_for_tree, obj_ids, num_spaces, &mesg->storage.u.virt.tree) < 0) {
+                            HGOTO_ERROR(H5E_OHDR, H5E_CANTCREATE, NULL,
+                                        "unable to bulk-create VDS mapping spatial tree");
+                        }
                     }
 
                     /* Read stored checksum */

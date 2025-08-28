@@ -582,14 +582,14 @@ typedef struct H5O_storage_virtual_ent_t {
 #define INITIAL_TREE_CAPACITY 8
 
 /* Forward declarations */
-herr_t rtree_create(IndexH *tree_out, size_t ndims);
-herr_t rtree_create_bulk(H5S_t **spaces, int64_t *obj_ids, size_t num_spaces, IndexH *tree_out);
-herr_t rtree_destroy(IndexH rtree);
-herr_t rtree_insert(IndexH tree, H5S_t *space, int64_t obj_id);
-herr_t rtree_search(IndexH tree, H5S_t *file_space_select, int64_t **result_ids, uint64_t *result_count);
-herr_t rtree_delete(IndexH tree, H5S_t *space, int64_t obj_id);
-herr_t rtree_should_insert(void *mapping_entry, bool *should_insert);
-herr_t get_dataspace_bbox(H5S_t *space, double *min_coords, double *max_coords, size_t rank);
+herr_t H5D_rtree_create(IndexH *tree_out, size_t ndims);
+herr_t H5D_rtree_create_bulk(H5S_t **spaces, int64_t *obj_ids, size_t num_spaces, IndexH *tree_out);
+herr_t H5D_rtree_destroy(IndexH rtree);
+herr_t H5D_rtree_insert(IndexH tree, H5S_t *space, int64_t obj_id);
+herr_t H5D_rtree_search(IndexH tree, H5S_t *file_space_select, int64_t **result_ids, uint64_t *result_count);
+herr_t H5D_rtree_delete(IndexH tree, H5S_t *space, int64_t obj_id);
+herr_t H5D_rtree_should_insert(void *mapping_entry, bool *should_insert);
+herr_t H5D_get_dataspace_bbox(H5S_t *space, double *min_coords, double *max_coords, size_t rank);
 
 typedef struct H5O_storage_virtual_t {
     /* Stored in message */

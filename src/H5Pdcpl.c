@@ -2257,11 +2257,14 @@ H5Pset_virtual(hid_t dcpl_id, hid_t vspace_id, const char *src_file_name, const 
     /* Finish adding entry to list */
     virtual_layout.storage.u.virt.list_nused++;
 
-    /* If spatial tree doesn't exist yet, create it */
-    if (!virtual_layout.storage.u.virt.tree) {
-        int ndims = H5S_GET_EXTENT_NDIMS(vspace);
+    /* If spatial tree doesn't exist yet, create it if possible */
+    int ndims = H5S_GET_EXTENT_NDIMS(vspace);
 
-        if ((rtree_create(&virtual_layout.storage.u.virt.tree, (size_t) ndims)) < 0) {
+    if (ndims < 0)
+        HGOTO_ERROR(H5E_PLIST, H5E_BADVALUE, FAIL, "virtual dataspace has invalid number of dimensions");
+
+    if (!virtual_layout.storage.u.virt.tree && ndims > 1) {
+        if (H5D_rtree_create(&virtual_layout.storage.u.virt.tree, (size_t) ndims) < 0) {
             HGOTO_ERROR(H5E_PLIST, H5E_CANTCREATE, FAIL, "can't create VDS spatial tree");
         }
 
@@ -2273,10 +2276,10 @@ H5Pset_virtual(hid_t dcpl_id, hid_t vspace_id, const char *src_file_name, const 
 
     /* Add index of entry to spatial tree */
     bool should_insert = false;
-    if (rtree_should_insert(ent, &should_insert) < 0)
+    if (H5D_rtree_should_insert(ent, &should_insert) < 0)
         HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't determine if should insert into VDS spatial tree");
     if (should_insert) {
-        if (rtree_insert(virtual_layout.storage.u.virt.tree, ent->source_select, (int64_t)(virtual_layout.storage.u.virt.list_nused - 1)) < 0) {
+        if (H5D_rtree_insert(virtual_layout.storage.u.virt.tree, ent->source_dset.virtual_select, (int64_t)(virtual_layout.storage.u.virt.list_nused - 1)) < 0) {
             HGOTO_ERROR(H5E_PLIST, H5E_CANTINSERT, FAIL, "can't insert into VDS spatial tree");
         }
 
@@ -2325,7 +2328,7 @@ done:
                 (H5O_storage_virtual_ent_t *)H5MM_xfree(virtual_layout.storage.u.virt.list);
 
         if (virtual_layout.storage.u.virt.tree) {
-            if (rtree_destroy(virtual_layout.storage.u.virt.tree) < 0)
+            if (H5D_rtree_destroy(virtual_layout.storage.u.virt.tree) < 0)
                 HDONE_ERROR(H5E_PLIST, H5E_CANTRELEASE, FAIL, "can't destroy VDS spatial tree");
             virtual_layout.storage.u.virt.tree = NULL;
         }

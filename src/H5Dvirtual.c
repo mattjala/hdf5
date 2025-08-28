@@ -772,17 +772,9 @@ H5D__virtual_copy_layout(H5O_layout_t *layout)
 
     /* Rebuild the spatial tree from the new list, if it existed */
     virt->tree = NULL; /* Initialize to NULL first */
-    if (orig_list && virt->list_nused > 0) {
-        if (virt->list[0].source_dset.virtual_select) {
-            int rank = H5S_GET_EXTENT_NDIMS(virt->list[0].source_dset.virtual_select);
-            if (rank < 0) {
-                HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to get dataspace rank");
-            }
-        } else {
-            HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to determine spatial tree dimensions");
-        }
-
-        
+    
+    /* R-tree must be >= 2 dimensional */
+    if (orig_list && virt->list_nused > 0 && H5S_GET_EXTENT_NDIMS(virt->list[0].source_dset.virtual_select) > 1) {
         /* Allocate buffers for bulk-loading tree creation */
         if (NULL == (spaces = (H5S_t **)H5MM_calloc(virt->list_nused * sizeof(H5S_t *))))
             HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "unable to allocate array for dataspace pointers");
@@ -795,24 +787,29 @@ H5D__virtual_copy_layout(H5O_layout_t *layout)
             if (virt->is_in_tree && virt->is_in_tree[i]) {
                 spaces[num_spaces] = virt->list[i].source_dset.virtual_select;
                 ids[num_spaces]    = (int64_t)i;
+                num_spaces++;
             }
         }
 
         /* Bulk-create the tree */
-        if (rtree_create_bulk(spaces, ids, virt->list_nused, &virt->tree) < 0) {
-            HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to create spatial tree");
-        }
-    }
+        if (num_spaces > 0)
+            if (H5D_rtree_create_bulk(spaces, ids, num_spaces, &virt->tree) < 0) {
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to create spatial tree");
+            }
 
-    /* Deep copy the list of in-tree indices.
-     * These can be directly copied since the same mappings will be excluded from each tree,
-     * and have the same indices in the list */
-    if (virt->is_in_tree) {
-        if ((new_in_tree = H5MM_calloc(virt->list_nalloc * sizeof(bool))) == NULL)
-            HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "unable to allocate in-tree array");
-        
-        H5MM_memcpy(new_in_tree, virt->is_in_tree, virt->list_nused * sizeof(bool));
-        virt->is_in_tree = new_in_tree;
+        /* Deep copy the list of in-tree indices.
+         * These can be directly copied since the same mappings will be excluded from each tree,
+         * and have the same indices in the list */
+        if (virt->is_in_tree) {
+            if ((new_in_tree = H5MM_calloc(virt->list_nalloc * sizeof(bool))) == NULL)
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "unable to allocate in-tree array");
+            
+            H5MM_memcpy(new_in_tree, virt->is_in_tree, virt->list_nused * sizeof(bool));
+            virt->is_in_tree = new_in_tree;
+        }
+    } else {
+        virt->tree      = NULL;
+        virt->is_in_tree = NULL;
     }
 
     /* Copy property lists */
@@ -911,7 +908,7 @@ H5D__virtual_reset_layout(H5O_layout_t *layout)
 
     /* Destroy the spatial tree, if it exists */
     if (virt->tree) {
-        if (rtree_destroy(virt->tree) < 0) {
+        if (H5D_rtree_destroy(virt->tree) < 0) {
             HDONE_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "unable to destroy spatial tree");
         }
         virt->tree = NULL;
@@ -2797,21 +2794,22 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
     int64_t *result_ids = NULL;
     uint64_t result_count = 0;
 
-    if (rtree_search(storage->tree, file_space, &result_ids, &result_count) < 0) {
-        HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "unable to search virtual mapping tree");
-    }
-
-    /* First, iterate over the mappings with an intersection found via the tree */
-    for (uint64_t i = 0; i < result_count; i++) {
-        size_t mapping_index = (size_t)result_ids[i];
-        if (H5D__virtual_pre_io_process_mapping(dset_info, file_space, mem_space, tot_nelmts,
-                                            &storage->list[mapping_index]) < 0)
-            HGOTO_ERROR(H5E_DATASET, H5E_CANTCLIP, FAIL, "can't process mapping for pre I/O");
+    if (storage->tree) {
+        if (H5D_rtree_search(storage->tree, file_space, &result_ids, &result_count) < 0) {
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "unable to search virtual mapping tree");
+        }
+        /* First, iterate over the mappings with an intersection found via the tree */
+        for (uint64_t i = 0; i < result_count; i++) {
+            size_t mapping_index = (size_t)result_ids[i];
+            if (H5D__virtual_pre_io_process_mapping(dset_info, file_space, mem_space, tot_nelmts,
+                                                &storage->list[mapping_index]) < 0)
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTCLIP, FAIL, "can't process mapping for pre I/O");
+        }
     }
 
     for (size_t i = 0; i < storage->list_nused; i++) {
         /* Skip any mappings that would have been searched by the tree */
-        if (storage->is_in_tree[i]) {
+        if (storage->is_in_tree && storage->is_in_tree[i]) {
             continue;
         }
 
@@ -3459,19 +3457,17 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D__virtual_release_source_dset_files() */
 
-
-
-
-
-
-
-
 herr_t
-get_dataspace_bbox(H5S_t *space, double *min_coords, double *max_coords, size_t rank) {
+H5D_get_dataspace_bbox(H5S_t *space, double *min_coords, double *max_coords, size_t rank) {
     herr_t ret_value = SUCCEED;
     // Allocate temporary arrays for HDF5 bounds
     hsize_t *start = NULL;
     hsize_t *end = NULL;
+
+    assert(space);
+    assert(min_coords);
+    assert(max_coords);
+    assert(rank > 0);
     
     if ((start = (hsize_t *) H5MM_calloc(rank * sizeof(hsize_t))) == NULL) {
         printf("Error: Memory allocation failed for start array\n");
@@ -3507,36 +3503,73 @@ done:
     return ret_value;  // Return number of dimensions on success
 }
 
-herr_t rtree_create(IndexH *tree_out, size_t ndims) {
+herr_t
+H5D_rtree_create(IndexH *tree_out, size_t ndims) {
+    herr_t ret_value = SUCCEED;
+    IndexPropertyH props = NULL;
+    IndexH tree = NULL;
+    RTError err = RT_None;
+
     /* Create an empty R-tree index */
-    assert(ndims > 0 && ndims < UINT32_MAX);
+    assert(ndims > 0);
+    assert(tree_out);
+
+    if (ndims == 1) {
+        printf("Error: R-tree requires at least 2 dimensions, got %zu\n", ndims);
+        ret_value = FAIL;
+        goto done;
+    }
 
     // Create index properties
-    IndexPropertyH props = IndexProperty_Create();
-    if (!props) {
+    if ((props = IndexProperty_Create()) == NULL) {
         printf("Error: Failed to create index properties\n");
-        return -1;
+        ret_value = FAIL;
+        goto done;
     }
-    IndexProperty_SetIndexType(props, RT_RTree);           // R-tree index
-    IndexProperty_SetDimension(props, (uint32_t) ndims);                  // spatial data
-    IndexProperty_SetIndexStorage(props, RT_Memory);       // In-memory storage
-    
+
+    /* New index should be an R-tree */
+    if ((err = IndexProperty_SetIndexType(props, RT_RTree)) != RT_None) {
+        printf("Error: Failed to set index type to R-tree, error code %d\n", (int) err);
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if ((err = IndexProperty_SetDimension(props, (uint32_t) ndims)) != RT_None) {
+        printf("Error: Failed to set index dimension to %zu, error code %d\n", ndims, (int) err);
+        ret_value = FAIL;
+        goto done;
+    }
+
+    /* In-memory storage */
+    if ((err = IndexProperty_SetIndexStorage(props, RT_Memory)) != RT_None) {
+        printf("Error: Failed to set index storage to memory, error code %d\n", (int) err);
+        ret_value = FAIL;
+        goto done;
+    }
+
     // Create empty index
-    IndexH index = Index_Create(props);
-    
-    IndexProperty_Destroy(props);
-    
-    if (!index) {
+    if ((tree = Index_Create(props)) == NULL) {
         printf("Error: Failed to create empty R-tree index\n");
-        return -1;
+        ret_value = FAIL;
+        goto done;
     }
-    
-    // Return the tree
-    *tree_out = index;
-    return 0; // Success
+
+    *tree_out = tree;
+done:
+    IndexProperty_Destroy(props);
+
+    if (ret_value < 0) {
+        if (tree)
+            Index_Destroy(tree);
+
+        *tree_out = NULL;
+    }
+
+    return ret_value;
 }
 
-herr_t rtree_create_bulk(H5S_t **spaces, int64_t *obj_ids, size_t num_spaces, IndexH *tree_out) {
+herr_t
+H5D_rtree_create_bulk(H5S_t **spaces, int64_t *obj_ids, size_t num_spaces, IndexH *tree_out) {
     /* Create the tree using bulk loading for better performance */
     
     // Allocate arrays for bulk loading
@@ -3549,8 +3582,16 @@ herr_t rtree_create_bulk(H5S_t **spaces, int64_t *obj_ids, size_t num_spaces, In
     assert(obj_ids);
     assert(spaces);
 
+    // TODO - Should this be caller's responsibility? Shoudl we create empty tree?
+    assert(num_spaces > 0);
+
     /* Get ndims from first provided dataspace */
-    if ((ndims = H5S_GET_EXTENT_NDIMS(spaces[0])) < 0) {
+    if ((ndims = H5S_GET_EXTENT_NDIMS(spaces[0])) <= 0) {
+        return -1;
+    }
+
+    if (ndims == 1) {
+        printf("Error: R-tree requires at least 2 dimensions, got %d\n", ndims);
         return -1;
     }
 
@@ -3583,7 +3624,7 @@ herr_t rtree_create_bulk(H5S_t **spaces, int64_t *obj_ids, size_t num_spaces, In
     }
 
     for (size_t i = 0; i < num_spaces; i++) {
-        int ret = get_dataspace_bbox(spaces[i], min_coords, max_coords, (size_t) ndims);
+        int ret = H5D_get_dataspace_bbox(spaces[i], min_coords, max_coords, (size_t) ndims);
         if (ret < 0) {
             printf("Error: Failed to get bounding box for dataspace %zu\n", i);
             H5MM_free(mins);
@@ -3635,7 +3676,7 @@ herr_t rtree_create_bulk(H5S_t **spaces, int64_t *obj_ids, size_t num_spaces, In
 }
 
 herr_t
-rtree_destroy(IndexH rtree) {
+H5D_rtree_destroy(IndexH rtree) {
     herr_t ret_value = SUCCEED;
 
     if (!rtree) {
@@ -3650,13 +3691,17 @@ done:
 }
 
 herr_t
-rtree_insert(IndexH tree, H5S_t *space, int64_t obj_id) {
+H5D_rtree_insert(IndexH tree, H5S_t *space, int64_t obj_id) {
     herr_t ret_value = SUCCEED;
 
     int rank = 0;
     double *min = NULL;
     double *max = NULL;
     RTError err = RT_None;
+
+    assert(tree);
+    assert(space);
+    assert(obj_id >= 0);
 
     if ((rank = H5S_GET_EXTENT_NDIMS(space)) < 0) {
         printf("Error: Failed to get dataspace rank\n");
@@ -3676,7 +3721,7 @@ rtree_insert(IndexH tree, H5S_t *space, int64_t obj_id) {
         goto done;
     }
 
-    if (get_dataspace_bbox(space, min, max, (size_t) rank) < 0) {
+    if (H5D_get_dataspace_bbox(space, min, max, (size_t) rank) < 0) {
         printf("Error: Failed to get dataspace bounding box\n");
         ret_value = FAIL;
         goto done;
@@ -3697,7 +3742,7 @@ done:
 }
 
 herr_t
-rtree_search(IndexH tree, H5S_t *file_space_select, int64_t **result_ids, uint64_t *result_count) {
+H5D_rtree_search(IndexH tree, H5S_t *file_space_select, int64_t **result_ids, uint64_t *result_count) {
     herr_t ret_value = SUCCEED;
     int rank = 0;
     double *min_coords = NULL;
@@ -3706,9 +3751,10 @@ rtree_search(IndexH tree, H5S_t *file_space_select, int64_t **result_ids, uint64
 
     FUNC_ENTER_NOAPI(FAIL)
 
-    if (!tree || !file_space_select || !result_ids || !result_count) {
-        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid arguments");
-    }
+    assert(tree);
+    assert(file_space_select);
+    assert(result_ids);
+    assert(result_count);
 
     /* Initialize outputs */
     *result_ids = NULL;
@@ -3729,7 +3775,7 @@ rtree_search(IndexH tree, H5S_t *file_space_select, int64_t **result_ids, uint64
     }
 
     /* Get bounding box from dataspace */
-    if (get_dataspace_bbox(file_space_select, min_coords, max_coords, (size_t)rank) < 0) {
+    if (H5D_get_dataspace_bbox(file_space_select, min_coords, max_coords, (size_t)rank) < 0) {
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, "failed to get dataspace bounding box");
     }
 
@@ -3746,7 +3792,7 @@ done:
 }
 
 herr_t
-rtree_delete(IndexH tree, H5S_t *space, int64_t obj_id) {
+H5D_rtree_delete(IndexH tree, H5S_t *space, int64_t obj_id) {
     herr_t ret_value = SUCCEED;
     int rank = 0;
     double *min = NULL;
@@ -3774,7 +3820,7 @@ rtree_delete(IndexH tree, H5S_t *space, int64_t obj_id) {
     }
 
     /* Get bounding box from dataspace */
-    if (get_dataspace_bbox(space, min, max, (size_t)rank) < 0) {
+    if (H5D_get_dataspace_bbox(space, min, max, (size_t)rank) < 0) {
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, "failed to get dataspace bounding box");
     }
 
@@ -3795,7 +3841,7 @@ done:
  * stored on a spatial tree 
  */
 herr_t
-rtree_should_insert(void *mapping_entry, bool *should_insert)
+H5D_rtree_should_insert(void *mapping_entry, bool *should_insert)
 {
     herr_t ret_value = SUCCEED;
     H5S_t *vspace = NULL;
@@ -3825,6 +3871,14 @@ rtree_should_insert(void *mapping_entry, bool *should_insert)
 
     /* Do not insert printf-style mappings */
     if (entry->psfn_nsubs > 0 || entry->psdn_nsubs > 0) {
+        *should_insert = false;
+        goto done;
+    }
+
+    /* Do not insert zero-dim or one-dim mappings */
+    // TODO - Significance of zero-dim mapping?
+    if ((H5S_GET_EXTENT_NDIMS(vspace)) <= 1 ||
+        (H5S_GET_EXTENT_NDIMS(src_space)) <= 1) {
         *should_insert = false;
         goto done;
     }
