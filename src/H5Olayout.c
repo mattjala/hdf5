@@ -88,6 +88,11 @@ H5O__layout_decode(H5F_t *f, H5O_t H5_ATTR_UNUSED *open_oh, unsigned H5_ATTR_UNU
     uint8_t       *heap_block = NULL;
     void          *ret_value  = NULL;
 
+    /* Values for virtual mapping handling */
+    H5S_t **spaces_for_tree = NULL;
+    int64_t *obj_ids = NULL;
+    size_t num_spaces = 0;
+
     FUNC_ENTER_PACKAGE
 
     assert(f);
@@ -605,11 +610,13 @@ H5O__layout_decode(H5F_t *f, H5O_t H5_ATTR_UNUSED *open_oh, unsigned H5_ATTR_UNU
                     mesg->storage.u.virt.list_nalloc = (size_t)tmp_hsize;
                     mesg->storage.u.virt.list_nused  = (size_t)tmp_hsize;
 
-                    /* Create the spatial tree */
-                    if ((mesg->storage.u.virt.tree = fake_tree_create()) == NULL) {
-                        HGOTO_ERROR(H5E_OHDR, H5E_CANTCREATE, NULL,
-                                    "unable to create VDS mapping spatial tree");
-                    }
+                    /* Allocate buffers for creation of spatial tree */
+                    if ((spaces_for_tree = H5MM_calloc(sizeof(H5S_t *) * mesg->storage.u.virt.list_nalloc)) == NULL)
+                        HGOTO_ERROR(H5E_OHDR, H5E_CANTALLOC, NULL,
+                                "memory allocation failed for dataspace pointer");
+                    if ((obj_ids = H5MM_calloc(sizeof(int64_t) * mesg->storage.u.virt.list_nalloc)) == NULL)
+                        HGOTO_ERROR(H5E_OHDR, H5E_CANTALLOC, NULL,
+                                "memory allocation failed for object ID pointer");
 
                     /* Allocate the table to track which indices are in-tree */
                     if (NULL ==
@@ -618,7 +625,7 @@ H5O__layout_decode(H5F_t *f, H5O_t H5_ATTR_UNUSED *open_oh, unsigned H5_ATTR_UNU
                         HGOTO_ERROR(H5E_OHDR, H5E_CANTALLOC, NULL,
                                     "memory allocation failed for VDS mapping in-tree flags");
 
-                    /* Decode each entry */
+                    /* Decode each entry before bulk-loading the spatial tree */
                     for (size_t i = 0; i < mesg->storage.u.virt.list_nused; i++) {
                         H5O_storage_virtual_ent_t
                                  *tmp_ent; /* Temporary VDS entry pointer, for hash table lookups */
@@ -907,16 +914,22 @@ H5O__layout_decode(H5F_t *f, H5O_t H5_ATTR_UNUSED *open_oh, unsigned H5_ATTR_UNU
 
                         /* Insert index of entry into spatial tree */
                         bool should_insert = false;
-                        if (fake_tree_should_insert(&mesg->storage.u.virt.list[i], &should_insert) < 0)
+                        if (rtree_should_insert(&mesg->storage.u.virt.list[i], &should_insert) < 0)
                             HGOTO_ERROR(H5E_OHDR, H5E_CANTINSERT, NULL,
                                         "unable to determine if entry should be inserted into VDS mapping "
                                         "spatial tree");
                         if (should_insert) {
-                            if (fake_tree_insert(mesg->storage.u.virt.tree, &mesg->storage.u.virt.list[i], (size_t) i) < 0)
-                                HGOTO_ERROR(H5E_OHDR, H5E_CANTINSERT, NULL,
-                                        "unable to insert entry into VDS mapping spatial tree");
-                            mesg->storage.u.virt.is_in_tree[i] = true;
+                            /* Add this entry to the list of entries which should be bulk-inserted into the tree */
+                            // need the hid_t, the index in list as int64_t, incr count,
+                            spaces_for_tree[num_spaces] = mesg->storage.u.virt.list[i].source_dset.virtual_select;
+                            obj_ids[num_spaces] = (int64_t) i;
+                            num_spaces++;
                         }
+                    }
+                    /* Create the spatial tree with bulk-loading */
+                    if (rtree_create_bulk(spaces_for_tree, obj_ids, num_spaces, &mesg->storage.u.virt.tree) < 0) {
+                        HGOTO_ERROR(H5E_OHDR, H5E_CANTCREATE, NULL,
+                                    "unable to bulk-create VDS mapping spatial tree");
                     }
 
                     /* Read stored checksum */
@@ -967,6 +980,11 @@ done:
                     HDONE_ERROR(H5E_OHDR, H5E_CANTFREE, NULL, "unable to reset virtual layout");
             H5FL_FREE(H5O_layout_t, mesg);
         }
+
+    if (spaces_for_tree)
+        H5MM_xfree(spaces_for_tree);
+    if (obj_ids)
+        H5MM_xfree(obj_ids);
 
     heap_block = (uint8_t *)H5MM_xfree(heap_block);
 

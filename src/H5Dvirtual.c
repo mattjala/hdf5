@@ -628,7 +628,7 @@ herr_t
 H5D__virtual_copy_layout(H5O_layout_t *layout)
 {
     H5O_storage_virtual_ent_t *orig_list = NULL;
-    fake_tree_t *new_tree = NULL;
+    IndexH new_tree = NULL;
     H5O_storage_virtual_t     *virt      = &layout->storage.u.virt;
     hid_t                      orig_source_fapl;
     hid_t                      orig_source_dapl;
@@ -771,8 +771,20 @@ H5D__virtual_copy_layout(H5O_layout_t *layout)
     /* Rebuild the spatial tree from the new list, if it existed */
     virt->tree = NULL; /* Initialize to NULL first */
     if (orig_list && virt->list_nused > 0) {
+        /* Get number of dimensions from the first mapping's virtual selection */
+        size_t ndims = 0;
+        if (virt->list[0].source_dset.virtual_select) {
+            int rank = H5S_GET_EXTENT_NDIMS(virt->list[0].source_dset.virtual_select);
+            if (rank < 0) {
+                HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to get dataspace rank");
+            }
+            ndims = (size_t)rank;
+        } else {
+            HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to determine spatial tree dimensions");
+        }
+
         /* Create new tree */
-        if ((new_tree = fake_tree_create()) == NULL) {
+        if (rtree_create(&new_tree, ndims) < 0) {
             HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to create spatial tree");
         }
 
@@ -780,13 +792,13 @@ H5D__virtual_copy_layout(H5O_layout_t *layout)
         // TBD - Use a dedicated rtree copy routine for this
         bool should_insert = false;
         for (i = 0; i < virt->list_nused; i++) {
-            if (fake_tree_should_insert(&virt->list[i], &should_insert) < 0) {
-                fake_tree_destroy(new_tree);
+            if (rtree_should_insert(&virt->list[i], &should_insert) < 0) {
+                rtree_destroy(new_tree);
                 HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to determine if entry should be added to spatial tree");
             }
             if (should_insert) {
-                if (fake_tree_insert(new_tree, &virt->list[i], i) < 0) {
-                    fake_tree_destroy(new_tree);
+                if (rtree_insert(new_tree, virt->list[i].source_dset.virtual_select, (int64_t)i) < 0) {
+                    rtree_destroy(new_tree);
                     HGOTO_ERROR(H5E_DATASET, H5E_CANTCOPY, FAIL, "unable to insert entry into spatial tree");
                 }
 
@@ -905,7 +917,7 @@ H5D__virtual_reset_layout(H5O_layout_t *layout)
 
     /* Destroy the spatial tree, if it exists */
     if (virt->tree) {
-        if (fake_tree_destroy(virt->tree) < 0) {
+        if (rtree_destroy(virt->tree) < 0) {
             HDONE_ERROR(H5E_DATASET, H5E_CANTFREE, FAIL, "unable to destroy spatial tree");
         }
         virt->tree = NULL;
@@ -2788,21 +2800,18 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
 
     /* Perform a spatial tree search to get a list of mappings
      * whose virtual selection intersects the IO operation */
-    fake_tree_search_result_t results;
+    int64_t *result_ids = NULL;
+    uint64_t result_count = 0;
 
-    results.capacity = INITIAL_TREE_CAPACITY;
-    results.count    = 0;
-    if (NULL == (results.indexes = (size_t *)H5MM_malloc(results.capacity * sizeof(size_t))))
-        HGOTO_ERROR(H5E_DATASET, H5E_CANTALLOC, FAIL, "unable to allocate search results array");
-
-    if (fake_tree_search(storage->tree, file_space, &results) < 0) {
+    if (rtree_search(storage->tree, file_space, &result_ids, &result_count) < 0) {
         HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "unable to search virtual mapping tree");
     }
 
     /* First, iterate over the mappings with an intersection found via the tree */
-    for (size_t i = 0; i < results.count; i++) {
+    for (uint64_t i = 0; i < result_count; i++) {
+        size_t mapping_index = (size_t)result_ids[i];
         if (H5D__virtual_pre_io_process_mapping(dset_info, file_space, mem_space, tot_nelmts,
-                                            &storage->list[results.indexes[i]]) < 0)
+                                            &storage->list[mapping_index]) < 0)
             HGOTO_ERROR(H5E_DATASET, H5E_CANTCLIP, FAIL, "can't process mapping for pre I/O");
     }
 
@@ -2818,7 +2827,9 @@ H5D__virtual_pre_io(H5D_dset_io_info_t *dset_info, H5O_storage_virtual_t *storag
     }
 
 done:
-    fake_tree_search_result_destroy(&results);
+    /* Free result_ids array allocated by libspatialindex */
+    if (result_ids)
+        free(result_ids);
 
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D__virtual_pre_io() */
@@ -3454,349 +3465,12 @@ done:
     FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5D__virtual_release_source_dset_files() */
 
-int
-fake_tree_delete_node(fake_tree_node_t *node)
-{
-    /* Free mapping entry */
-    if (node->bbox != NULL) {
-        H5S_close(node->bbox);
-        node->bbox = NULL;
-    }
 
-    return 0;
-}
 
-/*
- * Create a new tree
- */
-fake_tree_t *
-fake_tree_create(void)
-{
-    fake_tree_t *tree = (fake_tree_t *)malloc(sizeof(fake_tree_t));
-    if (!tree) {
-        return NULL;
-    }
 
-    if ((tree->arr = calloc(INITIAL_TREE_CAPACITY, sizeof(fake_tree_node_t))) == NULL) {
-        free(tree);
-        return NULL;
-    }
-    tree->count    = 0;
-    tree->capacity = INITIAL_TREE_CAPACITY;
 
-    return tree;
-}
 
-/*
- * Destroy a tree and free all memory
- */
-herr_t
-fake_tree_destroy(fake_tree_t *tree)
-{
-    herr_t ret_value = SUCCEED;
 
-    if (!tree) {
-        return SUCCEED; /* NULL tree is not an error */
-    }
-
-    for (size_t i = 0; i < tree->count; i++) {
-        fake_tree_node_t *node = &tree->arr[i];
-
-        fake_tree_delete_node(node);
-    }
-
-    free(tree->arr);
-    tree->arr = NULL;
-
-    free(tree);
-
-    return ret_value;
-}
-
-/*
- * Insert a mapping entry into the tree
- *
- * @param tree: The tree to insert into
- * @param mapping_entry: Pointer to the mapping entry (H5O_storage_virtual_ent_t*)
- * @param virtual_select: The virtual selection dataspace for spatial indexing
- * @return: 0 on success, -1 on failure
- */
-int
-fake_tree_insert(fake_tree_t *tree, void *mapping_entry, size_t index)
-{
-    if (!tree || !mapping_entry) {
-        return -1;
-    }
-
-    /* Sanity checks */
-    assert(tree->count < 1000000);
-    assert(tree->capacity < 1000000);
-
-    /* Create new node */
-    fake_tree_node_t new_node;
-
-    if (mapping_entry_to_bbox(mapping_entry, &new_node.bbox) < 0)
-        return -1;
-
-    new_node.index = index;
-
-    /* Increase size if needed */
-    if (tree->count + 1 >= tree->capacity) {
-        void *new_arr = realloc(tree->arr, 2 * tree->capacity * sizeof(fake_tree_node_t));
-
-        if (new_arr == NULL) {
-            return -1;
-        }
-
-        tree->arr      = new_arr;
-        tree->capacity = 2 * tree->capacity;
-    }
-    /* Insert at end of array */
-    tree->arr[tree->count] = new_node;
-    tree->count++;
-
-
-    return 0;
-}
-
-/*
- * Check whether a given mapping entry may be
- * stored on a spatial tree 
- */
-herr_t
-fake_tree_should_insert(void *mapping_entry, bool *should_insert)
-{
-    herr_t ret_value = SUCCEED;
-    H5S_t *vspace = NULL;
-    H5S_t *src_space = NULL;
-    hsize_t virt_nelems = 0;
-    hsize_t src_nelems = 0;
-
-    if (!mapping_entry || !should_insert) {
-        ret_value = FAIL;
-        goto done;
-    }
-
-    H5O_storage_virtual_ent_t *entry = (H5O_storage_virtual_ent_t *)mapping_entry;
-
-    /* Do not insert mappings with an unlimited dimension */
-    // TODO - Behavior on selects not found
-    if ((vspace = entry->source_dset.virtual_select) != NULL)
-        virt_nelems = (hsize_t)H5S_GET_SELECT_NPOINTS(vspace);
-
-    if ((src_space = entry->source_dset.clipped_source_select) != NULL)
-        src_nelems = (hsize_t)H5S_GET_SELECT_NPOINTS(src_space);
-
-    if (virt_nelems == H5S_UNLIMITED || src_nelems == H5S_UNLIMITED) {
-        *should_insert = false;
-        goto done;
-    }
-
-    /* Do not insert printf-style mappings */
-    if (entry->psfn_nsubs > 0 || entry->psdn_nsubs > 0) {
-        *should_insert = false;
-        goto done;
-    }
-
-    /* Otherwise, we can insert it */
-    *should_insert = true;
-done:
-    return ret_value;
-}
-
-/*
- * Delete a mapping entry from the tree
- *
- * @param tree: The tree to delete from
- * @param mapping_entry: Pointer to the mapping entry to remove
- * @return: 0 on success, -1 if not found or error
- */
-int
-fake_tree_delete(fake_tree_t *tree, size_t index)
-{
-    if (!tree) {
-        return -1;
-    }
-
-    /* Linear search for the entry */
-    for (size_t i = 0; i < tree->count; i++) {
-        fake_tree_node_t *curr = &tree->arr[i];
-
-        if (curr->index == index) {
-
-            fake_tree_delete_node(curr);
-            /* Move up all later entries - performance not a concern for this demo */
-            for (size_t ii = i; ii < tree->count - 1; ii++) {
-                tree->arr[ii] = tree->arr[ii + 1];
-            }
-
-            tree->count--;
-            return 0;
-        }
-    }
-
-    return -1; /* Not found */
-}
-
-/*
- * Create a search result structure
- */
-fake_tree_search_result_t *
-fake_tree_search_result_create(void)
-{
-    fake_tree_search_result_t *result =
-        (fake_tree_search_result_t *)malloc(sizeof(fake_tree_search_result_t));
-    if (!result) {
-        return NULL;
-    }
-
-    result->indexes = NULL;
-    result->count    = 0;
-    result->capacity = INITIAL_TREE_CAPACITY;
-
-    return result;
-}
-
-/*
- * Destroy a search result structure
- */
-void
-fake_tree_search_result_destroy(fake_tree_search_result_t *result)
-{
-    if (!result) {
-        return;
-    }
-
-    if (result->indexes) {
-        free(result->indexes);
-    }
-}
-
-/*
- * Add a mapping to search results (internal helper)
- */
-int
-fake_tree_search_result_add(fake_tree_search_result_t *result, size_t index)
-{
-    size_t new_capacity = 0;
-    size_t *new_indexes = NULL;
-
-    /* Grow array if needed */
-    if (result->count >= result->capacity) {
-        new_capacity = result->capacity ? result->capacity * 2 : INITIAL_TREE_CAPACITY;
-        new_indexes = (size_t *)realloc(result->indexes, new_capacity * sizeof(size_t));
-        if (!new_indexes) {
-            return -1;
-        }
-        result->indexes = new_indexes;
-        result->capacity = new_capacity;
-    }
-
-    result->indexes[result->count++] = index;
-    return 0;
-}
-
-/*
- * Search for mapping entries that intersect with the given selection
- *
- * This is the key function that will replace the linear traversal in H5D__virtual_pre_io().
- * For now, it just does a linear search through all entries.
- *
- * @param tree: The tree to search
- * @param file_space_select: The file space selection to find intersections with
- * @param result: Structure to store the search results
- * @return: 0 on success, -1 on error
- */
-int
-fake_tree_search(fake_tree_t *tree, H5S_t *file_space_select, fake_tree_search_result_t *result)
-{
-    if (!tree || !file_space_select || !result) {
-        return -1;
-    }
-
-    /* Reset result */
-    result->count = 0;
-
-    for (size_t i = 0; i < tree->count; i++) {
-        fake_tree_node_t *curr = &tree->arr[i];
-
-        /* If the spacial region of this entry intersects with the given Space, add it to the list */
-
-        /* Placeholder: assume all entries intersect for testing purposes */
-        /* In real implementation:
-         * if (H5S_select_intersect_block(current->virtual_select, file_space_select)) {
-         */
-        if (1) { /* Temporary - always "intersect" */
-            if (fake_tree_search_result_add(result, curr->index) < 0) {
-                return -1;
-            }
-        }
-    }
-
-    return 0;
-}
-
-int
-mapping_entry_to_bbox(void *mapping_entry, H5S_t **bbox_out)
-{
-    // Get bounding box from existing selection
-    H5O_storage_virtual_ent_t *entry = (H5O_storage_virtual_ent_t *)mapping_entry;
-
-    H5S_t *original_space = entry->source_dset.virtual_select;
-
-    hsize_t start[H5S_MAX_RANK], end[H5S_MAX_RANK];
-    if (H5S_get_select_bounds(original_space, start, end) < 0) {
-        return -1;
-    }
-
-    // Calculate dimensions: end - start + 1
-    hsize_t bbox_dims[H5S_MAX_RANK];
-    int     rank = H5S_get_simple_extent_ndims(original_space);
-
-    if (rank < 0) {
-        return -1; /* Error getting rank */
-    }
-    for (int i = 0; i < rank; i++) {
-        bbox_dims[i] = end[i] - start[i] + 1;
-    }
-
-    // Create new simple dataspace with bounding box dimensions
-    H5S_t *bbox_space = H5S_create_simple((unsigned) rank, bbox_dims, NULL);
-
-    if (bbox_space == NULL) {
-        return -1;
-    }
-
-    *bbox_out = bbox_space;
-
-    return 0;
-}
-
-// TODO
-// bypass need for a mapping entry
-herr_t fake_tree_insert_node(fake_tree_t *tree, fake_tree_node_t *node) {
-    if (!tree || !node) {
-        return -1; /* Invalid parameters */
-    }
-
-    /* Increase size if needed */
-    if (tree->count + 1 >= tree->capacity) {
-        void *new_arr = realloc(tree->arr, 2 * tree->capacity * sizeof(fake_tree_node_t));
-
-        if (new_arr == NULL) {
-            return -1; /* Memory allocation failed */
-        }
-
-        tree->arr      = new_arr;
-        tree->capacity = 2 * tree->capacity;
-    }
-
-    /* Insert at end of array */
-    tree->arr[tree->count] = *node;
-    tree->count++;
-
-    return 0; /* Success */
-}
 
 herr_t
 get_dataspace_bbox(H5S_t *space, double *min_coords, double *max_coords, size_t rank) {
@@ -3982,7 +3656,7 @@ done:
 }
 
 herr_t
-retree_insert(IndexH tree, H5S_t *space, int64_t obj_id) {
+rtree_insert(IndexH tree, H5S_t *space, int64_t obj_id) {
     herr_t ret_value = SUCCEED;
 
     int rank = 0;
@@ -4027,3 +3701,143 @@ done:
     H5MM_free(max);
     return ret_value;
 }
+
+herr_t
+rtree_search(IndexH tree, H5S_t *file_space_select, int64_t **result_ids, uint64_t *result_count) {
+    herr_t ret_value = SUCCEED;
+    int rank = 0;
+    double *min_coords = NULL;
+    double *max_coords = NULL;
+    RTError err = RT_None;
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    if (!tree || !file_space_select || !result_ids || !result_count) {
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid arguments");
+    }
+
+    /* Initialize outputs */
+    *result_ids = NULL;
+    *result_count = 0;
+
+    /* Get dataspace rank */
+    if ((rank = H5S_GET_EXTENT_NDIMS(file_space_select)) < 0) {
+        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, "can't get dataspace rank");
+    }
+
+    /* Allocate coordinate arrays */
+    if ((min_coords = H5MM_calloc((size_t)rank * sizeof(double))) == NULL) {
+        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for min_coords");
+    }
+
+    if ((max_coords = H5MM_calloc((size_t)rank * sizeof(double))) == NULL) {
+        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for max_coords");
+    }
+
+    /* Get bounding box from dataspace */
+    if (get_dataspace_bbox(file_space_select, min_coords, max_coords, (size_t)rank) < 0) {
+        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, "failed to get dataspace bounding box");
+    }
+
+    /* Query the R-tree */
+    err = Index_Intersects_id(tree, min_coords, max_coords, (uint32_t)rank, result_ids, result_count);
+    if (err != RT_None) {
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTGET, FAIL, "R-tree intersection query failed");
+    }
+
+done:
+    H5MM_free(min_coords);
+    H5MM_free(max_coords);
+    FUNC_LEAVE_NOAPI(ret_value)
+}
+
+herr_t
+rtree_delete(IndexH tree, H5S_t *space, int64_t obj_id) {
+    herr_t ret_value = SUCCEED;
+    int rank = 0;
+    double *min = NULL;
+    double *max = NULL;
+    RTError err = RT_None;
+
+    FUNC_ENTER_NOAPI(FAIL)
+
+    if (!tree || !space) {
+        HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, "invalid arguments");
+    }
+
+    /* Get dataspace rank */
+    if ((rank = H5S_GET_EXTENT_NDIMS(space)) < 0) {
+        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, "can't get dataspace rank");
+    }
+
+    /* Allocate coordinate arrays */
+    if ((min = H5MM_calloc((size_t)rank * sizeof(double))) == NULL) {
+        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for min array");
+    }
+
+    if ((max = H5MM_calloc((size_t)rank * sizeof(double))) == NULL) {
+        HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "memory allocation failed for max array");
+    }
+
+    /* Get bounding box from dataspace */
+    if (get_dataspace_bbox(space, min, max, (size_t)rank) < 0) {
+        HGOTO_ERROR(H5E_DATASPACE, H5E_CANTGET, FAIL, "failed to get dataspace bounding box");
+    }
+
+    /* Delete from R-tree */
+    err = Index_DeleteData(tree, obj_id, min, max, (uint32_t)rank);
+    if (err != RT_None) {
+        HGOTO_ERROR(H5E_DATASET, H5E_CANTREMOVE, FAIL, "R-tree deletion failed");
+    }
+
+done:
+    H5MM_free(min);
+    H5MM_free(max);
+    FUNC_LEAVE_NOAPI(ret_value)
+}
+
+/*
+ * Check whether a given mapping entry may be
+ * stored on a spatial tree 
+ */
+herr_t
+rtree_should_insert(void *mapping_entry, bool *should_insert)
+{
+    herr_t ret_value = SUCCEED;
+    H5S_t *vspace = NULL;
+    H5S_t *src_space = NULL;
+    hsize_t virt_nelems = 0;
+    hsize_t src_nelems = 0;
+
+    if (!mapping_entry || !should_insert) {
+        ret_value = FAIL;
+        goto done;
+    }
+
+    H5O_storage_virtual_ent_t *entry = (H5O_storage_virtual_ent_t *)mapping_entry;
+
+    /* Do not insert mappings with an unlimited dimension */
+    // TODO - Behavior on selects not found
+    if ((vspace = entry->source_dset.virtual_select) != NULL)
+        virt_nelems = (hsize_t)H5S_GET_SELECT_NPOINTS(vspace);
+
+    if ((src_space = entry->source_dset.clipped_source_select) != NULL)
+        src_nelems = (hsize_t)H5S_GET_SELECT_NPOINTS(src_space);
+
+    if (virt_nelems == H5S_UNLIMITED || src_nelems == H5S_UNLIMITED) {
+        *should_insert = false;
+        goto done;
+    }
+
+    /* Do not insert printf-style mappings */
+    if (entry->psfn_nsubs > 0 || entry->psdn_nsubs > 0) {
+        *should_insert = false;
+        goto done;
+    }
+
+    /* Otherwise, we can insert it */
+    *should_insert = true;
+done:
+    return ret_value;
+}
+
