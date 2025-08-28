@@ -578,7 +578,6 @@ typedef struct H5O_storage_virtual_ent_t {
     UT_hash_handle hh_source_dset; /* Hash handle for this entry in the source dataset name hash table */
 } H5O_storage_virtual_ent_t;
 
-
 #define INITIAL_TREE_CAPACITY 8
 
 /* Forward declarations */
@@ -598,8 +597,8 @@ typedef struct H5O_storage_virtual_t {
     /* Stored in heap */
     size_t                     list_nused; /* Number of array elements used in list    */
     H5O_storage_virtual_ent_t *list;       /* Array of virtual dataset mapping entries */
-    IndexH tree;
-    bool *is_in_tree; /* List of the indices in 'list' that are stored in tree for quick access 
+    IndexH                     tree;
+    bool *is_in_tree; /* List of the indices in 'list' that are stored in tree for quick access
                        * Some mappings cannot be stored in the tree and must be searched manually */
 
     /* Not stored */
