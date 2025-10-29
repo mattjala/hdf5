@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        openbsd-version: ['7.5']
+        openbsd-version: ['7.5', '7.8']
 
     steps:
       - name: Checkout repository
@@ -74,6 +74,7 @@ jobs:
               -DHDF5_BUILD_FORTRAN:BOOL=OFF \
               -DHDF5_BUILD_JAVA:BOOL=OFF \
               -DHDF5_BUILD_DOC:BOOL=OFF \
+              -DHDF5_TEST_VFD=ON \
               -DHDF5_BUILD_HL_LIB:BOOL=OFF \
               -DHDF5_ENABLE_ZLIB_SUPPORT:BOOL=ON \
               -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=ON \
