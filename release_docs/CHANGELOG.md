@@ -54,6 +54,38 @@ We would like to thank the many HDF5 community members who contributed to this r
 
 ## Library
 
+### Added HDF5_ENABLE_INTERNAL_THREADS, separating internal threading from API thread safety
+
+   HDF5_ENABLE_CONCURRENCY provides two independent things: the thread pool the
+   library uses to parallelize the internals of a single API call, and thread
+   safety for the API itself. The new HDF5_ENABLE_INTERNAL_THREADS option
+   provides only the former; HDF5_ENABLE_CONCURRENCY remains a superset.
+
+   This matters for the interfaces layered over the C library. The high-level,
+   Fortran, Java and C++ interfaces do not hoist the API lock over their own
+   multi-call operations, so they cannot honor a thread safety claim -- but
+   they are unaffected by the library parallelizing its own internals, which
+   introduces no additional application threads. HDF5_ENABLE_INTERNAL_THREADS
+   is therefore compatible with all of them, and H5is_library_threadsafe()
+   correctly reports false for such a build.
+
+   Internally, thread-local library state (the API context stack and the error
+   stack) is now selected by H5_HAVE_THREAD_LOCAL_STATE rather than by
+   H5_HAVE_THREADSAFE_API, since the library's own worker threads require it
+   whether or not the API is thread-safe.
+
+### Added support for internally concurrent multithreaded reads of chunked datasets
+
+   Also added 3 new functions to support this: H5TSset_internal_threads(),
+   H5Pset_io_threads(), and H5Pget_io_threads(). When the library is configured
+   with HDF5_ENABLE_CONCURRENCY=ON, the number of internal threads is greater
+   than zero (set by H5TSset_internal_threads()), and I/O threads are not
+   disabled (using H5Pset_io_threads()), the library will concurrently read from
+   disk, unfilter, and scatter to memory all chunks in a read operation on a
+   chunked dataset. Currently each of these sub-operations is serialized
+   (protected by a mutex) so there is not yet likely to be any performance
+   improvement.
+
 ## Parallel Library
 
 ## Fortran Library
