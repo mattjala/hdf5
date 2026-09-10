@@ -1126,6 +1126,43 @@ if (HDF5_ENABLE_CONCURRENCY)
   endif ()
 
   set (H5_HAVE_CONCURRENCY 1)
+
+  # Concurrency is a superset of internal threading
+  set (HDF5_ENABLE_INTERNAL_THREADS ON)
+endif ()
+
+#-----------------------------------------------------------------------------
+# Option to use the library's internal thread pool without API thread-safety
+#
+# This provides the thread pool that the library uses to parallelize the
+# internals of a single API call, and the thread-local state those worker
+# threads require, but not the API lock.  The library therefore does not claim
+# that its API may be called from several application threads at once, which
+# is why this option -- unlike HDF5_ENABLE_CONCURRENCY -- is compatible with
+# the high-level, Fortran, Java and C++ interfaces: those cannot honor such a
+# claim, but are unaffected by the library parallelizing its own internals.
+#-----------------------------------------------------------------------------
+if (HDF5_ENABLE_INTERNAL_THREADS)
+  # check for unsupported options
+  if (WIN32)
+    if (BUILD_STATIC_LIBS)
+      message (FATAL_ERROR " **** internal threads option not supported with static library **** ")
+    endif ()
+  endif ()
+  if (HDF5_ENABLE_PARALLEL)
+    if (NOT HDF5_ALLOW_UNSUPPORTED)
+      message (FATAL_ERROR " **** Parallel and internal threads options are not supported, override with HDF5_ALLOW_UNSUPPORTED option **** ")
+    else ()
+      message (VERBOSE " **** Allowing unsupported parallel and internal threads options **** ")
+    endif ()
+  endif ()
+
+  # Check for threading package
+  if (NOT Threads_FOUND)
+    message (FATAL_ERROR " **** internal threads option requires a threading package and none was found **** ")
+  endif ()
+
+  set (H5_HAVE_INTERNAL_THREADS 1)
 endif ()
 
 #-----------------------------------------------------------------------------
