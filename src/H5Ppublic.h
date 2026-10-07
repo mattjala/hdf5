@@ -8800,6 +8800,62 @@ H5_DLL herr_t H5Pset_modify_write_buf(hid_t plist_id, bool modify_write_buf);
  */
 H5_DLL herr_t H5Pget_modify_write_buf(hid_t plist_id, bool *modify_write_buf);
 
+#ifdef H5_HAVE_THREADS
+/**
+ *
+ * \ingroup DXPL
+ *
+ * \brief Allows the library to use internal multithreading to accelerate I/O
+ *
+ * \dxpl_id{plist_id}
+ * \param[in] io_threads_enabled Whether the library can use internal multithreading to accelerate I/O
+ *
+ * \return \herr_t
+ *
+ * \details H5Pset_io_threads() sets whether the library is allowed to use internal multithreading to
+ * accelerate I/O. By default this is set to true. However, internal threading must be enabled using
+ * H5TSset_internal_threads() before the library can use threads to accelerate I/O.
+ * H5Pset_io_threads() can be used to disable this acceleration for a specific operation even if
+ * internal threading is enabled globally.
+ *
+ * \note    This function is only present when the library is built with
+ *          thread support, i.e. when \c H5_HAVE_THREADS is defined.  This is
+ *          the usual case; the exceptions are builds without a threading
+ *          package and static libraries on Windows.
+ *
+ * \since 2.3.0
+ *
+ */
+H5_DLL herr_t H5Pset_io_threads(hid_t plist_id, bool io_threads_enabled);
+
+/**
+ *
+ * \ingroup DXPL
+ *
+ * \brief Retrieves the "I/O threads enabled" property
+ *
+ * \dxpl_id{plist_id}
+ * \param[out] io_threads_enabled Whether the library can use internal multithreading to accelerate I/O
+ *
+ * \return \herr_t
+ *
+ * \details H5Pget_io_threads() gets the "I/O threads enabled" property from the dataset transfer
+ * property list \p plist_id. This property determines whether the library is allowed to use internal
+ * multithreading to accelerate I/O. The default value for io_threads_enabled is true. However,
+ * internal threading must be enabled using H5TSset_internal_threads() before the library can use
+ * threads to accelerate I/O.
+ *
+ * \note    This function is only present when the library is built with
+ *          thread support, i.e. when \c H5_HAVE_THREADS is defined.  This is
+ *          the usual case; the exceptions are builds without a threading
+ *          package and static libraries on Windows.
+ *
+ * \since 2.3.0
+ *
+ */
+H5_DLL herr_t H5Pget_io_threads(hid_t plist_id, bool *io_threads_enabled);
+#endif /* H5_HAVE_THREADS */
+
 /**
  * \ingroup LCPL
  *
