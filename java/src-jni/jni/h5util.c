@@ -20,6 +20,61 @@ extern "C" {
 #include <stdlib.h>
 #include "hdf5.h"
 #include "h5util.h"
+#include <unistd.h>
+#include <sys/stat.h>
+#define EXPDBG(...)                                                \
+    do {                                                           \
+        fprintf(stderr, "[EXPDBG] " __VA_ARGS__);                  \
+        fflush(stderr);                                            \
+    } while (0)
+
+/* DEBUG ONLY: log every jump to done with its line */
+#undef H5_LIBRARY_ERROR
+#define H5_LIBRARY_ERROR(env)                                                                                \
+    do {                                                                                                     \
+        EXPDBG("      H5_LIBRARY_ERROR line %d\n", __LINE__);                                                \
+        h5libraryError(env);                                                                                 \
+        goto done;                                                                                           \
+    } while (0)
+#undef H5_JNI_FATAL_ERROR
+#define H5_JNI_FATAL_ERROR(env, message)                                                                     \
+    do {                                                                                                     \
+        EXPDBG("      H5_JNI_FATAL_ERROR line %d\n", __LINE__);                                              \
+        h5JNIFatalError(env, message);                                                                       \
+        goto done;                                                                                           \
+    } while (0)
+#undef H5_ASSERTION_ERROR
+#define H5_ASSERTION_ERROR(env, message)                                                                     \
+    do {                                                                                                     \
+        EXPDBG("      H5_ASSERTION_ERROR line %d\n", __LINE__);                                              \
+        h5assertion(env, message);                                                                           \
+        goto done;                                                                                           \
+    } while (0)
+#undef H5_OUT_OF_MEMORY_ERROR
+#define H5_OUT_OF_MEMORY_ERROR(env, message)                                                                 \
+    do {                                                                                                     \
+        EXPDBG("      H5_OUT_OF_MEMORY_ERROR line %d\n", __LINE__);                                          \
+        h5outOfMemory(env, message);                                                                         \
+        goto done;                                                                                           \
+    } while (0)
+#undef H5_NULL_ARGUMENT_ERROR
+#define H5_NULL_ARGUMENT_ERROR(env, message)                                                                 \
+    do {                                                                                                     \
+        EXPDBG("      H5_NULL_ARGUMENT_ERROR line %d\n", __LINE__);                                          \
+        h5nullArgument(env, message);                                                                        \
+        goto done;                                                                                           \
+    } while (0)
+#undef CHECK_JNI_EXCEPTION
+#define CHECK_JNI_EXCEPTION(envptr, clearException)                                                          \
+    do {                                                                                                     \
+        if (JNI_TRUE == (*envptr)->ExceptionCheck(envptr)) {                                                 \
+            EXPDBG("      CHECK_JNI_EXCEPTION pending line %d\n", __LINE__);                                 \
+            if (JNI_TRUE == clearException)                                                                  \
+                (*envptr)->ExceptionClear(envptr);                                                           \
+            else                                                                                             \
+                goto done;                                                                                   \
+        }                                                                                                    \
+    } while (0)
 
 /* size of hyperslab buffer when a dataset is bigger than H5TOOLS_MALLOCSIZE */
 hsize_t H5TOOLS_BUFSIZE    = (32 * 1024 * 1024); /* 32 MB */
@@ -897,6 +952,8 @@ h5str_sprintf(JNIEnv *env, h5str_t *out_str, hid_t container, hid_t tid, void *i
         if (snprintf(fmt_ullong, sizeof(fmt_ullong), "%%llu") < 0)
             H5_JNI_FATAL_ERROR(ENVONLY, "h5str_sprintf: snprintf failure");
     } /* end if */
+    EXPDBG("      sprintf enter tid=%lld class=%d size=%zu expand=%d out_len=%zu\n", (long long)tid, (int)tclass,
+           typeSize, expand_data, strlen(out_str->s));
     switch (tclass) {
         case H5T_FLOAT: {
             switch (typeSize) {
@@ -1606,6 +1663,7 @@ h5str_sprintf(JNIEnv *env, h5str_t *out_str, hid_t container, hid_t tid, void *i
     retVal = strlen(out_str->s);
 
 done:
+    EXPDBG("      sprintf exit class=%d retVal=%zu out=[%.80s]\n", (int)tclass, retVal, out_str ? out_str->s : "(null)");
     if (mtid >= 0)
         H5Tclose(mtid);
 
@@ -3232,6 +3290,8 @@ h5str_dump_simple_dset(JNIEnv *env, FILE *stream, hid_t dset, int binary_order)
                 p_nelmts *= total_size[i];
         } /* end if */
 
+        EXPDBG("  dump_dset order=%d p_nelmts=%llu sndims=%d class=%d size=%zu\n", binary_order,
+               (unsigned long long)p_nelmts, sndims, (int)H5Tget_class(p_type), H5Tget_size(p_type));
         if (p_nelmts > 0) {
             /* Check if we have VL data in the dataset's datatype */
             if (h5str_detect_vlen(p_type) != 0)
@@ -3297,6 +3357,8 @@ h5str_dump_simple_dset(JNIEnv *env, FILE *stream, hid_t dset, int binary_order)
                     if (H5Dread(dset, p_type, sm_space, f_space, H5P_DEFAULT, sm_buf) < 0)
                         H5_LIBRARY_ERROR(ENVONLY);
 
+                    EXPDBG("  dump_dset hs_nelmts=%llu sm_nbytes=%llu\n", (unsigned long long)hs_nelmts,
+                           (unsigned long long)sm_nbytes);
                     if (binary_order == 99) {
                         if (h5str_dump_simple_data(ENVONLY, stream, dset, p_type, sm_buf, hs_nelmts) < 0)
                             CHECK_JNI_EXCEPTION(ENVONLY, JNI_FALSE);
@@ -3439,6 +3501,8 @@ h5str_dump_simple_mem(JNIEnv *env, FILE *stream, hid_t attr_id, int binary_order
                 p_nelmts *= total_size[i];
         } /* end if */
 
+        EXPDBG("  dump_mem order=%d p_nelmts=%llu sndims=%d class=%d size=%zu\n", binary_order,
+               (unsigned long long)p_nelmts, sndims, (int)H5Tget_class(p_type), H5Tget_size(p_type));
         if (p_nelmts > 0) {
             /* Check if we have VL data in the dataset's datatype */
             if (h5str_detect_vlen(p_type) != 0)
@@ -3570,6 +3634,8 @@ h5str_dump_simple_data(JNIEnv *env, FILE *stream, hid_t container, hid_t type, v
 
         if (!(bytes_in = h5str_sprintf(ENVONLY, &buffer, container, type, memref, 1)))
             CHECK_JNI_EXCEPTION(ENVONLY, JNI_FALSE);
+        EXPDBG("    elem %llu bytes_in=%zu strlen=%zu str=[%.120s] ftell=%ld\n", (unsigned long long)i,
+               bytes_in, buffer.s ? strlen(buffer.s) : 0, buffer.s ? buffer.s : "(null)", ftell(stream));
 
         if ((i > 0) && (bytes_in > 0)) {
             if (fprintf(stream, ", ") < 0)
@@ -3592,6 +3658,7 @@ h5str_dump_simple_data(JNIEnv *env, FILE *stream, hid_t container, hid_t type, v
         H5_JNI_FATAL_ERROR(ENVONLY, "h5str_dump_simple_data: fprintf failure");
 
 done:
+    EXPDBG("    dump_data end ret=%d ftell=%ld\n", ret_value, ftell(stream));
     if (buffer.s)
         h5str_free(&buffer);
 
@@ -4170,16 +4237,26 @@ Java_hdf_hdf5lib_H5_H5export_1dataset(JNIEnv *env, jclass clss, jstring file_exp
 
     if (NULL == (stream = fopen(file_export, "w+")))
         H5_JNI_FATAL_ERROR(ENVONLY, "fopen failed");
+    {
+        char cwd[1024];
+        EXPDBG("export file=%s obj=%s order=%d cwd=%s\n", file_export, object_name, (int)binary_order,
+               getcwd(cwd, sizeof cwd) ? cwd : "?");
+    }
 
     if ((ret_val = h5str_dump_simple_dset(ENVONLY, stream, dataset_id, binary_order)) < 0)
         H5_ASSERTION_ERROR(ENVONLY, "h5str_dump_simple_dset failed");
 
+    EXPDBG("  before fclose ret_val=%d ftell=%ld\n", (int)ret_val, stream ? ftell(stream) : -1L);
     if (stream) {
-        fclose(stream);
+        int fc = fclose(stream);
         stream = NULL;
+        struct stat st;
+        int    sr = stat(file_export, &st);
+        EXPDBG("  fclose=%d stat=%d size=%lld\n", fc, sr, sr == 0 ? (long long)st.st_size : -1LL);
     }
 
 done:
+    EXPDBG("  done stream_open=%d pending_exc=%d\n", stream != NULL, (int)ENVPTR->ExceptionCheck(ENVONLY));
     if (stream)
         fclose(stream);
     if (file_export)
@@ -4225,16 +4302,26 @@ Java_hdf_hdf5lib_H5_H5export_1attribute(JNIEnv *env, jclass clss, jstring file_e
 
     if (NULL == (stream = fopen(file_export, "w+")))
         H5_JNI_FATAL_ERROR(ENVONLY, "fopen failed");
+    {
+        char cwd[1024];
+        EXPDBG("export file=%s obj=%s order=%d cwd=%s\n", file_export, object_name, (int)binary_order,
+               getcwd(cwd, sizeof cwd) ? cwd : "?");
+    }
 
     if ((ret_val = h5str_dump_simple_mem(ENVONLY, stream, attr_id, binary_order)) < 0)
         H5_ASSERTION_ERROR(ENVONLY, "h5str_dump_simple_dset failed");
 
+    EXPDBG("  before fclose ret_val=%d ftell=%ld\n", (int)ret_val, stream ? ftell(stream) : -1L);
     if (stream) {
-        fclose(stream);
+        int fc = fclose(stream);
         stream = NULL;
+        struct stat st;
+        int    sr = stat(file_export, &st);
+        EXPDBG("  fclose=%d stat=%d size=%lld\n", fc, sr, sr == 0 ? (long long)st.st_size : -1LL);
     }
 
 done:
+    EXPDBG("  done stream_open=%d pending_exc=%d\n", stream != NULL, (int)ENVPTR->ExceptionCheck(ENVONLY));
     if (stream)
         fclose(stream);
     if (file_export)

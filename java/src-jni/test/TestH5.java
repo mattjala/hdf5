@@ -708,6 +708,53 @@ public class TestH5 {
         }
     }
 
+    // DEBUG ONLY: macOS empty text export investigation
+    private static String _hex(byte[] b)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < b.length && i < 256; i++)
+            sb.append(String.format("%02x", b[i]));
+        return sb.toString();
+    }
+
+    // DEBUG ONLY: macOS empty text export investigation
+    private final void _debugExport(String dsetName, String attrName, String expectedText,
+                                    byte[] expectedBinary) throws Exception
+    {
+        java.nio.file.Path tp = Paths.get(EXPORT_TYPES_TEXT);
+        java.nio.file.Path bp = Paths.get(EXPORT_TYPES_BIN);
+        System.err.println("[EXPDBG-J] " + dsetName + " attr=" + attrName +
+                           " user.dir=" + System.getProperty("user.dir") +
+                           " os=" + System.getProperty("os.name") + "/" + System.getProperty("os.arch"));
+        System.err.println("[EXPDBG-J]   text " + tp.toAbsolutePath() + " exists=" + Files.exists(tp) +
+                           " size=" + (Files.exists(tp) ? Files.size(tp) : -1) +
+                           " hex=" + (Files.exists(tp) ? _hex(Files.readAllBytes(tp)) : "-"));
+        System.err.println("[EXPDBG-J]   expected text hex=" +
+                           _hex((expectedText + "\n").getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        System.err.println("[EXPDBG-J]   bin  " + bp.toAbsolutePath() + " exists=" + Files.exists(bp) +
+                           " size=" + (Files.exists(bp) ? Files.size(bp) : -1) +
+                           " hex=" + (Files.exists(bp) ? _hex(Files.readAllBytes(bp)) : "-"));
+        System.err.println("[EXPDBG-J]   expected bin hex=" + _hex(expectedBinary));
+        System.err.println("[EXPDBG-J]   h5 size=" + Files.size(Paths.get(H5_TYPES_FILE)));
+        long did = H5.H5Dopen(H5fid, dsetName, HDF5Constants.H5P_DEFAULT);
+        long sid = H5.H5Dget_space(did);
+        System.err.println("[EXPDBG-J]   dset npoints=" + H5.H5Sget_simple_extent_npoints(sid) +
+                           " storage=" + H5.H5Dget_storage_size(did));
+        H5.H5Sclose(sid);
+        if (attrName != null) {
+            long aid  = H5.H5Aopen(did, attrName, HDF5Constants.H5P_DEFAULT);
+            long asid = H5.H5Aget_space(aid);
+            System.err.println("[EXPDBG-J]   attr npoints=" + H5.H5Sget_simple_extent_npoints(asid));
+            H5.H5Sclose(asid);
+            H5.H5Aclose(aid);
+        }
+        H5.H5Dclose(did);
+        try (java.util.stream.Stream<java.nio.file.Path> ls = Files.list(Paths.get("."))) {
+            ls.filter(x -> x.getFileName().toString().toLowerCase().contains("export"))
+                .forEach(x -> System.err.println("[EXPDBG-J]   dir: " + x));
+        }
+    }
+
     /**
      * Exports a dataset of H5_TYPES_FILE, or its attribute attrName, as text and as native order
      * binary and compares both.
@@ -727,6 +774,7 @@ public class TestH5 {
                 H5.H5export_attribute(EXPORT_TYPES_BIN, H5did, attrName, 1);
             }
 
+            _debugExport(dsetName, attrName, expectedText, expectedBinary);
             assertEquals(dsetName + " text", Arrays.asList(expectedText),
                          Files.readAllLines(Paths.get(EXPORT_TYPES_TEXT)));
             assertArrayEquals(dsetName + " binary", expectedBinary,
